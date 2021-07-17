@@ -48,6 +48,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -199,6 +200,7 @@ func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Functio
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
 func visitInstr(fr *frame, instr ssa.Instruction) continuation {
+	log.Printf("instr %T %+v\n", instr, instr)
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
 		// no-op
@@ -345,17 +347,28 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 	case *ssa.IndexAddr:
 		x := fr.get(instr.X)
 		idx := fr.get(instr.Index)
-		switch x := x.(type) {
-		case []value:
-			fr.env[instr] = &x[asInt(idx)]
-		case *value: // *array
-			fr.env[instr] = &(*x).(array)[asInt(idx)]
+		v := reflect.ValueOf(x)
+		switch v.Kind() {
+		case reflect.Slice:
+		case reflect.Ptr:
+			v = v.Elem()
 		default:
 			panic(fmt.Sprintf("unexpected x type in IndexAddr: %T", x))
 		}
+		fr.env[instr] = v.Index(asInt(idx)).Addr().Interface()
+		// switch x := x.(type) {
+		// case []value:
+		// 	fr.env[instr] = &x[asInt(idx)]
+		// case *value: // *array
+		// 	fr.env[instr] = &(*x).(array)[asInt(idx)]
+		// default:
+		// 	panic(fmt.Sprintf("unexpected x type in IndexAddr: %T", x))
+		// }
 
 	case *ssa.Index:
-		fr.env[instr] = fr.get(instr.X).(array)[asInt(fr.get(instr.Index))]
+		x := fr.get(instr.X)
+		idx := fr.get(instr.Index)
+		fr.env[instr] = reflect.ValueOf(x).Index(asInt(idx)).Interface()
 
 	case *ssa.Lookup:
 		fr.env[instr] = lookup(instr, fr.get(instr.X), fr.get(instr.Index))

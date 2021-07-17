@@ -236,16 +236,17 @@ func zero(t types.Type) value {
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
 func slice(x, lo, hi, max value) value {
 	var Len, Cap int
-	switch x := x.(type) {
-	case string:
-		Len = len(x)
-	case []value:
-		Len = len(x)
-		Cap = cap(x)
-	case *value: // *array
-		a := (*x).(array)
-		Len = len(a)
-		Cap = cap(a)
+	v := reflect.ValueOf(x)
+	switch v.Kind() {
+	case reflect.String:
+		Len = v.Len()
+	case reflect.Slice:
+		Len = v.Len()
+		Cap = v.Cap()
+	case reflect.Ptr:
+		v = v.Elem()
+		Len = v.Len()
+		Cap = v.Cap()
 	}
 
 	l := 0
@@ -263,14 +264,11 @@ func slice(x, lo, hi, max value) value {
 		m = asInt(max)
 	}
 
-	switch x := x.(type) {
-	case string:
-		return x[l:h]
-	case []value:
-		return x[l:h:m]
-	case *value: // *array
-		a := (*x).(array)
-		return []value(a)[l:h:m]
+	switch v.Kind() {
+	case reflect.String:
+		return v.Slice(l, h).Interface()
+	case reflect.Slice, reflect.Array:
+		return v.Slice3(l, h, m).Interface()
 	}
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
 }
