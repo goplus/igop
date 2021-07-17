@@ -374,7 +374,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		}
 
 	case *ssa.TypeAssert:
-		fr.env[instr] = typeAssert(fr.i, instr, fr.get(instr.X).(iface))
+		fr.env[instr] = typeAssert(fr.i, instr, fr.get(instr.X))
 
 	case *ssa.MakeClosure:
 		var bindings []value

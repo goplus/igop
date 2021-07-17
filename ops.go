@@ -881,33 +881,57 @@ func unop(instr *ssa.UnOp, x value) value {
 // It returns the extracted value on success, and panics on failure,
 // unless instr.CommaOk, in which case it always returns a "value,ok" tuple.
 //
-func typeAssert(i *interpreter, instr *ssa.TypeAssert, itf iface) value {
+func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	var v value
-	err := ""
-	if itf.t == nil {
-		err = fmt.Sprintf("interface conversion: interface is nil, not %s", instr.AssertedType)
-
-	} else if idst, ok := instr.AssertedType.Underlying().(*types.Interface); ok {
-		v = itf
-		err = checkInterface(i, idst, itf)
-
-	} else if types.Identical(itf.t, instr.AssertedType) {
-		v = itf.v // extract value
-
+	var err error
+	typ := i.toType(instr.AssertedType)
+	rv := reflect.ValueOf(iv)
+	if typ.Kind() == reflect.Interface {
+		if !rv.Type().ConvertibleTo(typ) {
+			err = fmt.Errorf("interface conversion: %v cannot be converted to type %v", instr.X.Type(), typ)
+		} else {
+			v = rv.Convert(typ).Interface()
+		}
+	} else if typ != rv.Type() {
+		err = fmt.Errorf("interface convert: %v is %v, not %v", instr.X.Type(), rv.Type(), typ)
 	} else {
-		err = fmt.Sprintf("interface conversion: interface is %s, not %s", itf.t, instr.AssertedType)
+		v = iv
 	}
-
-	if err != "" {
+	if err != nil {
 		if !instr.CommaOk {
 			panic(err)
 		}
-		return tuple{zero(instr.AssertedType), false}
+		return tuple{reflect.Zero(typ).Interface(), false}
 	}
 	if instr.CommaOk {
 		return tuple{v, true}
 	}
 	return v
+	// err := ""
+	// if itf.t == nil {
+	// 	err = fmt.Sprintf("interface conversion: interface is nil, not %s", instr.AssertedType)
+
+	// } else if idst, ok := instr.AssertedType.Underlying().(*types.Interface); ok {
+	// 	v = itf
+	// 	err = checkInterface(i, idst, itf)
+
+	// } else if types.Identical(itf.t, instr.AssertedType) {
+	// 	v = itf.v // extract value
+
+	// } else {
+	// 	err = fmt.Sprintf("interface conversion: interface is %s, not %s", itf.t, instr.AssertedType)
+	// }
+
+	// if err != "" {
+	// 	if !instr.CommaOk {
+	// 		panic(err)
+	// 	}
+	// 	return tuple{zero(instr.AssertedType), false}
+	// }
+	// if instr.CommaOk {
+	// 	return tuple{v, true}
+	// }
+	// return v
 }
 
 // If CapturedOutput is non-nil, all writes by the interpreted program
