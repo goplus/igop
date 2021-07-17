@@ -673,7 +673,8 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		goroutines: 1,
 		ityp:       make(map[interface{}]types.Type),
 	}
-	i.ctx = xtypes.NewContext(func(typ types.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
+	i.ctx = xtypes.NewContext(func(fn *types.Func) func([]reflect.Value) []reflect.Value {
+		typ := fn.Type().(*types.Signature).Recv().Type()
 		if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 			return func(args []reflect.Value) []reflect.Value {
 				iargs := make([]value, len(args))
