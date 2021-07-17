@@ -53,6 +53,8 @@ import (
 	"runtime"
 	"sync/atomic"
 
+	"github.com/goplus/reflectx"
+	"github.com/goplus/xtypes"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -76,16 +78,26 @@ type methodSet map[string]*ssa.Function
 
 // State shared between all interpreted goroutines.
 type interpreter struct {
-	osArgs             []value              // the value of os.Args
-	prog               *ssa.Program         // the SSA program
-	globals            map[ssa.Value]*value // addresses of global variables (immutable)
-	mode               Mode                 // interpreter options
-	reflectPackage     *ssa.Package         // the fake reflect package
-	errorMethods       methodSet            // the method set of reflect.error, which implements the error interface.
-	rtypeMethods       methodSet            // the method set of rtype, which implements the reflect.Type interface.
-	runtimeErrorString types.Type           // the runtime.errorString type
-	sizes              types.Sizes          // the effective type-sizing function
-	goroutines         int32                // atomically updated
+	osArgs             []value             // the value of os.Args
+	prog               *ssa.Program        // the SSA program
+	globals            map[ssa.Value]value // addresses of global variables (immutable)
+	mode               Mode                // interpreter options
+	reflectPackage     *ssa.Package        // the fake reflect package
+	errorMethods       methodSet           // the method set of reflect.error, which implements the error interface.
+	rtypeMethods       methodSet           // the method set of rtype, which implements the reflect.Type interface.
+	runtimeErrorString types.Type          // the runtime.errorString type
+	sizes              types.Sizes         // the effective type-sizing function
+	goroutines         int32               // atomically updated
+	ctx                xtypes.Context
+	ityp               map[interface{}]types.Type
+}
+
+func (i *interpreter) toType(typ types.Type) reflect.Type {
+	t, err := xtypes.ToType(typ, i.ctx)
+	if err != nil {
+		panic(fmt.Sprintf("toType %v error: %v", typ, err))
+	}
+	return t
 }
 
 type deferred struct {
@@ -211,7 +223,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.env[instr] = conv(instr.Type(), instr.X.Type(), fr.get(instr.X))
 
 	case *ssa.MakeInterface:
-		fr.env[instr] = iface{t: instr.X.Type(), v: fr.get(instr.X)}
+		typ := fr.i.toType(instr.Type())
+		i := reflect.New(typ).Elem()
+		i.Set(reflect.ValueOf(fr.get(instr.X)))
+		fr.env[instr] = i.Interface()
+		fr.i.ityp[i.Interface()] = instr.X.Type()
+		//fr.env[instr] = iface{t: instr.X.Type(), v: fr.get(instr.X)}
 
 	case *ssa.Extract:
 		fr.env[instr] = fr.get(instr.Tuple).(tuple)[instr.Index]
@@ -244,7 +261,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.get(instr.Chan).(chan value) <- fr.get(instr.X)
 
 	case *ssa.Store:
-		store(deref(instr.Addr.Type()), fr.get(instr.Addr).(*value), fr.get(instr.Val))
+		x := reflect.ValueOf(fr.get(instr.Addr))
+		v := reflect.ValueOf(fr.get(instr.Val))
+		reflectx.SetValue(x.Elem(), v)
+		//store(deref(instr.Addr.Type()), fr.get(instr.Addr).(*value), fr.get(instr.Val))
 
 	case *ssa.If:
 		succ := 1
@@ -279,16 +299,19 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.env[instr] = make(chan value, asInt(fr.get(instr.Size)))
 
 	case *ssa.Alloc:
-		var addr *value
+		typ := fr.i.toType(deref(instr.Type()))
+		//var addr *value
 		if instr.Heap {
 			// new
-			addr = new(value)
-			fr.env[instr] = addr
+			//addr = new(value)
+			//fr.env[instr] = addr
+			fr.env[instr] = reflect.New(typ).Interface()
 		} else {
 			// local
-			addr = fr.env[instr].(*value)
+			//addr = fr.env[instr].(*value)
+			fr.env[instr] = reflect.New(typ).Interface()
 		}
-		*addr = zero(deref(instr.Type()))
+		//*addr = zero(deref(instr.Type()))
 
 	case *ssa.MakeSlice:
 		slice := make([]value, asInt(fr.get(instr.Cap)))
@@ -312,10 +335,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.env[instr] = fr.get(instr.Iter).(iter).next()
 
 	case *ssa.FieldAddr:
-		fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
+		fr.env[instr] = reflect.ValueOf(fr.get(instr.X)).Elem().Field(instr.Field).Addr().Interface()
+		//fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
 
 	case *ssa.Field:
-		fr.env[instr] = fr.get(instr.X).(structure)[instr.Field]
+		fr.env[instr] = reflect.ValueOf(fr.get(instr.X)).Elem().Field(instr.Field).Interface()
+		//fr.env[instr] = fr.get(instr.X).(structure)[instr.Field]
 
 	case *ssa.IndexAddr:
 		x := fr.get(instr.X)
@@ -431,17 +456,18 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		fn = v
 	} else {
 		// Interface method invocation.
-		recv := v.(iface)
-		if recv.t == nil {
+		t, ok := fr.i.ityp[v]
+		// recv := v.(iface)
+		if !ok {
 			panic("method invoked on nil interface")
 		}
-		if f := lookupMethod(fr.i, recv.t, call.Method); f == nil {
+		if f := lookupMethod(fr.i, t, call.Method); f == nil {
 			// Unreachable in well-typed programs.
-			panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", recv.t, call.Method))
+			panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
 		} else {
 			fn = f
 		}
-		args = append(args, recv.v)
+		args = append(args, v)
 	}
 	for _, arg := range call.Args {
 		args = append(args, fr.get(arg))
@@ -621,10 +647,10 @@ func doRecover(caller *frame) value {
 
 // setGlobal sets the value of a system-initialized global variable.
 func setGlobal(i *interpreter, pkg *ssa.Package, name string, v value) {
-	if g, ok := i.globals[pkg.Var(name)]; ok {
-		*g = v
-		return
-	}
+	// if g, ok := i.globals[pkg.Var(name)]; ok {
+	// 	*g = v
+	// 	return
+	// }
 	panic("no global variable: " + pkg.Pkg.Path() + "." + name)
 }
 
@@ -641,11 +667,34 @@ func setGlobal(i *interpreter, pkg *ssa.Package, name string, v value) {
 func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename string, args []string) (exitCode int) {
 	i := &interpreter{
 		prog:       mainpkg.Prog,
-		globals:    make(map[ssa.Value]*value),
+		globals:    make(map[ssa.Value]value),
 		mode:       mode,
 		sizes:      sizes,
 		goroutines: 1,
+		ityp:       make(map[interface{}]types.Type),
 	}
+	i.ctx = xtypes.NewContext(func(typ types.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
+		if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
+			return func(args []reflect.Value) []reflect.Value {
+				iargs := make([]value, len(args))
+				for i := 0; i < len(args); i++ {
+					iargs[i] = args[i].Interface()
+				}
+				r := call(i, nil, token.NoPos, f, iargs)
+				if v, ok := r.(tuple); ok {
+					res := make([]reflect.Value, len(v))
+					for i := 0; i < len(v); i++ {
+						res[i] = reflect.ValueOf(v[i])
+					}
+					return res
+				} else if r != nil {
+					return []reflect.Value{reflect.ValueOf(r)}
+				}
+				return nil
+			}
+		}
+		return nil
+	})
 	runtimePkg := i.prog.ImportedPackage("runtime")
 	if runtimePkg == nil {
 		panic("ssa.Program doesn't include runtime package")
@@ -666,6 +715,10 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 			case *ssa.Global:
 				cell := zero(deref(v.Type()))
 				i.globals[v] = &cell
+				if v.Pkg.Pkg.Path() == "main" {
+					typ := i.toType(deref(v.Type()))
+					i.globals[v] = reflect.New(typ).Interface()
+				}
 			}
 		}
 	}

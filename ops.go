@@ -844,7 +844,8 @@ func unop(instr *ssa.UnOp, x value) value {
 			return -x
 		}
 	case token.MUL:
-		return load(deref(instr.X.Type()), x.(*value))
+		return reflect.ValueOf(x).Elem().Interface()
+		//return load(deref(instr.X.Type()), x.(*value))
 	case token.NOT:
 		return !x.(bool)
 	case token.XOR:
@@ -1063,7 +1064,7 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 
 	case "ssa:wrapnilchk":
 		recv := args[0]
-		if recv.(*value) == nil {
+		if recv == nil {
 			recvType := args[1]
 			methodName := args[2]
 			panic(fmt.Sprintf("value method (%s).%s called using nil *%s pointer",
