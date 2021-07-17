@@ -316,12 +316,16 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		//*addr = zero(deref(instr.Type()))
 
 	case *ssa.MakeSlice:
-		slice := make([]value, asInt(fr.get(instr.Cap)))
-		tElt := instr.Type().Underlying().(*types.Slice).Elem()
-		for i := range slice {
-			slice[i] = zero(tElt)
-		}
-		fr.env[instr] = slice[:asInt(fr.get(instr.Len))]
+		typ := fr.i.toType(instr.Type())
+		Len := asInt(fr.get(instr.Len))
+		Cap := asInt(fr.get(instr.Cap))
+		fr.env[instr] = reflect.MakeSlice(typ, Len, Cap).Interface()
+		// slice := make([]value, asInt(fr.get(instr.Cap)))
+		// tElt := instr.Type().Underlying().(*types.Slice).Elem()
+		// for i := range slice {
+		// 	slice[i] = zero(tElt)
+		// }
+		// fr.env[instr] = slice[:asInt(fr.get(instr.Len))]
 
 	case *ssa.MakeMap:
 		reserve := 0
@@ -502,6 +506,7 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 	case *closure:
 		return callSSA(i, caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
+		fmt.Printf("builtin %v %T\n", args[0], args[0])
 		return callBuiltin(caller, callpos, fn, args)
 	}
 	panic(fmt.Sprintf("cannot call %T", fn))
