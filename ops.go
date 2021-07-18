@@ -997,14 +997,15 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		return nil
 
 	case "delete": // delete(map[K]value, K)
-		switch m := args[0].(type) {
-		case map[value]value:
-			delete(m, args[1])
-		case *hashmap:
-			m.delete(args[1].(hashable))
-		default:
-			panic(fmt.Sprintf("illegal map type: %T", m))
-		}
+		reflect.ValueOf(args[0]).SetMapIndex(reflect.ValueOf(args[1]), reflect.Value{})
+		// switch m := args[0].(type) {
+		// case map[value]value:
+		// 	delete(m, args[1])
+		// case *hashmap:
+		// 	m.delete(args[1].(hashable))
+		// default:
+		// 	panic(fmt.Sprintf("illegal map type: %T", m))
+		// }
 		return nil
 
 	case "print", "println": // print(any, ...)
