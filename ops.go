@@ -802,7 +802,7 @@ func unop(instr *ssa.UnOp, x value) value {
 		vx := reflect.ValueOf(x)
 		v, ok := vx.Recv()
 		if !ok {
-			v = reflect.Zero(vx.Elem().Type())
+			v = reflect.Zero(vx.Type().Elem())
 		}
 		if instr.CommaOk {
 			return tuple{v.Interface(), ok}
@@ -990,7 +990,8 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		return copy(args[0].([]value), src.([]value))
 
 	case "close": // close(chan T)
-		close(args[0].(chan value))
+		//close(args[0].(chan value))
+		reflect.ValueOf(args[0]).Close()
 		return nil
 
 	case "delete": // delete(map[K]value, K)

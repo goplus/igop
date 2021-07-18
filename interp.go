@@ -488,7 +488,9 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 					// No need to copy since send makes an unaliased copy.
 					v = recv.Interface().(value)
 				} else {
-					v = zero(st.Chan.Type().Underlying().(*types.Chan).Elem())
+					typ := fr.i.toType(st.Chan.Type()).Elem()
+					v = reflect.Zero(typ).Interface()
+					//v = zero(st.Chan.Type().Underlying().(*types.Chan).Elem())
 				}
 				r = append(r, v)
 			}
