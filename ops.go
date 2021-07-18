@@ -983,12 +983,13 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		// return append(args[0].([]value), args[1].([]value)...)
 
 	case "copy": // copy([]T, []T) int or copy([]byte, string) int
-		src := args[1]
-		if _, ok := src.(string); ok {
-			params := fn.Type().(*types.Signature).Params()
-			src = conv(params.At(0).Type(), params.At(1).Type(), src)
-		}
-		return copy(args[0].([]value), src.([]value))
+		return reflect.Copy(reflect.ValueOf(args[0]), reflect.ValueOf(args[1]))
+		// src := args[1]
+		// if _, ok := src.(string); ok {
+		// 	params := fn.Type().(*types.Signature).Params()
+		// 	src = conv(params.At(0).Type(), params.At(1).Type(), src)
+		// }
+		// return copy(args[0].([]value), src.([]value))
 
 	case "close": // close(chan T)
 		//close(args[0].(chan value))
