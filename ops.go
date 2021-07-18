@@ -1100,14 +1100,20 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 
 func rangeIter(x value, t types.Type) iter {
 	switch x := x.(type) {
-	case map[value]value:
-		return &mapIter{iter: reflect.ValueOf(x).MapRange()}
-	case *hashmap:
-		return &hashmapIter{iter: reflect.ValueOf(x.entries()).MapRange()}
 	case string:
 		return &stringIter{Reader: strings.NewReader(x)}
+	default:
+		return &mapIter{iter: reflect.ValueOf(x).MapRange()}
 	}
-	panic(fmt.Sprintf("cannot range over %T", x))
+	// switch x := x.(type) {
+	// case map[value]value:
+	// 	return &mapIter{iter: reflect.ValueOf(x).MapRange()}
+	// case *hashmap:
+	// 	return &hashmapIter{iter: reflect.ValueOf(x.entries()).MapRange()}
+	// case string:
+	// 	return &stringIter{Reader: strings.NewReader(x)}
+	// }
+	// panic(fmt.Sprintf("cannot range over %T", x))
 }
 
 // widen widens a basic typed value x to the widest type of its
