@@ -800,14 +800,22 @@ func eqnil(t types.Type, x, y value) bool {
 func unop(instr *ssa.UnOp, x value) value {
 	switch instr.Op {
 	case token.ARROW: // receive
-		v, ok := <-x.(chan value)
+		vx := reflect.ValueOf(x)
+		v, ok := vx.Recv()
 		if !ok {
-			v = zero(instr.X.Type().Underlying().(*types.Chan).Elem())
+			v = reflect.Zero(vx.Elem().Type())
 		}
 		if instr.CommaOk {
-			v = tuple{v, ok}
+			return tuple{v.Interface(), ok}
 		}
-		return v
+		return v.Interface()
+		// if !ok {
+		// 	v = zero(instr.X.Type().Underlying().(*types.Chan).Elem())
+		// }
+		// if instr.CommaOk {
+		// 	v = tuple{v, ok}
+		// }
+		// return v
 	case token.SUB:
 		switch x := x.(type) {
 		case int:

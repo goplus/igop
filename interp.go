@@ -260,7 +260,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		panic(targetPanic{fr.get(instr.X)})
 
 	case *ssa.Send:
-		fr.get(instr.Chan).(chan value) <- fr.get(instr.X)
+		c := fr.get(instr.Chan)
+		x := fr.get(instr.X)
+		reflect.ValueOf(c).Send(reflect.ValueOf(x))
+		//fr.get(instr.Chan).(chan value) <- fr.get(instr.X)
 
 	case *ssa.Store:
 		x := reflect.ValueOf(fr.get(instr.Addr))
@@ -298,7 +301,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		}()
 
 	case *ssa.MakeChan:
-		fr.env[instr] = make(chan value, asInt(fr.get(instr.Size)))
+		typ := fr.i.toType(instr.Type())
+		size := fr.get(instr.Size)
+		fr.env[instr] = reflect.MakeChan(typ, asInt(size)).Interface()
+		//fr.env[instr] = make(chan value, asInt(fr.get(instr.Size)))
 
 	case *ssa.Alloc:
 		typ := fr.i.toType(deref(instr.Type()))
