@@ -363,10 +363,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		x := fr.get(instr.X)
 		idx := fr.get(instr.Index)
 		v := reflect.ValueOf(x)
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
 		switch v.Kind() {
 		case reflect.Slice:
-		case reflect.Ptr:
-			v = v.Elem()
+		case reflect.Array:
 		default:
 			panic(fmt.Sprintf("unexpected x type in IndexAddr: %T", x))
 		}
@@ -383,7 +385,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 	case *ssa.Index:
 		x := fr.get(instr.X)
 		idx := fr.get(instr.Index)
-		fr.env[instr] = reflect.ValueOf(x).Index(asInt(idx)).Interface()
+		v := reflect.ValueOf(x)
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		fr.env[instr] = v.Index(asInt(idx)).Interface()
 
 	case *ssa.Lookup:
 		m := fr.get(instr.X)

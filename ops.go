@@ -237,14 +237,13 @@ func zero(t types.Type) value {
 func slice(x, lo, hi, max value) value {
 	var Len, Cap int
 	v := reflect.ValueOf(x)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
 	switch v.Kind() {
 	case reflect.String:
 		Len = v.Len()
-	case reflect.Slice:
-		Len = v.Len()
-		Cap = v.Cap()
-	case reflect.Ptr:
-		v = v.Elem()
+	case reflect.Slice, reflect.Array:
 		Len = v.Len()
 		Cap = v.Cap()
 	}
