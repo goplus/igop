@@ -317,7 +317,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		} else {
 			// local
 			//addr = fr.env[instr].(*value)
-			fr.env[instr] = reflect.New(typ).Interface()
+			v := reflect.ValueOf(fr.env[instr])
+			reflectx.SetValue(v.Elem(), reflect.Zero(typ))
 		}
 		//*addr = zero(deref(instr.Type()))
 
@@ -349,11 +350,13 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.env[instr] = fr.get(instr.Iter).(iter).next()
 
 	case *ssa.FieldAddr:
-		fr.env[instr] = reflect.ValueOf(fr.get(instr.X)).Elem().Field(instr.Field).Addr().Interface()
+		v := reflect.ValueOf(fr.get(instr.X)).Elem()
+		fr.env[instr] = reflectx.Field(v, instr.Field).Addr().Interface()
 		//fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
 
 	case *ssa.Field:
-		fr.env[instr] = reflect.ValueOf(fr.get(instr.X)).Elem().Field(instr.Field).Interface()
+		v := reflect.ValueOf(fr.get(instr.X)).Elem()
+		fr.env[instr] = reflectx.Field(v, instr.Field).Interface()
 		//fr.env[instr] = fr.get(instr.X).(structure)[instr.Field]
 
 	case *ssa.IndexAddr:
@@ -584,8 +587,10 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 	fr.block = fn.Blocks[0]
 	fr.locals = make([]value, len(fn.Locals))
 	for i, l := range fn.Locals {
-		fr.locals[i] = zero(deref(l.Type()))
-		fr.env[l] = &fr.locals[i]
+		typ := fr.i.toType(deref(l.Type()))
+		v := reflect.New(typ).Interface()
+		fr.locals[i] = v //zero(deref(l.Type()))
+		fr.env[l] = v    //&fr.locals[i]
 	}
 	for i, p := range fn.Params {
 		fr.env[p] = args[i]
