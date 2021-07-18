@@ -552,7 +552,6 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 	case *closure:
 		return callSSA(i, caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
-		fmt.Printf("builtin %v %T\n", args[0], args[0])
 		return callBuiltin(caller, callpos, fn, args)
 	}
 	panic(fmt.Sprintf("cannot call %T", fn))
@@ -680,6 +679,14 @@ func runFrame(fr *frame) {
 	}
 }
 
+type errorString string
+
+func (e errorString) RuntimeError() {}
+
+func (e errorString) Error() string {
+	return "runtime error: " + string(e)
+}
+
 // doRecover implements the recover() built-in.
 func doRecover(caller *frame) value {
 	// recover() must be exactly one level beneath the deferred
@@ -692,7 +699,6 @@ func doRecover(caller *frame) value {
 		caller.caller.panicking = false
 		p := caller.caller.panic
 		caller.caller.panic = nil
-
 		// TODO(adonovan): support runtime.Goexit.
 		switch p := p.(type) {
 		case targetPanic:
@@ -700,15 +706,17 @@ func doRecover(caller *frame) value {
 			return p.v
 		case runtime.Error:
 			// The interpreter encountered a runtime error.
-			return iface{caller.i.runtimeErrorString, p.Error()}
+			return p
+			//return iface{caller.i.runtimeErrorString, p.Error()}
 		case string:
 			// The interpreter explicitly called panic().
-			return iface{caller.i.runtimeErrorString, p}
+			return p
+			//return iface{caller.i.runtimeErrorString, p}
 		default:
 			panic(fmt.Sprintf("unexpected panic type %T in target call to recover()", p))
 		}
 	}
-	return iface{}
+	return nil //iface{}
 }
 
 // setGlobal sets the value of a system-initialized global variable.

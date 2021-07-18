@@ -463,9 +463,10 @@ func writeValue(buf *bytes.Buffer, v value) {
 
 // Implements printing of Go values in the style of built-in println.
 func toString(v value) string {
-	var b bytes.Buffer
-	writeValue(&b, v)
-	return b.String()
+	return fmt.Sprint(v)
+	// var b bytes.Buffer
+	// writeValue(&b, v)
+	// return b.String()
 }
 
 // ------------------------------------------------------------------------
