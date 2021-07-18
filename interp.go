@@ -328,11 +328,13 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		// fr.env[instr] = slice[:asInt(fr.get(instr.Len))]
 
 	case *ssa.MakeMap:
+		typ := fr.i.toType(instr.Type())
 		reserve := 0
 		if instr.Reserve != nil {
 			reserve = asInt(fr.get(instr.Reserve))
 		}
-		fr.env[instr] = makeMap(instr.Type().Underlying().(*types.Map).Key(), reserve)
+		fr.env[instr] = reflect.MakeMapWithSize(typ, reserve).Interface()
+		//fr.env[instr] = makeMap(instr.Type().Underlying().(*types.Map).Key(), reserve)
 
 	case *ssa.Range:
 		fr.env[instr] = rangeIter(fr.get(instr.X), instr.X.Type())
@@ -375,20 +377,41 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.env[instr] = reflect.ValueOf(x).Index(asInt(idx)).Interface()
 
 	case *ssa.Lookup:
-		fr.env[instr] = lookup(instr, fr.get(instr.X), fr.get(instr.Index))
+		m := fr.get(instr.X)
+		idx := fr.get(instr.Index)
+		if s, ok := m.(string); ok {
+			fr.env[instr] = s[asInt(idx)]
+		} else {
+			vm := reflect.ValueOf(m)
+			v := vm.MapIndex(reflect.ValueOf(idx))
+			ok := v.IsValid()
+			var rv value
+			if ok {
+				rv = v.Interface()
+			} else {
+				rv = reflect.Zero(vm.Type().Elem()).Interface()
+			}
+			if instr.CommaOk {
+				fr.env[instr] = tuple{rv, ok}
+			} else {
+				fr.env[instr] = rv
+			}
+		}
+		//fr.env[instr] = lookup(instr, fr.get(instr.X), fr.get(instr.Index))
 
 	case *ssa.MapUpdate:
 		m := fr.get(instr.Map)
 		key := fr.get(instr.Key)
 		v := fr.get(instr.Value)
-		switch m := m.(type) {
-		case map[value]value:
-			m[key] = v
-		case *hashmap:
-			m.insert(key.(hashable), v)
-		default:
-			panic(fmt.Sprintf("illegal map type: %T", m))
-		}
+		reflect.ValueOf(m).SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
+		// switch m := m.(type) {
+		// case map[value]value:
+		// 	m[key] = v
+		// case *hashmap:
+		// 	m.insert(key.(hashable), v)
+		// default:
+		// 	panic(fmt.Sprintf("illegal map type: %T", m))
+		// }
 
 	case *ssa.TypeAssert:
 		fr.env[instr] = typeAssert(fr.i, instr, fr.get(instr.X))
