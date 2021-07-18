@@ -1159,6 +1159,33 @@ func widen(x value) value {
 	panic(fmt.Sprintf("cannot widen %T", x))
 }
 
+//go:nocheckptr
+func toUnsafePointer(v reflect.Value) unsafe.Pointer {
+	return unsafe.Pointer(uintptr(v.Uint()))
+}
+
+func convert(x interface{}, typ reflect.Type) interface{} {
+	v := reflect.ValueOf(x)
+	vk := v.Kind()
+	switch typ.Kind() {
+	case reflect.UnsafePointer:
+		if vk == reflect.Uintptr {
+			return toUnsafePointer(v)
+		} else if vk == reflect.Ptr {
+			return unsafe.Pointer(v.Pointer())
+		}
+	case reflect.Uintptr:
+		if vk == reflect.UnsafePointer {
+			return v.Pointer()
+		}
+	case reflect.Ptr:
+		if vk == reflect.UnsafePointer {
+			return reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface()
+		}
+	}
+	return v.Convert(typ).Interface()
+}
+
 // conv converts the value x of type t_src to type t_dst and returns
 // the result.
 // Possible cases are described with the ssa.Convert operator.

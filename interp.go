@@ -222,7 +222,9 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.env[instr] = fr.get(instr.X) // (can't fail)
 
 	case *ssa.Convert:
-		fr.env[instr] = conv(instr.Type(), instr.X.Type(), fr.get(instr.X))
+		typ := fr.i.toType(instr.Type())
+		fr.env[instr] = convert(fr.get(instr.X), typ)
+		//fr.env[instr] = conv(fr.i, instr.Type(), instr.X.Type(), fr.get(instr.X))
 
 	case *ssa.MakeInterface:
 		typ := fr.i.toType(instr.Type())
