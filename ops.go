@@ -1024,38 +1024,40 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		return nil
 
 	case "len":
-		switch x := args[0].(type) {
-		case string:
-			return len(x)
-		case array:
-			return len(x)
-		case *value:
-			return len((*x).(array))
-		case []value:
-			return len(x)
-		case map[value]value:
-			return len(x)
-		case *hashmap:
-			return x.len()
-		case chan value:
-			return len(x)
-		default:
-			panic(fmt.Sprintf("len: illegal operand: %T", x))
-		}
+		return reflect.ValueOf(args[0]).Len()
+		// switch x := args[0].(type) {
+		// case string:
+		// 	return len(x)
+		// case array:
+		// 	return len(x)
+		// case *value:
+		// 	return len((*x).(array))
+		// case []value:
+		// 	return len(x)
+		// case map[value]value:
+		// 	return len(x)
+		// case *hashmap:
+		// 	return x.len()
+		// case chan value:
+		// 	return len(x)
+		// default:
+		// 	panic(fmt.Sprintf("len: illegal operand: %T", x))
+		// }
 
 	case "cap":
-		switch x := args[0].(type) {
-		case array:
-			return cap(x)
-		case *value:
-			return cap((*x).(array))
-		case []value:
-			return cap(x)
-		case chan value:
-			return cap(x)
-		default:
-			panic(fmt.Sprintf("cap: illegal operand: %T", x))
-		}
+		return reflect.ValueOf(args[0]).Cap()
+		// switch x := args[0].(type) {
+		// case array:
+		// 	return cap(x)
+		// case *value:
+		// 	return cap((*x).(array))
+		// case []value:
+		// 	return cap(x)
+		// case chan value:
+		// 	return cap(x)
+		// default:
+		// 	panic(fmt.Sprintf("cap: illegal operand: %T", x))
+		// }
 
 	case "real":
 		switch c := args[0].(type) {
