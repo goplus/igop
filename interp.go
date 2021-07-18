@@ -48,7 +48,6 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
-	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -130,7 +129,7 @@ func (fr *frame) get(key ssa.Value) value {
 	case *ssa.Function, *ssa.Builtin:
 		return key
 	case *ssa.Const:
-		return constValue(key)
+		return constValue(fr.i, key)
 	case *ssa.Global:
 		if r, ok := fr.i.globals[key]; ok {
 			return r
@@ -200,7 +199,7 @@ func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Functio
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
 func visitInstr(fr *frame, instr ssa.Instruction) continuation {
-	log.Printf("instr %T %+v\n", instr, instr)
+	//log.Printf("instr %T %+v\n", instr, instr)
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
 		// no-op

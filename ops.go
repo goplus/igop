@@ -33,9 +33,10 @@ type exitPanic int
 
 // constValue returns the value of the constant with the
 // dynamic type tag appropriate for c.Type().
-func constValue(c *ssa.Const) value {
+func constValue(i *interpreter, c *ssa.Const) value {
 	if c.IsNil() {
-		return zero(c.Type()) // typed nil
+		return reflect.Zero(i.toType(c.Type())).Interface()
+		// return zero(c.Type()) // typed nil
 	}
 
 	if t, ok := c.Type().Underlying().(*types.Basic); ok {
@@ -691,10 +692,12 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 
 	case token.EQL:
-		return eqnil(t, x, y)
+		return reflect.DeepEqual(x, y)
+		//return eqnil(t, x, y)
 
 	case token.NEQ:
-		return !eqnil(t, x, y)
+		return !reflect.DeepEqual(x, y)
+		//return !eqnil(t, x, y)
 
 	case token.GTR:
 		switch x.(type) {
