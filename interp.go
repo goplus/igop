@@ -90,13 +90,19 @@ type interpreter struct {
 	goroutines         int32               // atomically updated
 	ctx                xtypes.Context
 	ityp               map[interface{}]types.Type
+	hashType           map[uint32]reflect.Type
 }
 
 func (i *interpreter) toType(typ types.Type) reflect.Type {
+	id := hasher.Hash(typ)
+	if t, ok := i.hashType[id]; ok {
+		return t
+	}
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {
 		panic(fmt.Sprintf("toType %v error: %v", typ, err))
 	}
+	i.hashType[id] = t
 	return t
 }
 
@@ -745,6 +751,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		sizes:      sizes,
 		goroutines: 1,
 		ityp:       make(map[interface{}]types.Type),
+		hashType:   make(map[uint32]reflect.Type),
 	}
 	i.ctx = xtypes.NewContext(func(fn *types.Func) func([]reflect.Value) []reflect.Value {
 		typ := fn.Type().(*types.Signature).Recv().Type()
