@@ -204,7 +204,7 @@ func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Functio
 // visitInstr interprets a single ssa.Instruction within the activation
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
-func visitInstr(fr *frame, instr ssa.Instruction) continuation {
+func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	//log.Printf("instr %T %+v\n", instr, instr)
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
@@ -217,8 +217,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 		fr.env[instr] = binop(instr.Op, instr.X.Type(), fr.get(instr.X), fr.get(instr.Y))
 
 	case *ssa.Call:
-		fn, args := prepareCall(fr, &instr.Call)
-		fr.env[instr] = call(fr.i, fr, instr.Pos(), fn, args)
+		return func() {
+			fn, args := prepareCall(fr, &instr.Call)
+			fr.env[instr] = call(fr.i, fr, instr.Pos(), fn, args)
+		}, kNext
 
 	case *ssa.ChangeInterface:
 		fr.env[instr] = fr.get(instr.X)
@@ -262,7 +264,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 			fr.result = tuple(res)
 		}
 		fr.block = nil
-		return kReturn
+		return nil, kReturn
 
 	case *ssa.RunDefers:
 		fr.runDefers()
@@ -288,11 +290,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 			succ = 0
 		}
 		fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
-		return kJump
+		return nil, kJump
 
 	case *ssa.Jump:
 		fr.prevBlock, fr.block = fr.block, fr.block.Succs[0]
-		return kJump
+		return nil, kJump
 
 	case *ssa.Defer:
 		fn, args := prepareCall(fr, &instr.Call)
@@ -510,7 +512,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) continuation {
 	// 	fmt.Println(toString(fr.env[val])) // debugging
 	// }
 
-	return kNext
+	return nil, kNext
 }
 
 // prepareCall determines the function value and argument values for a
@@ -672,7 +674,11 @@ func runFrame(fr *frame) {
 					fmt.Fprintln(os.Stderr, "\t", instr)
 				}
 			}
-			switch visitInstr(fr, instr) {
+			fn, cond := visitInstr(fr, instr)
+			if fn != nil {
+				fn()
+			}
+			switch cond {
 			case kReturn:
 				return
 			case kNext:
