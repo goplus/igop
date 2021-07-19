@@ -89,20 +89,32 @@ type interpreter struct {
 	sizes              types.Sizes         // the effective type-sizing function
 	goroutines         int32               // atomically updated
 	ctx                xtypes.Context
-	ityp               map[interface{}]types.Type
-	hashType           map[uint32]reflect.Type
+	types              map[types.Type]reflect.Type
+}
+
+func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
+	for k, v := range i.types {
+		if v == t {
+			return k, true
+		}
+	}
+	if t.Kind() == reflect.Ptr {
+		if typ, ok := i.findType(t.Elem()); ok {
+			return types.NewPointer(typ), true
+		}
+	}
+	return nil, false
 }
 
 func (i *interpreter) toType(typ types.Type) reflect.Type {
-	id := hasher.Hash(typ)
-	if t, ok := i.hashType[id]; ok {
+	if t, ok := i.types[typ]; ok {
 		return t
 	}
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {
 		panic(fmt.Sprintf("toType %v error: %v", typ, err))
 	}
-	i.hashType[id] = t
+	i.types[typ] = t
 	return t
 }
 
@@ -240,9 +252,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.MakeInterface:
 		typ := fr.i.toType(instr.Type())
 		i := reflect.New(typ).Elem()
-		i.Set(reflect.ValueOf(fr.get(instr.X)))
+		reflectx.SetValue(i, reflect.ValueOf(fr.get(instr.X)))
 		fr.env[instr] = i.Interface()
-		fr.i.ityp[i.Interface()] = instr.X.Type()
 		//fr.env[instr] = iface{t: instr.X.Type(), v: fr.get(instr.X)}
 
 	case *ssa.Extract:
@@ -526,8 +537,9 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		fn = v
 	} else {
 		// Interface method invocation.
-		t, ok := fr.i.ityp[v]
+		//vt, ok := call.Value.(*ssa.MakeInterface)
 		// recv := v.(iface)
+		t, ok := fr.i.findType(reflect.TypeOf(v))
 		if !ok {
 			panic("method invoked on nil interface")
 		}
@@ -756,8 +768,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		mode:       mode,
 		sizes:      sizes,
 		goroutines: 1,
-		ityp:       make(map[interface{}]types.Type),
-		hashType:   make(map[uint32]reflect.Type),
+		types:      make(map[types.Type]reflect.Type),
 	}
 	i.ctx = xtypes.NewContext(func(fn *types.Func) func([]reflect.Value) []reflect.Value {
 		typ := fn.Type().(*types.Signature).Recv().Type()
