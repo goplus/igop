@@ -114,6 +114,14 @@ func asInt(x value) int {
 		return int(x)
 	case uintptr:
 		return int(x)
+	default:
+		v := reflect.ValueOf(x)
+		switch v.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return int(v.Int())
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			return int(v.Uint())
+		}
 	}
 	panic(fmt.Sprintf("cannot convert %T to int", x))
 }
@@ -134,6 +142,12 @@ func asUint64(x value) uint64 {
 		return x
 	case uintptr:
 		return uint64(x)
+	default:
+		v := reflect.ValueOf(x)
+		switch v.Kind() {
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			v.Uint()
+		}
 	}
 	panic(fmt.Sprintf("cannot convert %T to uint64", x))
 }

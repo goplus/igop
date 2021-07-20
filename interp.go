@@ -820,10 +820,10 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 			case *ssa.Global:
 				// cell := zero(deref(v.Type()))
 				// i.globals[v] = &cell
-				//if v.Pkg.Pkg.Path() == "main" {
-				typ := i.toType(deref(v.Type()))
-				i.globals[v] = reflect.New(typ).Interface()
-				//}
+				if v.Pkg.Pkg.Path() == "main" {
+					typ := i.toType(deref(v.Type()))
+					i.globals[v] = reflect.New(typ).Interface()
+				}
 			}
 		}
 	}
