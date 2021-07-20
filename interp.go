@@ -147,7 +147,14 @@ func (fr *frame) get(key ssa.Value) value {
 	case *ssa.Function, *ssa.Builtin:
 		return key
 	case *ssa.Const:
-		return constValue(fr.i, key)
+		c := constValue(fr.i, key)
+		typ := fr.i.toType(key.Type())
+		if typ.PkgPath() == "" {
+			return c
+		}
+		v := reflect.New(typ).Elem()
+		reflectx.SetValue(v, reflect.ValueOf(c))
+		return v.Interface()
 	case *ssa.Global:
 		if r, ok := fr.i.globals[key]; ok {
 			return r
@@ -811,12 +818,12 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		for _, m := range pkg.Members {
 			switch v := m.(type) {
 			case *ssa.Global:
-				cell := zero(deref(v.Type()))
-				i.globals[v] = &cell
-				if v.Pkg.Pkg.Path() == "main" {
-					typ := i.toType(deref(v.Type()))
-					i.globals[v] = reflect.New(typ).Interface()
-				}
+				// cell := zero(deref(v.Type()))
+				// i.globals[v] = &cell
+				//if v.Pkg.Pkg.Path() == "main" {
+				typ := i.toType(deref(v.Type()))
+				i.globals[v] = reflect.New(typ).Interface()
+				//}
 			}
 		}
 	}
