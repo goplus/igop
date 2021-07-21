@@ -902,7 +902,19 @@ func unop(instr *ssa.UnOp, x value) value {
 		return reflect.ValueOf(x).Elem().Interface()
 		//return load(deref(instr.X.Type()), x.(*value))
 	case token.NOT:
-		return !x.(bool)
+		switch x := x.(type) {
+		case bool:
+			return !x
+		default:
+			v := reflect.ValueOf(x)
+			r := reflect.New(v.Type()).Elem()
+			if v.Bool() {
+				return v.Interface()
+			}
+			r.SetBool(true)
+			return r.Interface()
+		}
+		// return !x.(bool)
 	case token.XOR:
 		switch x := x.(type) {
 		case int:
