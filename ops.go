@@ -1160,16 +1160,14 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	var err error
 	typ := i.toType(instr.AssertedType)
 	rv := reflect.ValueOf(iv)
-	if typ.Kind() == reflect.Interface {
+	if typ == rv.Type() {
+		v = iv
+	} else {
 		if !rv.Type().ConvertibleTo(typ) {
 			err = fmt.Errorf("interface conversion: %v cannot be converted to type %v", instr.X.Type(), typ)
 		} else {
 			v = rv.Convert(typ).Interface()
 		}
-	} else if typ != rv.Type() {
-		err = fmt.Errorf("interface convert: %v is %v, not %v", instr.X.Type(), rv.Type(), typ)
-	} else {
-		v = iv
 	}
 	if err != nil {
 		if !instr.CommaOk {
