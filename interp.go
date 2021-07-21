@@ -70,8 +70,9 @@ const (
 type Mode uint
 
 const (
-	DisableRecover Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	EnableTracing                   // Print a trace of all instructions as they are interpreted.
+	DisableRecover  Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	EnableTracing                    // Print a trace of all instructions as they are interpreted.
+	EnableDumpInstr                  //Print instr type & value
 )
 
 type methodSet map[string]*ssa.Function
@@ -116,6 +117,27 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	}
 	i.types[typ] = t
 	return t
+}
+
+func (i *interpreter) toFunc(fn *ssa.Function) reflect.Value {
+	typ := i.toType(fn.Type())
+	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
+		iargs := make([]value, len(args))
+		for i := 0; i < len(args); i++ {
+			iargs[i] = args[i].Interface()
+		}
+		r := call(i, nil, token.NoPos, fn, iargs)
+		if v, ok := r.(tuple); ok {
+			res := make([]reflect.Value, len(v))
+			for i := 0; i < len(v); i++ {
+				res[i] = reflect.ValueOf(v[i])
+			}
+			return res
+		} else if r != nil {
+			return []reflect.Value{reflect.ValueOf(r)}
+		}
+		return nil
+	})
 }
 
 type deferred struct {
@@ -224,7 +246,9 @@ func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Functio
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
 func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
-	//log.Printf("instr %T %+v\n", instr, instr)
+	if fr.i.mode&EnableDumpInstr != 0 {
+		fmt.Fprintf(os.Stderr, "Instr %T %+v\n", instr, instr)
+	}
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
 		// no-op
@@ -298,8 +322,14 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 
 	case *ssa.Store:
 		x := reflect.ValueOf(fr.get(instr.Addr))
-		v := reflect.ValueOf(fr.get(instr.Val))
-		reflectx.SetValue(x.Elem(), v)
+		val := fr.get(instr.Val)
+		if fn, ok := val.(*ssa.Function); ok {
+			f := fr.i.toFunc(fn)
+			reflectx.SetValue(x.Elem(), f)
+		} else {
+			v := reflect.ValueOf(val)
+			reflectx.SetValue(x.Elem(), v)
+		}
 		//store(deref(instr.Addr.Type()), fr.get(instr.Addr).(*value), fr.get(instr.Val))
 
 	case *ssa.If:
@@ -579,6 +609,26 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 		return callSSA(i, caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
 		return callBuiltin(caller, callpos, fn, args)
+	default:
+		if f := reflect.ValueOf(fn); f.Kind() == reflect.Func {
+			vargs := make([]reflect.Value, len(args))
+			for i := 0; i < len(args); i++ {
+				vargs[i] = reflect.ValueOf(args[i])
+			}
+			results := f.Call(vargs)
+			switch len(results) {
+			case 0:
+				return nil
+			case 1:
+				return results[0].Interface()
+			default:
+				var res []value
+				for _, r := range results {
+					res = append(res, r.Interface())
+				}
+				return tuple(res)
+			}
+		}
 	}
 	panic(fmt.Sprintf("cannot call %T", fn))
 }
@@ -820,7 +870,8 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 			case *ssa.Global:
 				// cell := zero(deref(v.Type()))
 				// i.globals[v] = &cell
-				if v.Pkg.Pkg.Path() == "main" {
+				pkgPath := v.Pkg.Pkg.Path()
+				if pkgPath == "main" || pkgPath == "unsafe" {
 					typ := i.toType(deref(v.Type()))
 					i.globals[v] = reflect.New(typ).Interface()
 				}
