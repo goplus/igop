@@ -559,6 +559,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) % y.(uint64)
 		case uintptr:
 			return x.(uintptr) % y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() % vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() % vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.AND:
@@ -585,6 +600,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) & y.(uint64)
 		case uintptr:
 			return x.(uintptr) & y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() & vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() & vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.OR:
@@ -611,8 +641,22 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) | y.(uint64)
 		case uintptr:
 			return x.(uintptr) | y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() | vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() | vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
-
 	case token.XOR:
 		switch x.(type) {
 		case int:
@@ -637,6 +681,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) ^ y.(uint64)
 		case uintptr:
 			return x.(uintptr) ^ y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() ^ vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() ^ vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.AND_NOT:
@@ -663,6 +722,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) &^ y.(uint64)
 		case uintptr:
 			return x.(uintptr) &^ y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() &^ vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() &^ vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.SHL:
