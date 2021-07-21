@@ -49,7 +49,7 @@ var gorootTestTests = []string{
 	"varinit.go",
 	"escape3.go",
 	"initcomma.go",
-	"cmp.go",
+	//"cmp.go", // import OS
 	"compos.go",
 	"turing.go",
 	"indirect.go",

@@ -120,8 +120,7 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	return t
 }
 
-func (i *interpreter) toFunc(fn *ssa.Function) reflect.Value {
-	typ := i.toType(fn.Type())
+func (i *interpreter) toFunc(typ reflect.Type, fn value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		iargs := make([]value, len(args))
 		for i := 0; i < len(args); i++ {
@@ -329,10 +328,14 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.Store:
 		x := reflect.ValueOf(fr.get(instr.Addr))
 		val := fr.get(instr.Val)
-		if fn, ok := val.(*ssa.Function); ok {
-			f := fr.i.toFunc(fn)
+		switch fn := val.(type) {
+		case *ssa.Function:
+			f := fr.i.toFunc(fr.i.toType(fn.Type()), fn)
 			reflectx.SetValue(x.Elem(), f)
-		} else {
+		case *closure:
+			f := fr.i.toFunc(fr.i.toType(fn.Fn.Type()), fn)
+			reflectx.SetValue(x.Elem(), f)
+		default:
 			v := reflect.ValueOf(val)
 			reflectx.SetValue(x.Elem(), v)
 		}
