@@ -657,6 +657,7 @@ func binop(op token.Token, t types.Type, x, y value) value {
 				return r.Interface()
 			}
 		}
+
 	case token.XOR:
 		switch x.(type) {
 		case int:
@@ -764,6 +765,18 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) << y
 		case uintptr:
 			return x.(uintptr) << y
+		default:
+			vx := reflect.ValueOf(x)
+			r := reflect.New(vx.Type()).Elem()
+			switch vx.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() << y)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() << y)
+			default:
+				goto failed
+			}
+			return r.Interface()
 		}
 
 	case token.SHR:
@@ -791,6 +804,18 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) >> y
 		case uintptr:
 			return x.(uintptr) >> y
+		default:
+			vx := reflect.ValueOf(x)
+			r := reflect.New(vx.Type()).Elem()
+			switch vx.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() >> y)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() >> y)
+			default:
+				goto failed
+			}
+			return r.Interface()
 		}
 
 	case token.LSS:
