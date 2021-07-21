@@ -369,6 +369,8 @@ func binop(op token.Token, t types.Type, x, y value) value {
 					r.SetComplex(vx.Complex() + vy.Complex())
 				case reflect.String:
 					r.SetString(vx.String() + vy.String())
+				default:
+					goto failed
 				}
 				return r.Interface()
 			}
@@ -420,6 +422,8 @@ func binop(op token.Token, t types.Type, x, y value) value {
 					r.SetFloat(vx.Float() - vy.Float())
 				case reflect.Complex64, reflect.Complex128:
 					r.SetComplex(vx.Complex() - vy.Complex())
+				default:
+					goto failed
 				}
 				return r.Interface()
 			}
@@ -471,6 +475,8 @@ func binop(op token.Token, t types.Type, x, y value) value {
 					r.SetFloat(vx.Float() * vy.Float())
 				case reflect.Complex64, reflect.Complex128:
 					r.SetComplex(vx.Complex() * vy.Complex())
+				default:
+					goto failed
 				}
 				return r.Interface()
 			}
@@ -522,6 +528,8 @@ func binop(op token.Token, t types.Type, x, y value) value {
 					r.SetFloat(vx.Float() / vy.Float())
 				case reflect.Complex64, reflect.Complex128:
 					r.SetComplex(vx.Complex() / vy.Complex())
+				default:
+					goto failed
 				}
 				return r.Interface()
 			}
@@ -854,6 +862,7 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(string) >= y.(string)
 		}
 	}
+failed:
 	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, op, y))
 }
 
@@ -991,12 +1000,14 @@ func unop(instr *ssa.UnOp, x value) value {
 			return !x
 		default:
 			v := reflect.ValueOf(x)
-			r := reflect.New(v.Type()).Elem()
-			if v.Bool() {
-				return v.Interface()
+			if v.Kind() == reflect.Bool {
+				r := reflect.New(v.Type()).Elem()
+				if v.Bool() {
+					return v.Interface()
+				}
+				r.SetBool(true)
+				return r.Interface()
 			}
-			r.SetBool(true)
-			return r.Interface()
 		}
 		// return !x.(bool)
 	case token.XOR:
@@ -1023,8 +1034,21 @@ func unop(instr *ssa.UnOp, x value) value {
 			return ^x
 		case uintptr:
 			return ^x
+		default:
+			vx := reflect.ValueOf(x)
+			r := reflect.New(vx.Type()).Elem()
+			switch vx.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(^r.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(^r.Uint())
+			default:
+				goto failed
+			}
+			return r.Interface()
 		}
 	}
+failed:
 	panic(fmt.Sprintf("invalid unary op %s %T", instr.Op, x))
 }
 
