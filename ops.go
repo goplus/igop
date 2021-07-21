@@ -353,6 +353,25 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex128) + y.(complex128)
 		case string:
 			return x.(string) + y.(string)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() + vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() + vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() + vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() + vy.Complex())
+				case reflect.String:
+					r.SetString(vx.String() + vy.String())
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.SUB:
@@ -387,6 +406,23 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex64) - y.(complex64)
 		case complex128:
 			return x.(complex128) - y.(complex128)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() - vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() - vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() - vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() - vy.Complex())
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.MUL:
@@ -421,6 +457,23 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex64) * y.(complex64)
 		case complex128:
 			return x.(complex128) * y.(complex128)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() * vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() * vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() * vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() * vy.Complex())
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.QUO:
@@ -455,6 +508,23 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex64) / y.(complex64)
 		case complex128:
 			return x.(complex128) / y.(complex128)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() / vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() / vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() / vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() / vy.Complex())
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.REM:
