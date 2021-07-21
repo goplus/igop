@@ -706,11 +706,18 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 
 	case token.EQL:
-		return reflect.DeepEqual(x, y)
+		return equalInterface(x, y)
+		//return x == y
+		// if x == y {
+		// 	return true
+		// }
+		// return reflect.DeepEqual(x, y)
 		//return eqnil(t, x, y)
 
 	case token.NEQ:
-		return !reflect.DeepEqual(x, y)
+		return !equalInterface(x, y)
+		//return x != y
+		//return !reflect.DeepEqual(x, y)
 		//return !eqnil(t, x, y)
 
 	case token.GTR:
@@ -811,6 +818,31 @@ func eqnil(t types.Type, x, y value) bool {
 	}
 
 	return equals(t, x, y)
+}
+
+func equalInterface(x, y interface{}) bool {
+	if x == y {
+		return true
+	}
+	vx := reflect.ValueOf(x)
+	vy := reflect.ValueOf(y)
+	if kind := vx.Kind(); kind == vy.Kind() {
+		switch kind {
+		case reflect.Chan:
+			dirx := vx.Type().ChanDir()
+			diry := vy.Type().ChanDir()
+			if dirx != diry {
+				if dirx == reflect.BothDir {
+					return y == vx.Convert(vy.Type()).Interface()
+				} else if diry == reflect.BothDir {
+					return x == vy.Convert(vx.Type()).Interface()
+				}
+			}
+		case reflect.Ptr:
+			return vx.Pointer() == vy.Pointer()
+		}
+	}
+	return false
 }
 
 func unop(instr *ssa.UnOp, x value) value {

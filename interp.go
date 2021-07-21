@@ -52,6 +52,7 @@ import (
 	"reflect"
 	"runtime"
 	"sync/atomic"
+	"unsafe"
 
 	"github.com/goplus/reflectx"
 	"github.com/goplus/xtypes"
@@ -271,7 +272,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.ChangeType:
 		typ := fr.i.toType(instr.Type())
 		x := fr.get(instr.X)
-		fr.env[instr] = reflect.ValueOf(x).Convert(typ).Interface()
+		v := reflect.ValueOf(x)
+		if v.Kind() == reflect.Ptr {
+			fr.env[instr] = reflect.NewAt(typ, unsafe.Pointer(v.Pointer())).Interface()
+		} else {
+			fr.env[instr] = reflect.ValueOf(x).Convert(typ).Interface()
+		}
 		//fr.env[instr] = fr.get(instr.X)
 
 	case *ssa.Convert:
