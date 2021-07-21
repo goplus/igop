@@ -821,9 +821,6 @@ func eqnil(t types.Type, x, y value) bool {
 }
 
 func equalInterface(x, y interface{}) bool {
-	if x == y {
-		return true
-	}
 	vx := reflect.ValueOf(x)
 	vy := reflect.ValueOf(y)
 	if kind := vx.Kind(); kind == vy.Kind() {
@@ -840,6 +837,10 @@ func equalInterface(x, y interface{}) bool {
 			}
 		case reflect.Ptr:
 			return vx.Pointer() == vy.Pointer()
+		case reflect.Slice:
+			return vx.Len() == 0 && vy.Len() == 0
+		default:
+			return x == y
 		}
 	}
 	return false
