@@ -1012,6 +1012,8 @@ func equalInterface(x, y interface{}) bool {
 				} else if diry == reflect.BothDir {
 					return x == vy.Convert(vx.Type()).Interface()
 				}
+			} else {
+				return x == y
 			}
 		case reflect.Ptr:
 			return vx.Pointer() == vy.Pointer()

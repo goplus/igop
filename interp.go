@@ -328,7 +328,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.Send:
 		c := fr.get(instr.Chan)
 		x := fr.get(instr.X)
-		reflect.ValueOf(c).Send(reflect.ValueOf(x))
+		ch := reflect.ValueOf(c)
+		if x == nil {
+			ch.Send(reflect.Zero(ch.Type().Elem()))
+		} else {
+			ch.Send(reflect.ValueOf(x))
+		}
 		//fr.get(instr.Chan).(chan value) <- fr.get(instr.X)
 
 	case *ssa.Store:
@@ -539,13 +544,19 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			} else {
 				dir = reflect.SelectSend
 			}
+			ch := reflect.ValueOf(fr.get(state.Chan))
 			var send reflect.Value
 			if state.Send != nil {
-				send = reflect.ValueOf(fr.get(state.Send))
+				v := fr.get(state.Send)
+				if v == nil {
+					send = reflect.Zero(ch.Type().Elem())
+				} else {
+					send = reflect.ValueOf(v)
+				}
 			}
 			cases = append(cases, reflect.SelectCase{
 				Dir:  dir,
-				Chan: reflect.ValueOf(fr.get(state.Chan)),
+				Chan: ch,
 				Send: send,
 			})
 		}

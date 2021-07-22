@@ -76,19 +76,19 @@ var gorootTestTests = []string{
 	"nilptr2.go",
 	//"utf.go", // import unicode/utf8
 	"method.go",
-	"char_lit.go",
-	"env.go",
-	"int_lit.go",
-	"string_lit.go",
-	"defer.go",
-	"typeswitch.go",
-	"stringrange.go",
-	"reorder.go",
+	//"char_lit.go", // import os
+	//"env.go", // import runtime;os
+	//"int_lit.go", //import os
+	//"string_lit.go", //import os
+	//"defer.go", //import fmt
+	//"typeswitch.go", //import os
+	//"stringrange.go",
+	//"reorder.go",
 	"method3.go",
 	"literal.go",
-	"nul1.go", // doesn't actually assert anything (errorcheckoutput)
-	"zerodivide.go",
-	"convert.go",
+	//"nul1.go", // doesn't actually assert anything (errorcheckoutput)
+	//"zerodivide.go",
+	//"convert.go",
 	"convT2X.go",
 	"switch.go",
 	"ddd.go",
