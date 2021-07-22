@@ -70,7 +70,7 @@ var gorootTestTests = []string{
 	"bigmap.go",
 	"func.go",
 	"reorder2.go",
-	"gc.go",
+	//"gc.go", // import runtime
 	"simassign.go",
 	"iota.go",
 	"nilptr2.go",

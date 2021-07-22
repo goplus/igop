@@ -271,11 +271,17 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.ChangeType:
 		typ := fr.i.toType(instr.Type())
 		x := fr.get(instr.X)
-		v := reflect.ValueOf(x)
+		var v reflect.Value
+		switch f := x.(type) {
+		case *ssa.Function:
+			v = fr.i.toFunc(fr.i.toType(f.Type()), f)
+		default:
+			v = reflect.ValueOf(x)
+		}
 		if v.Kind() == reflect.Ptr {
 			fr.env[instr] = reflect.NewAt(typ, unsafe.Pointer(v.Pointer())).Interface()
 		} else {
-			fr.env[instr] = reflect.ValueOf(x).Convert(typ).Interface()
+			fr.env[instr] = v.Convert(typ).Interface()
 		}
 		//fr.env[instr] = fr.get(instr.X)
 
@@ -639,7 +645,7 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 			}
 		}
 	}
-	panic(fmt.Sprintf("cannot call %T", fn))
+	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }
 
 func loc(fset *token.FileSet, pos token.Pos) string {
@@ -801,6 +807,8 @@ func doRecover(caller *frame) value {
 			// The interpreter explicitly called panic().
 			return p
 			//return iface{caller.i.runtimeErrorString, p}
+		case *reflect.ValueError:
+			return p
 		default:
 			panic(fmt.Sprintf("unexpected panic type %T in target call to recover()", p))
 		}
