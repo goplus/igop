@@ -74,7 +74,7 @@ var gorootTestTests = []string{
 	"simassign.go",
 	"iota.go",
 	"nilptr2.go",
-	"utf.go",
+	//"utf.go", // import unicode/utf8
 	"method.go",
 	"char_lit.go",
 	"env.go",

@@ -431,7 +431,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		//fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
 
 	case *ssa.Field:
-		v := reflect.ValueOf(fr.get(instr.X)).Elem()
+		v := reflect.ValueOf(fr.get(instr.X))
+		for v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
 		fr.env[instr] = reflectx.Field(v, instr.Field).Interface()
 		//fr.env[instr] = fr.get(instr.X).(structure)[instr.Field]
 
