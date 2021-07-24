@@ -92,34 +92,34 @@ var gorootTestTests = []string{
 	"convT2X.go",
 	//"switch.go",
 	"ddd.go",
-	"blank.go", // partly disabled
-	"closedchan.go",
-	"divide.go",
-	"rename.go",
-	"nil.go",
-	"recover1.go",
-	"recover2.go",
-	"recover3.go",
-	"typeswitch1.go",
-	"floatcmp.go",
-	"crlf.go", // doesn't actually assert anything (runoutput)
+	//"blank.go", // partly disabled //import os
+	//"closedchan.go", //import os
+	//"divide.go", //import fmt
+	//"rename.go", //import runtime fmt
+	//"nil.go",
+	//"recover1.go",
+	//"recover2.go",
+	//"recover3.go",
+	//"typeswitch1.go",
+	//"floatcmp.go",
+	//"crlf.go", // doesn't actually assert anything (runoutput)
 }
 
 // These are files in go.tools/go/ssa/interp/testdata/.
 var testdataTests = []string{
-	"boundmeth.go",
-	"complit.go",
-	"coverage.go",
-	"defer.go",
-	"fieldprom.go",
+	//"boundmeth.go",
+	//"complit.go",
+	//"coverage.go",
+	//"defer.go",
+	//"fieldprom.go",
 	"ifaceconv.go",
 	"ifaceprom.go",
-	"initorder.go",
+	//"initorder.go",
 	"methprom.go",
 	"mrvchain.go",
-	"range.go",
-	"recover.go",
-	"reflect.go",
+	//"range.go",
+	//"recover.go",
+	//"reflect.go",
 	"static.go",
 }
 

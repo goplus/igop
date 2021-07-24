@@ -174,6 +174,9 @@ func (fr *frame) get(key ssa.Value) value {
 		if typ.PkgPath() == "" {
 			return c
 		}
+		if c == nil {
+			return reflect.Zero(typ).Interface()
+		}
 		v := reflect.New(typ).Elem()
 		reflectx.SetValue(v, reflect.ValueOf(c))
 		return v.Interface()

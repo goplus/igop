@@ -38,7 +38,6 @@ func constValue(i *interpreter, c *ssa.Const) value {
 		return reflect.Zero(i.toType(c.Type())).Interface()
 		// return zero(c.Type()) // typed nil
 	}
-
 	if t, ok := c.Type().Underlying().(*types.Basic); ok {
 		// TODO(adonovan): eliminate untyped constants from SSA form.
 		switch t.Kind() {
@@ -1161,14 +1160,18 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	var v value
 	var err error
 	typ := i.toType(instr.AssertedType)
-	rv := reflect.ValueOf(iv)
-	if typ == rv.Type() {
-		v = iv
+	if iv == nil {
+		err = fmt.Errorf("panic: interface conversion: interface is nil, not %v", typ)
 	} else {
-		if !rv.Type().ConvertibleTo(typ) {
-			err = fmt.Errorf("interface conversion: %v cannot be converted to type %v", instr.X.Type(), typ)
+		rv := reflect.ValueOf(iv)
+		if typ == rv.Type() {
+			v = iv
 		} else {
-			v = rv.Convert(typ).Interface()
+			if !rv.Type().ConvertibleTo(typ) {
+				err = fmt.Errorf("interface conversion: %v cannot be converted to type %v", instr.X.Type(), typ)
+			} else {
+				v = rv.Convert(typ).Interface()
+			}
 		}
 	}
 	if err != nil {
