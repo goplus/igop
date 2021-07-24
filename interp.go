@@ -170,12 +170,12 @@ func (fr *frame) get(key ssa.Value) value {
 		return key
 	case *ssa.Const:
 		c := constValue(fr.i, key)
+		if c == nil {
+			return c
+		}
 		typ := fr.i.toType(key.Type())
 		if typ.PkgPath() == "" {
 			return c
-		}
-		if c == nil {
-			return reflect.Zero(typ).Interface()
 		}
 		v := reflect.New(typ).Elem()
 		reflectx.SetValue(v, reflect.ValueOf(c))
