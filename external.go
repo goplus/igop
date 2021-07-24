@@ -26,6 +26,10 @@ type externalFn func(fr *frame, args []value) value
 // Key strings are from Function.String().
 var externals = make(map[string]externalFn)
 
+func RegisterExternal(key string, fn interface{}) {
+	//externalFn[key] = func(fr *frm)
+}
+
 func init() {
 	// That little dot ۰ is an Arabic zero numeral (U+06F0), categories [Nd].
 	for k, v := range map[string]externalFn{

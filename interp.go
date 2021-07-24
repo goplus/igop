@@ -643,28 +643,7 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 		return callBuiltin(caller, callpos, fn, args)
 	default:
 		if f := reflect.ValueOf(fn); f.Kind() == reflect.Func {
-			vargs := make([]reflect.Value, len(args))
-			for i := 0; i < len(args); i++ {
-				vargs[i] = reflect.ValueOf(args[i])
-			}
-			var results []reflect.Value
-			if f.Type().IsVariadic() {
-				results = f.CallSlice(vargs)
-			} else {
-				results = f.Call(vargs)
-			}
-			switch len(results) {
-			case 0:
-				return nil
-			case 1:
-				return results[0].Interface()
-			default:
-				var res []value
-				for _, r := range results {
-					res = append(res, r.Interface())
-				}
-				return tuple(res)
-			}
+			return callReflect(i, caller, callpos, f, args, nil)
 		}
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
@@ -732,6 +711,41 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		fr.locals[i] = bad{}
 	}
 	return fr.result
+}
+
+func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+	if i.mode&EnableTracing != 0 {
+		// TODO(adonovan): fix: loc() lies for external functions.
+		fset := caller.fn.Prog.Fset
+		fmt.Fprintf(os.Stderr, "Entering reflect.Func %#v.%s\n", fn, loc(fset, callpos))
+		suffix := ""
+		if caller != nil {
+			suffix = ", resuming " + caller.fn.String() + loc(fset, caller.fn.Pos())
+		}
+		defer fmt.Fprintf(os.Stderr, "Leaving reflect.Func %#v%s.\n", fn, suffix)
+	}
+	ins := make([]reflect.Value, len(args))
+	for i := 0; i < len(args); i++ {
+		ins[i] = reflect.ValueOf(args[i])
+	}
+	var results []reflect.Value
+	if fn.Type().IsVariadic() {
+		results = fn.CallSlice(ins)
+	} else {
+		results = fn.Call(ins)
+	}
+	switch len(results) {
+	case 0:
+		return nil
+	case 1:
+		return results[0].Interface()
+	default:
+		var res []value
+		for _, r := range results {
+			res = append(res, r.Interface())
+		}
+		return tuple(res)
+	}
 }
 
 // runFrame executes SSA instructions starting at fr.block and
