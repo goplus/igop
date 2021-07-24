@@ -48,6 +48,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -188,7 +189,10 @@ func (fr *frame) get(key ssa.Value) value {
 	if r, ok := fr.env[key]; ok {
 		return r
 	}
-	panic(fmt.Sprintf("get: no value for %T: %v", key, key.Name()))
+	// if ext, ok := externals2[key.String()]; ok {
+	// 	return ext.Interface()
+	// }
+	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
 }
 
 // runDefer runs a deferred call d.
@@ -678,11 +682,12 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 	}
 	if fn.Parent() == nil {
 		name := fn.String()
-		if ext := externals[name]; ext != nil {
+		if ext := externals2[name]; ext.Kind() == reflect.Func {
 			if i.mode&EnableTracing != 0 {
 				fmt.Fprintln(os.Stderr, "\t(external)")
 			}
-			return ext(fr, args)
+			return callReflect(i, caller, callpos, ext, args, nil)
+			//			return ext(fr, args)
 		}
 		if fn.Blocks == nil {
 			panic("no code for function: " + name)
@@ -714,26 +719,26 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 }
 
 func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
-	if i.mode&EnableTracing != 0 {
-		// TODO(adonovan): fix: loc() lies for external functions.
-		fset := caller.fn.Prog.Fset
-		fmt.Fprintf(os.Stderr, "Entering reflect.Func %#v.%s\n", fn, loc(fset, callpos))
-		suffix := ""
-		if caller != nil {
-			suffix = ", resuming " + caller.fn.String() + loc(fset, caller.fn.Pos())
+	var ins []reflect.Value
+	if fn.Type().IsVariadic() {
+		for i := 0; i < len(args); i++ {
+			if i == len(args)-1 {
+				v := reflect.ValueOf(args[len(args)-1])
+				for i := 0; i < v.Len(); i++ {
+					ins = append(ins, v.Index(i))
+				}
+			} else {
+				ins = append(ins, reflect.ValueOf(args[i]))
+			}
 		}
-		defer fmt.Fprintf(os.Stderr, "Leaving reflect.Func %#v%s.\n", fn, suffix)
-	}
-	ins := make([]reflect.Value, len(args))
-	for i := 0; i < len(args); i++ {
-		ins[i] = reflect.ValueOf(args[i])
+	} else {
+		ins = make([]reflect.Value, len(args), len(args))
+		for i := 0; i < len(args); i++ {
+			ins[i] = reflect.ValueOf(args[i])
+		}
 	}
 	var results []reflect.Value
-	if fn.Type().IsVariadic() {
-		results = fn.CallSlice(ins)
-	} else {
-		results = fn.Call(ins)
-	}
+	results = fn.Call(ins)
 	switch len(results) {
 	case 0:
 		return nil
@@ -917,17 +922,25 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 	}
 
 	for _, pkg := range i.prog.AllPackages() {
+		switch pkgPath := pkg.Pkg.Path(); pkgPath {
+		//case "runtime",
+		// "internal/poll",
+		// "io",
+		// "os", "syscall":
+		//	continue
+		default:
+			log.Println("------", pkgPath)
+		}
 		// Initialize global storage.
 		for _, m := range pkg.Members {
 			switch v := m.(type) {
 			case *ssa.Global:
 				// cell := zero(deref(v.Type()))
 				// i.globals[v] = &cell
-				pkgPath := v.Pkg.Pkg.Path()
-				if pkgPath == "main" || pkgPath == "unsafe" {
-					typ := i.toType(deref(v.Type()))
-					i.globals[v] = reflect.New(typ).Interface()
-				}
+				//if pkgPath == "main" || pkgPath == "unsafe" || pkgPath == "math" {
+				typ := i.toType(deref(v.Type()))
+				i.globals[v] = reflect.New(typ).Interface()
+				//}
 			}
 		}
 	}

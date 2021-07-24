@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"math"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 	"time"
@@ -26,8 +27,11 @@ type externalFn func(fr *frame, args []value) value
 // Key strings are from Function.String().
 var externals = make(map[string]externalFn)
 
+var externals2 = make(map[string]reflect.Value)
+
 func RegisterExternal(key string, fn interface{}) {
 	//externalFn[key] = func(fr *frm)
+	externals2[key] = reflect.ValueOf(fn)
 }
 
 func init() {

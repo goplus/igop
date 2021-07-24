@@ -125,7 +125,7 @@ var testdataTests = []string{
 
 func run(t *testing.T, input string) bool {
 	t.Logf("Input: %s\n", input)
-	err := interp.RunWith(interp.EnableTracing, input)
+	err := interp.RunWith(0, input)
 	if err != nil {
 		t.Error(err)
 		fmt.Println("FAIL")
