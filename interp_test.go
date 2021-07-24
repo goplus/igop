@@ -90,7 +90,7 @@ var gorootTestTests = []string{
 	//"zerodivide.go",
 	//"convert.go",
 	"convT2X.go",
-	"switch.go",
+	//"switch.go",
 	"ddd.go",
 	"blank.go", // partly disabled
 	"closedchan.go",

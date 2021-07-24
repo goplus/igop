@@ -120,13 +120,13 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	return t
 }
 
-func (i *interpreter) toFunc(typ reflect.Type, fn value) reflect.Value {
+func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		iargs := make([]value, len(args))
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := call(i, nil, token.NoPos, fn, iargs)
+		r := call(fr.i, fr, token.NoPos, fn, iargs)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -274,7 +274,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		var v reflect.Value
 		switch f := x.(type) {
 		case *ssa.Function:
-			v = fr.i.toFunc(fr.i.toType(f.Type()), f)
+			v = fr.toFunc(fr.i.toType(f.Type()), f)
 		default:
 			v = reflect.ValueOf(x)
 		}
@@ -341,10 +341,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		val := fr.get(instr.Val)
 		switch fn := val.(type) {
 		case *ssa.Function:
-			f := fr.i.toFunc(fr.i.toType(fn.Type()), fn)
-			reflectx.SetValue(x.Elem(), f)
-		case *closure:
-			f := fr.i.toFunc(fr.i.toType(fn.Fn.Type()), fn)
+			f := fr.toFunc(fr.i.toType(fn.Type()), fn)
 			reflectx.SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
@@ -520,7 +517,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		for _, binding := range instr.Bindings {
 			bindings = append(bindings, fr.get(binding))
 		}
-		fr.env[instr] = &closure{instr.Fn.(*ssa.Function), bindings}
+		//fr.env[instr] = &closure{instr.Fn.(*ssa.Function), bindings}
+		c := &closure{instr.Fn.(*ssa.Function), bindings}
+		typ := fr.i.toType(c.Fn.Type())
+		fr.env[instr] = fr.toFunc(typ, c).Interface()
 
 	case *ssa.Phi:
 		for i, pred := range instr.Block().Preds {
@@ -644,7 +644,12 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 			for i := 0; i < len(args); i++ {
 				vargs[i] = reflect.ValueOf(args[i])
 			}
-			results := f.Call(vargs)
+			var results []reflect.Value
+			if f.Type().IsVariadic() {
+				results = f.CallSlice(vargs)
+			} else {
+				results = f.Call(vargs)
+			}
 			switch len(results) {
 			case 0:
 				return nil
