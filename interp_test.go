@@ -134,10 +134,10 @@ func run(t *testing.T, input string) bool {
 
 	start := time.Now()
 
-	ctx := build.Default    // copy
-	ctx.GOROOT = "testdata" // fake goroot
-	ctx.GOOS = "linux"
-	ctx.GOARCH = "amd64"
+	ctx := build.Default // copy
+	// ctx.GOROOT = "testdata" // fake goroot
+	// ctx.GOOS = "linux"
+	// ctx.GOARCH = "amd64"
 
 	conf := loader.Config{Build: &ctx}
 	if _, err := conf.FromArgs([]string{input}, true); err != nil {
