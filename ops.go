@@ -33,11 +33,11 @@ type exitPanic int
 
 // constValue returns the value of the constant with the
 // dynamic type tag appropriate for c.Type().
-func constValue(c *ssa.Const) value {
+func constValue(i *interpreter, c *ssa.Const) value {
 	if c.IsNil() {
-		return zero(c.Type()) // typed nil
+		return reflect.Zero(i.toType(c.Type())).Interface()
+		// return zero(c.Type()) // typed nil
 	}
-
 	if t, ok := c.Type().Underlying().(*types.Basic); ok {
 		// TODO(adonovan): eliminate untyped constants from SSA form.
 		switch t.Kind() {
@@ -113,6 +113,14 @@ func asInt(x value) int {
 		return int(x)
 	case uintptr:
 		return int(x)
+	default:
+		v := reflect.ValueOf(x)
+		switch v.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return int(v.Int())
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			return int(v.Uint())
+		}
 	}
 	panic(fmt.Sprintf("cannot convert %T to int", x))
 }
@@ -133,6 +141,12 @@ func asUint64(x value) uint64 {
 		return x
 	case uintptr:
 		return uint64(x)
+	default:
+		v := reflect.ValueOf(x)
+		switch v.Kind() {
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			v.Uint()
+		}
 	}
 	panic(fmt.Sprintf("cannot convert %T to uint64", x))
 }
@@ -236,16 +250,16 @@ func zero(t types.Type) value {
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
 func slice(x, lo, hi, max value) value {
 	var Len, Cap int
-	switch x := x.(type) {
-	case string:
-		Len = len(x)
-	case []value:
-		Len = len(x)
-		Cap = cap(x)
-	case *value: // *array
-		a := (*x).(array)
-		Len = len(a)
-		Cap = cap(a)
+	v := reflect.ValueOf(x)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	switch v.Kind() {
+	case reflect.String:
+		Len = v.Len()
+	case reflect.Slice, reflect.Array:
+		Len = v.Len()
+		Cap = v.Cap()
 	}
 
 	l := 0
@@ -263,14 +277,11 @@ func slice(x, lo, hi, max value) value {
 		m = asInt(max)
 	}
 
-	switch x := x.(type) {
-	case string:
-		return x[l:h]
-	case []value:
-		return x[l:h:m]
-	case *value: // *array
-		a := (*x).(array)
-		return []value(a)[l:h:m]
+	switch v.Kind() {
+	case reflect.String:
+		return v.Slice(l, h).Interface()
+	case reflect.Slice, reflect.Array:
+		return v.Slice3(l, h, m).Interface()
 	}
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
 }
@@ -341,6 +352,27 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex128) + y.(complex128)
 		case string:
 			return x.(string) + y.(string)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() + vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() + vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() + vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() + vy.Complex())
+				case reflect.String:
+					r.SetString(vx.String() + vy.String())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.SUB:
@@ -375,6 +407,25 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex64) - y.(complex64)
 		case complex128:
 			return x.(complex128) - y.(complex128)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() - vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() - vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() - vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() - vy.Complex())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.MUL:
@@ -409,6 +460,25 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex64) * y.(complex64)
 		case complex128:
 			return x.(complex128) * y.(complex128)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() * vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() * vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() * vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() * vy.Complex())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.QUO:
@@ -443,6 +513,25 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(complex64) / y.(complex64)
 		case complex128:
 			return x.(complex128) / y.(complex128)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() / vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() / vy.Uint())
+				case reflect.Float32, reflect.Float64:
+					r.SetFloat(vx.Float() / vy.Float())
+				case reflect.Complex64, reflect.Complex128:
+					r.SetComplex(vx.Complex() / vy.Complex())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.REM:
@@ -469,6 +558,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) % y.(uint64)
 		case uintptr:
 			return x.(uintptr) % y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() % vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() % vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.AND:
@@ -495,6 +599,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) & y.(uint64)
 		case uintptr:
 			return x.(uintptr) & y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() & vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() & vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.OR:
@@ -521,6 +640,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) | y.(uint64)
 		case uintptr:
 			return x.(uintptr) | y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() | vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() | vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.XOR:
@@ -547,6 +681,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) ^ y.(uint64)
 		case uintptr:
 			return x.(uintptr) ^ y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() ^ vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() ^ vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.AND_NOT:
@@ -573,6 +722,21 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) &^ y.(uint64)
 		case uintptr:
 			return x.(uintptr) &^ y.(uintptr)
+		default:
+			vx := reflect.ValueOf(x)
+			vy := reflect.ValueOf(y)
+			if kind := vx.Kind(); kind == vy.Kind() {
+				r := reflect.New(vx.Type()).Elem()
+				switch kind {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					r.SetInt(vx.Int() &^ vy.Int())
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+					r.SetUint(vx.Uint() &^ vy.Uint())
+				default:
+					goto failed
+				}
+				return r.Interface()
+			}
 		}
 
 	case token.SHL:
@@ -600,6 +764,18 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) << y
 		case uintptr:
 			return x.(uintptr) << y
+		default:
+			vx := reflect.ValueOf(x)
+			r := reflect.New(vx.Type()).Elem()
+			switch vx.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() << y)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() << y)
+			default:
+				goto failed
+			}
+			return r.Interface()
 		}
 
 	case token.SHR:
@@ -627,6 +803,18 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(uint64) >> y
 		case uintptr:
 			return x.(uintptr) >> y
+		default:
+			vx := reflect.ValueOf(x)
+			r := reflect.New(vx.Type()).Elem()
+			switch vx.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() >> y)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() >> y)
+			default:
+				goto failed
+			}
+			return r.Interface()
 		}
 
 	case token.LSS:
@@ -694,10 +882,19 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 
 	case token.EQL:
-		return eqnil(t, x, y)
+		return equalInterface(x, y)
+		//return x == y
+		// if x == y {
+		// 	return true
+		// }
+		// return reflect.DeepEqual(x, y)
+		//return eqnil(t, x, y)
 
 	case token.NEQ:
-		return !eqnil(t, x, y)
+		return !equalInterface(x, y)
+		//return x != y
+		//return !reflect.DeepEqual(x, y)
+		//return !eqnil(t, x, y)
 
 	case token.GTR:
 		switch x.(type) {
@@ -763,6 +960,7 @@ func binop(op token.Token, t types.Type, x, y value) value {
 			return x.(string) >= y.(string)
 		}
 	}
+failed:
 	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, op, y))
 }
 
@@ -799,17 +997,53 @@ func eqnil(t types.Type, x, y value) bool {
 	return equals(t, x, y)
 }
 
+func equalInterface(x, y interface{}) bool {
+	vx := reflect.ValueOf(x)
+	vy := reflect.ValueOf(y)
+	if kind := vx.Kind(); kind == vy.Kind() {
+		switch kind {
+		case reflect.Chan:
+			dirx := vx.Type().ChanDir()
+			diry := vy.Type().ChanDir()
+			if dirx != diry {
+				if dirx == reflect.BothDir {
+					return y == vx.Convert(vy.Type()).Interface()
+				} else if diry == reflect.BothDir {
+					return x == vy.Convert(vx.Type()).Interface()
+				}
+			} else {
+				return x == y
+			}
+		case reflect.Ptr:
+			return vx.Pointer() == vy.Pointer()
+		case reflect.Slice:
+			return vx.Len() == 0 && vy.Len() == 0
+		default:
+			return x == y
+		}
+	}
+	return false
+}
+
 func unop(instr *ssa.UnOp, x value) value {
 	switch instr.Op {
 	case token.ARROW: // receive
-		v, ok := <-x.(chan value)
+		vx := reflect.ValueOf(x)
+		v, ok := vx.Recv()
 		if !ok {
-			v = zero(instr.X.Type().Underlying().(*types.Chan).Elem())
+			v = reflect.Zero(vx.Type().Elem())
 		}
 		if instr.CommaOk {
-			v = tuple{v, ok}
+			return tuple{v.Interface(), ok}
 		}
-		return v
+		return v.Interface()
+		// if !ok {
+		// 	v = zero(instr.X.Type().Underlying().(*types.Chan).Elem())
+		// }
+		// if instr.CommaOk {
+		// 	v = tuple{v, ok}
+		// }
+		// return v
 	case token.SUB:
 		switch x := x.(type) {
 		case int:
@@ -842,11 +1076,40 @@ func unop(instr *ssa.UnOp, x value) value {
 			return -x
 		case complex128:
 			return -x
+		default:
+			v := reflect.ValueOf(x)
+			r := reflect.New(v.Type()).Elem()
+			switch v.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(-v.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(-v.Uint())
+			case reflect.Float32, reflect.Float64:
+				r.SetFloat(-v.Float())
+			case reflect.Complex64, reflect.Complex128:
+				r.SetComplex(-v.Complex())
+			}
+			return r.Interface()
 		}
 	case token.MUL:
-		return load(deref(instr.X.Type()), x.(*value))
+		return reflect.ValueOf(x).Elem().Interface()
+		//return load(deref(instr.X.Type()), x.(*value))
 	case token.NOT:
-		return !x.(bool)
+		switch x := x.(type) {
+		case bool:
+			return !x
+		default:
+			v := reflect.ValueOf(x)
+			if v.Kind() == reflect.Bool {
+				r := reflect.New(v.Type()).Elem()
+				if v.Bool() {
+					return v.Interface()
+				}
+				r.SetBool(true)
+				return r.Interface()
+			}
+		}
+		// return !x.(bool)
 	case token.XOR:
 		switch x := x.(type) {
 		case int:
@@ -871,8 +1134,21 @@ func unop(instr *ssa.UnOp, x value) value {
 			return ^x
 		case uintptr:
 			return ^x
+		default:
+			vx := reflect.ValueOf(x)
+			r := reflect.New(vx.Type()).Elem()
+			switch vx.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(^r.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(^r.Uint())
+			default:
+				goto failed
+			}
+			return r.Interface()
 		}
 	}
+failed:
 	panic(fmt.Sprintf("invalid unary op %s %T", instr.Op, x))
 }
 
@@ -880,33 +1156,59 @@ func unop(instr *ssa.UnOp, x value) value {
 // It returns the extracted value on success, and panics on failure,
 // unless instr.CommaOk, in which case it always returns a "value,ok" tuple.
 //
-func typeAssert(i *interpreter, instr *ssa.TypeAssert, itf iface) value {
+func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	var v value
-	err := ""
-	if itf.t == nil {
-		err = fmt.Sprintf("interface conversion: interface is nil, not %s", instr.AssertedType)
-
-	} else if idst, ok := instr.AssertedType.Underlying().(*types.Interface); ok {
-		v = itf
-		err = checkInterface(i, idst, itf)
-
-	} else if types.Identical(itf.t, instr.AssertedType) {
-		v = itf.v // extract value
-
+	var err error
+	typ := i.toType(instr.AssertedType)
+	if iv == nil {
+		err = fmt.Errorf("panic: interface conversion: interface is nil, not %v", typ)
 	} else {
-		err = fmt.Sprintf("interface conversion: interface is %s, not %s", itf.t, instr.AssertedType)
+		rv := reflect.ValueOf(iv)
+		if typ == rv.Type() {
+			v = iv
+		} else {
+			if !rv.Type().ConvertibleTo(typ) {
+				err = fmt.Errorf("interface conversion: %v cannot be converted to type %v", instr.X.Type(), typ)
+			} else {
+				v = rv.Convert(typ).Interface()
+			}
+		}
 	}
-
-	if err != "" {
+	if err != nil {
 		if !instr.CommaOk {
 			panic(err)
 		}
-		return tuple{zero(instr.AssertedType), false}
+		return tuple{reflect.Zero(typ).Interface(), false}
 	}
 	if instr.CommaOk {
 		return tuple{v, true}
 	}
 	return v
+	// err := ""
+	// if itf.t == nil {
+	// 	err = fmt.Sprintf("interface conversion: interface is nil, not %s", instr.AssertedType)
+
+	// } else if idst, ok := instr.AssertedType.Underlying().(*types.Interface); ok {
+	// 	v = itf
+	// 	err = checkInterface(i, idst, itf)
+
+	// } else if types.Identical(itf.t, instr.AssertedType) {
+	// 	v = itf.v // extract value
+
+	// } else {
+	// 	err = fmt.Sprintf("interface conversion: interface is %s, not %s", itf.t, instr.AssertedType)
+	// }
+
+	// if err != "" {
+	// 	if !instr.CommaOk {
+	// 		panic(err)
+	// 	}
+	// 	return tuple{zero(instr.AssertedType), false}
+	// }
+	// if instr.CommaOk {
+	// 	return tuple{v, true}
+	// }
+	// return v
 }
 
 // If CapturedOutput is non-nil, all writes by the interpreted program
@@ -942,36 +1244,40 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		}
 		if s, ok := args[1].(string); ok {
 			// append([]byte, ...string) []byte
-			arg0 := args[0].([]value)
+			arg0 := args[0].([]byte)
 			for i := 0; i < len(s); i++ {
 				arg0 = append(arg0, s[i])
 			}
 			return arg0
 		}
+		return reflect.AppendSlice(reflect.ValueOf(args[0]), reflect.ValueOf(args[1])).Interface()
 		// append([]T, ...[]T) []T
-		return append(args[0].([]value), args[1].([]value)...)
+		// return append(args[0].([]value), args[1].([]value)...)
 
 	case "copy": // copy([]T, []T) int or copy([]byte, string) int
-		src := args[1]
-		if _, ok := src.(string); ok {
-			params := fn.Type().(*types.Signature).Params()
-			src = conv(params.At(0).Type(), params.At(1).Type(), src)
-		}
-		return copy(args[0].([]value), src.([]value))
+		return reflect.Copy(reflect.ValueOf(args[0]), reflect.ValueOf(args[1]))
+		// src := args[1]
+		// if _, ok := src.(string); ok {
+		// 	params := fn.Type().(*types.Signature).Params()
+		// 	src = conv(params.At(0).Type(), params.At(1).Type(), src)
+		// }
+		// return copy(args[0].([]value), src.([]value))
 
 	case "close": // close(chan T)
-		close(args[0].(chan value))
+		//close(args[0].(chan value))
+		reflect.ValueOf(args[0]).Close()
 		return nil
 
 	case "delete": // delete(map[K]value, K)
-		switch m := args[0].(type) {
-		case map[value]value:
-			delete(m, args[1])
-		case *hashmap:
-			m.delete(args[1].(hashable))
-		default:
-			panic(fmt.Sprintf("illegal map type: %T", m))
-		}
+		reflect.ValueOf(args[0]).SetMapIndex(reflect.ValueOf(args[1]), reflect.Value{})
+		// switch m := args[0].(type) {
+		// case map[value]value:
+		// 	delete(m, args[1])
+		// case *hashmap:
+		// 	m.delete(args[1].(hashable))
+		// default:
+		// 	panic(fmt.Sprintf("illegal map type: %T", m))
+		// }
 		return nil
 
 	case "print", "println": // print(any, ...)
@@ -990,38 +1296,40 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		return nil
 
 	case "len":
-		switch x := args[0].(type) {
-		case string:
-			return len(x)
-		case array:
-			return len(x)
-		case *value:
-			return len((*x).(array))
-		case []value:
-			return len(x)
-		case map[value]value:
-			return len(x)
-		case *hashmap:
-			return x.len()
-		case chan value:
-			return len(x)
-		default:
-			panic(fmt.Sprintf("len: illegal operand: %T", x))
-		}
+		return reflect.ValueOf(args[0]).Len()
+		// switch x := args[0].(type) {
+		// case string:
+		// 	return len(x)
+		// case array:
+		// 	return len(x)
+		// case *value:
+		// 	return len((*x).(array))
+		// case []value:
+		// 	return len(x)
+		// case map[value]value:
+		// 	return len(x)
+		// case *hashmap:
+		// 	return x.len()
+		// case chan value:
+		// 	return len(x)
+		// default:
+		// 	panic(fmt.Sprintf("len: illegal operand: %T", x))
+		// }
 
 	case "cap":
-		switch x := args[0].(type) {
-		case array:
-			return cap(x)
-		case *value:
-			return cap((*x).(array))
-		case []value:
-			return cap(x)
-		case chan value:
-			return cap(x)
-		default:
-			panic(fmt.Sprintf("cap: illegal operand: %T", x))
-		}
+		return reflect.ValueOf(args[0]).Cap()
+		// switch x := args[0].(type) {
+		// case array:
+		// 	return cap(x)
+		// case *value:
+		// 	return cap((*x).(array))
+		// case []value:
+		// 	return cap(x)
+		// case chan value:
+		// 	return cap(x)
+		// default:
+		// 	panic(fmt.Sprintf("cap: illegal operand: %T", x))
+		// }
 
 	case "real":
 		switch c := args[0].(type) {
@@ -1063,7 +1371,7 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 
 	case "ssa:wrapnilchk":
 		recv := args[0]
-		if recv.(*value) == nil {
+		if recv == nil {
 			recvType := args[1]
 			methodName := args[2]
 			panic(fmt.Sprintf("value method (%s).%s called using nil *%s pointer",
@@ -1077,14 +1385,20 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 
 func rangeIter(x value, t types.Type) iter {
 	switch x := x.(type) {
-	case map[value]value:
-		return &mapIter{iter: reflect.ValueOf(x).MapRange()}
-	case *hashmap:
-		return &hashmapIter{iter: reflect.ValueOf(x.entries()).MapRange()}
 	case string:
 		return &stringIter{Reader: strings.NewReader(x)}
+	default:
+		return &mapIter{iter: reflect.ValueOf(x).MapRange()}
 	}
-	panic(fmt.Sprintf("cannot range over %T", x))
+	// switch x := x.(type) {
+	// case map[value]value:
+	// 	return &mapIter{iter: reflect.ValueOf(x).MapRange()}
+	// case *hashmap:
+	// 	return &hashmapIter{iter: reflect.ValueOf(x.entries()).MapRange()}
+	// case string:
+	// 	return &stringIter{Reader: strings.NewReader(x)}
+	// }
+	// panic(fmt.Sprintf("cannot range over %T", x))
 }
 
 // widen widens a basic typed value x to the widest type of its
@@ -1121,6 +1435,33 @@ func widen(x value) value {
 		return complex128(y)
 	}
 	panic(fmt.Sprintf("cannot widen %T", x))
+}
+
+//go:nocheckptr
+func toUnsafePointer(v reflect.Value) unsafe.Pointer {
+	return unsafe.Pointer(uintptr(v.Uint()))
+}
+
+func convert(x interface{}, typ reflect.Type) interface{} {
+	v := reflect.ValueOf(x)
+	vk := v.Kind()
+	switch typ.Kind() {
+	case reflect.UnsafePointer:
+		if vk == reflect.Uintptr {
+			return toUnsafePointer(v)
+		} else if vk == reflect.Ptr {
+			return unsafe.Pointer(v.Pointer())
+		}
+	case reflect.Uintptr:
+		if vk == reflect.UnsafePointer {
+			return v.Pointer()
+		}
+	case reflect.Ptr:
+		if vk == reflect.UnsafePointer {
+			return reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface()
+		}
+	}
+	return v.Convert(typ).Interface()
 }
 
 // conv converts the value x of type t_src to type t_dst and returns
