@@ -889,13 +889,13 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		}
 		return nil
 	})
-	runtimePkg := i.prog.ImportedPackage("runtime")
-	if runtimePkg == nil {
-		panic("ssa.Program doesn't include runtime package")
-	}
-	i.runtimeErrorString = runtimePkg.Type("errorString").Object().Type()
+	// runtimePkg := i.prog.ImportedPackage("runtime")
+	// if runtimePkg == nil {
+	// 	panic("ssa.Program doesn't include runtime package")
+	// }
+	// i.runtimeErrorString = runtimePkg.Type("errorString").Object().Type()
 
-	initReflect(i)
+	// initReflect(i)
 
 	i.osArgs = append(i.osArgs, filename)
 	for _, arg := range args {
