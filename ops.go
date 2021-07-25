@@ -151,102 +151,6 @@ func asUint64(x value) uint64 {
 	panic(fmt.Sprintf("cannot convert %T to uint64", x))
 }
 
-// zero returns a new "zero" value of the specified type.
-func zero(t types.Type) value {
-	switch t := t.(type) {
-	case *types.Basic:
-		if t.Kind() == types.UntypedNil {
-			panic("untyped nil has no zero value")
-		}
-		if t.Info()&types.IsUntyped != 0 {
-			// TODO(adonovan): make it an invariant that
-			// this is unreachable.  Currently some
-			// constants have 'untyped' types when they
-			// should be defaulted by the typechecker.
-			t = types.Default(t).(*types.Basic)
-		}
-		switch t.Kind() {
-		case types.Bool:
-			return false
-		case types.Int:
-			return int(0)
-		case types.Int8:
-			return int8(0)
-		case types.Int16:
-			return int16(0)
-		case types.Int32:
-			return int32(0)
-		case types.Int64:
-			return int64(0)
-		case types.Uint:
-			return uint(0)
-		case types.Uint8:
-			return uint8(0)
-		case types.Uint16:
-			return uint16(0)
-		case types.Uint32:
-			return uint32(0)
-		case types.Uint64:
-			return uint64(0)
-		case types.Uintptr:
-			return uintptr(0)
-		case types.Float32:
-			return float32(0)
-		case types.Float64:
-			return float64(0)
-		case types.Complex64:
-			return complex64(0)
-		case types.Complex128:
-			return complex128(0)
-		case types.String:
-			return ""
-		case types.UnsafePointer:
-			return unsafe.Pointer(nil)
-		default:
-			panic(fmt.Sprint("zero for unexpected type:", t))
-		}
-	case *types.Pointer:
-		return (*value)(nil)
-	case *types.Array:
-		a := make(array, t.Len())
-		for i := range a {
-			a[i] = zero(t.Elem())
-		}
-		return a
-	case *types.Named:
-		return zero(t.Underlying())
-	case *types.Interface:
-		return iface{} // nil type, methodset and value
-	case *types.Slice:
-		return []value(nil)
-	case *types.Struct:
-		s := make(structure, t.NumFields())
-		for i := range s {
-			s[i] = zero(t.Field(i).Type())
-		}
-		return s
-	case *types.Tuple:
-		if t.Len() == 1 {
-			return zero(t.At(0).Type())
-		}
-		s := make(tuple, t.Len())
-		for i := range s {
-			s[i] = zero(t.At(i).Type())
-		}
-		return s
-	case *types.Chan:
-		return chan value(nil)
-	case *types.Map:
-		if usesBuiltinMap(t.Key()) {
-			return map[value]value(nil)
-		}
-		return (*hashmap)(nil)
-	case *types.Signature:
-		return (*ssa.Function)(nil)
-	}
-	panic(fmt.Sprint("zero: unexpected ", t))
-}
-
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
 func slice(x, lo, hi, max value) value {
 	var Len, Cap int
@@ -284,32 +188,6 @@ func slice(x, lo, hi, max value) value {
 		return v.Slice3(l, h, m).Interface()
 	}
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
-}
-
-// lookup returns x[idx] where x is a map or string.
-func lookup(instr *ssa.Lookup, x, idx value) value {
-	switch x := x.(type) { // map or string
-	case map[value]value, *hashmap:
-		var v value
-		var ok bool
-		switch x := x.(type) {
-		case map[value]value:
-			v, ok = x[idx]
-		case *hashmap:
-			v = x.lookup(idx.(hashable))
-			ok = v != nil
-		}
-		if !ok {
-			v = zero(instr.X.Type().Underlying().(*types.Map).Elem())
-		}
-		if instr.CommaOk {
-			v = tuple{v, ok}
-		}
-		return v
-	case string:
-		return x[asInt(idx)]
-	}
-	panic(fmt.Sprintf("unexpected x type in Lookup: %T", x))
 }
 
 // binop implements all arithmetic and logical binary operators for
@@ -882,7 +760,7 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 
 	case token.EQL:
-		return equalInterface(x, y)
+		return equal(x, y)
 		//return x == y
 		// if x == y {
 		// 	return true
@@ -891,10 +769,7 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		//return eqnil(t, x, y)
 
 	case token.NEQ:
-		return !equalInterface(x, y)
-		//return x != y
-		//return !reflect.DeepEqual(x, y)
-		//return !eqnil(t, x, y)
+		return !equal(x, y)
 
 	case token.GTR:
 		switch x.(type) {
@@ -964,40 +839,7 @@ failed:
 	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, op, y))
 }
 
-// eqnil returns the comparison x == y using the equivalence relation
-// appropriate for type t.
-// If t is a reference type, at most one of x or y may be a nil value
-// of that type.
-//
-func eqnil(t types.Type, x, y value) bool {
-	switch t.Underlying().(type) {
-	case *types.Map, *types.Signature, *types.Slice:
-		// Since these types don't support comparison,
-		// one of the operands must be a literal nil.
-		switch x := x.(type) {
-		case *hashmap:
-			return (x != nil) == (y.(*hashmap) != nil)
-		case map[value]value:
-			return (x != nil) == (y.(map[value]value) != nil)
-		case *ssa.Function:
-			switch y := y.(type) {
-			case *ssa.Function:
-				return (x != nil) == (y != nil)
-			case *closure:
-				return true
-			}
-		case *closure:
-			return (x != nil) == (y.(*ssa.Function) != nil)
-		case []value:
-			return (x != nil) == (y.([]value) != nil)
-		}
-		panic(fmt.Sprintf("eqnil(%s): illegal dynamic type: %T", t, x))
-	}
-
-	return equals(t, x, y)
-}
-
-func equalInterface(x, y interface{}) bool {
+func equal(x, y interface{}) bool {
 	vx := reflect.ValueOf(x)
 	vy := reflect.ValueOf(y)
 	if kind := vx.Kind(); kind == vy.Kind() {
@@ -1469,240 +1311,6 @@ func convert(x interface{}, typ reflect.Type) interface{} {
 		}
 	}
 	return v.Convert(typ).Interface()
-}
-
-// conv converts the value x of type t_src to type t_dst and returns
-// the result.
-// Possible cases are described with the ssa.Convert operator.
-//
-func conv(t_dst, t_src types.Type, x value) value {
-	ut_src := t_src.Underlying()
-	ut_dst := t_dst.Underlying()
-
-	// Destination type is not an "untyped" type.
-	if b, ok := ut_dst.(*types.Basic); ok && b.Info()&types.IsUntyped != 0 {
-		panic("oops: conversion to 'untyped' type: " + b.String())
-	}
-
-	// Nor is it an interface type.
-	if _, ok := ut_dst.(*types.Interface); ok {
-		if _, ok := ut_src.(*types.Interface); ok {
-			panic("oops: Convert should be ChangeInterface")
-		} else {
-			panic("oops: Convert should be MakeInterface")
-		}
-	}
-
-	// Remaining conversions:
-	//    + untyped string/number/bool constant to a specific
-	//      representation.
-	//    + conversions between non-complex numeric types.
-	//    + conversions between complex numeric types.
-	//    + integer/[]byte/[]rune -> string.
-	//    + string -> []byte/[]rune.
-	//
-	// All are treated the same: first we extract the value to the
-	// widest representation (int64, uint64, float64, complex128,
-	// or string), then we convert it to the desired type.
-
-	switch ut_src := ut_src.(type) {
-	case *types.Pointer:
-		switch ut_dst := ut_dst.(type) {
-		case *types.Basic:
-			// *value to unsafe.Pointer?
-			if ut_dst.Kind() == types.UnsafePointer {
-				return unsafe.Pointer(x.(*value))
-			}
-		}
-
-	case *types.Slice:
-		// []byte or []rune -> string
-		// TODO(adonovan): fix: type B byte; conv([]B -> string).
-		switch ut_src.Elem().(*types.Basic).Kind() {
-		case types.Byte:
-			x := x.([]value)
-			b := make([]byte, 0, len(x))
-			for i := range x {
-				b = append(b, x[i].(byte))
-			}
-			return string(b)
-
-		case types.Rune:
-			x := x.([]value)
-			r := make([]rune, 0, len(x))
-			for i := range x {
-				r = append(r, x[i].(rune))
-			}
-			return string(r)
-		}
-
-	case *types.Basic:
-		x = widen(x)
-
-		// integer -> string?
-		// TODO(adonovan): fix: test integer -> named alias of string.
-		if ut_src.Info()&types.IsInteger != 0 {
-			if ut_dst, ok := ut_dst.(*types.Basic); ok && ut_dst.Kind() == types.String {
-				return fmt.Sprintf("%c", x)
-			}
-		}
-
-		// string -> []rune, []byte or string?
-		if s, ok := x.(string); ok {
-			switch ut_dst := ut_dst.(type) {
-			case *types.Slice:
-				var res []value
-				// TODO(adonovan): fix: test named alias of rune, byte.
-				switch ut_dst.Elem().(*types.Basic).Kind() {
-				case types.Rune:
-					for _, r := range []rune(s) {
-						res = append(res, r)
-					}
-					return res
-				case types.Byte:
-					for _, b := range []byte(s) {
-						res = append(res, b)
-					}
-					return res
-				}
-			case *types.Basic:
-				if ut_dst.Kind() == types.String {
-					return x.(string)
-				}
-			}
-			break // fail: no other conversions for string
-		}
-
-		// unsafe.Pointer -> *value
-		if ut_src.Kind() == types.UnsafePointer {
-			// TODO(adonovan): this is wrong and cannot
-			// really be fixed with the current design.
-			//
-			// return (*value)(x.(unsafe.Pointer))
-			// creates a new pointer of a different
-			// type but the underlying interface value
-			// knows its "true" type and so cannot be
-			// meaningfully used through the new pointer.
-			//
-			// To make this work, the interpreter needs to
-			// simulate the memory layout of a real
-			// compiled implementation.
-			//
-			// To at least preserve type-safety, we'll
-			// just return the zero value of the
-			// destination type.
-			return zero(t_dst)
-		}
-
-		// Conversions between complex numeric types?
-		if ut_src.Info()&types.IsComplex != 0 {
-			switch ut_dst.(*types.Basic).Kind() {
-			case types.Complex64:
-				return complex64(x.(complex128))
-			case types.Complex128:
-				return x.(complex128)
-			}
-			break // fail: no other conversions for complex
-		}
-
-		// Conversions between non-complex numeric types?
-		if ut_src.Info()&types.IsNumeric != 0 {
-			kind := ut_dst.(*types.Basic).Kind()
-			switch x := x.(type) {
-			case int64: // signed integer -> numeric?
-				switch kind {
-				case types.Int:
-					return int(x)
-				case types.Int8:
-					return int8(x)
-				case types.Int16:
-					return int16(x)
-				case types.Int32:
-					return int32(x)
-				case types.Int64:
-					return int64(x)
-				case types.Uint:
-					return uint(x)
-				case types.Uint8:
-					return uint8(x)
-				case types.Uint16:
-					return uint16(x)
-				case types.Uint32:
-					return uint32(x)
-				case types.Uint64:
-					return uint64(x)
-				case types.Uintptr:
-					return uintptr(x)
-				case types.Float32:
-					return float32(x)
-				case types.Float64:
-					return float64(x)
-				}
-
-			case uint64: // unsigned integer -> numeric?
-				switch kind {
-				case types.Int:
-					return int(x)
-				case types.Int8:
-					return int8(x)
-				case types.Int16:
-					return int16(x)
-				case types.Int32:
-					return int32(x)
-				case types.Int64:
-					return int64(x)
-				case types.Uint:
-					return uint(x)
-				case types.Uint8:
-					return uint8(x)
-				case types.Uint16:
-					return uint16(x)
-				case types.Uint32:
-					return uint32(x)
-				case types.Uint64:
-					return uint64(x)
-				case types.Uintptr:
-					return uintptr(x)
-				case types.Float32:
-					return float32(x)
-				case types.Float64:
-					return float64(x)
-				}
-
-			case float64: // floating point -> numeric?
-				switch kind {
-				case types.Int:
-					return int(x)
-				case types.Int8:
-					return int8(x)
-				case types.Int16:
-					return int16(x)
-				case types.Int32:
-					return int32(x)
-				case types.Int64:
-					return int64(x)
-				case types.Uint:
-					return uint(x)
-				case types.Uint8:
-					return uint8(x)
-				case types.Uint16:
-					return uint16(x)
-				case types.Uint32:
-					return uint32(x)
-				case types.Uint64:
-					return uint64(x)
-				case types.Uintptr:
-					return uintptr(x)
-				case types.Float32:
-					return float32(x)
-				case types.Float64:
-					return float64(x)
-				}
-			}
-		}
-	}
-
-	panic(fmt.Sprintf("unsupported conversion: %s  -> %s, dynamic type %T", t_src, t_dst, x))
 }
 
 // checkInterface checks that the method set of x implements the
