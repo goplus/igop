@@ -170,7 +170,9 @@ func (fr *frame) get(key ssa.Value) value {
 		}
 	}
 	switch key := key.(type) {
-	case *ssa.Function, *ssa.Builtin:
+	case *ssa.Function:
+		return key
+	case *ssa.Builtin:
 		return key
 	case *ssa.Const:
 		c := constValue(fr.i, key)
@@ -512,7 +514,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		// }
 
 	case *ssa.TypeAssert:
-		fr.env[instr] = typeAssert(fr.i, instr, fr.get(instr.X))
+		v := fr.get(instr.X)
+		if fn, ok := v.(*ssa.Function); ok {
+			typ := fr.i.toType(fn.Type())
+			v = fr.toFunc(typ, fn).Interface()
+		}
+		fr.env[instr] = typeAssert(fr.i, instr, v)
 
 	case *ssa.MakeClosure:
 		var bindings []value

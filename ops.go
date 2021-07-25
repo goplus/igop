@@ -848,14 +848,16 @@ func equals(instr *ssa.BinOp, x, y interface{}) bool {
 		if IsConstNil(instr.Y) {
 			return true
 		}
-		if vy.Kind() == reflect.Slice {
+		switch vy.Kind() {
+		case reflect.Slice, reflect.Map, reflect.Func:
 			return vy.IsNil()
 		}
 	} else if IsConstNil(instr.Y) {
 		if IsConstNil(instr.X) {
 			return true
 		}
-		if vx.Kind() == reflect.Slice {
+		switch vy.Kind() {
+		case reflect.Slice, reflect.Map, reflect.Func:
 			return vx.IsNil()
 		}
 	}
@@ -1021,10 +1023,11 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 		err = fmt.Errorf("panic: interface conversion: interface is nil, not %v", typ)
 	} else {
 		rv := reflect.ValueOf(iv)
-		if typ == rv.Type() {
+		rt := rv.Type()
+		if typ == rt {
 			v = iv
 		} else {
-			if !rv.Type().ConvertibleTo(typ) {
+			if !rt.AssignableTo(typ) {
 				err = fmt.Errorf("interface conversion: %v cannot be converted to type %v", instr.X.Type(), typ)
 			} else {
 				v = rv.Convert(typ).Interface()
