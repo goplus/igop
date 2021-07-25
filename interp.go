@@ -614,15 +614,21 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		// Interface method invocation.
 		//vt, ok := call.Value.(*ssa.MakeInterface)
 		// recv := v.(iface)
-		t, ok := fr.i.findType(reflect.TypeOf(v))
-		if !ok {
-			panic("method invoked on nil interface")
-		}
-		if f := lookupMethod(fr.i, t, call.Method); f == nil {
-			// Unreachable in well-typed programs.
-			panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
+		rv := reflect.ValueOf(v)
+		t, ok := fr.i.findType(rv.Type())
+		if ok {
+			if f := lookupMethod(fr.i, t, call.Method); f == nil {
+				// Unreachable in well-typed programs.
+				panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
+			} else {
+				fn = f
+			}
 		} else {
-			fn = f
+			if f, ok := rv.Type().MethodByName(call.Method.Name()); ok {
+				fn = f.Func.Interface()
+			} else {
+				panic("method invoked on nil interface")
+			}
 		}
 		args = append(args, v)
 	}
