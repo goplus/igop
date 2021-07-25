@@ -76,10 +76,10 @@ var gorootTestTests = []string{
 	"nilptr2.go",
 	//"utf.go", // import unicode/utf8
 	"method.go",
-	//"char_lit.go", // import os
+	"char_lit.go", // import os
 	//"env.go", // import runtime;os
-	//"int_lit.go", //import os
-	//"string_lit.go", //import os
+	"int_lit.go",    //import os
+	"string_lit.go", //import os
 	//"defer.go", //import fmt
 	//"typeswitch.go", //import os
 	//"stringrange.go",

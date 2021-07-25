@@ -17,4 +17,7 @@ func RegisterExternal(key string, fn interface{}) {
 
 func init() {
 	RegisterExternal("runtime.init", func() {})
+	RegisterExternal("os.Exit", func(code int) {
+		panic(exitPanic(code))
+	})
 }

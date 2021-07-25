@@ -908,7 +908,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 	for _, arg := range args {
 		i.osArgs = append(i.osArgs, arg)
 	}
-
+	reflectx.Reset()
 	for _, pkg := range i.prog.AllPackages() {
 		if i.mode&EnableTracing != 0 {
 			fmt.Println("initialize", pkg)
