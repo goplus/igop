@@ -49,7 +49,7 @@ var gorootTestTests = []string{
 	"varinit.go",
 	"escape3.go",
 	"initcomma.go",
-	//"cmp.go", // import OS
+	"cmp.go", // import OS
 	"compos.go",
 	"turing.go",
 	"indirect.go",
@@ -121,6 +121,11 @@ var testdataTests = []string{
 	//"recover.go",
 	//"reflect.go",
 	"static.go",
+}
+
+func init() {
+	interp.RegisterExternal("os.init", func() {})
+	interp.RegisterExternal("os.Getenv", os.Getenv)
 }
 
 func run(t *testing.T, input string) bool {

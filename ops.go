@@ -194,8 +194,8 @@ func slice(x, lo, hi, max value) value {
 // numeric datatypes and strings.  Both operands must have identical
 // dynamic type.
 //
-func binop(op token.Token, t types.Type, x, y value) value {
-	switch op {
+func binop(instr *ssa.BinOp, t types.Type, x, y value) value {
+	switch instr.Op {
 	case token.ADD:
 		switch x.(type) {
 		case int:
@@ -760,16 +760,11 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 
 	case token.EQL:
-		return equal(x, y)
-		//return x == y
-		// if x == y {
-		// 	return true
-		// }
-		// return reflect.DeepEqual(x, y)
+		return equals(instr, x, y)
 		//return eqnil(t, x, y)
 
 	case token.NEQ:
-		return !equal(x, y)
+		return !equals(instr, x, y)
 
 	case token.GTR:
 		switch x.(type) {
@@ -836,12 +831,34 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 	}
 failed:
-	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, op, y))
+	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, instr.Op, y))
 }
 
-func equal(x, y interface{}) bool {
+func IsConstNil(v ssa.Value) bool {
+	if c, ok := v.(*ssa.Const); ok {
+		return c.IsNil()
+	}
+	return false
+}
+
+func equals(instr *ssa.BinOp, x, y interface{}) bool {
 	vx := reflect.ValueOf(x)
 	vy := reflect.ValueOf(y)
+	if IsConstNil(instr.X) {
+		if IsConstNil(instr.Y) {
+			return true
+		}
+		if vy.Kind() == reflect.Slice {
+			return vy.IsNil()
+		}
+	} else if IsConstNil(instr.Y) {
+		if IsConstNil(instr.X) {
+			return true
+		}
+		if vx.Kind() == reflect.Slice {
+			return vx.IsNil()
+		}
+	}
 	if kind := vx.Kind(); kind == vy.Kind() {
 		switch kind {
 		case reflect.Chan:
@@ -858,8 +875,6 @@ func equal(x, y interface{}) bool {
 			}
 		case reflect.Ptr:
 			return vx.Pointer() == vy.Pointer()
-		case reflect.Slice:
-			return vx.Len() == 0 && vy.Len() == 0
 		default:
 			return x == y
 		}

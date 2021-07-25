@@ -258,7 +258,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		fr.env[instr] = unop(instr, fr.get(instr.X))
 
 	case *ssa.BinOp:
-		fr.env[instr] = binop(instr.Op, instr.X.Type(), fr.get(instr.X), fr.get(instr.Y))
+		fr.env[instr] = binop(instr, instr.X.Type(), fr.get(instr.X), fr.get(instr.Y))
 
 	case *ssa.Call:
 		return func() {
