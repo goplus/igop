@@ -4,22 +4,11 @@ import (
 	"fmt"
 	"go/build"
 	"go/types"
-	"runtime"
-
-	_ "unsafe"
 
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
 )
-
-//go:linkname runtime_init runtime.init
-func runtime_init()
-
-func init() {
-	RegisterExternal("runtime.init", func() {})
-	RegisterExternal("runtime.GOROOT", runtime.GOROOT)
-}
 
 type Config struct {
 	Build    *build.Context

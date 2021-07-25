@@ -48,7 +48,6 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
-	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -162,11 +161,18 @@ type frame struct {
 }
 
 func (fr *frame) get(key ssa.Value) value {
-	switch key := key.(type) {
-	case nil:
-		// Hack; simplifies handling of optional attributes
-		// such as ssa.Slice.{Low,High}.
+	if key == nil {
 		return nil
+	}
+	if key.Parent() == nil {
+		if ext, ok := externals[key.String()]; ok {
+			if fr.i.mode&EnableTracing != 0 {
+				fmt.Fprintln(os.Stderr, "\t(external)")
+			}
+			return ext.Interface()
+		}
+	}
+	switch key := key.(type) {
 	case *ssa.Function, *ssa.Builtin:
 		return key
 	case *ssa.Const:
@@ -189,9 +195,6 @@ func (fr *frame) get(key ssa.Value) value {
 	if r, ok := fr.env[key]; ok {
 		return r
 	}
-	// if ext, ok := externals2[key.String()]; ok {
-	// 	return ext.Interface()
-	// }
 	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
 }
 
@@ -240,12 +243,6 @@ func (fr *frame) runDefers() {
 // lookupMethod returns the method set for type typ, which may be one
 // of the interpreter's fake types.
 func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Function {
-	switch typ {
-	case rtypeType:
-		return i.rtypeMethods[meth.Id()]
-	case errorType:
-		return i.errorMethods[meth.Id()]
-	}
 	return i.prog.LookupMethod(typ, meth.Pkg(), meth.Name())
 }
 
@@ -680,19 +677,19 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		caller: caller, // for panic/recover
 		fn:     fn,
 	}
-	if fn.Parent() == nil {
-		name := fn.String()
-		if ext := externals2[name]; ext.Kind() == reflect.Func {
-			if i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
-			}
-			return callReflect(i, caller, callpos, ext, args, nil)
-			//			return ext(fr, args)
-		}
-		if fn.Blocks == nil {
-			panic("no code for function: " + name)
-		}
-	}
+	// if fn.Parent() == nil {
+	// 	name := fn.String()
+	// 	if ext := externals[name]; ext.Kind() == reflect.Func {
+	// 		if i.mode&EnableTracing != 0 {
+	// 			fmt.Fprintln(os.Stderr, "\t(external)")
+	// 		}
+	// 		return callReflect(i, caller, callpos, ext, args, nil)
+	// 		//			return ext(fr, args)
+	// 	}
+	// 	if fn.Blocks == nil {
+	// 		panic("no code for function: " + name)
+	// 	}
+	// }
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fn.Blocks[0]
 	fr.locals = make([]value, len(fn.Locals))
@@ -908,13 +905,6 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		}
 		return nil
 	})
-	// runtimePkg := i.prog.ImportedPackage("runtime")
-	// if runtimePkg == nil {
-	// 	panic("ssa.Program doesn't include runtime package")
-	// }
-	// i.runtimeErrorString = runtimePkg.Type("errorString").Object().Type()
-
-	// initReflect(i)
 
 	i.osArgs = append(i.osArgs, filename)
 	for _, arg := range args {
@@ -922,25 +912,15 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 	}
 
 	for _, pkg := range i.prog.AllPackages() {
-		switch pkgPath := pkg.Pkg.Path(); pkgPath {
-		//case "runtime",
-		// "internal/poll",
-		// "io",
-		// "os", "syscall":
-		//	continue
-		default:
-			log.Println("------", pkgPath)
+		if i.mode&EnableTracing != 0 {
+			fmt.Println("initialize", pkg)
 		}
 		// Initialize global storage.
 		for _, m := range pkg.Members {
 			switch v := m.(type) {
 			case *ssa.Global:
-				// cell := zero(deref(v.Type()))
-				// i.globals[v] = &cell
-				//if pkgPath == "main" || pkgPath == "unsafe" || pkgPath == "math" {
 				typ := i.toType(deref(v.Type()))
 				i.globals[v] = reflect.New(typ).Interface()
-				//}
 			}
 		}
 	}
