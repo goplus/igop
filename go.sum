@@ -1,5 +1,6 @@
-github.com/goplus/reflectx v0.5.12 h1:jxnDxKO73OuaQbC05X2ABu0y6upfNOm35vpIA4Tt+Iw=
 github.com/goplus/reflectx v0.5.12/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
+github.com/goplus/reflectx v0.5.13 h1:Hcxf2rFOaehBZAyn081ganbHY7Ks1AtgN63OoO7LVeM=
+github.com/goplus/reflectx v0.5.13/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
 github.com/goplus/xtypes v0.1.12 h1:o3PEP5W9kgcApEuECP/joTMazgEtZ4001JFReC+OE9A=
 github.com/goplus/xtypes v0.1.12/go.mod h1:iEpKy1r4BXXUEAMS5+/jWShu3EaPXAGp3osrJ160wkw=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=

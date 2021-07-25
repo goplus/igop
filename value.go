@@ -367,78 +367,6 @@ func writeValue(buf *bytes.Buffer, v value) {
 	case nil, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, float32, float64, complex64, complex128, string:
 		fmt.Fprintf(buf, "%v", v)
 
-	case map[value]value:
-		buf.WriteString("map[")
-		sep := ""
-		for k, e := range v {
-			buf.WriteString(sep)
-			sep = " "
-			writeValue(buf, k)
-			buf.WriteString(":")
-			writeValue(buf, e)
-		}
-		buf.WriteString("]")
-
-	case *hashmap:
-		buf.WriteString("map[")
-		sep := " "
-		for _, e := range v.entries() {
-			for e != nil {
-				buf.WriteString(sep)
-				sep = " "
-				writeValue(buf, e.key)
-				buf.WriteString(":")
-				writeValue(buf, e.value)
-				e = e.next
-			}
-		}
-		buf.WriteString("]")
-
-	case chan value:
-		fmt.Fprintf(buf, "%v", v) // (an address)
-
-	case *value:
-		if v == nil {
-			buf.WriteString("<nil>")
-		} else {
-			fmt.Fprintf(buf, "%p", v)
-		}
-
-	case iface:
-		fmt.Fprintf(buf, "(%s, ", v.t)
-		writeValue(buf, v.v)
-		buf.WriteString(")")
-
-	case structure:
-		buf.WriteString("{")
-		for i, e := range v {
-			if i > 0 {
-				buf.WriteString(" ")
-			}
-			writeValue(buf, e)
-		}
-		buf.WriteString("}")
-
-	case array:
-		buf.WriteString("[")
-		for i, e := range v {
-			if i > 0 {
-				buf.WriteString(" ")
-			}
-			writeValue(buf, e)
-		}
-		buf.WriteString("]")
-
-	case []value:
-		buf.WriteString("[")
-		for i, e := range v {
-			if i > 0 {
-				buf.WriteString(" ")
-			}
-			writeValue(buf, e)
-		}
-		buf.WriteString("]")
-
 	case *ssa.Function, *ssa.Builtin, *closure:
 		fmt.Fprintf(buf, "%p", v) // (an address)
 
@@ -457,16 +385,15 @@ func writeValue(buf *bytes.Buffer, v value) {
 		buf.WriteString(")")
 
 	default:
-		fmt.Fprintf(buf, "<%T>", v)
+		fmt.Fprintf(buf, "%v", v)
 	}
 }
 
 // Implements printing of Go values in the style of built-in println.
 func toString(v value) string {
-	return fmt.Sprint(v)
-	// var b bytes.Buffer
-	// writeValue(&b, v)
-	// return b.String()
+	var b bytes.Buffer
+	writeValue(&b, v)
+	return b.String()
 }
 
 // ------------------------------------------------------------------------

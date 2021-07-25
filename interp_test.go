@@ -124,6 +124,18 @@ var testdataTests = []string{
 }
 
 func run(t *testing.T, input string) bool {
+	t.Logf("Input: %s\n", input)
+	err := interp.RunWith(0, input)
+	if err != nil {
+		t.Error(err)
+		fmt.Println("FAIL")
+		return false
+	}
+	fmt.Println("PASS")
+	return true
+}
+
+func _run(t *testing.T, input string) bool {
 	// The recover2 test case is broken on Go 1.14+. See golang/go#34089.
 	// TODO(matloob): Fix this.
 	if filepath.Base(input) == "recover2.go" {

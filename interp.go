@@ -80,18 +80,14 @@ type methodSet map[string]*ssa.Function
 
 // State shared between all interpreted goroutines.
 type interpreter struct {
-	osArgs             []value             // the value of os.Args
-	prog               *ssa.Program        // the SSA program
-	globals            map[ssa.Value]value // addresses of global variables (immutable)
-	mode               Mode                // interpreter options
-	reflectPackage     *ssa.Package        // the fake reflect package
-	errorMethods       methodSet           // the method set of reflect.error, which implements the error interface.
-	rtypeMethods       methodSet           // the method set of rtype, which implements the reflect.Type interface.
-	runtimeErrorString types.Type          // the runtime.errorString type
-	sizes              types.Sizes         // the effective type-sizing function
-	goroutines         int32               // atomically updated
-	ctx                xtypes.Context
-	types              map[types.Type]reflect.Type
+	osArgs     []value             // the value of os.Args
+	prog       *ssa.Program        // the SSA program
+	globals    map[ssa.Value]value // addresses of global variables (immutable)
+	mode       Mode                // interpreter options
+	sizes      types.Sizes         // the effective type-sizing function
+	goroutines int32               // atomically updated
+	ctx        xtypes.Context
+	types      map[types.Type]reflect.Type
 }
 
 func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
@@ -161,11 +157,18 @@ type frame struct {
 }
 
 func (fr *frame) get(key ssa.Value) value {
-	switch key := key.(type) {
-	case nil:
-		// Hack; simplifies handling of optional attributes
-		// such as ssa.Slice.{Low,High}.
+	if key == nil {
 		return nil
+	}
+	if key.Parent() == nil {
+		if ext, ok := externals[key.String()]; ok {
+			if fr.i.mode&EnableTracing != 0 {
+				fmt.Fprintln(os.Stderr, "\t(external)")
+			}
+			return ext.Interface()
+		}
+	}
+	switch key := key.(type) {
 	case *ssa.Function, *ssa.Builtin:
 		return key
 	case *ssa.Const:
@@ -188,7 +191,7 @@ func (fr *frame) get(key ssa.Value) value {
 	if r, ok := fr.env[key]; ok {
 		return r
 	}
-	panic(fmt.Sprintf("get: no value for %T: %v", key, key.Name()))
+	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
 }
 
 // runDefer runs a deferred call d.
@@ -236,12 +239,6 @@ func (fr *frame) runDefers() {
 // lookupMethod returns the method set for type typ, which may be one
 // of the interpreter's fake types.
 func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Function {
-	switch typ {
-	case rtypeType:
-		return i.rtypeMethods[meth.Id()]
-	case errorType:
-		return i.errorMethods[meth.Id()]
-	}
 	return i.prog.LookupMethod(typ, meth.Pkg(), meth.Name())
 }
 
@@ -643,28 +640,7 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 		return callBuiltin(caller, callpos, fn, args)
 	default:
 		if f := reflect.ValueOf(fn); f.Kind() == reflect.Func {
-			vargs := make([]reflect.Value, len(args))
-			for i := 0; i < len(args); i++ {
-				vargs[i] = reflect.ValueOf(args[i])
-			}
-			var results []reflect.Value
-			if f.Type().IsVariadic() {
-				results = f.CallSlice(vargs)
-			} else {
-				results = f.Call(vargs)
-			}
-			switch len(results) {
-			case 0:
-				return nil
-			case 1:
-				return results[0].Interface()
-			default:
-				var res []value
-				for _, r := range results {
-					res = append(res, r.Interface())
-				}
-				return tuple(res)
-			}
+			return callReflect(i, caller, callpos, f, args, nil)
 		}
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
@@ -697,18 +673,19 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		caller: caller, // for panic/recover
 		fn:     fn,
 	}
-	if fn.Parent() == nil {
-		name := fn.String()
-		if ext := externals[name]; ext != nil {
-			if i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
-			}
-			return ext(fr, args)
-		}
-		if fn.Blocks == nil {
-			panic("no code for function: " + name)
-		}
-	}
+	// if fn.Parent() == nil {
+	// 	name := fn.String()
+	// 	if ext := externals[name]; ext.Kind() == reflect.Func {
+	// 		if i.mode&EnableTracing != 0 {
+	// 			fmt.Fprintln(os.Stderr, "\t(external)")
+	// 		}
+	// 		return callReflect(i, caller, callpos, ext, args, nil)
+	// 		//			return ext(fr, args)
+	// 	}
+	// 	if fn.Blocks == nil {
+	// 		panic("no code for function: " + name)
+	// 	}
+	// }
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fn.Blocks[0]
 	fr.locals = make([]value, len(fn.Locals))
@@ -732,6 +709,41 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		fr.locals[i] = bad{}
 	}
 	return fr.result
+}
+
+func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+	var ins []reflect.Value
+	if fn.Type().IsVariadic() {
+		for i := 0; i < len(args); i++ {
+			if i == len(args)-1 {
+				v := reflect.ValueOf(args[len(args)-1])
+				for i := 0; i < v.Len(); i++ {
+					ins = append(ins, v.Index(i))
+				}
+			} else {
+				ins = append(ins, reflect.ValueOf(args[i]))
+			}
+		}
+	} else {
+		ins = make([]reflect.Value, len(args), len(args))
+		for i := 0; i < len(args); i++ {
+			ins[i] = reflect.ValueOf(args[i])
+		}
+	}
+	var results []reflect.Value
+	results = fn.Call(ins)
+	switch len(results) {
+	case 0:
+		return nil
+	case 1:
+		return results[0].Interface()
+	default:
+		var res []value
+		for _, r := range results {
+			res = append(res, r.Interface())
+		}
+		return tuple(res)
+	}
 }
 
 // runFrame executes SSA instructions starting at fr.block and
@@ -889,13 +901,6 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		}
 		return nil
 	})
-	runtimePkg := i.prog.ImportedPackage("runtime")
-	if runtimePkg == nil {
-		panic("ssa.Program doesn't include runtime package")
-	}
-	i.runtimeErrorString = runtimePkg.Type("errorString").Object().Type()
-
-	initReflect(i)
 
 	i.osArgs = append(i.osArgs, filename)
 	for _, arg := range args {
@@ -903,17 +908,15 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 	}
 
 	for _, pkg := range i.prog.AllPackages() {
+		if i.mode&EnableTracing != 0 {
+			fmt.Println("initialize", pkg)
+		}
 		// Initialize global storage.
 		for _, m := range pkg.Members {
 			switch v := m.(type) {
 			case *ssa.Global:
-				// cell := zero(deref(v.Type()))
-				// i.globals[v] = &cell
-				pkgPath := v.Pkg.Pkg.Path()
-				if pkgPath == "main" || pkgPath == "unsafe" {
-					typ := i.toType(deref(v.Type()))
-					i.globals[v] = reflect.New(typ).Interface()
-				}
+				typ := i.toType(deref(v.Type()))
+				i.globals[v] = reflect.New(typ).Interface()
 			}
 		}
 	}
