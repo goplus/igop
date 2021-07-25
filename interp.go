@@ -122,7 +122,7 @@ func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := call(fr.i, fr, token.NoPos, fn, iargs)
+		r := call(fr.i, fr, token.NoPos, fn, iargs, nil)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -137,10 +137,11 @@ func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
 }
 
 type deferred struct {
-	fn    value
-	args  []value
-	instr *ssa.Defer
-	tail  *deferred
+	fn      value
+	args    []value
+	ssaArgs []ssa.Value
+	instr   *ssa.Defer
+	tail    *deferred
 }
 
 type frame struct {
@@ -210,7 +211,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panic = recover()
 		}
 	}()
-	call(fr.i, fr, d.instr.Pos(), d.fn, d.args)
+	call(fr.i, fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -262,7 +263,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.Call:
 		return func() {
 			fn, args := prepareCall(fr, &instr.Call)
-			fr.env[instr] = call(fr.i, fr, instr.Pos(), fn, args)
+			fr.env[instr] = call(fr.i, fr, instr.Pos(), fn, args, instr.Call.Args)
 		}, kNext
 
 	case *ssa.ChangeInterface:
@@ -364,17 +365,18 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.Defer:
 		fn, args := prepareCall(fr, &instr.Call)
 		fr.defers = &deferred{
-			fn:    fn,
-			args:  args,
-			instr: instr,
-			tail:  fr.defers,
+			fn:      fn,
+			args:    args,
+			ssaArgs: instr.Call.Args,
+			instr:   instr,
+			tail:    fr.defers,
 		}
 
 	case *ssa.Go:
 		fn, args := prepareCall(fr, &instr.Call)
 		atomic.AddInt32(&fr.i.goroutines, 1)
 		go func() {
-			call(fr.i, nil, instr.Pos(), fn, args)
+			call(fr.i, nil, instr.Pos(), fn, args, instr.Call.Args)
 			atomic.AddInt32(&fr.i.goroutines, -1)
 		}()
 
@@ -627,7 +629,7 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
 //
-func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []value) value {
+func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
 	switch fn := fn.(type) {
 	case *ssa.Function:
 		if fn == nil {
@@ -637,7 +639,7 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 	case *closure:
 		return callSSA(i, caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
-		return callBuiltin(caller, callpos, fn, args)
+		return callBuiltin(caller, callpos, fn, args, ssaArgs)
 	default:
 		if f := reflect.ValueOf(fn); f.Kind() == reflect.Func {
 			return callReflect(i, caller, callpos, f, args, nil)
@@ -886,7 +888,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 				for i := 0; i < len(args); i++ {
 					iargs[i] = args[i].Interface()
 				}
-				r := call(i, nil, token.NoPos, f, iargs)
+				r := call(i, nil, token.NoPos, f, iargs, nil)
 				if v, ok := r.(tuple); ok {
 					res := make([]reflect.Value, len(v))
 					for i := 0; i < len(v); i++ {
@@ -949,9 +951,9 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 	}()
 
 	// Run!
-	call(i, nil, token.NoPos, mainpkg.Func("init"), nil)
+	call(i, nil, token.NoPos, mainpkg.Func("init"), nil, nil)
 	if mainFn := mainpkg.Func("main"); mainFn != nil {
-		call(i, nil, token.NoPos, mainFn, nil)
+		call(i, nil, token.NoPos, mainFn, nil, nil)
 		exitCode = 0
 	} else {
 		fmt.Fprintln(os.Stderr, "No main function.")

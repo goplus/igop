@@ -1236,7 +1236,7 @@ func print(b []byte) (int, error) {
 
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
-func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value) value {
+func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
 	switch fn.Name() {
 	case "append":
 		if len(args) == 1 {
@@ -1286,6 +1286,13 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		for i, arg := range args {
 			if i > 0 && ln {
 				buf.WriteRune(' ')
+			}
+			if len(ssaArgs) > i {
+				typ := caller.i.toType(ssaArgs[i].Type())
+				if typ.Kind() == reflect.Interface {
+					buf.WriteString(toInterface(arg))
+					continue
+				}
 			}
 			buf.WriteString(toString(arg))
 		}

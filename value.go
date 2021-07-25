@@ -370,9 +370,6 @@ func writeValue(buf *bytes.Buffer, v value) {
 	case *ssa.Function, *ssa.Builtin, *closure:
 		fmt.Fprintf(buf, "%p", v) // (an address)
 
-	case rtype:
-		buf.WriteString(v.t.String())
-
 	case tuple:
 		// Unreachable in well-formed Go programs
 		buf.WriteString("(")
@@ -385,7 +382,19 @@ func writeValue(buf *bytes.Buffer, v value) {
 		buf.WriteString(")")
 
 	default:
-		fmt.Fprintf(buf, "%v", v)
+		i := reflect.ValueOf(v)
+		switch i.Kind() {
+		case reflect.Map, reflect.Ptr, reflect.Func, reflect.Chan, reflect.UnsafePointer:
+			fmt.Fprintf(buf, "%p", v)
+		case reflect.Slice:
+			fmt.Fprintf(buf, "[%v/%v]%p", i.Len(), i.Cap(), v)
+		case reflect.String:
+			fmt.Fprintf(buf, "%v", v)
+		case reflect.Struct, reflect.Array:
+			panic(fmt.Errorf("illegal types for operand: print %T", v))
+		default:
+			fmt.Fprintf(buf, "%v", v)
+		}
 	}
 }
 
@@ -394,6 +403,17 @@ func toString(v value) string {
 	var b bytes.Buffer
 	writeValue(&b, v)
 	return b.String()
+}
+
+// emptyInterface is the header for an interface{} value.
+type emptyInterface struct {
+	typ  unsafe.Pointer
+	word unsafe.Pointer
+}
+
+func toInterface(i value) string {
+	eface := *(*emptyInterface)(unsafe.Pointer(&i))
+	return fmt.Sprintf("(%p,%p)", eface.typ, eface.word)
 }
 
 // ------------------------------------------------------------------------
