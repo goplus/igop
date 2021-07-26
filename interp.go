@@ -45,6 +45,7 @@
 package interp
 
 import (
+	"errors"
 	"fmt"
 	"go/token"
 	"go/types"
@@ -110,7 +111,7 @@ func ptrCount(s string) (string, int) {
 			return s[i:], i
 		}
 	}
-	return s, 0
+	panic("failed ptrCount " + s)
 }
 
 func (i *interpreter) toType(typ types.Type) reflect.Type {
@@ -881,7 +882,7 @@ func doRecover(caller *frame) value {
 			//return iface{caller.i.runtimeErrorString, p.Error()}
 		case string:
 			// The interpreter explicitly called panic().
-			return p
+			return errors.New(p)
 			//return iface{caller.i.runtimeErrorString, p}
 		case *reflect.ValueError:
 			return p

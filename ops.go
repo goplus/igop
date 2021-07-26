@@ -915,6 +915,13 @@ func equalStruct(vx, vy reflect.Value) bool {
 		}
 		fx := reflectx.FieldByIndex(vx, f.Index)
 		fy := reflectx.FieldByIndex(vy, f.Index)
+		// check uncomparable
+		switch f.Type.Kind() {
+		case reflect.Slice, reflect.Map, reflect.Func:
+			if fx.Interface() != fy.Interface() {
+				return false
+			}
+		}
 		if !equalNil(fx, fy) {
 			return false
 		}
@@ -1074,7 +1081,7 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	}
 	if err != nil {
 		if !instr.CommaOk {
-			panic(err)
+			panic(targetPanic{err})
 		}
 		return tuple{reflect.Zero(typ).Interface(), false}
 	}

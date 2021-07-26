@@ -26,4 +26,5 @@ func init() {
 	RegisterExternal("os.Exit", func(code int) {
 		panic(exitPanic(code))
 	})
+	RegisterType("error", reflect.TypeOf((*error)(nil)).Elem())
 }
