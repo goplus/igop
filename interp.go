@@ -373,7 +373,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 
 	case *ssa.If:
 		succ := 1
-		if fr.get(instr.Cond).(bool) {
+		if v := fr.get(instr.Cond); reflect.ValueOf(v).Bool() {
 			succ = 0
 		}
 		fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]

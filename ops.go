@@ -1244,33 +1244,37 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		// }
 
 	case "real":
-		switch c := args[0].(type) {
-		case complex64:
-			return real(c)
-		case complex128:
-			return real(c)
+		c := reflect.ValueOf(args[0])
+		switch c.Kind() {
+		case reflect.Complex64:
+			return real(complex64(c.Complex()))
+		case reflect.Complex128:
+			return real(c.Complex())
 		default:
 			panic(fmt.Sprintf("real: illegal operand: %T", c))
 		}
 
 	case "imag":
-		switch c := args[0].(type) {
-		case complex64:
-			return imag(c)
-		case complex128:
-			return imag(c)
+		c := reflect.ValueOf(args[0])
+		switch c.Kind() {
+		case reflect.Complex64:
+			return imag(complex64(c.Complex()))
+		case reflect.Complex128:
+			return imag(c.Complex())
 		default:
 			panic(fmt.Sprintf("imag: illegal operand: %T", c))
 		}
 
 	case "complex":
-		switch f := args[0].(type) {
-		case float32:
-			return complex(f, args[1].(float32))
-		case float64:
-			return complex(f, args[1].(float64))
+		r := reflect.ValueOf(args[0])
+		i := reflect.ValueOf(args[1])
+		switch r.Kind() {
+		case reflect.Float32:
+			return complex(float32(r.Float()), float32(i.Float()))
+		case reflect.Float64:
+			return complex(r.Float(), i.Float())
 		default:
-			panic(fmt.Sprintf("complex: illegal operand: %T", f))
+			panic(fmt.Sprintf("complex: illegal operand: %v", r.Kind()))
 		}
 
 	case "panic":

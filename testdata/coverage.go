@@ -121,7 +121,7 @@ func main() {
 	}
 
 	// Test builtins (e.g. complex) preserve named argument types.
-	type N complex128
+	type N complex64
 	var n N
 	n = complex(1.0, 2.0)
 	if n != complex(1.0, 2.0) {
