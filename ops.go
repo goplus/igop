@@ -1081,7 +1081,7 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	}
 	if err != nil {
 		if !instr.CommaOk {
-			panic(targetPanic{err})
+			panic(errorString(err.Error()))
 		}
 		return tuple{reflect.Zero(typ).Interface(), false}
 	}

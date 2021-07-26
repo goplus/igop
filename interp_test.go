@@ -23,6 +23,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -89,21 +90,21 @@ var gorootTestTests = []string{
 	"literal.go",
 	"nul1.go", // doesn't actually assert anything (errorcheckoutput)
 	"zerodivide.go",
-	//"convert.go",
+	"convert.go",
 	"convT2X.go",
 	"switch.go",
 	"ddd.go",
-	"blank.go", // partly disabled //import os
-	//"closedchan.go", //import os
-	//"divide.go", //import fmt
-	//"rename.go", //import runtime fmt
-	//"nil.go",
-	//"recover1.go",
-	//"recover2.go",
-	//"recover3.go",
-	//"typeswitch1.go",
-	//"floatcmp.go",
-	//"crlf.go", // doesn't actually assert anything (runoutput)
+	"blank.go",      // partly disabled //import os
+	"closedchan.go", //import os
+	"divide.go",     //import fmt
+	"rename.go",     //import runtime fmt
+	"nil.go",
+	"recover1.go",
+	"recover2.go",
+	//"recover3.go", // interface convert panic info
+	"typeswitch1.go",
+	"floatcmp.go",
+	"crlf.go", // doesn't actually assert anything (runoutput)
 }
 
 // These are files in go.tools/go/ssa/interp/testdata/.
@@ -137,6 +138,11 @@ func init() {
 	interp.RegisterExternal("math.init", func() {})
 	interp.RegisterExternal("strings.init", func() {})
 	interp.RegisterExternal("strings.IndexByte", strings.IndexByte)
+	interp.RegisterExternal("reflect.init", func() {})
+	interp.RegisterExternal("reflect.TypeOf", reflect.TypeOf)
+	interp.RegisterExternal("time.init", func() {})
+	interp.RegisterExternal("time.Sleep", time.Sleep)
+	interp.RegisterType("time.Duration", reflect.TypeOf((*time.Duration)(nil)).Elem())
 }
 
 func run(t *testing.T, input string) bool {
@@ -154,9 +160,9 @@ func run(t *testing.T, input string) bool {
 func _run(t *testing.T, input string) bool {
 	// The recover2 test case is broken on Go 1.14+. See golang/go#34089.
 	// TODO(matloob): Fix this.
-	if filepath.Base(input) == "recover2.go" {
-		t.Skip("The recover2.go test is broken in go1.14+. See golang.org/issue/34089.")
-	}
+	// if filepath.Base(input) == "recover2.go" {
+	// 	t.Skip("The recover2.go test is broken in go1.14+. See golang.org/issue/34089.")
+	// }
 
 	t.Logf("Input: %s\n", input)
 

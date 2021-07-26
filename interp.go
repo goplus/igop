@@ -45,7 +45,6 @@
 package interp
 
 import (
-	"errors"
 	"fmt"
 	"go/token"
 	"go/types"
@@ -882,7 +881,7 @@ func doRecover(caller *frame) value {
 			//return iface{caller.i.runtimeErrorString, p.Error()}
 		case string:
 			// The interpreter explicitly called panic().
-			return errors.New(p)
+			return errorString(p)
 			//return iface{caller.i.runtimeErrorString, p}
 		case *reflect.ValueError:
 			return p
