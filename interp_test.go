@@ -40,60 +40,60 @@ import (
 //
 // If a test in this list fails spuriously, remove it.
 var gorootTestTests = []string{
-	// "235.go",
-	// "alias1.go",
-	// "func5.go",
-	// "func6.go",
-	// "func7.go",
-	// "func8.go",
-	// "helloworld.go",
-	// "varinit.go",
-	// "escape3.go",
-	// "initcomma.go",
-	// "cmp.go", // import OS
-	// "compos.go",
-	// "turing.go",
-	// "indirect.go",
-	// "complit.go",
-	// "for.go",
-	// "struct0.go",
-	// "intcvt.go",
-	// "printbig.go",
-	// "deferprint.go",
-	// "escape.go",
-	// "range.go",
-	// "const4.go",
-	// "float_lit.go",
-	// "bigalg.go",
-	// "decl.go",
-	// "if.go",
-	// "named.go",
-	// "bigmap.go",
-	// "func.go",
-	// "reorder2.go",
-	// "gc.go", // import runtime
-	// "simassign.go",
-	// "iota.go",
-	// "nilptr2.go",
-	// "utf.go", // import unicode/utf8
-	// "method.go",
-	// "char_lit.go",   // import os
-	// "env.go",        // import runtime;os
-	// "int_lit.go",    //import os
-	// "string_lit.go", //import os
-	// "defer.go",      //import fmt
-	// "typeswitch.go", //import os
-	// "stringrange.go", //import os fmt unicode/utf8
-	// "reorder.go",     //import fmt
-	// "method3.go",
-	// "literal.go",
-	// "nul1.go", // doesn't actually assert anything (errorcheckoutput)
+	"235.go",
+	"alias1.go",
+	"func5.go",
+	"func6.go",
+	"func7.go",
+	"func8.go",
+	"helloworld.go",
+	"varinit.go",
+	"escape3.go",
+	"initcomma.go",
+	"cmp.go", // import OS
+	"compos.go",
+	"turing.go",
+	"indirect.go",
+	"complit.go",
+	"for.go",
+	"struct0.go",
+	"intcvt.go",
+	"printbig.go",
+	"deferprint.go",
+	"escape.go",
+	"range.go",
+	"const4.go",
+	"float_lit.go",
+	"bigalg.go",
+	"decl.go",
+	"if.go",
+	"named.go",
+	"bigmap.go",
+	"func.go",
+	"reorder2.go",
+	"gc.go", // import runtime
+	"simassign.go",
+	"iota.go",
+	"nilptr2.go",
+	"utf.go", // import unicode/utf8
+	"method.go",
+	"char_lit.go",    // import os
+	"env.go",         // import runtime;os
+	"int_lit.go",     //import os
+	"string_lit.go",  //import os
+	"defer.go",       //import fmt
+	"typeswitch.go",  //import os
+	"stringrange.go", //import os fmt unicode/utf8
+	"reorder.go",     //import fmt
+	"method3.go",
+	"literal.go",
+	"nul1.go", // doesn't actually assert anything (errorcheckoutput)
 	"zerodivide.go",
 	//"convert.go",
 	"convT2X.go",
-	//"switch.go",
+	"switch.go",
 	"ddd.go",
-	//"blank.go", // partly disabled //import os
+	"blank.go", // partly disabled //import os
 	//"closedchan.go", //import os
 	//"divide.go", //import fmt
 	//"rename.go", //import runtime fmt

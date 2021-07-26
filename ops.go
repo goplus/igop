@@ -16,6 +16,8 @@ import (
 	"sync"
 	"unsafe"
 
+	"github.com/goplus/reflectx"
+
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -841,26 +843,40 @@ func IsConstNil(v ssa.Value) bool {
 	return false
 }
 
+func IsNil(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Invalid:
+		return true
+	case reflect.Slice, reflect.Map, reflect.Func:
+		return v.IsNil()
+	case reflect.Chan, reflect.Ptr, reflect.UnsafePointer, reflect.Interface:
+		return v.IsNil()
+	default:
+		return false
+	}
+}
+
 func equals(instr *ssa.BinOp, x, y interface{}) bool {
 	vx := reflect.ValueOf(x)
 	vy := reflect.ValueOf(y)
 	if IsConstNil(instr.X) {
-		if IsConstNil(instr.Y) {
-			return true
-		}
-		switch vy.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Func:
-			return vy.IsNil()
-		}
+		return IsNil(vy)
 	} else if IsConstNil(instr.Y) {
-		if IsConstNil(instr.X) {
-			return true
-		}
-		switch vy.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Func:
-			return vx.IsNil()
-		}
+		return IsNil(vx)
 	}
+	return equalValue(vx, vy)
+}
+
+func equalNil(vx, vy reflect.Value) bool {
+	if IsNil(vx) {
+		return IsNil(vy)
+	} else if IsNil(vy) {
+		return IsNil(vx)
+	}
+	return equalValue(vx, vy)
+}
+
+func equalValue(vx, vy reflect.Value) bool {
 	if kind := vx.Kind(); kind == vy.Kind() {
 		switch kind {
 		case reflect.Chan:
@@ -868,20 +884,42 @@ func equals(instr *ssa.BinOp, x, y interface{}) bool {
 			diry := vy.Type().ChanDir()
 			if dirx != diry {
 				if dirx == reflect.BothDir {
-					return y == vx.Convert(vy.Type()).Interface()
+					return vy.Interface() == vx.Convert(vy.Type()).Interface()
 				} else if diry == reflect.BothDir {
-					return x == vy.Convert(vx.Type()).Interface()
+					return vx.Interface() == vy.Convert(vx.Type()).Interface()
 				}
 			} else {
-				return x == y
+				return vx.Interface() == vy.Interface()
 			}
 		case reflect.Ptr:
 			return vx.Pointer() == vy.Pointer()
+		case reflect.Struct:
+			return equalStruct(vx, vy)
 		default:
-			return x == y
+			return vx.Interface() == vy.Interface()
 		}
 	}
 	return false
+}
+
+func equalStruct(vx, vy reflect.Value) bool {
+	typ := vx.Type()
+	if typ != vy.Type() {
+		return false
+	}
+	n := typ.NumField()
+	for i := 0; i < n; i++ {
+		f := typ.Field(i)
+		if f.Name == "_" {
+			continue
+		}
+		fx := reflectx.FieldByIndex(vx, f.Index)
+		fy := reflectx.FieldByIndex(vy, f.Index)
+		if !equalNil(fx, fy) {
+			return false
+		}
+	}
+	return true
 }
 
 func unop(instr *ssa.UnOp, x value) value {
