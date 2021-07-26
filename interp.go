@@ -104,8 +104,25 @@ func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
 	return nil, false
 }
 
+func ptrCount(s string) (string, int) {
+	for i, v := range s {
+		if v != '*' {
+			return s[i:], i
+		}
+	}
+	return s, 0
+}
+
 func (i *interpreter) toType(typ types.Type) reflect.Type {
 	if t, ok := i.types[typ]; ok {
+		return t
+	}
+	et, ptr := ptrCount(typ.String())
+	if t, ok := externTypes[et]; ok {
+		for i := 0; i < ptr; i++ {
+			t = reflect.PtrTo(t)
+		}
+		i.types[typ] = t
 		return t
 	}
 	t, err := xtypes.ToType(typ, i.ctx)
@@ -162,7 +179,7 @@ func (fr *frame) get(key ssa.Value) value {
 		return nil
 	}
 	if key.Parent() == nil {
-		if ext, ok := externals[key.String()]; ok {
+		if ext, ok := externValues[key.String()]; ok {
 			if fr.i.mode&EnableTracing != 0 {
 				fmt.Fprintln(os.Stderr, "\t(external)")
 			}
@@ -348,7 +365,9 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			reflectx.SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
-			reflectx.SetValue(x.Elem(), v)
+			if v.IsValid() {
+				reflectx.SetValue(x.Elem(), v)
+			}
 		}
 		//store(deref(instr.Addr.Type()), fr.get(instr.Addr).(*value), fr.get(instr.Val))
 
@@ -742,7 +761,15 @@ func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Va
 	} else {
 		ins = make([]reflect.Value, len(args), len(args))
 		for i := 0; i < len(args); i++ {
-			ins[i] = reflect.ValueOf(args[i])
+			// typ := fn.Type().In(i)
+			v := reflect.ValueOf(args[i])
+			// if typ != v.Type() {
+			// 	nv := reflect.New(typ).Elem()
+			// 	reflectx.SetValue(nv, v)
+			// 	ins[i] = nv
+			// } else {
+			ins[i] = v
+			// }
 		}
 	}
 	var results []reflect.Value

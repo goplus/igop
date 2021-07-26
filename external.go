@@ -8,11 +8,17 @@ import (
 	"reflect"
 )
 
-var externals = make(map[string]reflect.Value)
+var externValues = make(map[string]reflect.Value)
+var externTypes = make(map[string]reflect.Type)
 
 // register external interface
 func RegisterExternal(key string, fn interface{}) {
-	externals[key] = reflect.ValueOf(fn)
+	externValues[key] = reflect.ValueOf(fn)
+}
+
+// register external interface
+func RegisterType(key string, t reflect.Type) {
+	externTypes[key] = t
 }
 
 func init() {
