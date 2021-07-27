@@ -16,6 +16,8 @@ import (
 	"sync"
 	"unsafe"
 
+	"github.com/goplus/reflectx"
+
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -194,8 +196,8 @@ func slice(x, lo, hi, max value) value {
 // numeric datatypes and strings.  Both operands must have identical
 // dynamic type.
 //
-func binop(op token.Token, t types.Type, x, y value) value {
-	switch op {
+func binop(instr *ssa.BinOp, t types.Type, x, y value) value {
+	switch instr.Op {
 	case token.ADD:
 		switch x.(type) {
 		case int:
@@ -760,16 +762,11 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 
 	case token.EQL:
-		return equal(x, y)
-		//return x == y
-		// if x == y {
-		// 	return true
-		// }
-		// return reflect.DeepEqual(x, y)
+		return equals(instr, x, y)
 		//return eqnil(t, x, y)
 
 	case token.NEQ:
-		return !equal(x, y)
+		return !equals(instr, x, y)
 
 	case token.GTR:
 		switch x.(type) {
@@ -836,12 +833,50 @@ func binop(op token.Token, t types.Type, x, y value) value {
 		}
 	}
 failed:
-	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, op, y))
+	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, instr.Op, y))
 }
 
-func equal(x, y interface{}) bool {
+func IsConstNil(v ssa.Value) bool {
+	if c, ok := v.(*ssa.Const); ok {
+		return c.IsNil()
+	}
+	return false
+}
+
+func IsNil(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Invalid:
+		return true
+	case reflect.Slice, reflect.Map, reflect.Func:
+		return v.IsNil()
+	case reflect.Chan, reflect.Ptr, reflect.UnsafePointer, reflect.Interface:
+		return v.IsNil()
+	default:
+		return false
+	}
+}
+
+func equals(instr *ssa.BinOp, x, y interface{}) bool {
 	vx := reflect.ValueOf(x)
 	vy := reflect.ValueOf(y)
+	if IsConstNil(instr.X) {
+		return IsNil(vy)
+	} else if IsConstNil(instr.Y) {
+		return IsNil(vx)
+	}
+	return equalValue(vx, vy)
+}
+
+func equalNil(vx, vy reflect.Value) bool {
+	if IsNil(vx) {
+		return IsNil(vy)
+	} else if IsNil(vy) {
+		return IsNil(vx)
+	}
+	return equalValue(vx, vy)
+}
+
+func equalValue(vx, vy reflect.Value) bool {
 	if kind := vx.Kind(); kind == vy.Kind() {
 		switch kind {
 		case reflect.Chan:
@@ -849,22 +884,49 @@ func equal(x, y interface{}) bool {
 			diry := vy.Type().ChanDir()
 			if dirx != diry {
 				if dirx == reflect.BothDir {
-					return y == vx.Convert(vy.Type()).Interface()
+					return vy.Interface() == vx.Convert(vy.Type()).Interface()
 				} else if diry == reflect.BothDir {
-					return x == vy.Convert(vx.Type()).Interface()
+					return vx.Interface() == vy.Convert(vx.Type()).Interface()
 				}
 			} else {
-				return x == y
+				return vx.Interface() == vy.Interface()
 			}
 		case reflect.Ptr:
 			return vx.Pointer() == vy.Pointer()
-		case reflect.Slice:
-			return vx.Len() == 0 && vy.Len() == 0
+		case reflect.Struct:
+			return equalStruct(vx, vy)
 		default:
-			return x == y
+			return vx.Interface() == vy.Interface()
 		}
 	}
 	return false
+}
+
+func equalStruct(vx, vy reflect.Value) bool {
+	typ := vx.Type()
+	if typ != vy.Type() {
+		return false
+	}
+	n := typ.NumField()
+	for i := 0; i < n; i++ {
+		f := typ.Field(i)
+		if f.Name == "_" {
+			continue
+		}
+		fx := reflectx.FieldByIndex(vx, f.Index)
+		fy := reflectx.FieldByIndex(vy, f.Index)
+		// check uncomparable
+		switch f.Type.Kind() {
+		case reflect.Slice, reflect.Map, reflect.Func:
+			if fx.Interface() != fy.Interface() {
+				return false
+			}
+		}
+		if !equalNil(fx, fy) {
+			return false
+		}
+	}
+	return true
 }
 
 func unop(instr *ssa.UnOp, x value) value {
@@ -1006,10 +1068,11 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 		err = fmt.Errorf("panic: interface conversion: interface is nil, not %v", typ)
 	} else {
 		rv := reflect.ValueOf(iv)
-		if typ == rv.Type() {
+		rt := rv.Type()
+		if typ == rt {
 			v = iv
 		} else {
-			if !rv.Type().ConvertibleTo(typ) {
+			if !rt.AssignableTo(typ) {
 				err = fmt.Errorf("interface conversion: %v cannot be converted to type %v", instr.X.Type(), typ)
 			} else {
 				v = rv.Convert(typ).Interface()
@@ -1018,7 +1081,7 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	}
 	if err != nil {
 		if !instr.CommaOk {
-			panic(err)
+			panic(errorString(err.Error()))
 		}
 		return tuple{reflect.Zero(typ).Interface(), false}
 	}
@@ -1181,33 +1244,37 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		// }
 
 	case "real":
-		switch c := args[0].(type) {
-		case complex64:
-			return real(c)
-		case complex128:
-			return real(c)
+		c := reflect.ValueOf(args[0])
+		switch c.Kind() {
+		case reflect.Complex64:
+			return real(complex64(c.Complex()))
+		case reflect.Complex128:
+			return real(c.Complex())
 		default:
 			panic(fmt.Sprintf("real: illegal operand: %T", c))
 		}
 
 	case "imag":
-		switch c := args[0].(type) {
-		case complex64:
-			return imag(c)
-		case complex128:
-			return imag(c)
+		c := reflect.ValueOf(args[0])
+		switch c.Kind() {
+		case reflect.Complex64:
+			return imag(complex64(c.Complex()))
+		case reflect.Complex128:
+			return imag(c.Complex())
 		default:
 			panic(fmt.Sprintf("imag: illegal operand: %T", c))
 		}
 
 	case "complex":
-		switch f := args[0].(type) {
-		case float32:
-			return complex(f, args[1].(float32))
-		case float64:
-			return complex(f, args[1].(float64))
+		r := reflect.ValueOf(args[0])
+		i := reflect.ValueOf(args[1])
+		switch r.Kind() {
+		case reflect.Float32:
+			return complex(float32(r.Float()), float32(i.Float()))
+		case reflect.Float64:
+			return complex(r.Float(), i.Float())
 		default:
-			panic(fmt.Sprintf("complex: illegal operand: %T", f))
+			panic(fmt.Sprintf("complex: illegal operand: %v", r.Kind()))
 		}
 
 	case "panic":

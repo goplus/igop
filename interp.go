@@ -104,8 +104,25 @@ func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
 	return nil, false
 }
 
+func ptrCount(s string) (string, int) {
+	for i, v := range s {
+		if v != '*' {
+			return s[i:], i
+		}
+	}
+	panic("failed ptrCount " + s)
+}
+
 func (i *interpreter) toType(typ types.Type) reflect.Type {
 	if t, ok := i.types[typ]; ok {
+		return t
+	}
+	et, ptr := ptrCount(typ.String())
+	if t, ok := externTypes[et]; ok {
+		for i := 0; i < ptr; i++ {
+			t = reflect.PtrTo(t)
+		}
+		i.types[typ] = t
 		return t
 	}
 	t, err := xtypes.ToType(typ, i.ctx)
@@ -162,7 +179,7 @@ func (fr *frame) get(key ssa.Value) value {
 		return nil
 	}
 	if key.Parent() == nil {
-		if ext, ok := externals[key.String()]; ok {
+		if ext, ok := externValues[key.String()]; ok {
 			if fr.i.mode&EnableTracing != 0 {
 				fmt.Fprintln(os.Stderr, "\t(external)")
 			}
@@ -170,7 +187,9 @@ func (fr *frame) get(key ssa.Value) value {
 		}
 	}
 	switch key := key.(type) {
-	case *ssa.Function, *ssa.Builtin:
+	case *ssa.Function:
+		return key
+	case *ssa.Builtin:
 		return key
 	case *ssa.Const:
 		c := constValue(fr.i, key)
@@ -258,7 +277,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		fr.env[instr] = unop(instr, fr.get(instr.X))
 
 	case *ssa.BinOp:
-		fr.env[instr] = binop(instr.Op, instr.X.Type(), fr.get(instr.X), fr.get(instr.Y))
+		fr.env[instr] = binop(instr, instr.X.Type(), fr.get(instr.X), fr.get(instr.Y))
 
 	case *ssa.Call:
 		return func() {
@@ -346,13 +365,15 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			reflectx.SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
-			reflectx.SetValue(x.Elem(), v)
+			if v.IsValid() {
+				reflectx.SetValue(x.Elem(), v)
+			}
 		}
 		//store(deref(instr.Addr.Type()), fr.get(instr.Addr).(*value), fr.get(instr.Val))
 
 	case *ssa.If:
 		succ := 1
-		if fr.get(instr.Cond).(bool) {
+		if v := fr.get(instr.Cond); reflect.ValueOf(v).Bool() {
 			succ = 0
 		}
 		fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
@@ -512,7 +533,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		// }
 
 	case *ssa.TypeAssert:
-		fr.env[instr] = typeAssert(fr.i, instr, fr.get(instr.X))
+		v := fr.get(instr.X)
+		if fn, ok := v.(*ssa.Function); ok {
+			typ := fr.i.toType(fn.Type())
+			v = fr.toFunc(typ, fn).Interface()
+		}
+		fr.env[instr] = typeAssert(fr.i, instr, v)
 
 	case *ssa.MakeClosure:
 		var bindings []value
@@ -607,15 +633,21 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		// Interface method invocation.
 		//vt, ok := call.Value.(*ssa.MakeInterface)
 		// recv := v.(iface)
-		t, ok := fr.i.findType(reflect.TypeOf(v))
-		if !ok {
-			panic("method invoked on nil interface")
-		}
-		if f := lookupMethod(fr.i, t, call.Method); f == nil {
-			// Unreachable in well-typed programs.
-			panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
+		rv := reflect.ValueOf(v)
+		t, ok := fr.i.findType(rv.Type())
+		if ok {
+			if f := lookupMethod(fr.i, t, call.Method); f == nil {
+				// Unreachable in well-typed programs.
+				panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
+			} else {
+				fn = f
+			}
 		} else {
-			fn = f
+			if f, ok := rv.Type().MethodByName(call.Method.Name()); ok {
+				fn = f.Func.Interface()
+			} else {
+				panic("method invoked on nil interface")
+			}
 		}
 		args = append(args, v)
 	}
@@ -729,7 +761,15 @@ func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Va
 	} else {
 		ins = make([]reflect.Value, len(args), len(args))
 		for i := 0; i < len(args); i++ {
-			ins[i] = reflect.ValueOf(args[i])
+			// typ := fn.Type().In(i)
+			v := reflect.ValueOf(args[i])
+			// if typ != v.Type() {
+			// 	nv := reflect.New(typ).Elem()
+			// 	reflectx.SetValue(nv, v)
+			// 	ins[i] = nv
+			// } else {
+			ins[i] = v
+			// }
 		}
 	}
 	var results []reflect.Value
@@ -841,7 +881,7 @@ func doRecover(caller *frame) value {
 			//return iface{caller.i.runtimeErrorString, p.Error()}
 		case string:
 			// The interpreter explicitly called panic().
-			return p
+			return errorString(p)
 			//return iface{caller.i.runtimeErrorString, p}
 		case *reflect.ValueError:
 			return p
@@ -908,7 +948,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 	for _, arg := range args {
 		i.osArgs = append(i.osArgs, arg)
 	}
-
+	reflectx.Reset()
 	for _, pkg := range i.prog.AllPackages() {
 		if i.mode&EnableTracing != 0 {
 			fmt.Println("initialize", pkg)

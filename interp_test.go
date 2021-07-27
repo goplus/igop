@@ -17,12 +17,15 @@ package interp_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/build"
 	"go/types"
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -49,7 +52,7 @@ var gorootTestTests = []string{
 	"varinit.go",
 	"escape3.go",
 	"initcomma.go",
-	//"cmp.go", // import OS
+	"cmp.go", // import OS
 	"compos.go",
 	"turing.go",
 	"indirect.go",
@@ -70,57 +73,81 @@ var gorootTestTests = []string{
 	"bigmap.go",
 	"func.go",
 	"reorder2.go",
-	//"gc.go", // import runtime
+	"gc.go", // import runtime
 	"simassign.go",
 	"iota.go",
 	"nilptr2.go",
-	//"utf.go", // import unicode/utf8
+	"utf.go", // import unicode/utf8
 	"method.go",
-	//"char_lit.go", // import os
-	//"env.go", // import runtime;os
-	//"int_lit.go", //import os
-	//"string_lit.go", //import os
-	//"defer.go", //import fmt
-	//"typeswitch.go", //import os
-	//"stringrange.go",
-	//"reorder.go",
+	"char_lit.go",    // import os
+	"env.go",         // import runtime;os
+	"int_lit.go",     //import os
+	"string_lit.go",  //import os
+	"defer.go",       //import fmt
+	"typeswitch.go",  //import os
+	"stringrange.go", //import os fmt unicode/utf8
+	"reorder.go",     //import fmt
 	"method3.go",
 	"literal.go",
-	//"nul1.go", // doesn't actually assert anything (errorcheckoutput)
-	//"zerodivide.go",
-	//"convert.go",
+	"nul1.go", // doesn't actually assert anything (errorcheckoutput)
+	"zerodivide.go",
+	"convert.go",
 	"convT2X.go",
-	//"switch.go",
+	"switch.go",
 	"ddd.go",
-	//"blank.go", // partly disabled //import os
-	//"closedchan.go", //import os
-	//"divide.go", //import fmt
-	//"rename.go", //import runtime fmt
-	//"nil.go",
-	//"recover1.go",
-	//"recover2.go",
-	//"recover3.go",
-	//"typeswitch1.go",
-	//"floatcmp.go",
-	//"crlf.go", // doesn't actually assert anything (runoutput)
+	"blank.go",      // partly disabled //import os
+	"closedchan.go", //import os
+	"divide.go",     //import fmt
+	"rename.go",     //import runtime fmt
+	"nil.go",
+	"recover1.go",
+	"recover2.go",
+	//"recover3.go", //TODO fix panic info
+	"typeswitch1.go",
+	"floatcmp.go",
+	"crlf.go", // doesn't actually assert anything (runoutput)
 }
 
 // These are files in go.tools/go/ssa/interp/testdata/.
 var testdataTests = []string{
-	//"boundmeth.go",
-	//"complit.go",
-	//"coverage.go",
-	//"defer.go",
-	//"fieldprom.go",
+	"boundmeth.go",
+	"complit.go",
+	"coverage.go", //TODO fix panic info
+	"defer.go",
+	"fieldprom.go",
 	"ifaceconv.go",
 	"ifaceprom.go",
-	//"initorder.go",
+	"initorder.go",
 	"methprom.go",
 	"mrvchain.go",
-	//"range.go",
-	//"recover.go",
-	//"reflect.go",
+	"range.go",
+	"recover.go",
+	"reflect.go",
 	"static.go",
+}
+
+func init() {
+	interp.RegisterExternal("runtime.init", func() {})
+	interp.RegisterExternal("runtime.GC", runtime.GC)
+	interp.RegisterExternal("os.init", func() {})
+	interp.RegisterExternal("os.Getenv", os.Getenv)
+	interp.RegisterExternal("fmt.init", func() {})
+	interp.RegisterExternal("fmt.Print", fmt.Print)
+	interp.RegisterExternal("fmt.Printf", fmt.Printf)
+	interp.RegisterExternal("fmt.Println", fmt.Println)
+	interp.RegisterExternal("fmt.Sprint", fmt.Sprint)
+	interp.RegisterExternal("math.init", func() {})
+	interp.RegisterExternal("strings.init", func() {})
+	interp.RegisterExternal("strings.IndexByte", strings.IndexByte)
+	interp.RegisterExternal("strings.Contains", strings.Contains)
+	interp.RegisterExternal("reflect.init", func() {})
+	interp.RegisterExternal("reflect.TypeOf", reflect.TypeOf)
+	interp.RegisterExternal("reflect.SliceOf", reflect.SliceOf)
+	interp.RegisterExternal("time.init", func() {})
+	interp.RegisterExternal("time.Sleep", time.Sleep)
+	interp.RegisterType("time.Duration", reflect.TypeOf((*time.Duration)(nil)).Elem())
+	interp.RegisterExternal("errors.init", func() {})
+	interp.RegisterExternal("errors.New", errors.New)
 }
 
 func run(t *testing.T, input string) bool {
@@ -138,9 +165,9 @@ func run(t *testing.T, input string) bool {
 func _run(t *testing.T, input string) bool {
 	// The recover2 test case is broken on Go 1.14+. See golang/go#34089.
 	// TODO(matloob): Fix this.
-	if filepath.Base(input) == "recover2.go" {
-		t.Skip("The recover2.go test is broken in go1.14+. See golang.org/issue/34089.")
-	}
+	// if filepath.Base(input) == "recover2.go" {
+	// 	t.Skip("The recover2.go test is broken in go1.14+. See golang.org/issue/34089.")
+	// }
 
 	t.Logf("Input: %s\n", input)
 
