@@ -102,7 +102,7 @@ var gorootTestTests = []string{
 	"nil.go",
 	"recover1.go",
 	"recover2.go",
-	//"recover3.go", // interface convert panic info
+	//"recover3.go", //TODO fix panic info
 	"typeswitch1.go",
 	"floatcmp.go",
 	"crlf.go", // doesn't actually assert anything (runoutput)
@@ -110,19 +110,19 @@ var gorootTestTests = []string{
 
 // These are files in go.tools/go/ssa/interp/testdata/.
 var testdataTests = []string{
-	//"boundmeth.go",
+	"boundmeth.go",
 	"complit.go",
-	"coverage.go",
-	//"defer.go",
-	//"fieldprom.go",
+	"coverage.go", //TODO fix panic info
+	"defer.go",
+	"fieldprom.go",
 	"ifaceconv.go",
 	"ifaceprom.go",
-	//"initorder.go",
+	"initorder.go",
 	"methprom.go",
 	"mrvchain.go",
-	//"range.go",
-	//"recover.go",
-	//"reflect.go",
+	"range.go",
+	"recover.go",
+	"reflect.go",
 	"static.go",
 }
 
@@ -142,6 +142,7 @@ func init() {
 	interp.RegisterExternal("strings.Contains", strings.Contains)
 	interp.RegisterExternal("reflect.init", func() {})
 	interp.RegisterExternal("reflect.TypeOf", reflect.TypeOf)
+	interp.RegisterExternal("reflect.SliceOf", reflect.SliceOf)
 	interp.RegisterExternal("time.init", func() {})
 	interp.RegisterExternal("time.Sleep", time.Sleep)
 	interp.RegisterType("time.Duration", reflect.TypeOf((*time.Duration)(nil)).Elem())
@@ -261,7 +262,7 @@ func TestTestdataFiles(t *testing.T) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func _TestGorootTest(t *testing.T) {
+func TestGorootTest(t *testing.T) {
 	var failures []string
 
 	for _, input := range gorootTestTests {
