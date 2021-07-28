@@ -262,6 +262,31 @@ func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Functio
 	return i.prog.LookupMethod(typ, meth.Pkg(), meth.Name())
 }
 
+func SetValue(v reflect.Value, x reflect.Value) {
+	switch v.Kind() {
+	case reflect.Bool:
+		v.SetBool(x.Bool())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		v.SetInt(x.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		v.SetUint(x.Uint())
+	case reflect.Uintptr:
+		v.SetUint(x.Uint())
+	case reflect.Float32, reflect.Float64:
+		v.SetFloat(x.Float())
+	case reflect.Complex64, reflect.Complex128:
+		v.SetComplex(x.Complex())
+	case reflect.String:
+		v.SetString(x.String())
+	case reflect.UnsafePointer:
+		v.SetPointer(unsafe.Pointer(x.Pointer()))
+	case reflect.Func:
+		v.Set(x.Convert(v.Type()))
+	default:
+		v.Set(x)
+	}
+}
+
 // visitInstr interprets a single ssa.Instruction within the activation
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
@@ -272,7 +297,6 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
 		// no-op
-
 	case *ssa.UnOp:
 		fr.env[instr] = unop(instr, fr.get(instr.X))
 
@@ -362,11 +386,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		switch fn := val.(type) {
 		case *ssa.Function:
 			f := fr.toFunc(fr.i.toType(fn.Type()), fn)
-			reflectx.SetValue(x.Elem(), f)
+			SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
 			if v.IsValid() {
-				reflectx.SetValue(x.Elem(), v)
+				//reflectx.SetValue(x.Elem(), v)
+				SetValue(x.Elem(), v)
 			}
 		}
 		//store(deref(instr.Addr.Type()), fr.get(instr.Addr).(*value), fr.get(instr.Val))
@@ -761,15 +786,8 @@ func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Va
 	} else {
 		ins = make([]reflect.Value, len(args), len(args))
 		for i := 0; i < len(args); i++ {
-			// typ := fn.Type().In(i)
 			v := reflect.ValueOf(args[i])
-			// if typ != v.Type() {
-			// 	nv := reflect.New(typ).Elem()
-			// 	reflectx.SetValue(nv, v)
-			// 	ins[i] = nv
-			// } else {
 			ins[i] = v
-			// }
 		}
 	}
 	var results []reflect.Value

@@ -1149,11 +1149,7 @@ func callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value
 		}
 		if s, ok := args[1].(string); ok {
 			// append([]byte, ...string) []byte
-			arg0 := args[0].([]byte)
-			for i := 0; i < len(s); i++ {
-				arg0 = append(arg0, s[i])
-			}
-			return arg0
+			args[1] = []byte(s)
 		}
 		return reflect.AppendSlice(reflect.ValueOf(args[0]), reflect.ValueOf(args[1])).Interface()
 		// append([]T, ...[]T) []T

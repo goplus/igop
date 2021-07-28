@@ -4,6 +4,6 @@ go 1.14
 
 require (
 	github.com/goplus/reflectx v0.5.14
-	github.com/goplus/xtypes v0.1.14
+	github.com/goplus/xtypes v0.1.15-0.20210728002145-d828dded7c48
 	golang.org/x/tools v0.1.5
 )
