@@ -16,9 +16,15 @@ func RegisterExternal(key string, fn interface{}) {
 	externValues[key] = reflect.ValueOf(fn)
 }
 
-// register external interface
-func RegisterType(key string, t reflect.Type) {
-	externTypes[key] = t
+// register external type
+func RegisterType(key string, typ reflect.Type) {
+	externTypes[key] = typ
+}
+
+// register external type
+func RegisterTypeOf(ptr interface{}) {
+	typ := reflect.TypeOf(ptr).Elem()
+	externTypes[typ.String()] = typ
 }
 
 func init() {

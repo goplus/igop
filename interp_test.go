@@ -145,7 +145,7 @@ func init() {
 	interp.RegisterExternal("reflect.SliceOf", reflect.SliceOf)
 	interp.RegisterExternal("time.init", func() {})
 	interp.RegisterExternal("time.Sleep", time.Sleep)
-	interp.RegisterType("time.Duration", reflect.TypeOf((*time.Duration)(nil)).Elem())
+	interp.RegisterTypeOf((*time.Duration)(nil))
 	interp.RegisterExternal("errors.init", func() {})
 	interp.RegisterExternal("errors.New", errors.New)
 }
