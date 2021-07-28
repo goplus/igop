@@ -12,8 +12,15 @@ var externValues = make(map[string]reflect.Value)
 var externTypes = make(map[string]reflect.Type)
 
 // register external interface
-func RegisterExternal(key string, fn interface{}) {
-	externValues[key] = reflect.ValueOf(fn)
+func RegisterExternal(key string, i interface{}) {
+	externValues[key] = reflect.ValueOf(i)
+}
+
+// register external interface map
+func RegisterExternals(m map[string]interface{}) {
+	for k, v := range m {
+		externValues[k] = reflect.ValueOf(v)
+	}
 }
 
 // register external type
@@ -21,10 +28,12 @@ func RegisterType(key string, typ reflect.Type) {
 	externTypes[key] = typ
 }
 
-// register external type
-func RegisterTypeOf(ptr interface{}) {
-	typ := reflect.TypeOf(ptr).Elem()
-	externTypes[typ.String()] = typ
+// register external type list
+func RegisterTypeOf(ptrs ...interface{}) {
+	for _, ptr := range ptrs {
+		typ := reflect.TypeOf(ptr).Elem()
+		externTypes[typ.String()] = typ
+	}
 }
 
 func init() {
