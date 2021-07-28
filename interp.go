@@ -732,19 +732,18 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		caller: caller, // for panic/recover
 		fn:     fn,
 	}
-	// if fn.Parent() == nil {
-	// 	name := fn.String()
-	// 	if ext := externals[name]; ext.Kind() == reflect.Func {
-	// 		if i.mode&EnableTracing != 0 {
-	// 			fmt.Fprintln(os.Stderr, "\t(external)")
-	// 		}
-	// 		return callReflect(i, caller, callpos, ext, args, nil)
-	// 		//			return ext(fr, args)
-	// 	}
-	// 	if fn.Blocks == nil {
-	// 		panic("no code for function: " + name)
-	// 	}
-	// }
+	if fn.Parent() == nil {
+		name := fn.String()
+		if ext := externValues[name]; ext.Kind() == reflect.Func {
+			if i.mode&EnableTracing != 0 {
+				fmt.Fprintln(os.Stderr, "\t(external)")
+			}
+			return callReflect(i, caller, callpos, ext, args, nil)
+		}
+		if fn.Blocks == nil {
+			panic("no code for function: " + name)
+		}
+	}
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fn.Blocks[0]
 	fr.locals = make([]value, len(fn.Locals))
