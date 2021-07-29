@@ -544,6 +544,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		m := fr.get(instr.Map)
 		key := fr.get(instr.Key)
 		v := fr.get(instr.Value)
+		if fn, ok := v.(*ssa.Function); ok {
+			typ := fr.i.toType(fn.Type())
+			v = fr.toFunc(typ, fn).Interface()
+		}
 		reflect.ValueOf(m).SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
 		// switch m := m.(type) {
 		// case map[value]value:
