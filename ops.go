@@ -192,6 +192,746 @@ func slice(x, lo, hi, max value) value {
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
 }
 
+func opADD(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) + y.(int)
+	case int8:
+		return x.(int8) + y.(int8)
+	case int16:
+		return x.(int16) + y.(int16)
+	case int32:
+		return x.(int32) + y.(int32)
+	case int64:
+		return x.(int64) + y.(int64)
+	case uint:
+		return x.(uint) + y.(uint)
+	case uint8:
+		return x.(uint8) + y.(uint8)
+	case uint16:
+		return x.(uint16) + y.(uint16)
+	case uint32:
+		return x.(uint32) + y.(uint32)
+	case uint64:
+		return x.(uint64) + y.(uint64)
+	case uintptr:
+		return x.(uintptr) + y.(uintptr)
+	case float32:
+		return x.(float32) + y.(float32)
+	case float64:
+		return x.(float64) + y.(float64)
+	case complex64:
+		return x.(complex64) + y.(complex64)
+	case complex128:
+		return x.(complex128) + y.(complex128)
+	case string:
+		return x.(string) + y.(string)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() + vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() + vy.Uint())
+			case reflect.Float32, reflect.Float64:
+				r.SetFloat(vx.Float() + vy.Float())
+			case reflect.Complex64, reflect.Complex128:
+				r.SetComplex(vx.Complex() + vy.Complex())
+			case reflect.String:
+				r.SetString(vx.String() + vy.String())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T + %T", x, y))
+}
+
+func opSUB(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) - y.(int)
+	case int8:
+		return x.(int8) - y.(int8)
+	case int16:
+		return x.(int16) - y.(int16)
+	case int32:
+		return x.(int32) - y.(int32)
+	case int64:
+		return x.(int64) - y.(int64)
+	case uint:
+		return x.(uint) - y.(uint)
+	case uint8:
+		return x.(uint8) - y.(uint8)
+	case uint16:
+		return x.(uint16) - y.(uint16)
+	case uint32:
+		return x.(uint32) - y.(uint32)
+	case uint64:
+		return x.(uint64) - y.(uint64)
+	case uintptr:
+		return x.(uintptr) - y.(uintptr)
+	case float32:
+		return x.(float32) - y.(float32)
+	case float64:
+		return x.(float64) - y.(float64)
+	case complex64:
+		return x.(complex64) - y.(complex64)
+	case complex128:
+		return x.(complex128) - y.(complex128)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() - vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() - vy.Uint())
+			case reflect.Float32, reflect.Float64:
+				r.SetFloat(vx.Float() - vy.Float())
+			case reflect.Complex64, reflect.Complex128:
+				r.SetComplex(vx.Complex() - vy.Complex())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T - %T", x, y))
+}
+
+func opMUL(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) * y.(int)
+	case int8:
+		return x.(int8) * y.(int8)
+	case int16:
+		return x.(int16) * y.(int16)
+	case int32:
+		return x.(int32) * y.(int32)
+	case int64:
+		return x.(int64) * y.(int64)
+	case uint:
+		return x.(uint) * y.(uint)
+	case uint8:
+		return x.(uint8) * y.(uint8)
+	case uint16:
+		return x.(uint16) * y.(uint16)
+	case uint32:
+		return x.(uint32) * y.(uint32)
+	case uint64:
+		return x.(uint64) * y.(uint64)
+	case uintptr:
+		return x.(uintptr) * y.(uintptr)
+	case float32:
+		return x.(float32) * y.(float32)
+	case float64:
+		return x.(float64) * y.(float64)
+	case complex64:
+		return x.(complex64) * y.(complex64)
+	case complex128:
+		return x.(complex128) * y.(complex128)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() * vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() * vy.Uint())
+			case reflect.Float32, reflect.Float64:
+				r.SetFloat(vx.Float() * vy.Float())
+			case reflect.Complex64, reflect.Complex128:
+				r.SetComplex(vx.Complex() * vy.Complex())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T * %T", x, y))
+}
+
+func opQuo(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) / y.(int)
+	case int8:
+		return x.(int8) / y.(int8)
+	case int16:
+		return x.(int16) / y.(int16)
+	case int32:
+		return x.(int32) / y.(int32)
+	case int64:
+		return x.(int64) / y.(int64)
+	case uint:
+		return x.(uint) / y.(uint)
+	case uint8:
+		return x.(uint8) / y.(uint8)
+	case uint16:
+		return x.(uint16) / y.(uint16)
+	case uint32:
+		return x.(uint32) / y.(uint32)
+	case uint64:
+		return x.(uint64) / y.(uint64)
+	case uintptr:
+		return x.(uintptr) / y.(uintptr)
+	case float32:
+		return x.(float32) / y.(float32)
+	case float64:
+		return x.(float64) / y.(float64)
+	case complex64:
+		return x.(complex64) / y.(complex64)
+	case complex128:
+		return x.(complex128) / y.(complex128)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() / vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() / vy.Uint())
+			case reflect.Float32, reflect.Float64:
+				r.SetFloat(vx.Float() / vy.Float())
+			case reflect.Complex64, reflect.Complex128:
+				r.SetComplex(vx.Complex() / vy.Complex())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T / %T", x, y))
+}
+
+func opREM(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) % y.(int)
+	case int8:
+		return x.(int8) % y.(int8)
+	case int16:
+		return x.(int16) % y.(int16)
+	case int32:
+		return x.(int32) % y.(int32)
+	case int64:
+		return x.(int64) % y.(int64)
+	case uint:
+		return x.(uint) % y.(uint)
+	case uint8:
+		return x.(uint8) % y.(uint8)
+	case uint16:
+		return x.(uint16) % y.(uint16)
+	case uint32:
+		return x.(uint32) % y.(uint32)
+	case uint64:
+		return x.(uint64) % y.(uint64)
+	case uintptr:
+		return x.(uintptr) % y.(uintptr)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() % vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() % vy.Uint())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T %% %T", x, y))
+}
+
+func opAND(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) & y.(int)
+	case int8:
+		return x.(int8) & y.(int8)
+	case int16:
+		return x.(int16) & y.(int16)
+	case int32:
+		return x.(int32) & y.(int32)
+	case int64:
+		return x.(int64) & y.(int64)
+	case uint:
+		return x.(uint) & y.(uint)
+	case uint8:
+		return x.(uint8) & y.(uint8)
+	case uint16:
+		return x.(uint16) & y.(uint16)
+	case uint32:
+		return x.(uint32) & y.(uint32)
+	case uint64:
+		return x.(uint64) & y.(uint64)
+	case uintptr:
+		return x.(uintptr) & y.(uintptr)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() & vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() & vy.Uint())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T && %T", x, y))
+}
+
+func opOR(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) | y.(int)
+	case int8:
+		return x.(int8) | y.(int8)
+	case int16:
+		return x.(int16) | y.(int16)
+	case int32:
+		return x.(int32) | y.(int32)
+	case int64:
+		return x.(int64) | y.(int64)
+	case uint:
+		return x.(uint) | y.(uint)
+	case uint8:
+		return x.(uint8) | y.(uint8)
+	case uint16:
+		return x.(uint16) | y.(uint16)
+	case uint32:
+		return x.(uint32) | y.(uint32)
+	case uint64:
+		return x.(uint64) | y.(uint64)
+	case uintptr:
+		return x.(uintptr) | y.(uintptr)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() | vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() | vy.Uint())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T | %T", x, y))
+}
+
+func opXOR(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) ^ y.(int)
+	case int8:
+		return x.(int8) ^ y.(int8)
+	case int16:
+		return x.(int16) ^ y.(int16)
+	case int32:
+		return x.(int32) ^ y.(int32)
+	case int64:
+		return x.(int64) ^ y.(int64)
+	case uint:
+		return x.(uint) ^ y.(uint)
+	case uint8:
+		return x.(uint8) ^ y.(uint8)
+	case uint16:
+		return x.(uint16) ^ y.(uint16)
+	case uint32:
+		return x.(uint32) ^ y.(uint32)
+	case uint64:
+		return x.(uint64) ^ y.(uint64)
+	case uintptr:
+		return x.(uintptr) ^ y.(uintptr)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() ^ vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() ^ vy.Uint())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T ^ %T", x, y))
+}
+
+func opANDNOT(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) &^ y.(int)
+	case int8:
+		return x.(int8) &^ y.(int8)
+	case int16:
+		return x.(int16) &^ y.(int16)
+	case int32:
+		return x.(int32) &^ y.(int32)
+	case int64:
+		return x.(int64) &^ y.(int64)
+	case uint:
+		return x.(uint) &^ y.(uint)
+	case uint8:
+		return x.(uint8) &^ y.(uint8)
+	case uint16:
+		return x.(uint16) &^ y.(uint16)
+	case uint32:
+		return x.(uint32) &^ y.(uint32)
+	case uint64:
+		return x.(uint64) &^ y.(uint64)
+	case uintptr:
+		return x.(uintptr) &^ y.(uintptr)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			r := reflect.New(vx.Type()).Elem()
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				r.SetInt(vx.Int() &^ vy.Int())
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				r.SetUint(vx.Uint() &^ vy.Uint())
+			default:
+				goto failed
+			}
+			return r.Interface()
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T &^ %T", x, y))
+}
+
+func opSHL(x, _y value) value {
+	y := asUint64(_y)
+	switch x.(type) {
+	case int:
+		return x.(int) << y
+	case int8:
+		return x.(int8) << y
+	case int16:
+		return x.(int16) << y
+	case int32:
+		return x.(int32) << y
+	case int64:
+		return x.(int64) << y
+	case uint:
+		return x.(uint) << y
+	case uint8:
+		return x.(uint8) << y
+	case uint16:
+		return x.(uint16) << y
+	case uint32:
+		return x.(uint32) << y
+	case uint64:
+		return x.(uint64) << y
+	case uintptr:
+		return x.(uintptr) << y
+	default:
+		vx := reflect.ValueOf(x)
+		r := reflect.New(vx.Type()).Elem()
+		switch vx.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			r.SetInt(vx.Int() << y)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			r.SetUint(vx.Uint() << y)
+		default:
+			goto failed
+		}
+		return r.Interface()
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T << %T", x, y))
+}
+
+func opSHR(x, _y value) value {
+	y := asUint64(_y)
+	switch x.(type) {
+	case int:
+		return x.(int) >> y
+	case int8:
+		return x.(int8) >> y
+	case int16:
+		return x.(int16) >> y
+	case int32:
+		return x.(int32) >> y
+	case int64:
+		return x.(int64) >> y
+	case uint:
+		return x.(uint) >> y
+	case uint8:
+		return x.(uint8) >> y
+	case uint16:
+		return x.(uint16) >> y
+	case uint32:
+		return x.(uint32) >> y
+	case uint64:
+		return x.(uint64) >> y
+	case uintptr:
+		return x.(uintptr) >> y
+	default:
+		vx := reflect.ValueOf(x)
+		r := reflect.New(vx.Type()).Elem()
+		switch vx.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			r.SetInt(vx.Int() >> y)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			r.SetUint(vx.Uint() >> y)
+		default:
+			goto failed
+		}
+		return r.Interface()
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T >> %T", x, y))
+}
+
+func opLSS(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) < y.(int)
+	case int8:
+		return x.(int8) < y.(int8)
+	case int16:
+		return x.(int16) < y.(int16)
+	case int32:
+		return x.(int32) < y.(int32)
+	case int64:
+		return x.(int64) < y.(int64)
+	case uint:
+		return x.(uint) < y.(uint)
+	case uint8:
+		return x.(uint8) < y.(uint8)
+	case uint16:
+		return x.(uint16) < y.(uint16)
+	case uint32:
+		return x.(uint32) < y.(uint32)
+	case uint64:
+		return x.(uint64) < y.(uint64)
+	case uintptr:
+		return x.(uintptr) < y.(uintptr)
+	case float32:
+		return x.(float32) < y.(float32)
+	case float64:
+		return x.(float64) < y.(float64)
+	case string:
+		return x.(string) < y.(string)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return vx.Int() < vy.Int()
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				return vx.Uint() < vy.Uint()
+			case reflect.Float32, reflect.Float64:
+				return vx.Float() < vy.Float()
+			case reflect.String:
+				return vx.String() < vy.String()
+			default:
+				goto failed
+			}
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T < %T", x, y))
+}
+
+func opLEQ(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) <= y.(int)
+	case int8:
+		return x.(int8) <= y.(int8)
+	case int16:
+		return x.(int16) <= y.(int16)
+	case int32:
+		return x.(int32) <= y.(int32)
+	case int64:
+		return x.(int64) <= y.(int64)
+	case uint:
+		return x.(uint) <= y.(uint)
+	case uint8:
+		return x.(uint8) <= y.(uint8)
+	case uint16:
+		return x.(uint16) <= y.(uint16)
+	case uint32:
+		return x.(uint32) <= y.(uint32)
+	case uint64:
+		return x.(uint64) <= y.(uint64)
+	case uintptr:
+		return x.(uintptr) <= y.(uintptr)
+	case float32:
+		return x.(float32) <= y.(float32)
+	case float64:
+		return x.(float64) <= y.(float64)
+	case string:
+		return x.(string) <= y.(string)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return vx.Int() <= vy.Int()
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				return vx.Uint() <= vy.Uint()
+			case reflect.Float32, reflect.Float64:
+				return vx.Float() <= vy.Float()
+			case reflect.String:
+				return vx.String() <= vy.String()
+			default:
+				goto failed
+			}
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T <= %T", x, y))
+}
+
+func opGTR(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) > y.(int)
+	case int8:
+		return x.(int8) > y.(int8)
+	case int16:
+		return x.(int16) > y.(int16)
+	case int32:
+		return x.(int32) > y.(int32)
+	case int64:
+		return x.(int64) > y.(int64)
+	case uint:
+		return x.(uint) > y.(uint)
+	case uint8:
+		return x.(uint8) > y.(uint8)
+	case uint16:
+		return x.(uint16) > y.(uint16)
+	case uint32:
+		return x.(uint32) > y.(uint32)
+	case uint64:
+		return x.(uint64) > y.(uint64)
+	case uintptr:
+		return x.(uintptr) > y.(uintptr)
+	case float32:
+		return x.(float32) > y.(float32)
+	case float64:
+		return x.(float64) > y.(float64)
+	case string:
+		return x.(string) > y.(string)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return vx.Int() > vy.Int()
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				return vx.Uint() > vy.Uint()
+			case reflect.Float32, reflect.Float64:
+				return vx.Float() > vy.Float()
+			case reflect.String:
+				return vx.String() > vy.String()
+			default:
+				goto failed
+			}
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T > %T", x, y))
+}
+
+func opGEQ(x, y value) value {
+	switch x.(type) {
+	case int:
+		return x.(int) >= y.(int)
+	case int8:
+		return x.(int8) >= y.(int8)
+	case int16:
+		return x.(int16) >= y.(int16)
+	case int32:
+		return x.(int32) >= y.(int32)
+	case int64:
+		return x.(int64) >= y.(int64)
+	case uint:
+		return x.(uint) >= y.(uint)
+	case uint8:
+		return x.(uint8) >= y.(uint8)
+	case uint16:
+		return x.(uint16) >= y.(uint16)
+	case uint32:
+		return x.(uint32) >= y.(uint32)
+	case uint64:
+		return x.(uint64) >= y.(uint64)
+	case uintptr:
+		return x.(uintptr) >= y.(uintptr)
+	case float32:
+		return x.(float32) >= y.(float32)
+	case float64:
+		return x.(float64) >= y.(float64)
+	case string:
+		return x.(string) >= y.(string)
+	default:
+		vx := reflect.ValueOf(x)
+		vy := reflect.ValueOf(y)
+		if kind := vx.Kind(); kind == vy.Kind() {
+			switch kind {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return vx.Int() >= vy.Int()
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				return vx.Uint() >= vy.Uint()
+			case reflect.Float32, reflect.Float64:
+				return vx.Float() >= vy.Float()
+			case reflect.String:
+				return vx.String() >= vy.String()
+			default:
+				goto failed
+			}
+		}
+	}
+failed:
+	panic(fmt.Sprintf("invalid binary op: %T >= %T", x, y))
+}
+
 // binop implements all arithmetic and logical binary operators for
 // numeric datatypes and strings.  Both operands must have identical
 // dynamic type.
@@ -199,640 +939,40 @@ func slice(x, lo, hi, max value) value {
 func binop(instr *ssa.BinOp, t types.Type, x, y value) value {
 	switch instr.Op {
 	case token.ADD:
-		switch x.(type) {
-		case int:
-			return x.(int) + y.(int)
-		case int8:
-			return x.(int8) + y.(int8)
-		case int16:
-			return x.(int16) + y.(int16)
-		case int32:
-			return x.(int32) + y.(int32)
-		case int64:
-			return x.(int64) + y.(int64)
-		case uint:
-			return x.(uint) + y.(uint)
-		case uint8:
-			return x.(uint8) + y.(uint8)
-		case uint16:
-			return x.(uint16) + y.(uint16)
-		case uint32:
-			return x.(uint32) + y.(uint32)
-		case uint64:
-			return x.(uint64) + y.(uint64)
-		case uintptr:
-			return x.(uintptr) + y.(uintptr)
-		case float32:
-			return x.(float32) + y.(float32)
-		case float64:
-			return x.(float64) + y.(float64)
-		case complex64:
-			return x.(complex64) + y.(complex64)
-		case complex128:
-			return x.(complex128) + y.(complex128)
-		case string:
-			return x.(string) + y.(string)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() + vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() + vy.Uint())
-				case reflect.Float32, reflect.Float64:
-					r.SetFloat(vx.Float() + vy.Float())
-				case reflect.Complex64, reflect.Complex128:
-					r.SetComplex(vx.Complex() + vy.Complex())
-				case reflect.String:
-					r.SetString(vx.String() + vy.String())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opADD(x, y)
 	case token.SUB:
-		switch x.(type) {
-		case int:
-			return x.(int) - y.(int)
-		case int8:
-			return x.(int8) - y.(int8)
-		case int16:
-			return x.(int16) - y.(int16)
-		case int32:
-			return x.(int32) - y.(int32)
-		case int64:
-			return x.(int64) - y.(int64)
-		case uint:
-			return x.(uint) - y.(uint)
-		case uint8:
-			return x.(uint8) - y.(uint8)
-		case uint16:
-			return x.(uint16) - y.(uint16)
-		case uint32:
-			return x.(uint32) - y.(uint32)
-		case uint64:
-			return x.(uint64) - y.(uint64)
-		case uintptr:
-			return x.(uintptr) - y.(uintptr)
-		case float32:
-			return x.(float32) - y.(float32)
-		case float64:
-			return x.(float64) - y.(float64)
-		case complex64:
-			return x.(complex64) - y.(complex64)
-		case complex128:
-			return x.(complex128) - y.(complex128)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() - vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() - vy.Uint())
-				case reflect.Float32, reflect.Float64:
-					r.SetFloat(vx.Float() - vy.Float())
-				case reflect.Complex64, reflect.Complex128:
-					r.SetComplex(vx.Complex() - vy.Complex())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opSUB(x, y)
 	case token.MUL:
-		switch x.(type) {
-		case int:
-			return x.(int) * y.(int)
-		case int8:
-			return x.(int8) * y.(int8)
-		case int16:
-			return x.(int16) * y.(int16)
-		case int32:
-			return x.(int32) * y.(int32)
-		case int64:
-			return x.(int64) * y.(int64)
-		case uint:
-			return x.(uint) * y.(uint)
-		case uint8:
-			return x.(uint8) * y.(uint8)
-		case uint16:
-			return x.(uint16) * y.(uint16)
-		case uint32:
-			return x.(uint32) * y.(uint32)
-		case uint64:
-			return x.(uint64) * y.(uint64)
-		case uintptr:
-			return x.(uintptr) * y.(uintptr)
-		case float32:
-			return x.(float32) * y.(float32)
-		case float64:
-			return x.(float64) * y.(float64)
-		case complex64:
-			return x.(complex64) * y.(complex64)
-		case complex128:
-			return x.(complex128) * y.(complex128)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() * vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() * vy.Uint())
-				case reflect.Float32, reflect.Float64:
-					r.SetFloat(vx.Float() * vy.Float())
-				case reflect.Complex64, reflect.Complex128:
-					r.SetComplex(vx.Complex() * vy.Complex())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opMUL(x, y)
 	case token.QUO:
-		switch x.(type) {
-		case int:
-			return x.(int) / y.(int)
-		case int8:
-			return x.(int8) / y.(int8)
-		case int16:
-			return x.(int16) / y.(int16)
-		case int32:
-			return x.(int32) / y.(int32)
-		case int64:
-			return x.(int64) / y.(int64)
-		case uint:
-			return x.(uint) / y.(uint)
-		case uint8:
-			return x.(uint8) / y.(uint8)
-		case uint16:
-			return x.(uint16) / y.(uint16)
-		case uint32:
-			return x.(uint32) / y.(uint32)
-		case uint64:
-			return x.(uint64) / y.(uint64)
-		case uintptr:
-			return x.(uintptr) / y.(uintptr)
-		case float32:
-			return x.(float32) / y.(float32)
-		case float64:
-			return x.(float64) / y.(float64)
-		case complex64:
-			return x.(complex64) / y.(complex64)
-		case complex128:
-			return x.(complex128) / y.(complex128)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() / vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() / vy.Uint())
-				case reflect.Float32, reflect.Float64:
-					r.SetFloat(vx.Float() / vy.Float())
-				case reflect.Complex64, reflect.Complex128:
-					r.SetComplex(vx.Complex() / vy.Complex())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opQuo(x, y)
 	case token.REM:
-		switch x.(type) {
-		case int:
-			return x.(int) % y.(int)
-		case int8:
-			return x.(int8) % y.(int8)
-		case int16:
-			return x.(int16) % y.(int16)
-		case int32:
-			return x.(int32) % y.(int32)
-		case int64:
-			return x.(int64) % y.(int64)
-		case uint:
-			return x.(uint) % y.(uint)
-		case uint8:
-			return x.(uint8) % y.(uint8)
-		case uint16:
-			return x.(uint16) % y.(uint16)
-		case uint32:
-			return x.(uint32) % y.(uint32)
-		case uint64:
-			return x.(uint64) % y.(uint64)
-		case uintptr:
-			return x.(uintptr) % y.(uintptr)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() % vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() % vy.Uint())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opREM(x, y)
 	case token.AND:
-		switch x.(type) {
-		case int:
-			return x.(int) & y.(int)
-		case int8:
-			return x.(int8) & y.(int8)
-		case int16:
-			return x.(int16) & y.(int16)
-		case int32:
-			return x.(int32) & y.(int32)
-		case int64:
-			return x.(int64) & y.(int64)
-		case uint:
-			return x.(uint) & y.(uint)
-		case uint8:
-			return x.(uint8) & y.(uint8)
-		case uint16:
-			return x.(uint16) & y.(uint16)
-		case uint32:
-			return x.(uint32) & y.(uint32)
-		case uint64:
-			return x.(uint64) & y.(uint64)
-		case uintptr:
-			return x.(uintptr) & y.(uintptr)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() & vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() & vy.Uint())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opAND(x, y)
 	case token.OR:
-		switch x.(type) {
-		case int:
-			return x.(int) | y.(int)
-		case int8:
-			return x.(int8) | y.(int8)
-		case int16:
-			return x.(int16) | y.(int16)
-		case int32:
-			return x.(int32) | y.(int32)
-		case int64:
-			return x.(int64) | y.(int64)
-		case uint:
-			return x.(uint) | y.(uint)
-		case uint8:
-			return x.(uint8) | y.(uint8)
-		case uint16:
-			return x.(uint16) | y.(uint16)
-		case uint32:
-			return x.(uint32) | y.(uint32)
-		case uint64:
-			return x.(uint64) | y.(uint64)
-		case uintptr:
-			return x.(uintptr) | y.(uintptr)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() | vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() | vy.Uint())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opOR(x, y)
 	case token.XOR:
-		switch x.(type) {
-		case int:
-			return x.(int) ^ y.(int)
-		case int8:
-			return x.(int8) ^ y.(int8)
-		case int16:
-			return x.(int16) ^ y.(int16)
-		case int32:
-			return x.(int32) ^ y.(int32)
-		case int64:
-			return x.(int64) ^ y.(int64)
-		case uint:
-			return x.(uint) ^ y.(uint)
-		case uint8:
-			return x.(uint8) ^ y.(uint8)
-		case uint16:
-			return x.(uint16) ^ y.(uint16)
-		case uint32:
-			return x.(uint32) ^ y.(uint32)
-		case uint64:
-			return x.(uint64) ^ y.(uint64)
-		case uintptr:
-			return x.(uintptr) ^ y.(uintptr)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() ^ vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() ^ vy.Uint())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opXOR(x, y)
 	case token.AND_NOT:
-		switch x.(type) {
-		case int:
-			return x.(int) &^ y.(int)
-		case int8:
-			return x.(int8) &^ y.(int8)
-		case int16:
-			return x.(int16) &^ y.(int16)
-		case int32:
-			return x.(int32) &^ y.(int32)
-		case int64:
-			return x.(int64) &^ y.(int64)
-		case uint:
-			return x.(uint) &^ y.(uint)
-		case uint8:
-			return x.(uint8) &^ y.(uint8)
-		case uint16:
-			return x.(uint16) &^ y.(uint16)
-		case uint32:
-			return x.(uint32) &^ y.(uint32)
-		case uint64:
-			return x.(uint64) &^ y.(uint64)
-		case uintptr:
-			return x.(uintptr) &^ y.(uintptr)
-		default:
-			vx := reflect.ValueOf(x)
-			vy := reflect.ValueOf(y)
-			if kind := vx.Kind(); kind == vy.Kind() {
-				r := reflect.New(vx.Type()).Elem()
-				switch kind {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					r.SetInt(vx.Int() &^ vy.Int())
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					r.SetUint(vx.Uint() &^ vy.Uint())
-				default:
-					goto failed
-				}
-				return r.Interface()
-			}
-		}
-
+		return opANDNOT(x, y)
 	case token.SHL:
-		y := asUint64(y)
-		switch x.(type) {
-		case int:
-			return x.(int) << y
-		case int8:
-			return x.(int8) << y
-		case int16:
-			return x.(int16) << y
-		case int32:
-			return x.(int32) << y
-		case int64:
-			return x.(int64) << y
-		case uint:
-			return x.(uint) << y
-		case uint8:
-			return x.(uint8) << y
-		case uint16:
-			return x.(uint16) << y
-		case uint32:
-			return x.(uint32) << y
-		case uint64:
-			return x.(uint64) << y
-		case uintptr:
-			return x.(uintptr) << y
-		default:
-			vx := reflect.ValueOf(x)
-			r := reflect.New(vx.Type()).Elem()
-			switch vx.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				r.SetInt(vx.Int() << y)
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-				r.SetUint(vx.Uint() << y)
-			default:
-				goto failed
-			}
-			return r.Interface()
-		}
-
+		return opSHL(x, y)
 	case token.SHR:
-		y := asUint64(y)
-		switch x.(type) {
-		case int:
-			return x.(int) >> y
-		case int8:
-			return x.(int8) >> y
-		case int16:
-			return x.(int16) >> y
-		case int32:
-			return x.(int32) >> y
-		case int64:
-			return x.(int64) >> y
-		case uint:
-			return x.(uint) >> y
-		case uint8:
-			return x.(uint8) >> y
-		case uint16:
-			return x.(uint16) >> y
-		case uint32:
-			return x.(uint32) >> y
-		case uint64:
-			return x.(uint64) >> y
-		case uintptr:
-			return x.(uintptr) >> y
-		default:
-			vx := reflect.ValueOf(x)
-			r := reflect.New(vx.Type()).Elem()
-			switch vx.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				r.SetInt(vx.Int() >> y)
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-				r.SetUint(vx.Uint() >> y)
-			default:
-				goto failed
-			}
-			return r.Interface()
-		}
-
+		return opSHR(x, y)
 	case token.LSS:
-		switch x.(type) {
-		case int:
-			return x.(int) < y.(int)
-		case int8:
-			return x.(int8) < y.(int8)
-		case int16:
-			return x.(int16) < y.(int16)
-		case int32:
-			return x.(int32) < y.(int32)
-		case int64:
-			return x.(int64) < y.(int64)
-		case uint:
-			return x.(uint) < y.(uint)
-		case uint8:
-			return x.(uint8) < y.(uint8)
-		case uint16:
-			return x.(uint16) < y.(uint16)
-		case uint32:
-			return x.(uint32) < y.(uint32)
-		case uint64:
-			return x.(uint64) < y.(uint64)
-		case uintptr:
-			return x.(uintptr) < y.(uintptr)
-		case float32:
-			return x.(float32) < y.(float32)
-		case float64:
-			return x.(float64) < y.(float64)
-		case string:
-			return x.(string) < y.(string)
-		}
-
+		return opLSS(x, y)
 	case token.LEQ:
-		switch x.(type) {
-		case int:
-			return x.(int) <= y.(int)
-		case int8:
-			return x.(int8) <= y.(int8)
-		case int16:
-			return x.(int16) <= y.(int16)
-		case int32:
-			return x.(int32) <= y.(int32)
-		case int64:
-			return x.(int64) <= y.(int64)
-		case uint:
-			return x.(uint) <= y.(uint)
-		case uint8:
-			return x.(uint8) <= y.(uint8)
-		case uint16:
-			return x.(uint16) <= y.(uint16)
-		case uint32:
-			return x.(uint32) <= y.(uint32)
-		case uint64:
-			return x.(uint64) <= y.(uint64)
-		case uintptr:
-			return x.(uintptr) <= y.(uintptr)
-		case float32:
-			return x.(float32) <= y.(float32)
-		case float64:
-			return x.(float64) <= y.(float64)
-		case string:
-			return x.(string) <= y.(string)
-		}
-
+		return opLEQ(x, y)
 	case token.EQL:
-		return equals(instr, x, y)
-		//return eqnil(t, x, y)
-
+		return opEQL(instr, x, y)
 	case token.NEQ:
-		return !equals(instr, x, y)
-
+		return !opEQL(instr, x, y)
 	case token.GTR:
-		switch x.(type) {
-		case int:
-			return x.(int) > y.(int)
-		case int8:
-			return x.(int8) > y.(int8)
-		case int16:
-			return x.(int16) > y.(int16)
-		case int32:
-			return x.(int32) > y.(int32)
-		case int64:
-			return x.(int64) > y.(int64)
-		case uint:
-			return x.(uint) > y.(uint)
-		case uint8:
-			return x.(uint8) > y.(uint8)
-		case uint16:
-			return x.(uint16) > y.(uint16)
-		case uint32:
-			return x.(uint32) > y.(uint32)
-		case uint64:
-			return x.(uint64) > y.(uint64)
-		case uintptr:
-			return x.(uintptr) > y.(uintptr)
-		case float32:
-			return x.(float32) > y.(float32)
-		case float64:
-			return x.(float64) > y.(float64)
-		case string:
-			return x.(string) > y.(string)
-		}
-
+		return opGTR(x, y)
 	case token.GEQ:
-		switch x.(type) {
-		case int:
-			return x.(int) >= y.(int)
-		case int8:
-			return x.(int8) >= y.(int8)
-		case int16:
-			return x.(int16) >= y.(int16)
-		case int32:
-			return x.(int32) >= y.(int32)
-		case int64:
-			return x.(int64) >= y.(int64)
-		case uint:
-			return x.(uint) >= y.(uint)
-		case uint8:
-			return x.(uint8) >= y.(uint8)
-		case uint16:
-			return x.(uint16) >= y.(uint16)
-		case uint32:
-			return x.(uint32) >= y.(uint32)
-		case uint64:
-			return x.(uint64) >= y.(uint64)
-		case uintptr:
-			return x.(uintptr) >= y.(uintptr)
-		case float32:
-			return x.(float32) >= y.(float32)
-		case float64:
-			return x.(float64) >= y.(float64)
-		case string:
-			return x.(string) >= y.(string)
-		}
+		return opGEQ(x, y)
 	}
-failed:
 	panic(fmt.Sprintf("invalid binary op: %T %s %T", x, instr.Op, y))
 }
 
@@ -856,7 +996,7 @@ func IsNil(v reflect.Value) bool {
 	}
 }
 
-func equals(instr *ssa.BinOp, x, y interface{}) bool {
+func opEQL(instr *ssa.BinOp, x, y interface{}) bool {
 	vx := reflect.ValueOf(x)
 	vy := reflect.ValueOf(y)
 	if IsConstNil(instr.X) {
