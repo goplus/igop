@@ -117,14 +117,6 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	if t, ok := i.types[typ]; ok {
 		return t
 	}
-	et, ptr := ptrCount(typ.String())
-	if t, ok := externTypes[et]; ok {
-		for i := 0; i < ptr; i++ {
-			t = reflect.PtrTo(t)
-		}
-		i.types[typ] = t
-		return t
-	}
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {
 		panic(fmt.Sprintf("toType %v error: %v", typ, err))
@@ -281,7 +273,12 @@ func SetValue(v reflect.Value, x reflect.Value) {
 	case reflect.UnsafePointer:
 		v.SetPointer(unsafe.Pointer(x.Pointer()))
 	case reflect.Func:
-		v.Set(x.Convert(v.Type()))
+		typ := v.Type()
+		if typ == x.Type() {
+			v.Set(x)
+		} else {
+			v.Set(x.Convert(v.Type()))
+		}
 	default:
 		v.Set(x)
 	}
@@ -739,6 +736,7 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 				fmt.Fprintln(os.Stderr, "\t(external)")
 			}
 			return callReflect(i, caller, callpos, ext, args, nil)
+			//			return ext(fr, args)
 		}
 		if fn.Blocks == nil {
 			panic("no code for function: " + name)
@@ -959,6 +957,11 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 			}
 		}
 		return nil
+	}, func(name *types.TypeName) (reflect.Type, bool) {
+		if typ, ok := externTypes[name.Type().String()]; ok {
+			return typ, true
+		}
+		return nil, false
 	})
 
 	i.osArgs = append(i.osArgs, filename)

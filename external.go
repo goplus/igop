@@ -32,7 +32,12 @@ func RegisterType(key string, typ reflect.Type) {
 func RegisterTypeOf(ptrs ...interface{}) {
 	for _, ptr := range ptrs {
 		typ := reflect.TypeOf(ptr).Elem()
-		externTypes[typ.String()] = typ
+		var key string
+		if pkgPath := typ.PkgPath(); pkgPath != "" {
+			key = pkgPath + "."
+		}
+		key += typ.Name()
+		externTypes[key] = typ
 	}
 }
 
