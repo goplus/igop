@@ -272,13 +272,6 @@ func SetValue(v reflect.Value, x reflect.Value) {
 		v.SetString(x.String())
 	case reflect.UnsafePointer:
 		v.SetPointer(unsafe.Pointer(x.Pointer()))
-	case reflect.Func:
-		typ := v.Type()
-		if typ == x.Type() {
-			v.Set(x)
-		} else {
-			v.Set(x.Convert(v.Type()))
-		}
 	default:
 		v.Set(x)
 	}
@@ -319,11 +312,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		default:
 			v = reflect.ValueOf(x)
 		}
-		if v.Kind() == reflect.Ptr {
-			fr.env[instr] = reflect.NewAt(typ, unsafe.Pointer(v.Pointer())).Interface()
-		} else {
-			fr.env[instr] = v.Convert(typ).Interface()
-		}
+		fr.env[instr] = v.Convert(typ).Interface()
 		//fr.env[instr] = fr.get(instr.X)
 
 	case *ssa.Convert:
@@ -335,7 +324,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.MakeInterface:
 		typ := fr.i.toType(instr.Type())
 		i := reflect.New(typ).Elem()
-		reflectx.SetValue(i, reflect.ValueOf(fr.get(instr.X)))
+		SetValue(i, reflect.ValueOf(fr.get(instr.X)))
 		fr.env[instr] = i.Interface()
 		//fr.env[instr] = iface{t: instr.X.Type(), v: fr.get(instr.X)}
 
