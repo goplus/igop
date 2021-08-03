@@ -51,6 +51,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 
@@ -88,16 +89,23 @@ type interpreter struct {
 	goroutines int32               // atomically updated
 	ctx        xtypes.Context
 	types      map[types.Type]reflect.Type
+	typesMutex sync.RWMutex
 }
 
 func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
+	i.typesMutex.RLock()
+	defer i.typesMutex.RUnlock()
+	return i.findTypeHelper(t)
+}
+
+func (i *interpreter) findTypeHelper(t reflect.Type) (types.Type, bool) {
 	for k, v := range i.types {
 		if v == t {
 			return k, true
 		}
 	}
 	if t.Kind() == reflect.Ptr {
-		if typ, ok := i.findType(t.Elem()); ok {
+		if typ, ok := i.findTypeHelper(t.Elem()); ok {
 			return types.NewPointer(typ), true
 		}
 	}
@@ -114,9 +122,14 @@ func ptrCount(s string) (string, int) {
 }
 
 func (i *interpreter) toType(typ types.Type) reflect.Type {
-	if t, ok := i.types[typ]; ok {
-		return t
+	i.typesMutex.RLock()
+	tt, ok := i.types[typ]
+	i.typesMutex.RUnlock()
+	if ok {
+		return tt
 	}
+	i.typesMutex.Lock()
+	defer i.typesMutex.Unlock()
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {
 		panic(fmt.Sprintf("toType %v error: %v", typ, err))
