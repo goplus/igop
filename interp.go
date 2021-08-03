@@ -148,11 +148,19 @@ func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
-				res[i] = reflect.ValueOf(v[i])
+				if v[i] == nil {
+					res[i] = reflect.New(typ.Out(i)).Elem()
+				} else {
+					res[i] = reflect.ValueOf(v[i])
+				}
 			}
 			return res
-		} else if r != nil {
-			return []reflect.Value{reflect.ValueOf(r)}
+		} else if typ.NumOut() == 1 {
+			if r != nil {
+				return []reflect.Value{reflect.ValueOf(r)}
+			} else {
+				return []reflect.Value{reflect.New(typ.Out(0)).Elem()}
+			}
 		}
 		return nil
 	})
@@ -626,7 +634,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 				var v value
 				if i == chosen && recvOk {
 					// No need to copy since send makes an unaliased copy.
-					v = recv.Interface().(value)
+					v = recv.Interface()
 				} else {
 					typ := fr.i.toType(st.Chan.Type()).Elem()
 					v = reflect.Zero(typ).Interface()
@@ -697,6 +705,9 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 		}
 		return callSSA(i, caller, callpos, fn, args, nil)
 	case *closure:
+		if fn.Fn == nil {
+			panic("call of nil closure function") // nil of func type
+		}
 		return callSSA(i, caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
 		return callBuiltin(caller, callpos, fn, args, ssaArgs)
@@ -969,7 +980,9 @@ func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, filename stri
 		}
 		return nil, false
 	})
-
+	RegisterExternal("os.Exit", func(code int) {
+		panic(exitPanic(code))
+	})
 	i.osArgs = append(i.osArgs, filename)
 	for _, arg := range args {
 		i.osArgs = append(i.osArgs, arg)
