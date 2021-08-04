@@ -25,6 +25,10 @@ func RunWith(mode Mode, input ...string) error {
 	return Run(&Config{Mode: mode, Input: input})
 }
 
+func RunWithTest(mode Mode, input ...string) error {
+	return Run(&Config{Mode: mode, Input: input, WithTest: true})
+}
+
 func RunSource(mode Mode, source interface{}) error {
 	return Run(&Config{Mode: mode, Source: source})
 }
@@ -76,6 +80,13 @@ func Run(cfg *Config) error {
 	}
 	if mainPkg == nil {
 		return fmt.Errorf("not a main package: %s", cfg.Input)
+	}
+
+	if cfg.WithTest {
+		mainPkg = prog.CreateTestMainPackage(mainPkg)
+		if mainPkg == nil {
+			return fmt.Errorf("%s [no test files]", cfg.Input)
+		}
 	}
 
 	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Entry, "", []string{})
