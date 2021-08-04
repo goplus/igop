@@ -988,8 +988,14 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string, filename string, a
 	}
 	reflectx.Reset()
 	for _, pkg := range i.prog.AllPackages() {
+		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
+			if i.mode&EnableTracing != 0 {
+				fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
+			}
+			continue
+		}
 		if i.mode&EnableTracing != 0 {
-			fmt.Println("initialize", pkg)
+			fmt.Fprintln(os.Stderr, "initialize", pkg)
 		}
 		// Initialize global storage.
 		for _, m := range pkg.Members {

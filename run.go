@@ -40,6 +40,16 @@ func Run(cfg *Config) error {
 		}
 		cfg.Conf = &loader.Config{Build: cfg.Build}
 	}
+	// cfg.Conf.FindPackage = func(ctxt *build.Context, importPath, fromDir string, mode build.ImportMode) (*build.Package, error) {
+	// 	return ctxt.Import(importPath, fromDir, mode)
+	// }
+
+	// cfg.Conf.TypeCheckFuncBodies = func(pkgpath string) bool {
+	// 	if pkgpath == "runtime" {
+	// 		return false
+	// 	}
+	// 	return true
+	// }
 	if len(cfg.Conf.CreatePkgs) == 0 {
 		if cfg.Source != nil {
 			if cfg.Conf.Fset == nil {

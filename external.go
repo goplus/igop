@@ -8,6 +8,7 @@ import (
 	"reflect"
 )
 
+var externPackages = make(map[string]bool)
 var externValues = make(map[string]reflect.Value)
 var externTypes = make(map[string]reflect.Type)
 
@@ -39,6 +40,16 @@ func RegisterTypeOf(ptrs ...interface{}) {
 		key += typ.Name()
 		externTypes[key] = typ
 	}
+}
+
+// register extern package list
+func RegisterPackages(pkglist []string, ifacemap map[string]interface{}, typelist []interface{}) {
+	for _, pkg := range pkglist {
+		RegisterExternal(pkg+".init", func() {})
+		externPackages[pkg] = true
+	}
+	RegisterExternals(ifacemap)
+	RegisterTypeOf(typelist...)
 }
 
 func init() {

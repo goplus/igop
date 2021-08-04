@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"golang.org/x/tools/go/loader"
@@ -58,8 +59,6 @@ func main() {
 			fmt.Println(string(data))
 		}
 	}
-
-	//prog.DumpExport("runtime")
 }
 
 type Program struct {
@@ -146,10 +145,10 @@ func (p *Program) Export(path string) string {
 			}
 		}
 	}
-	sort.Strings(extList)
-	extList = append([]string{fmt.Sprintf(`"%v.init" : func() {}`, path)}, extList...)
+	//extList = append([]string{fmt.Sprintf(`"%v.init" : func() {}`, path)}, extList...)
 	var em string
 	if len(extList) > 0 {
+		sort.Strings(extList)
 		em = "\n\t" + strings.Join(extList, ",\n\t") + ",\n"
 	}
 	var tl string
@@ -157,8 +156,10 @@ func (p *Program) Export(path string) string {
 		sort.Strings(typList)
 		tl = "\n\t" + strings.Join(typList, ",\n\t") + ",\n"
 	}
-	r := strings.NewReplacer("$PKGNAME", pkgName, "$PKGPATH", pkgPath, "$EXTMAP", em, "$TYPLIST", tl)
-	return r.Replace(template_init)
+	var pkgList []string
+	pkgList = append(pkgList, strconv.Quote(pkgPath))
+	r := strings.NewReplacer("$PKGNAME", pkgName, "$PKGPATH", pkgPath, "$EXTMAP", em, "$TYPLIST", tl, "$PKGLIST", strings.Join(pkgList, ","))
+	return r.Replace(template_export)
 }
 
 func isPointer(T types.Type) bool {
@@ -194,22 +195,7 @@ func IntuitiveMethodSet(T types.Type) []*types.Selection {
 	return result
 }
 
-var template_export = `// export by github.com/goplus/interp/cmd/ssadump
-package $PKGNAME
-
-import "$PKGPATH"
-
-func Exports() (name string, exts map[string]interface{}, types []interface{}) {
-	return "$PKGPATH", extMap, typList
-}
-
-var extMap = map[string]interface{}{$EXTMAP}
-
-var typList = []interface{}{$TYPLIST}
-
-`
-
-var template_init = `// export by github.com/goplus/interp/cmd/qexp
+var template_export = `// export by github.com/goplus/interp/cmd/qexp
 package $PKGNAME
 
 import (
@@ -219,8 +205,7 @@ import (
 )
 
 func init() {
-	interp.RegisterExternals(extMap)
-	interp.RegisterTypeOf(typList...)
+	interp.RegisterPackages([]string{$PKGLIST},extMap,typList)
 }
 
 var extMap = map[string]interface{}{$EXTMAP}
