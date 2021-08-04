@@ -15,6 +15,7 @@ import (
 type Config struct {
 	Build    *build.Context
 	Mode     Mode
+	Entry    string
 	Input    []string
 	Source   interface{}
 	WithTest bool
@@ -55,6 +56,9 @@ func Run(cfg *Config) error {
 	if cfg.Sizes == nil {
 		cfg.Sizes = &types.StdSizes{WordSize: 8, MaxAlign: 8}
 	}
+	if cfg.Entry == "" {
+		cfg.Entry = "main"
+	}
 
 	iprog, err := cfg.Conf.Load()
 	if err != nil {
@@ -69,7 +73,7 @@ func Run(cfg *Config) error {
 		return fmt.Errorf("not a main package: %s", cfg.Input)
 	}
 
-	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Sizes, "", []string{})
+	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Sizes, cfg.Entry, "", []string{})
 	if exitCode != 0 {
 		return fmt.Errorf("interpreting %v: exit code was %d", cfg.Input, exitCode)
 	}

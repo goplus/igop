@@ -16,11 +16,9 @@ package interp_test
 // fmt or testing, as it proved too fragile.
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"go/build"
-	"go/types"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,9 +29,6 @@ import (
 	"time"
 
 	"github.com/goplus/interp"
-	"golang.org/x/tools/go/loader"
-	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/ssa/ssautil"
 )
 
 // Each line contains a space-separated list of $GOROOT/test/
@@ -162,79 +157,79 @@ func run(t *testing.T, input string) bool {
 	return true
 }
 
-func _run(t *testing.T, input string) bool {
-	// The recover2 test case is broken on Go 1.14+. See golang/go#34089.
-	// TODO(matloob): Fix this.
-	// if filepath.Base(input) == "recover2.go" {
-	// 	t.Skip("The recover2.go test is broken in go1.14+. See golang.org/issue/34089.")
-	// }
+// func _run(t *testing.T, input string) bool {
+// 	// The recover2 test case is broken on Go 1.14+. See golang/go#34089.
+// 	// TODO(matloob): Fix this.
+// 	// if filepath.Base(input) == "recover2.go" {
+// 	// 	t.Skip("The recover2.go test is broken in go1.14+. See golang.org/issue/34089.")
+// 	// }
 
-	t.Logf("Input: %s\n", input)
+// 	t.Logf("Input: %s\n", input)
 
-	start := time.Now()
+// 	start := time.Now()
 
-	ctx := build.Default // copy
-	// ctx.GOROOT = "testdata" // fake goroot
-	// ctx.GOOS = "linux"
-	// ctx.GOARCH = "amd64"
+// 	ctx := build.Default // copy
+// 	// ctx.GOROOT = "testdata" // fake goroot
+// 	// ctx.GOOS = "linux"
+// 	// ctx.GOARCH = "amd64"
 
-	conf := loader.Config{Build: &ctx}
-	if _, err := conf.FromArgs([]string{input}, true); err != nil {
-		t.Errorf("FromArgs(%s) failed: %s", input, err)
-		return false
-	}
+// 	conf := loader.Config{Build: &ctx}
+// 	if _, err := conf.FromArgs([]string{input}, true); err != nil {
+// 		t.Errorf("FromArgs(%s) failed: %s", input, err)
+// 		return false
+// 	}
 
-	conf.Import("runtime")
+// 	conf.Import("runtime")
 
-	// Print a helpful hint if we don't make it to the end.
-	var hint string
-	defer func() {
-		if hint != "" {
-			fmt.Println("FAIL")
-			fmt.Println(hint)
-		} else {
-			fmt.Println("PASS")
-		}
+// 	// Print a helpful hint if we don't make it to the end.
+// 	var hint string
+// 	defer func() {
+// 		if hint != "" {
+// 			fmt.Println("FAIL")
+// 			fmt.Println(hint)
+// 		} else {
+// 			fmt.Println("PASS")
+// 		}
 
-		interp.CapturedOutput = nil
-	}()
+// 		interp.CapturedOutput = nil
+// 	}()
 
-	hint = fmt.Sprintf("To dump SSA representation, run:\n%% go build golang.org/x/tools/cmd/ssadump && ./ssadump -test -build=CFP %s\n", input)
+// 	hint = fmt.Sprintf("To dump SSA representation, run:\n%% go build golang.org/x/tools/cmd/ssadump && ./ssadump -test -build=CFP %s\n", input)
 
-	iprog, err := conf.Load()
-	if err != nil {
-		t.Errorf("conf.Load(%s) failed: %s", input, err)
-		return false
-	}
+// 	iprog, err := conf.Load()
+// 	if err != nil {
+// 		t.Errorf("conf.Load(%s) failed: %s", input, err)
+// 		return false
+// 	}
 
-	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
-	prog.Build()
+// 	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
+// 	prog.Build()
 
-	mainPkg := prog.Package(iprog.Created[0].Pkg)
-	if mainPkg == nil {
-		t.Fatalf("not a main package: %s", input)
-	}
+// 	mainPkg := prog.Package(iprog.Created[0].Pkg)
+// 	if mainPkg == nil {
+// 		t.Fatalf("not a main package: %s", input)
+// 	}
 
-	interp.CapturedOutput = new(bytes.Buffer)
+// 	interp.CapturedOutput = new(bytes.Buffer)
 
-	hint = fmt.Sprintf("To trace execution, run:\n%% go build golang.org/x/tools/cmd/ssadump && ./ssadump -build=C -test -run --interp=T %s\n", input)
-	exitCode := interp.Interpret(mainPkg, 0, &types.StdSizes{WordSize: 8, MaxAlign: 8}, input, []string{})
-	if exitCode != 0 {
-		t.Fatalf("interpreting %s: exit code was %d", input, exitCode)
-	}
-	// $GOROOT/test tests use this convention:
-	if strings.Contains(interp.CapturedOutput.String(), "BUG") {
-		t.Fatalf("interpreting %s: exited zero but output contained 'BUG'", input)
-	}
+// 	hint = fmt.Sprintf("To trace execution, run:\n%% go build golang.org/x/tools/cmd/ssadump && ./ssadump -build=C -test -run --interp=T %s\n", input)
+// 	exitCode := interp.Interpret(mainPkg, 0, &types.StdSizes{WordSize: 8, MaxAlign: 8}, input, []string{})
+// 	if exitCode != 0 {
+// 		t.Fatalf("interpreting %s: exit code was %d", input, exitCode)
+// 	}
+// 	// $GOROOT/test tests use this convention:
+// 	if strings.Contains(interp.CapturedOutput.String(), "BUG") {
+// 		t.Fatalf("interpreting %s: exited zero but output contained 'BUG'", input)
+// 	}
 
-	hint = "" // call off the hounds
+// 	hint = "" // call off the hounds
 
-	if false {
-		t.Log(input, time.Since(start)) // test profiling
-	}
+// 	if false {
+// 		t.Log(input, time.Since(start)) // test profiling
+// 	}
 
-	return true
-}
+// 	return true
+// }
 
 func printFailures(failures []string) {
 	if failures != nil {
