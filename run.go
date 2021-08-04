@@ -5,7 +5,6 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
-	"go/types"
 
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/ssa"
@@ -19,7 +18,6 @@ type Config struct {
 	Input    []string
 	Source   interface{}
 	WithTest bool
-	Sizes    *types.StdSizes
 	Conf     *loader.Config
 }
 
@@ -53,9 +51,6 @@ func Run(cfg *Config) error {
 		}
 	}
 
-	if cfg.Sizes == nil {
-		cfg.Sizes = &types.StdSizes{WordSize: 8, MaxAlign: 8}
-	}
 	if cfg.Entry == "" {
 		cfg.Entry = "main"
 	}
@@ -83,7 +78,7 @@ func Run(cfg *Config) error {
 		return fmt.Errorf("not a main package: %s", cfg.Input)
 	}
 
-	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Sizes, cfg.Entry, "", []string{})
+	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Entry, "", []string{})
 	if exitCode != 0 {
 		return fmt.Errorf("interpreting %v: exit code was %d", cfg.Input, exitCode)
 	}

@@ -943,12 +943,11 @@ func setGlobal(i *interpreter, pkg *ssa.Package, name string, v value) {
 //
 // The SSA program must include the "runtime" package.
 //
-func Interpret(mainpkg *ssa.Package, mode Mode, sizes types.Sizes, entry string, filename string, args []string) (exitCode int) {
+func Interpret(mainpkg *ssa.Package, mode Mode, entry string, filename string, args []string) (exitCode int) {
 	i := &interpreter{
 		prog:       mainpkg.Prog,
 		globals:    make(map[ssa.Value]value),
 		mode:       mode,
-		sizes:      sizes,
 		goroutines: 1,
 		types:      make(map[types.Type]reflect.Type),
 	}
