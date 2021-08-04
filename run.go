@@ -68,7 +68,17 @@ func Run(cfg *Config) error {
 	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
 	prog.Build()
 
-	mainPkg := prog.Package(iprog.Created[0].Pkg)
+	var mainPkg *ssa.Package
+	if len(iprog.Created) > 0 {
+		mainPkg = prog.Package(iprog.Created[0].Pkg)
+	} else {
+		for _, pkg := range prog.AllPackages() {
+			if pkg.Pkg.Name() == "main" {
+				mainPkg = pkg
+				break
+			}
+		}
+	}
 	if mainPkg == nil {
 		return fmt.Errorf("not a main package: %s", cfg.Input)
 	}
