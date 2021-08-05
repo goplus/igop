@@ -15,19 +15,26 @@ func apipath(base string) string {
 }
 
 //pkg syscall (windows-386), const CERT_E_CN_NO_MATCH = 2148204815
-var sym = regexp.MustCompile(`^pkg (\S+)\s?(.*)?, (?:(var|func|type|const)) ([A-Z]\w*)`)
+var sym = regexp.MustCompile(`^pkg (\S+)\s?(.*)?, (?:(var|func|type|const|method))\s?(\((\*?[A-Z]\w*)\))? ([A-Z]\w*)`)
+var reMethod = regexp.MustCompile(`^pkg (\S+)\s?(.*)?, method (\((\*?[A-Z]\w*)\))? ([A-Z]\w*)`) // (\(\*?[A-Z]\w*\)) ([A-Z]\w*)`)
 var num = regexp.MustCompile(`^\-?[0-9]+$`)
 
 type ApiInfo struct {
-	Name string
-	Pkg  string
-	Kind string
-	Tags []string
-	Ver  string
+	Name       string   // name key
+	Pkg        string   // pkgpath
+	Kind       string   // var|const|func|type|method|
+	MethodType string   // type or empty
+	MethodName string   // name or empty
+	MethodPtr  string   // * or emtpy
+	Tags       []string // (os-arch-cgo)
+	Ver        string   // go1.15 | go1.16 or empty
 }
 
 func (i ApiInfo) String() string {
 	info := fmt.Sprintf("%v %v.%v", i.Kind, i.Pkg, i.Name)
+	if i.Kind == "method" {
+		info = fmt.Sprintf("%v (%v%v.%v).%v", i.Kind, i.MethodPtr, i.Pkg, i.MethodType, i.MethodName)
+	}
 	if i.Ver != "" {
 		info += " (" + i.Ver + ")"
 	}
@@ -71,27 +78,55 @@ func LoadApi(ver string, tagVer bool) (*GoApi, error) {
 	for sc.Scan() {
 		l := sc.Text()
 		has := func(v string) bool { return strings.Contains(l, v) }
-		if has("interface, ") || has(", method (") || has("struct, ") {
+		if has(", method (") {
+			// m[1] pkg
+			// m[2] os-arch-cgo
+			// m[3] var|func|type|const|method
+			// m[4] (*?Type)
+			// m[5] *?Type
+			// m[6] name
+		}
+		if has("interface, ") || has("struct, ") {
 			continue
 		}
 		if m := sym.FindStringSubmatch(l); m != nil {
-			// 1 pkgname
-			// 2 os-arch-cgo
-			// 3 var|func|type|const
-			// 4 name
-			key := m[1] + "." + m[4]
+			// m[1] pkg
+			// m[2] os-arch-cgo
+			// m[3] var|func|type|const|method
+			// m[4] (*?Type)
+			// m[5] *?Type
+			// m[6] name
+			pkg := m[1]
+			tag := m[2]
+			kind := m[3]
+			mtype := m[5]
+			name := m[6]
+			var mptr string
+			var mname string
+			if kind == "method" {
+				mname = name
+				if mtype[0] == '*' {
+					mtype = mtype[1:]
+					mptr = "*"
+				}
+				name = mtype + "." + name
+			}
+			key := pkg + "." + name
 			if api, ok := keys[key]; ok {
 				if api.Tags[0] != "-" {
-					api.Tags = append(api.Tags, toTag(m[2]))
+					api.Tags = append(api.Tags, toTag(tag))
 				}
 				continue
 			}
 			keys[key] = &ApiInfo{
-				Pkg:  m[1],
-				Name: m[4],
-				Kind: m[3],
-				Tags: []string{toTag(m[2])},
-				Ver:  verInfo,
+				Pkg:        pkg,
+				Name:       name,
+				Kind:       kind,
+				MethodType: mtype,
+				MethodName: mname,
+				MethodPtr:  mptr,
+				Tags:       []string{toTag(tag)},
+				Ver:        verInfo,
 			}
 		}
 	}
@@ -186,14 +221,59 @@ func (ac *ApiCheck) LoadPkg(pkg string) (infos []*ApiInfo) {
 	return
 }
 
-// func (ac *ApiCheck) CheckConstType(name string) KeyType {
-// 	if typ, ok := ac.Base[name]; ok {
-// 		return typ
-// 	}
-// 	for _, api := range ac.Apis {
-// 		if typ, ok := api.Keys[name]; ok {
-// 			return typ
-// 		}
-// 	}
-// 	return Normal
-// }
+type Style struct {
+	Ver string
+	Tag string
+}
+
+type Data struct {
+	Ver  string
+	Tag  []string
+	Info string
+}
+
+func (ac *ApiCheck) Export(pkgPath string) (extList []Data, typList []Data, ok bool) {
+	infos := ac.LoadPkg(pkgPath)
+	if len(infos) == 0 {
+		return
+	}
+	pkgList := strings.Split(pkgPath, "/")
+	pkgName := pkgList[len(pkgList)-1]
+	for _, t := range infos {
+		switch t.Kind {
+		case "var":
+			extList = append(extList, Data{
+				t.Ver,
+				t.Tags,
+				fmt.Sprintf("%q : &%v", pkgPath+"."+t.Name, pkgName+"."+t.Name),
+			})
+		case "func":
+			extList = append(extList, Data{
+				t.Ver,
+				t.Tags,
+				fmt.Sprintf("%q : %v", pkgPath+"."+t.Name, pkgName+"."+t.Name),
+			})
+		case "type":
+			typList = append(typList, Data{
+				t.Ver,
+				t.Tags,
+				fmt.Sprintf("(*%v.%v)(nil)", pkgName, t.Name),
+			})
+			for _, v := range infos {
+				if v.Kind == "method" {
+					if v.MethodType == t.Name {
+						extList = append(extList, Data{
+							v.Ver,
+							v.Tags,
+							fmt.Sprintf("\"(%v%v.%v).%v\" : (%v%v.%v).%v",
+								v.MethodPtr, pkgPath, v.MethodType, v.MethodName,
+								v.MethodPtr, pkgPath, v.MethodType, v.MethodName),
+						})
+					}
+				}
+			}
+		}
+	}
+	ok = len(extList) > 0 || len(typList) > 0
+	return
+}

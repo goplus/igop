@@ -21,25 +21,12 @@ import (
 
 var (
 	flagExportDir string
+	flagUseGoApi  bool
 )
 
 func init() {
 	flag.StringVar(&flagExportDir, "outdir", "", "set export lib path")
-}
-
-var (
-	ac = NewApiCheck()
-)
-
-func init() {
-	err := ac.LoadBase("go1", "go1.1", "go1.2", "go1.3", "go1.4", "go1.5", "go1.6", "go1.7", "go1.8", "go1.9", "go1.10", "go1.12", "go1.13")
-	if err != nil {
-		log.Println(err)
-	}
-	err = ac.LoadApi("go1.14", "go1.15", "go1.16")
-	if err != nil {
-		log.Println(err)
-	}
+	flag.BoolVar(&flagUseGoApi, "goapi", true, "lookup goapi first")
 }
 
 func main() {
@@ -49,12 +36,30 @@ func main() {
 		flag.Usage()
 	}
 
-	for _, pkg := range args {
-		prog, err := loadProgram(pkg)
+	var ac *ApiCheck
+	if flagUseGoApi {
+		ac = NewApiCheck()
+		err := ac.LoadBase("go1", "go1.1", "go1.2", "go1.3", "go1.4", "go1.5", "go1.6", "go1.7", "go1.8", "go1.9", "go1.10", "go1.12", "go1.13")
 		if err != nil {
-			panic(fmt.Errorf("load pkg %v error: %v", pkg, err))
+			log.Panicln("error", err)
 		}
-		src := prog.Export(pkg)
+		err = ac.LoadApi("go1.14", "go1.15", "go1.16")
+		if err != nil {
+			log.Println("waring", err)
+		}
+	}
+	for _, pkg := range args {
+		var src string
+		if flagUseGoApi {
+			// extList, typList, _ := ac.Export(pkg)
+		}
+		if src == "" {
+			prog, err := loadProgram(pkg)
+			if err != nil {
+				panic(fmt.Errorf("load pkg %v error: %v", pkg, err))
+			}
+			src = prog.Export(pkg)
+		}
 		data, err := format.Source([]byte(src))
 		if err != nil {
 			panic(fmt.Errorf("format pkg %v error: %v", pkg, err))
@@ -75,6 +80,7 @@ func main() {
 			fmt.Println(string(data))
 		}
 	}
+
 }
 
 type Program struct {
