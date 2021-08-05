@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"hash/fnv"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -235,12 +237,62 @@ type LineData struct {
 	Info string
 }
 
-func (d LineData) FileName() string {
-	if d.Ver != "" {
-		ver := strings.Replace(d.Ver, ".", "", -1)
-		return "export_" + ver + ".go"
+var (
+	osMap = map[string]string{
+		"windows-386 windows-amd64":                    "windows",
+		"darwin-386-cgo darwin-amd64 darwin-amd64-cgo": "darwin",
+		"darwin-386 darwin-386-cgo darwin-386-cgo darwin-amd64 darwin-amd64 darwin-amd64-cgo darwin-amd64-cgo":            "darwin",
+		"linux-386 linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo":                                     "linux",
+		"linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo":                                               "linux",
+		"linux-386 linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm":                                                   "linux",
+		"freebsd-386 freebsd-386-cgo freebsd-amd64 freebsd-amd64-cgo freebsd-arm freebsd-arm-cgo":                         "freebsd",
+		"freebsd-386-cgo freebsd-amd64 freebsd-amd64-cgo freebsd-arm freebsd-arm-cgo":                                     "freebsd",
+		"netbsd-386 netbsd-386-cgo netbsd-amd64 netbsd-amd64-cgo netbsd-arm netbsd-arm-cgo netbsd-arm64 netbsd-arm64-cgo": "netbsd",
+		"openbsd-386 openbsd-386-cgo openbsd-amd64 openbsd-amd64-cgo":                                                     "openbsd",
 	}
-	return "export.go"
+	osReplacer *strings.Replacer
+)
+
+func init() {
+	var oldnews []string
+	for k, v := range osMap {
+		oldnews = append(oldnews, k, v)
+	}
+	osReplacer = strings.NewReplacer(oldnews...)
+}
+
+var (
+	tagsName = make(map[string]string)
+	tagIndex int
+)
+
+func (d LineData) TagName() (name string, tags []string) {
+	name = "export"
+	if d.Ver != "" {
+		name += "_" + strings.Replace(d.Ver, ".", "", -1)
+		tags = append(tags, "// +build "+d.Ver)
+	}
+	switch len(d.Tag) {
+	case 0:
+	case 1:
+		name += "_" + strings.Replace(d.Tag[0], "-", "_", -1)
+	default:
+		otags := strings.Join(d.Tag, " ")
+		ntags := osReplacer.Replace(otags)
+		if strings.Index(ntags, " ") == -1 {
+			name += "_" + ntags
+		} else {
+			tags = append(tags, "// +build "+strings.Replace(ntags, "-", ",", -1))
+			if tag, ok := tagsName[ntags]; ok {
+				name += "_" + tag
+			} else {
+				h := fnv.New32()
+				h.Write([]byte(ntags))
+				name += fmt.Sprintf("_%v", h.Sum32())
+			}
+		}
+	}
+	return
 }
 
 func (ac *ApiCheck) Export(pkgPath string) (map[string]string, bool) {
@@ -249,9 +301,25 @@ func (ac *ApiCheck) Export(pkgPath string) (map[string]string, bool) {
 		return nil, false
 	}
 	for _, v := range extList {
-		fmt.Println(v.FileName(), v)
+		name, tags := v.TagName()
+		log.Println("~~~~~", name, tags)
 	}
 	return nil, true
+}
+
+func cleanTags(tags []string) []string {
+	sort.Strings(tags)
+	var i, j int
+	for {
+		if i >= len(tags)-1 {
+			break
+		}
+		for j = i + 1; j < len(tags) && tags[i] == tags[j]; j++ {
+		}
+		tags = append(tags[:i+1], tags[j:]...)
+		i++
+	}
+	return tags
 }
 
 // linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo
@@ -268,8 +336,7 @@ func (ac *ApiCheck) ExportData(pkgPath string) (extList []LineData, typList []Li
 	pkgList := strings.Split(pkgPath, "/")
 	pkgName := pkgList[len(pkgList)-1]
 	for _, t := range infos {
-		tags := t.Tags[1:]
-		sort.Strings(tags)
+		tags := cleanTags(t.Tags)[1:]
 		switch t.Kind {
 		case "var":
 			extList = append(extList, LineData{
