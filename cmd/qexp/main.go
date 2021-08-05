@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"go/types"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -24,6 +25,21 @@ var (
 
 func init() {
 	flag.StringVar(&flagExportDir, "outdir", "", "set export lib path")
+}
+
+var (
+	ac = NewApiCheck()
+)
+
+func init() {
+	err := ac.LoadBase("go1", "go1.1", "go1.2", "go1.3", "go1.4", "go1.5", "go1.6", "go1.7", "go1.8", "go1.9", "go1.10", "go1.12", "go1.13")
+	if err != nil {
+		log.Println(err)
+	}
+	err = ac.LoadApi("go1.14", "go1.15", "go1.16")
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func main() {
