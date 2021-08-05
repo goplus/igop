@@ -98,6 +98,9 @@ func LoadApi(ver string, tagVer bool) (*GoApi, error) {
 			// m[6] name
 			pkg := m[1]
 			tag := m[2]
+			if tag != "" {
+				tag = tag[1 : len(tag)-1]
+			}
 			kind := m[3]
 			mtype := m[5]
 			name := m[6]
@@ -226,13 +229,38 @@ type Style struct {
 	Tag string
 }
 
-type Data struct {
+type LineData struct {
 	Ver  string
 	Tag  []string
 	Info string
 }
 
-func (ac *ApiCheck) Export(pkgPath string) (extList []Data, typList []Data, ok bool) {
+func (d LineData) FileName() string {
+	if d.Ver != "" {
+		ver := strings.Replace(d.Ver, ".", "", -1)
+		return "export_" + ver + ".go"
+	}
+	return "export.go"
+}
+
+func (ac *ApiCheck) Export(pkgPath string) (map[string]string, bool) {
+	extList, _, ok := ac.ExportData(pkgPath)
+	if !ok {
+		return nil, false
+	}
+	for _, v := range extList {
+		fmt.Println(v.FileName(), v)
+	}
+	return nil, true
+}
+
+// linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo
+// darwin-386-cgo darwin-amd64 darwin-amd64-cgo
+// freebsd-386 freebsd-386-cgo freebsd-amd64 freebsd-amd64-cgo freebsd-arm freebsd-arm-cgo
+// netbsd-386 netbsd-386-cgo netbsd-amd64 netbsd-amd64-cgo netbsd-arm netbsd-arm-cgo netbsd-arm64 netbsd-arm64-cgo
+// openbsd-386 openbsd-386-cgo openbsd-amd64 openbsd-amd64-cgo
+// windows-386 windows-amd64
+func (ac *ApiCheck) ExportData(pkgPath string) (extList []LineData, typList []LineData, ok bool) {
 	infos := ac.LoadPkg(pkgPath)
 	if len(infos) == 0 {
 		return
@@ -240,31 +268,35 @@ func (ac *ApiCheck) Export(pkgPath string) (extList []Data, typList []Data, ok b
 	pkgList := strings.Split(pkgPath, "/")
 	pkgName := pkgList[len(pkgList)-1]
 	for _, t := range infos {
+		tags := t.Tags[1:]
+		sort.Strings(tags)
 		switch t.Kind {
 		case "var":
-			extList = append(extList, Data{
+			extList = append(extList, LineData{
 				t.Ver,
-				t.Tags,
+				tags,
 				fmt.Sprintf("%q : &%v", pkgPath+"."+t.Name, pkgName+"."+t.Name),
 			})
 		case "func":
-			extList = append(extList, Data{
+			extList = append(extList, LineData{
 				t.Ver,
-				t.Tags,
+				tags,
 				fmt.Sprintf("%q : %v", pkgPath+"."+t.Name, pkgName+"."+t.Name),
 			})
 		case "type":
-			typList = append(typList, Data{
+			typList = append(typList, LineData{
 				t.Ver,
-				t.Tags,
+				tags,
 				fmt.Sprintf("(*%v.%v)(nil)", pkgName, t.Name),
 			})
 			for _, v := range infos {
 				if v.Kind == "method" {
 					if v.MethodType == t.Name {
-						extList = append(extList, Data{
+						tags := v.Tags[1:]
+						sort.Strings(tags)
+						extList = append(extList, LineData{
 							v.Ver,
-							v.Tags,
+							tags,
 							fmt.Sprintf("\"(%v%v.%v).%v\" : (%v%v.%v).%v",
 								v.MethodPtr, pkgPath, v.MethodType, v.MethodName,
 								v.MethodPtr, pkgPath, v.MethodType, v.MethodName),

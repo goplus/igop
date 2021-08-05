@@ -39,11 +39,11 @@ func main() {
 	var ac *ApiCheck
 	if flagUseGoApi {
 		ac = NewApiCheck()
-		err := ac.LoadBase("go1", "go1.1", "go1.2", "go1.3", "go1.4", "go1.5", "go1.6", "go1.7", "go1.8", "go1.9", "go1.10", "go1.12", "go1.13")
+		err := ac.LoadBase("go1", "go1.1", "go1.2", "go1.3", "go1.4", "go1.5", "go1.6", "go1.7", "go1.8", "go1.9", "go1.10", "go1.12", "go1.13", "go1.14")
 		if err != nil {
 			log.Panicln("error", err)
 		}
-		err = ac.LoadApi("go1.14", "go1.15", "go1.16")
+		err = ac.LoadApi("go1.15", "go1.16")
 		if err != nil {
 			log.Println("waring", err)
 		}
@@ -51,7 +51,7 @@ func main() {
 	for _, pkg := range args {
 		var src string
 		if flagUseGoApi {
-			// extList, typList, _ := ac.Export(pkg)
+			ac.Export(pkg)
 		}
 		if src == "" {
 			prog, err := loadProgram(pkg)
