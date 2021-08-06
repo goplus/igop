@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"hash/fnv"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -267,7 +266,6 @@ var (
 )
 
 func (d LineData) TagName() (name string, tags []string) {
-	name = "export"
 	if d.Ver != "" {
 		name += "_" + strings.Replace(d.Ver, ".", "", -1)
 		tags = append(tags, "// +build "+d.Ver)
@@ -295,16 +293,39 @@ func (d LineData) TagName() (name string, tags []string) {
 	return
 }
 
-func (ac *ApiCheck) Export(pkgPath string) (map[string]string, bool) {
-	extList, _, ok := ac.ExportData(pkgPath)
+type File struct {
+	Id      string
+	Name    string
+	Tags    []string
+	ExtList []string
+	TypList []string
+}
+
+func (ac *ApiCheck) Export(pkgPath string) (map[string]*File, error) {
+	extList, typList, ok := ac.ExportData(pkgPath)
 	if !ok {
-		return nil, false
+		return nil, fmt.Errorf("empty export pkg %v", pkgPath)
 	}
+	fileMap := make(map[string]*File)
 	for _, v := range extList {
 		name, tags := v.TagName()
-		log.Println("~~~~~", name, tags)
+		f, ok := fileMap[name]
+		if !ok {
+			f = &File{Name: name, Tags: tags}
+			fileMap[name] = f
+		}
+		f.ExtList = append(f.ExtList, v.Info)
 	}
-	return nil, true
+	for _, v := range typList {
+		name, tags := v.TagName()
+		f, ok := fileMap[name]
+		if !ok {
+			f = &File{Name: name, Tags: tags}
+			fileMap[name] = f
+		}
+		f.TypList = append(f.TypList, v.Info)
+	}
+	return fileMap, nil
 }
 
 func cleanTags(tags []string) []string {
@@ -366,7 +387,7 @@ func (ac *ApiCheck) ExportData(pkgPath string) (extList []LineData, typList []Li
 							tags,
 							fmt.Sprintf("\"(%v%v.%v).%v\" : (%v%v.%v).%v",
 								v.MethodPtr, pkgPath, v.MethodType, v.MethodName,
-								v.MethodPtr, pkgPath, v.MethodType, v.MethodName),
+								v.MethodPtr, pkgName, v.MethodType, v.MethodName),
 						})
 					}
 				}

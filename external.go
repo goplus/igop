@@ -5,6 +5,7 @@
 package interp
 
 import (
+	"log"
 	"reflect"
 )
 
@@ -39,6 +40,13 @@ func RegisterTypeOf(ptrs ...interface{}) {
 		}
 		key += typ.Name()
 		externTypes[key] = typ
+		if typ.Kind() == reflect.Interface {
+			numMethod := typ.NumMethod()
+			for i := 0; i < numMethod; i++ {
+				method := typ.Method(i)
+				log.Println(method)
+			}
+		}
 	}
 }
 
