@@ -27,6 +27,8 @@ type ApiInfo struct {
 	MethodType string   // type or empty
 	MethodName string   // name or empty
 	MethodPtr  string   // * or emtpy
+	Interface  bool     // is interface
+	IMethods   []string // interface method list
 	Tags       []string // (os-arch-cgo)
 	Ver        string   // go1.15 | go1.16 or empty
 }
@@ -79,14 +81,12 @@ func LoadApi(ver string, tagVer bool) (*GoApi, error) {
 	for sc.Scan() {
 		l := sc.Text()
 		has := func(v string) bool { return strings.Contains(l, v) }
-		if has(", method (") {
-			// m[1] pkg
-			// m[2] os-arch-cgo
-			// m[3] var|func|type|const|method
-			// m[4] (*?Type)
-			// m[5] *?Type
-			// m[6] name
-		}
+		// m[1] pkg
+		// m[2] os-arch-cgo
+		// m[3] var|func|type|const|method
+		// m[4] (*?Type)
+		// m[5] *?Type
+		// m[6] name
 		if has("interface, ") || has("struct, ") {
 			continue
 		}
@@ -107,7 +107,15 @@ func LoadApi(ver string, tagVer bool) (*GoApi, error) {
 			name := m[6]
 			var mptr string
 			var mname string
-			if kind == "method" {
+			var iface bool
+			var imethods []string
+			switch kind {
+			case "type":
+				if pos := strings.Index(l, "interface {"); pos != -1 && l[len(l)-1] == '}' {
+					imethods = strings.Split(strings.Replace(l[pos+11:len(l)-1], " ", "", -1), ",")
+					iface = true
+				}
+			case "method":
 				mname = name
 				if mtype[0] == '*' {
 					mtype = mtype[1:]
@@ -129,6 +137,8 @@ func LoadApi(ver string, tagVer bool) (*GoApi, error) {
 				MethodType: mtype,
 				MethodName: mname,
 				MethodPtr:  mptr,
+				Interface:  iface,
+				IMethods:   imethods,
 				Tags:       []string{toTag(tag)},
 				Ver:        verInfo,
 			}
@@ -377,18 +387,30 @@ func (ac *ApiCheck) ExportData(pkgPath string) (extList []LineData, typList []Li
 				tags,
 				fmt.Sprintf("(*%v.%v)(nil)", pkgName, t.Name),
 			})
-			for _, v := range infos {
-				if v.Kind == "method" {
-					if v.MethodType == t.Name {
-						tags := v.Tags[1:]
-						sort.Strings(tags)
-						extList = append(extList, LineData{
-							v.Ver,
-							tags,
-							fmt.Sprintf("\"(%v%v.%v).%v\" : (%v%v.%v).%v",
-								v.MethodPtr, pkgPath, v.MethodType, v.MethodName,
-								v.MethodPtr, pkgName, v.MethodType, v.MethodName),
-						})
+			if t.Interface {
+				for _, mname := range t.IMethods {
+					extList = append(extList, LineData{
+						t.Ver,
+						tags,
+						fmt.Sprintf("\"(%v.%v).%v\" : (%v.%v).%v",
+							pkgPath, t.Name, mname,
+							pkgName, t.Name, mname),
+					})
+				}
+			} else {
+				for _, v := range infos {
+					if v.Kind == "method" {
+						if v.MethodType == t.Name {
+							tags := v.Tags[1:]
+							sort.Strings(tags)
+							extList = append(extList, LineData{
+								v.Ver,
+								tags,
+								fmt.Sprintf("\"(%v%v.%v).%v\" : (%v%v.%v).%v",
+									v.MethodPtr, pkgPath, v.MethodType, v.MethodName,
+									v.MethodPtr, pkgName, v.MethodType, v.MethodName),
+							})
+						}
 					}
 				}
 			}
