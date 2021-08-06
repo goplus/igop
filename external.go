@@ -42,12 +42,9 @@ func RegisterTypeOf(ptrs ...interface{}) {
 	}
 }
 
-// register extern package list
-func RegisterPackages(pkglist []string, ifacemap map[string]interface{}, typelist []interface{}) {
-	for _, pkg := range pkglist {
-		RegisterExternal(pkg+".init", func() {})
-		externPackages[pkg] = true
-	}
+// register extern package
+func RegisterPackage(pkg string, ifacemap map[string]interface{}, typelist []interface{}) {
+	RegisterExternal(pkg+".init", func() {})
 	RegisterExternals(ifacemap)
 	RegisterTypeOf(typelist...)
 }

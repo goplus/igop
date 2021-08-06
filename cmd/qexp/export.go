@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -37,11 +36,12 @@ func exportSource(pkgPath string, id string, tagList []string, extList []string,
 		sort.Strings(typList)
 		tl = "\n\t" + strings.Join(typList, ",\n\t") + ",\n"
 	}
-	var pkgList []string
-	pkgList = append(pkgList, strconv.Quote(pkgPath))
-	r := strings.NewReplacer("$PKGNAME", pkgName, "$PKGPATH", pkgPath,
-		"$EXTMAP", em, "$TYPLIST", tl, "$PKGLIST", strings.Join(pkgList, ","),
-		"$TAGS", strings.Join(tagList, "\n"), "$ID", id)
+	r := strings.NewReplacer("$PKGNAME", pkgName,
+		"$PKGPATH", pkgPath,
+		"$EXTMAP", em,
+		"$TYPLIST", tl,
+		"$TAGS", strings.Join(tagList, "\n"),
+		"$ID", id)
 	src := r.Replace(template_tags)
 	data, err := format.Source([]byte(src))
 	if err != nil {
@@ -60,7 +60,7 @@ import (
 )
 
 func init() {
-	interp.RegisterPackages([]string{$PKGLIST},extMap,typList)
+	interp.RegisterPackage("$PKGPATH",extMap,typList)
 }
 
 var extMap = map[string]interface{}{$EXTMAP}
@@ -81,7 +81,7 @@ import (
 )
 
 func init() {
-	interp.RegisterPackages([]string{$PKGLIST},extMap$ID,typList$ID)
+	interp.RegisterPackage("$PKGPATH",extMap$ID,typList$ID)
 }
 
 var extMap$ID = map[string]interface{}{$EXTMAP}
