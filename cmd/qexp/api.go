@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"hash/fnv"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -314,7 +313,6 @@ func (d LineData) TagName() (name string, tags []string) {
 		if strings.Index(ntags, " ") == -1 {
 			name += "_" + ntags
 		} else {
-			log.Println("========", ntags)
 			tags = append(tags, "// +build "+strings.Replace(ntags, "-", ",", -1))
 			if tag, ok := tagsName[ntags]; ok {
 				name += "_" + tag
@@ -339,7 +337,7 @@ type File struct {
 func (ac *ApiCheck) Export(pkgPath string) (map[string]*File, error) {
 	extList, typList, ok := ac.ExportData(pkgPath)
 	if !ok {
-		return nil, fmt.Errorf("empty export pkg %v", pkgPath)
+		return nil, nil
 	}
 	fileMap := make(map[string]*File)
 	for _, v := range extList {

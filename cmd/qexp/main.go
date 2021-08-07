@@ -22,6 +22,9 @@ func main() {
 	if len(args) == 0 {
 		flag.Usage()
 	}
+	if len(args) == 1 && args[0] == "std" {
+		args = stdList
+	}
 	//flagUseGoApi = false
 	var ac *ApiCheck
 	if flagUseGoApi {
@@ -38,6 +41,10 @@ func main() {
 			fileMap, err := ac.Export(pkg)
 			if err != nil {
 				panic(err)
+			}
+			if fileMap == nil {
+				fmt.Println("warning skip empty export pkg", pkg)
+				continue
 			}
 			for _, v := range fileMap {
 				data, err := exportSource(pkg, v.Name, v.Tags, v.ExtList, v.TypList)

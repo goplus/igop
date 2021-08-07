@@ -93,21 +93,6 @@ func (p *Program) Export(path string) (extList []string, typList []string) {
 		}
 	}
 	return
-	//extList = append([]string{fmt.Sprintf(`"%v.init" : func() {}`, path)}, extList...)
-	// var em string
-	// if len(extList) > 0 {
-	// 	sort.Strings(extList)
-	// 	em = "\n\t" + strings.Join(extList, ",\n\t") + ",\n"
-	// }
-	// var tl string
-	// if len(typList) > 0 {
-	// 	sort.Strings(typList)
-	// 	tl = "\n\t" + strings.Join(typList, ",\n\t") + ",\n"
-	// }
-	// var pkgList []string
-	// pkgList = append(pkgList, strconv.Quote(pkgPath))
-	// r := strings.NewReplacer("$PKGNAME", pkgName, "$PKGPATH", pkgPath, "$EXTMAP", em, "$TYPLIST", tl, "$PKGLIST", strings.Join(pkgList, ","))
-	// return r.Replace(template_export)
 }
 
 func isPointer(T types.Type) bool {
