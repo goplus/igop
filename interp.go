@@ -688,7 +688,11 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		args = append(args, v)
 	}
 	for _, arg := range call.Args {
-		args = append(args, fr.get(arg))
+		v := fr.get(arg)
+		if fn, ok := v.(*ssa.Function); ok {
+			v = fr.toFunc(fr.i.toType(fn.Type()), fn).Interface()
+		}
+		args = append(args, v)
 	}
 	return
 }
@@ -786,22 +790,30 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 
 func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
 	var ins []reflect.Value
+	typ := fn.Type()
 	if fn.Type().IsVariadic() {
 		for i := 0; i < len(args); i++ {
 			if i == len(args)-1 {
 				v := reflect.ValueOf(args[len(args)-1])
-				for i := 0; i < v.Len(); i++ {
-					ins = append(ins, v.Index(i))
+				for j := 0; i < v.Len(); j++ {
+					ins = append(ins, v.Index(j))
 				}
 			} else {
-				ins = append(ins, reflect.ValueOf(args[i]))
+				if args[i] == nil {
+					ins = append(ins, reflect.New(typ.In(i)).Elem())
+				} else {
+					ins = append(ins, reflect.ValueOf(args[i]))
+				}
 			}
 		}
 	} else {
 		ins = make([]reflect.Value, len(args), len(args))
 		for i := 0; i < len(args); i++ {
-			v := reflect.ValueOf(args[i])
-			ins[i] = v
+			if args[i] == nil {
+				ins[i] = reflect.New(typ.In(i)).Elem()
+			} else {
+				ins[i] = reflect.ValueOf(args[i])
+			}
 		}
 	}
 	var results []reflect.Value

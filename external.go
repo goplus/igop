@@ -44,6 +44,7 @@ func RegisterTypeOf(ptrs ...interface{}) {
 
 // register extern package
 func RegisterPackage(pkg string, ifacemap map[string]interface{}, typelist []interface{}) {
+	externPackages[pkg] = true
 	RegisterExternal(pkg+".init", func() {})
 	RegisterExternals(ifacemap)
 	RegisterTypeOf(typelist...)
