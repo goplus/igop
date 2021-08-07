@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -37,6 +38,7 @@ func main() {
 		if err != nil {
 			fmt.Println("warning load api error", err)
 		}
+		var imports []string
 		for _, pkg := range args {
 			fileMap, err := ac.Export(pkg)
 			if err != nil {
@@ -46,6 +48,7 @@ func main() {
 				fmt.Println("warning skip empty export pkg", pkg)
 				continue
 			}
+			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/interp/lib/%v"`, pkg))
 			if _, ok := fileMap[""]; !ok {
 				fileMap[""] = &File{}
 			}
@@ -66,6 +69,7 @@ func main() {
 			}
 			fmt.Println("export", pkg)
 		}
+		fmt.Printf("\nimport (\n\t%v\n)\n", strings.Join(imports, "\n\t"))
 	} else {
 		for _, pkg := range args {
 			prog, err := loadProgram(pkg)

@@ -5,6 +5,7 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
+	"os"
 
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/ssa"
@@ -16,21 +17,22 @@ type Config struct {
 	Mode     Mode
 	Entry    string
 	Input    []string
+	Args     []string
 	Source   interface{}
 	WithTest bool
 	Conf     *loader.Config
 }
 
-func RunWith(mode Mode, input ...string) error {
-	return Run(&Config{Mode: mode, Input: input})
+func RunWith(mode Mode, input string, args []string) error {
+	return Run(&Config{Mode: mode, Input: []string{input}, Args: args})
 }
 
-func RunWithTest(mode Mode, input ...string) error {
-	return Run(&Config{Mode: mode, Input: input, WithTest: true})
+func RunWithTest(mode Mode, input string, args []string) error {
+	return Run(&Config{Mode: mode, Input: []string{input}, Args: args, WithTest: true})
 }
 
-func RunSource(mode Mode, source interface{}) error {
-	return Run(&Config{Mode: mode, Source: source})
+func RunSource(mode Mode, source interface{}, args []string) error {
+	return Run(&Config{Mode: mode, Source: source, Input: []string{"source"}, Args: args})
 }
 
 func Run(cfg *Config) error {
@@ -88,8 +90,11 @@ func Run(cfg *Config) error {
 			return fmt.Errorf("%s [no test files]", cfg.Input)
 		}
 	}
-
-	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Entry, "", []string{})
+	os.Args = []string{cfg.Input[0]}
+	if cfg.Args != nil {
+		os.Args = append(os.Args, cfg.Args...)
+	}
+	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Entry)
 	if exitCode != 0 {
 		return fmt.Errorf("interpreting %v: exit code was %d", cfg.Input, exitCode)
 	}
