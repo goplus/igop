@@ -795,7 +795,7 @@ func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Va
 		for i := 0; i < len(args); i++ {
 			if i == len(args)-1 {
 				v := reflect.ValueOf(args[len(args)-1])
-				for j := 0; i < v.Len(); j++ {
+				for j := 0; j < v.Len(); j++ {
 					ins = append(ins, v.Index(j))
 				}
 			} else {
