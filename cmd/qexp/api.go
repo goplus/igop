@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"hash/fnv"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -266,27 +267,31 @@ type LineData struct {
 }
 
 var (
-	osMap = map[string]string{
-		"windows-386 windows-amd64":                    "windows",
-		"darwin-386-cgo darwin-amd64 darwin-amd64-cgo": "darwin",
-		"darwin-386 darwin-386-cgo darwin-386-cgo darwin-amd64 darwin-amd64 darwin-amd64-cgo darwin-amd64-cgo":            "darwin",
-		"linux-386 linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo":                                     "linux",
-		"linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo":                                               "linux",
-		"linux-386 linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm":                                                   "linux",
-		"freebsd-386 freebsd-386-cgo freebsd-amd64 freebsd-amd64-cgo freebsd-arm freebsd-arm-cgo":                         "freebsd",
-		"freebsd-386-cgo freebsd-amd64 freebsd-amd64-cgo freebsd-arm freebsd-arm-cgo":                                     "freebsd",
-		"netbsd-386 netbsd-386-cgo netbsd-amd64 netbsd-amd64-cgo netbsd-arm netbsd-arm-cgo netbsd-arm64 netbsd-arm64-cgo": "netbsd",
-		"openbsd-386 openbsd-386-cgo openbsd-amd64 openbsd-amd64-cgo":                                                     "openbsd",
+	osOldNews = []string{
+		"darwin-386 darwin-386-cgo darwin-386-cgo darwin-amd64 darwin-amd64 darwin-amd64-cgo darwin-amd64-cgo", "darwin",
+		"darwin-386-cgo darwin-amd64 darwin-amd64-cgo", "darwin",
+		"darwin-386 darwin", "darwin",
+		"linux-386 linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo", "linux",
+		"linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm linux-arm-cgo", "linux",
+		"linux-386 linux-386-cgo linux-amd64 linux-amd64-cgo linux-arm", "linux",
+		"linux-386-cgo linux-amd64 linux-amd64-cgo", "linux",
+		"freebsd-386 freebsd-386-cgo freebsd-amd64 freebsd-amd64-cgo freebsd-arm freebsd-arm-cgo", "freebsd",
+		"freebsd-386-cgo freebsd-amd64 freebsd-amd64-cgo freebsd-arm freebsd-arm-cgo", "freebsd",
+		"freebsd-386 freebsd-amd64", "freebsd",
+		"netbsd-386 netbsd-386-cgo netbsd-amd64 netbsd-amd64-cgo netbsd-arm netbsd-arm-cgo netbsd-arm64 netbsd-arm64-cgo", "netbsd",
+		"netbsd-386-cgo netbsd-amd64 netbsd-amd64-cgo netbsd-arm netbsd-arm-cgo netbsd-arm64 netbsd-arm64-cgo", "netbsd",
+		"netbsd-386 netbsd-386-cgo netbsd-amd64 netbsd-amd64-cgo netbsd-arm netbsd-arm-cgo", "netbsd",
+		"openbsd-386 openbsd-386-cgo openbsd-amd64 openbsd-amd64-cgo", "openbsd",
+		"windows-386 windows-amd64", "windows",
 	}
-	osReplacer *strings.Replacer
+	osReplacer = strings.NewReplacer(osOldNews...)
 )
 
-func init() {
-	var oldnews []string
-	for k, v := range osMap {
-		oldnews = append(oldnews, k, v)
+func osReplace(s string) string {
+	for i := 0; i < len(osOldNews); i += 2 {
+		s = strings.ReplaceAll(s, osOldNews[i], osOldNews[i+1])
 	}
-	osReplacer = strings.NewReplacer(oldnews...)
+	return s
 }
 
 var (
@@ -305,10 +310,11 @@ func (d LineData) TagName() (name string, tags []string) {
 		name += "_" + strings.Replace(d.Tag[0], "-", "_", -1)
 	default:
 		otags := strings.Join(d.Tag, " ")
-		ntags := osReplacer.Replace(otags)
+		ntags := osReplace(otags)
 		if strings.Index(ntags, " ") == -1 {
 			name += "_" + ntags
 		} else {
+			log.Println("========", ntags)
 			tags = append(tags, "// +build "+strings.Replace(ntags, "-", ",", -1))
 			if tag, ok := tagsName[ntags]; ok {
 				name += "_" + tag
