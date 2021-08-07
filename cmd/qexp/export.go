@@ -42,7 +42,13 @@ func exportSource(pkgPath string, id string, tagList []string, extList []string,
 		"$TYPLIST", tl,
 		"$TAGS", strings.Join(tagList, "\n"),
 		"$ID", id)
-	src := r.Replace(template_tags)
+	var template string
+	if len(typList) == 0 && len(extList) == 0 {
+		template = template_empty
+	} else {
+		template = template_tags
+	}
+	src := r.Replace(template)
 	data, err := format.Source([]byte(src))
 	if err != nil {
 		return nil, fmt.Errorf("format pkg %v error: %v", pkgPath, err)
@@ -87,4 +93,19 @@ func init() {
 var extMap$ID = map[string]interface{}{$EXTMAP}
 
 var typList$ID = []interface{}{$TYPLIST}
+`
+
+var template_empty = `// export by github.com/goplus/interp/cmd/qexp
+
+$TAGS
+
+package $PKGNAME
+
+import (
+	"github.com/goplus/interp"
+)
+
+func init() {
+	interp.RegisterPackage("$PKGPATH",nil,nil)
+}
 `

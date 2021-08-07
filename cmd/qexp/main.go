@@ -46,6 +46,9 @@ func main() {
 				fmt.Println("warning skip empty export pkg", pkg)
 				continue
 			}
+			if _, ok := fileMap[""]; !ok {
+				fileMap[""] = &File{}
+			}
 			for _, v := range fileMap {
 				data, err := exportSource(pkg, v.Name, v.Tags, v.ExtList, v.TypList)
 				if err != nil {
