@@ -94,6 +94,7 @@ func Run(cfg *Config) error {
 	if cfg.Args != nil {
 		os.Args = append(os.Args, cfg.Args...)
 	}
+
 	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Entry)
 	if exitCode != 0 {
 		return fmt.Errorf("interpreting %v: exit code was %d", cfg.Input, exitCode)

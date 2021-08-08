@@ -994,6 +994,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		panic(exitPanic(code))
 	})
 	reflectx.Reset()
+
 	for _, pkg := range i.prog.AllPackages() {
 		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
 			if i.mode&EnableTracing != 0 {
