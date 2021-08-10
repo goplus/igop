@@ -962,7 +962,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		goroutines: 1,
 		types:      make(map[types.Type]reflect.Type),
 	}
-	i.ctx = xtypes.NewContext(func(fn *types.Func) func([]reflect.Value) []reflect.Value {
+	i.ctx = xtypes.NewContext(func(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 		typ := fn.Type().(*types.Signature).Recv().Type()
 		if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 			return func(args []reflect.Value) []reflect.Value {
@@ -971,16 +971,30 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 					iargs[i] = args[i].Interface()
 				}
 				r := call(i, nil, token.NoPos, f, iargs, nil)
-				if v, ok := r.(tuple); ok {
+				switch mtyp.NumOut() {
+				case 0:
+					return nil
+				case 1:
+					if r == nil {
+						return []reflect.Value{reflect.New(mtyp.Out(0)).Elem()}
+					} else {
+						return []reflect.Value{reflect.ValueOf(r)}
+					}
+				default:
+					v, ok := r.(tuple)
+					if !ok {
+						panic(fmt.Errorf("result type must tuple: %T", v))
+					}
 					res := make([]reflect.Value, len(v))
-					for i := 0; i < len(v); i++ {
-						res[i] = reflect.ValueOf(v[i])
+					for j := 0; j < len(v); j++ {
+						if v[j] == nil {
+							res[j] = reflect.New(mtyp.Out(j)).Elem()
+						} else {
+							res[j] = reflect.ValueOf(v[j])
+						}
 					}
 					return res
-				} else if r != nil {
-					return []reflect.Value{reflect.ValueOf(r)}
 				}
-				return nil
 			}
 		}
 		return nil

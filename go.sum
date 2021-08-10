@@ -1,8 +1,7 @@
-github.com/goplus/reflectx v0.5.19/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
-github.com/goplus/reflectx v0.5.21 h1:SFLf2U9QaxbnZ248fRA6e9RB5e9/wDx48SlFh4K05dk=
-github.com/goplus/reflectx v0.5.21/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
-github.com/goplus/xtypes v0.1.20 h1:dQPjV9256f33hiqV1TG3YlUsiZSf7gnm3xT18OhSv5M=
-github.com/goplus/xtypes v0.1.20/go.mod h1:EyxfBp/d4lCh4/dTOkVJkXH9WHAJ6Pyl7mh6bbs2ZpU=
+github.com/goplus/reflectx v0.5.22 h1:cC2/5askHVl2+3PKJtoUrKkOJ7OaeiVwx9OH+ARmG00=
+github.com/goplus/reflectx v0.5.22/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
+github.com/goplus/xtypes v0.1.21 h1:P4lXP10T30fBahzu7mMq2U3bdmo0FyvYPbJkI2CZHZg=
+github.com/goplus/xtypes v0.1.21/go.mod h1:ByuD+g6BmutnnZZmYrEfkZkVIxdQmxeUDo+ErbaFsow=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
