@@ -13,7 +13,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&flagExportDir, "outdir", "", "set export lib path")
+	flag.StringVar(&flagExportDir, "outdir", "", "set export pkg path")
 	flag.BoolVar(&flagUseGoApi, "api", false, "export by $GOROOT/api")
 }
 
@@ -48,7 +48,7 @@ func main() {
 				fmt.Println("warning skip empty export pkg", pkg)
 				continue
 			}
-			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/interp/lib/%v"`, pkg))
+			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/interp/pkg/%v"`, pkg))
 			if _, ok := fileMap[""]; !ok {
 				fileMap[""] = &File{}
 			}

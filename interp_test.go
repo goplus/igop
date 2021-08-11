@@ -29,6 +29,15 @@ import (
 	"time"
 
 	"github.com/goplus/interp"
+	_ "github.com/goplus/interp/pkg/errors"
+	_ "github.com/goplus/interp/pkg/fmt"
+	_ "github.com/goplus/interp/pkg/math"
+	_ "github.com/goplus/interp/pkg/os"
+	_ "github.com/goplus/interp/pkg/reflect"
+	_ "github.com/goplus/interp/pkg/runtime"
+	_ "github.com/goplus/interp/pkg/strings"
+	_ "github.com/goplus/interp/pkg/sync"
+	_ "github.com/goplus/interp/pkg/time"
 )
 
 // Each line contains a space-separated list of $GOROOT/test/
@@ -121,7 +130,7 @@ var testdataTests = []string{
 	"static.go",
 }
 
-func init() {
+func _init() {
 	interp.RegisterExternal("runtime.init", func() {})
 	interp.RegisterExternal("runtime.GC", runtime.GC)
 	interp.RegisterExternal("os.init", func() {})

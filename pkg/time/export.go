@@ -1,0 +1,101 @@
+// export by github.com/goplus/interp/cmd/qexp
+
+package time
+
+import (
+	"time"
+
+	"github.com/goplus/interp"
+)
+
+func init() {
+	interp.RegisterPackage("time", extMap, typList)
+}
+
+var extMap = map[string]interface{}{
+	"(*time.Location).String":      (*time.Location).String,
+	"(*time.ParseError).Error":     (*time.ParseError).Error,
+	"(*time.Ticker).Stop":          (*time.Ticker).Stop,
+	"(*time.Time).GobDecode":       (*time.Time).GobDecode,
+	"(*time.Time).UnmarshalBinary": (*time.Time).UnmarshalBinary,
+	"(*time.Time).UnmarshalJSON":   (*time.Time).UnmarshalJSON,
+	"(*time.Time).UnmarshalText":   (*time.Time).UnmarshalText,
+	"(*time.Timer).Reset":          (*time.Timer).Reset,
+	"(*time.Timer).Stop":           (*time.Timer).Stop,
+	"(time.Duration).Hours":        (time.Duration).Hours,
+	"(time.Duration).Microseconds": (time.Duration).Microseconds,
+	"(time.Duration).Milliseconds": (time.Duration).Milliseconds,
+	"(time.Duration).Minutes":      (time.Duration).Minutes,
+	"(time.Duration).Nanoseconds":  (time.Duration).Nanoseconds,
+	"(time.Duration).Round":        (time.Duration).Round,
+	"(time.Duration).Seconds":      (time.Duration).Seconds,
+	"(time.Duration).String":       (time.Duration).String,
+	"(time.Duration).Truncate":     (time.Duration).Truncate,
+	"(time.Month).String":          (time.Month).String,
+	"(time.Time).Add":              (time.Time).Add,
+	"(time.Time).AddDate":          (time.Time).AddDate,
+	"(time.Time).After":            (time.Time).After,
+	"(time.Time).AppendFormat":     (time.Time).AppendFormat,
+	"(time.Time).Before":           (time.Time).Before,
+	"(time.Time).Clock":            (time.Time).Clock,
+	"(time.Time).Date":             (time.Time).Date,
+	"(time.Time).Day":              (time.Time).Day,
+	"(time.Time).Equal":            (time.Time).Equal,
+	"(time.Time).Format":           (time.Time).Format,
+	"(time.Time).GobEncode":        (time.Time).GobEncode,
+	"(time.Time).Hour":             (time.Time).Hour,
+	"(time.Time).ISOWeek":          (time.Time).ISOWeek,
+	"(time.Time).In":               (time.Time).In,
+	"(time.Time).IsZero":           (time.Time).IsZero,
+	"(time.Time).Local":            (time.Time).Local,
+	"(time.Time).Location":         (time.Time).Location,
+	"(time.Time).MarshalBinary":    (time.Time).MarshalBinary,
+	"(time.Time).MarshalJSON":      (time.Time).MarshalJSON,
+	"(time.Time).MarshalText":      (time.Time).MarshalText,
+	"(time.Time).Minute":           (time.Time).Minute,
+	"(time.Time).Month":            (time.Time).Month,
+	"(time.Time).Nanosecond":       (time.Time).Nanosecond,
+	"(time.Time).Round":            (time.Time).Round,
+	"(time.Time).Second":           (time.Time).Second,
+	"(time.Time).String":           (time.Time).String,
+	"(time.Time).Sub":              (time.Time).Sub,
+	"(time.Time).Truncate":         (time.Time).Truncate,
+	"(time.Time).UTC":              (time.Time).UTC,
+	"(time.Time).Unix":             (time.Time).Unix,
+	"(time.Time).UnixNano":         (time.Time).UnixNano,
+	"(time.Time).Weekday":          (time.Time).Weekday,
+	"(time.Time).Year":             (time.Time).Year,
+	"(time.Time).YearDay":          (time.Time).YearDay,
+	"(time.Time).Zone":             (time.Time).Zone,
+	"(time.Weekday).String":        (time.Weekday).String,
+	"time.After":                   time.After,
+	"time.AfterFunc":               time.AfterFunc,
+	"time.Date":                    time.Date,
+	"time.FixedZone":               time.FixedZone,
+	"time.LoadLocation":            time.LoadLocation,
+	"time.LoadLocationFromTZData":  time.LoadLocationFromTZData,
+	"time.Local":                   &time.Local,
+	"time.NewTicker":               time.NewTicker,
+	"time.NewTimer":                time.NewTimer,
+	"time.Now":                     time.Now,
+	"time.Parse":                   time.Parse,
+	"time.ParseDuration":           time.ParseDuration,
+	"time.ParseInLocation":         time.ParseInLocation,
+	"time.Since":                   time.Since,
+	"time.Sleep":                   time.Sleep,
+	"time.Tick":                    time.Tick,
+	"time.UTC":                     &time.UTC,
+	"time.Unix":                    time.Unix,
+	"time.Until":                   time.Until,
+}
+
+var typList = []interface{}{
+	(*time.Duration)(nil),
+	(*time.Location)(nil),
+	(*time.Month)(nil),
+	(*time.ParseError)(nil),
+	(*time.Ticker)(nil),
+	(*time.Time)(nil),
+	(*time.Timer)(nil),
+	(*time.Weekday)(nil),
+}
