@@ -26,7 +26,7 @@ import (
 	"github.com/goplus/interp"
 )
 
-var souce = `
+var source = `
 package main
 
 import "fmt"
@@ -42,7 +42,7 @@ func init() {
 }
 
 func main() {
-	err := interp.RunSource(interp.EnableTracing, souce)
+	err := interp.RunSource(interp.EnableTracing, source, nil)
 	if err != nil {
 		panic(err)
 	}
