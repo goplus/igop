@@ -29,7 +29,7 @@ jobs:
       run: go build -v .
 
     - name: Go Test
-      run: go test -v .
+      run: GOARCH=amd64 go test -v .
 
   linux:
     name: Test Go1.16 for Linux
@@ -52,7 +52,7 @@ jobs:
       run: go build -v .
 
     - name: Go Test amd64
-      run: go test -v .
+      run: GOARCH=amd64 go test -v .
 
     - name: Go Test 386
       run: GOARCH=386 go test -v .
@@ -78,7 +78,9 @@ jobs:
       run: go build -v .
 
     - name: Go Test amd64
-      run: go test -v .
+      run: |
+        set GOARCH=amd64
+        go test -v .
 
     - name: Go Test 386
       run: |
