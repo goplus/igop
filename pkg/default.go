@@ -138,9 +138,6 @@ import (
 	_ "github.com/goplus/interp/pkg/sync"
 	_ "github.com/goplus/interp/pkg/sync/atomic"
 	_ "github.com/goplus/interp/pkg/syscall"
-	_ "github.com/goplus/interp/pkg/testing"
-	_ "github.com/goplus/interp/pkg/testing/fstest"
-	_ "github.com/goplus/interp/pkg/testing/iotest"
 	_ "github.com/goplus/interp/pkg/text/scanner"
 	_ "github.com/goplus/interp/pkg/text/tabwriter"
 	_ "github.com/goplus/interp/pkg/text/template"
@@ -149,5 +146,4 @@ import (
 	_ "github.com/goplus/interp/pkg/unicode"
 	_ "github.com/goplus/interp/pkg/unicode/utf16"
 	_ "github.com/goplus/interp/pkg/unicode/utf8"
-	//_ "github.com/goplus/interp/pkg/testing/quick"
 )
