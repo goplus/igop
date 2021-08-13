@@ -39,17 +39,6 @@ func init() {
 	Cmd.Run = runCmd
 }
 
-func skipSwitches(args []string) []string {
-	out := make([]string, 0, len(args))
-	for _, arg := range args {
-		if strings.HasPrefix(arg, "-") {
-			continue
-		}
-		out = append(out, arg)
-	}
-	return out
-}
-
 func runCmd(cmd *base.Command, args []string) {
 	cf := &Cmd.Flag
 	cf.String("bench", "", "")
@@ -98,9 +87,8 @@ func runCmd(cmd *base.Command, args []string) {
 		}
 	})
 	for _, pkg := range pkgs {
-		err := interp.RunWithTest(0, pkg, testArgs)
-		if err != nil {
-			log.Fatalln("interpret test %v failed:", pkg, err)
+		if err := interp.RunTest(0, pkg, testArgs); err != nil {
+			log.Println("interpret test failed:", pkg, err)
 		}
 	}
 }

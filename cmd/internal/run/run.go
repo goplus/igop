@@ -53,7 +53,7 @@ func runCmd(cmd *base.Command, args []string) {
 		mode = interp.EnableTracing
 	}
 	iargs := flag.Args()
-	err := interp.RunWith(mode, iargs[0], iargs[1:])
+	err := interp.Run(mode, iargs[0], iargs[1:])
 	if err != nil {
 		log.Fatalln("interpret package failed:", err)
 	}

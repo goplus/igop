@@ -42,7 +42,7 @@ func init() {
 }
 
 func main() {
-	err := interp.RunSource(interp.EnableTracing, source, nil)
+	err := interp.RunFile(interp.EnableTracing,"main.go", source, nil)
 	if err != nil {
 		panic(err)
 	}
