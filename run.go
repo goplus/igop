@@ -1,6 +1,7 @@
 package interp
 
 import (
+	"flag"
 	"fmt"
 	"go/build"
 	"go/parser"
@@ -90,10 +91,12 @@ func Run(cfg *Config) error {
 			return fmt.Errorf("%s [no test files]", cfg.Input)
 		}
 	}
+	// reset os args and flag
 	os.Args = []string{cfg.Input[0]}
 	if cfg.Args != nil {
 		os.Args = append(os.Args, cfg.Args...)
 	}
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 	exitCode := Interpret(mainPkg, cfg.Mode, cfg.Entry)
 	if exitCode != 0 {

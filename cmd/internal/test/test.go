@@ -18,8 +18,11 @@
 package test
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/goplus/interp"
 	"github.com/goplus/interp/cmd/internal/base"
@@ -31,11 +34,6 @@ var Cmd = &base.Command{
 	UsageLine: "igop test [-v] package",
 	Short:     "test package",
 }
-
-var (
-	flag = &Cmd.Flag
-	_    = flag.Bool("v", false, "print the names of packages as they are compiled.")
-)
 
 func init() {
 	Cmd.Run = runCmd
@@ -53,14 +51,56 @@ func skipSwitches(args []string) []string {
 }
 
 func runCmd(cmd *base.Command, args []string) {
-	ssargs := skipSwitches(args)
-	if len(ssargs) == 0 {
-		ssargs = []string{"."}
+	cf := &Cmd.Flag
+	cf.String("bench", "", "")
+	cf.Bool("benchmem", false, "")
+	cf.Duration("benchtime", 1*time.Second, "")
+	cf.String("blockprofile", "", "")
+	cf.Int("blockprofilerate", 1, "")
+	cf.Int("count", 1, "")
+	cf.String("coverprofile", "", "")
+	cf.String("cpu", "", "")
+	cf.String("cpuprofile", "", "")
+	cf.Bool("failfast", false, "")
+	cf.String("list", "", "")
+	cf.String("memprofile", "", "")
+	cf.Int("memprofilerate", 0, "")
+	cf.String("mutexprofile", "", "")
+	cf.Int("mutexprofilefraction", 1, "")
+	cf.String("outputdir", "", "")
+	cf.Int("parallel", 4, "")
+	cf.String("run", "", "")
+	cf.Bool("short", false, "")
+	cf.Duration("timeout", 10*time.Minute, "")
+	cf.String("trace", "", "")
+	cf.Bool("v", false, "")
+	for name, _ := range passFlagToTest {
+		cf.Var(cf.Lookup(name).Value, "test."+name, "")
 	}
-	for _, pkg := range ssargs {
-		err := interp.RunWithTest(0, pkg, nil)
+
+	cf.Parse(args)
+	pkgs := cf.Args()
+	if len(pkgs) == 0 {
+		pkgs = []string{"."}
+	}
+
+	var testArgs []string
+	cf.VisitAll(func(f *flag.Flag) {
+		if strings.HasPrefix(f.Name, "test.") && f.Value.String() != f.DefValue {
+			if typ, ok := passFlagToTest[f.Name[5:]]; ok {
+				switch typ {
+				case String:
+					testArgs = append(testArgs, fmt.Sprintf("-%v=%q", f.Name, f.Value))
+				default:
+					testArgs = append(testArgs, fmt.Sprintf("-%v=%v", f.Name, f.Value))
+				}
+			}
+		}
+	})
+	for _, pkg := range pkgs {
+		err := interp.RunWithTest(0, pkg, testArgs)
 		if err != nil {
-			log.Fatalln("interpret test package failed:", err)
+			log.Fatalln("interpret test %v failed:", pkg, err)
 		}
 	}
 }
