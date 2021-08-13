@@ -161,7 +161,7 @@ func run(t *testing.T, input string) bool {
 	mu.Lock()
 	defer mu.Unlock()
 	t.Logf("Input: %s\n", input)
-	err := interp.RunWith(0, input, nil)
+	err := interp.Run(0, input, nil)
 	if err != nil {
 		t.Error(err)
 		fmt.Println("FAIL")
