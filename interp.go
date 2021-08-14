@@ -447,7 +447,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.MakeChan:
 		typ := fr.i.toType(instr.Type())
 		size := fr.get(instr.Size)
-		fr.env[instr] = reflect.MakeChan(typ, asInt(size)).Interface()
+		buffer := asInt(size)
+		if buffer < 0 {
+			panic("makechan: size out of range")
+		}
+		fr.env[instr] = reflect.MakeChan(typ, buffer).Interface()
 		//fr.env[instr] = make(chan value, asInt(fr.get(instr.Size)))
 
 	case *ssa.Alloc:

@@ -71,6 +71,7 @@ var gorootTestTests = []string{
 	"deferprint.go",
 	"escape.go",
 	"range.go",
+	"chancap.go",
 	"const4.go",
 	"float_lit.go",
 	"bigalg.go",
