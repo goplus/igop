@@ -999,6 +999,9 @@ func IsNil(v reflect.Value) bool {
 func opEQL(instr *ssa.BinOp, x, y interface{}) bool {
 	vx := reflect.ValueOf(x)
 	vy := reflect.ValueOf(y)
+	if vx.Kind() != vy.Kind() {
+		return false
+	}
 	if IsConstNil(instr.X) {
 		return IsNil(vy)
 	} else if IsConstNil(instr.Y) {
@@ -1019,6 +1022,8 @@ func equalNil(vx, vy reflect.Value) bool {
 func equalValue(vx, vy reflect.Value) bool {
 	if kind := vx.Kind(); kind == vy.Kind() {
 		switch kind {
+		case reflect.Invalid:
+			return true
 		case reflect.Chan:
 			dirx := vx.Type().ChanDir()
 			diry := vy.Type().ChanDir()
