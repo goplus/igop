@@ -344,7 +344,19 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.MakeInterface:
 		typ := fr.i.toType(instr.Type())
 		i := reflect.New(typ).Elem()
-		SetValue(i, reflect.ValueOf(fr.get(instr.X)))
+		xtyp := fr.i.toType(instr.X.Type())
+		x := fr.get(instr.X)
+		var vx reflect.Value
+		switch x.(type) {
+		case *ssa.Function:
+			vx = fr.toFunc(xtyp, x)
+		default:
+			vx = reflect.ValueOf(x)
+			if xtyp != vx.Type() {
+				vx = reflect.ValueOf(convert(x, xtyp))
+			}
+		}
+		SetValue(i, vx)
 		fr.env[instr] = i.Interface()
 		//fr.env[instr] = iface{t: instr.X.Type(), v: fr.get(instr.X)}
 

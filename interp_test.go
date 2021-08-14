@@ -50,6 +50,7 @@ import (
 var gorootTestTests = []string{
 	"235.go",
 	"alias1.go",
+	"append.go",
 	"func5.go",
 	"func6.go",
 	"func7.go",
@@ -194,7 +195,7 @@ func TestTestdataFiles(t *testing.T) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func _TestGorootTest(t *testing.T) {
+func TestGorootTest(t *testing.T) {
 	var failures []string
 
 	for _, input := range gorootTestTests {
@@ -233,7 +234,7 @@ func getGorootTestRuns(t *testing.T) (files []string) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func TestGorootTest(t *testing.T) {
+func _TestGorootTest(t *testing.T) {
 	files := getGorootTestRuns(t)
 	var failures []string
 
