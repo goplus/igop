@@ -205,6 +205,9 @@ func (ac *ApiCheck) LoadApi(vers ...string) error {
 		for k, v := range api.Keys {
 			if info, ok := ac.Base[k]; ok {
 				if info.Tags[0] != "-" {
+					if info.Ver != v.Ver {
+						continue
+					}
 					info.Tags = append(info.Tags, v.Tags...)
 				}
 				delete(api.Keys, k)

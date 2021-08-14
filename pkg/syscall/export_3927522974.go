@@ -58,8 +58,6 @@ var extMap_3927522974 = map[string]interface{}{
 	"syscall.Sendfile":                  syscall.Sendfile,
 	"syscall.Sendmsg":                   syscall.Sendmsg,
 	"syscall.SendmsgN":                  syscall.SendmsgN,
-	"syscall.Setegid":                   syscall.Setegid,
-	"syscall.Seteuid":                   syscall.Seteuid,
 	"syscall.Setgid":                    syscall.Setgid,
 	"syscall.Setgroups":                 syscall.Setgroups,
 	"syscall.Setpgid":                   syscall.Setpgid,

@@ -49,6 +49,8 @@ var extMap_2256505852 = map[string]interface{}{
 	"syscall.SetBpfPromisc":        syscall.SetBpfPromisc,
 	"syscall.SetBpfTimeout":        syscall.SetBpfTimeout,
 	"syscall.SetKevent":            syscall.SetKevent,
+	"syscall.Setegid":              syscall.Setegid,
+	"syscall.Seteuid":              syscall.Seteuid,
 	"syscall.Sysctl":               syscall.Sysctl,
 	"syscall.SysctlUint32":         syscall.SysctlUint32,
 }

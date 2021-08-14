@@ -17,6 +17,8 @@ func init() {
 var extMap_go116_linux = map[string]interface{}{
 	"syscall.AllThreadsSyscall":  syscall.AllThreadsSyscall,
 	"syscall.AllThreadsSyscall6": syscall.AllThreadsSyscall6,
+	"syscall.Setegid":            syscall.Setegid,
+	"syscall.Seteuid":            syscall.Seteuid,
 }
 
 var typList_go116_linux = []interface{}{}
