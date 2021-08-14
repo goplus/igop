@@ -19,26 +19,27 @@ import (
 	"errors"
 	"fmt"
 	"go/build"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/goplus/interp"
-	_ "github.com/goplus/interp/pkg/errors"
-	_ "github.com/goplus/interp/pkg/fmt"
-	_ "github.com/goplus/interp/pkg/math"
-	_ "github.com/goplus/interp/pkg/os"
-	_ "github.com/goplus/interp/pkg/reflect"
-	_ "github.com/goplus/interp/pkg/runtime"
-	_ "github.com/goplus/interp/pkg/strings"
-	_ "github.com/goplus/interp/pkg/sync"
-	_ "github.com/goplus/interp/pkg/time"
+	_ "github.com/goplus/interp/pkg"
+	// _ "github.com/goplus/interp/pkg/errors"
+	// _ "github.com/goplus/interp/pkg/fmt"
+	// _ "github.com/goplus/interp/pkg/math"
+	// _ "github.com/goplus/interp/pkg/os"
+	// _ "github.com/goplus/interp/pkg/reflect"
+	// _ "github.com/goplus/interp/pkg/runtime"
+	// _ "github.com/goplus/interp/pkg/strings"
+	// _ "github.com/goplus/interp/pkg/sync"
+	// _ "github.com/goplus/interp/pkg/time"
 )
 
 // Each line contains a space-separated list of $GOROOT/test/
@@ -155,12 +156,8 @@ func _init() {
 	interp.RegisterExternal("errors.New", errors.New)
 }
 
-var mu sync.Mutex
-
 func run(t *testing.T, input string) bool {
-	mu.Lock()
-	defer mu.Unlock()
-	t.Logf("Input: %s\n", input)
+	fmt.Println("Input:", input)
 	err := interp.Run(0, input, nil)
 	if err != nil {
 		t.Error(err)
@@ -197,11 +194,51 @@ func TestTestdataFiles(t *testing.T) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func TestGorootTest(t *testing.T) {
+func _TestGorootTest(t *testing.T) {
 	var failures []string
 
 	for _, input := range gorootTestTests {
 		if !run(t, filepath.Join(build.Default.GOROOT, "test", input)) {
+			failures = append(failures, input)
+		}
+	}
+	printFailures(failures)
+}
+
+// $GOROOT/test/*.go runs
+func getGorootTestRuns(t *testing.T) (files []string) {
+	dir := filepath.Join(build.Default.GOROOT, "test")
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			if path == dir {
+				return nil
+			}
+			return filepath.SkipDir
+		}
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			t.Errorf("read %v error: %v", path, err)
+			return nil
+		}
+		lines := strings.Split(string(data), "\n")
+		if len(lines) > 0 {
+			line := strings.TrimSpace(lines[0])
+			if line == "// run" {
+				files = append(files, path)
+			}
+		}
+		return nil
+	})
+	return
+}
+
+// TestGorootTest runs the interpreter on $GOROOT/test/*.go.
+func TestGorootTest(t *testing.T) {
+	files := getGorootTestRuns(t)
+	var failures []string
+
+	for _, input := range files {
+		if !run(t, input) {
 			failures = append(failures, input)
 		}
 	}
