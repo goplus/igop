@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"go/build"
+	"go/types"
 	"io/ioutil"
 	"log"
 	"os"
@@ -133,6 +134,12 @@ var testdataTests = []string{
 	"recover.go",
 	"reflect.go",
 	"static.go",
+}
+
+func init() {
+	if runtime.GOARCH == "386" {
+		interp.UnsafeSizes = &types.StdSizes{WordSize: 4, MaxAlign: 4}
+	}
 }
 
 func _init() {

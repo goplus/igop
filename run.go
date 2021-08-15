@@ -7,6 +7,7 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"os"
 	"time"
 
@@ -14,6 +15,16 @@ import (
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
 )
+
+var (
+	UnsafeSizes types.Sizes
+)
+
+func loaderConfig() *loader.Config {
+	cfg := &loader.Config{}
+	cfg.TypeChecker.Sizes = UnsafeSizes
+	return cfg
+}
 
 func Run(mode Mode, input string, args []string) error {
 	pkg, err := Load(input)
@@ -45,7 +56,7 @@ func RunFile(mode Mode, filename string, src interface{}, args []string) error {
 }
 
 func Load(pkg string) (*ssa.Package, error) {
-	cfg := &loader.Config{}
+	cfg := loaderConfig()
 	_, err := cfg.FromArgs([]string{pkg}, false)
 	if err != nil {
 		return nil, fmt.Errorf("FromArgs(%v) failed: %s", pkg, err)
@@ -66,7 +77,7 @@ func LoadTest(input string) (string, []*ssa.Package, error) {
 	if len(p.XTestGoFiles) > 0 {
 		paths = append(paths, p.ImportPath+"_test")
 	}
-	cfg := &loader.Config{}
+	cfg := loaderConfig()
 	_, err = cfg.FromArgs([]string{input}, true)
 	if err != nil {
 		return "", nil, fmt.Errorf("FromArgs(%v) failed: %s", input, err)
@@ -81,7 +92,8 @@ func LoadFile(filename string, src interface{}) (*ssa.Package, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Parser file error: %v", err)
 	}
-	cfg := &loader.Config{Fset: fset}
+	cfg := loaderConfig()
+	cfg.Fset = fset
 	cfg.CreateFromFiles("", f)
 	return LoadMainPkg(cfg)
 }
