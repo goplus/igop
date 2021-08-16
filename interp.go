@@ -797,9 +797,9 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		runFrame(fr)
 	}
 	// Destroy the locals to avoid accidental use after return.
-	for i := range fn.Locals {
-		fr.locals[i] = bad{}
-	}
+	fr.env = nil
+	fr.block = nil
+	fr.locals = nil
 	return fr.result
 }
 

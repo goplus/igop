@@ -51,8 +51,6 @@ import (
 var gorootTestTests = []string{
 	"235.go",
 	"alias1.go",
-	"append.go",
-	"const.go",
 	"func5.go",
 	"func6.go",
 	"func7.go",
@@ -73,7 +71,6 @@ var gorootTestTests = []string{
 	"deferprint.go",
 	"escape.go",
 	"range.go",
-	"chancap.go",
 	"const4.go",
 	"float_lit.go",
 	"bigalg.go",
@@ -116,6 +113,10 @@ var gorootTestTests = []string{
 	"typeswitch1.go",
 	"floatcmp.go",
 	"crlf.go", // doesn't actually assert anything (runoutput)
+	"append.go",
+	"chancap.go",
+	"const.go",
+	"deferfin.go",
 }
 
 // These are files in go.tools/go/ssa/interp/testdata/.
