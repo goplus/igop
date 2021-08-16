@@ -729,7 +729,7 @@ func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []val
 		}
 		return callSSA(i, caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
-		return callBuiltin(caller, callpos, fn, args, ssaArgs)
+		return callBuiltin(i, caller, callpos, fn, args, ssaArgs)
 	default:
 		if f := reflect.ValueOf(fn); f.Kind() == reflect.Func {
 			return callReflect(i, caller, callpos, f, args, nil)

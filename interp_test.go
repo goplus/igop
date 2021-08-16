@@ -146,6 +146,12 @@ func init() {
 		interp.UnsafeSizes = &types.StdSizes{WordSize: 4, MaxAlign: 4}
 		gorootTestSkips["printbig.go"] = true // load failed
 	}
+	gorootTestSkips["closure.go"] = true     // runtime.ReadMemStats
+	gorootTestSkips["divmod.go"] = true      // timeout
+	gorootTestSkips["copy.go"] = true        // slow
+	gorootTestSkips["gcstring.go"] = true    // timeout
+	gorootTestSkips["finprofiled.go"] = true // slow
+	gorootTestSkips["gcgort.go"] = true      // slow
 }
 
 func _init() {
@@ -257,6 +263,9 @@ func _TestGorootTest(t *testing.T) {
 	var failures []string
 
 	for _, input := range files {
+		if _, f := filepath.Split(input); gorootTestSkips[f] {
+			continue
+		}
 		if !run(t, input) {
 			failures = append(failures, input)
 		}
