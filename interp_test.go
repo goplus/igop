@@ -146,6 +146,10 @@ func init() {
 	if runtime.GOARCH == "386" {
 		interp.UnsafeSizes = &types.StdSizes{WordSize: 4, MaxAlign: 4}
 		gorootTestSkips["printbig.go"] = "load failed"
+		gorootTestSkips["peano.go"] = "stack overflow"
+	}
+	if runtime.GOOS == "windows" {
+		gorootTestSkips["env.go"] = "skip GOARCH"
 	}
 	gorootTestSkips["closure.go"] = "runtime.ReadMemStats"
 	gorootTestSkips["divmod.go"] = "timeout"
