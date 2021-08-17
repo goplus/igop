@@ -156,6 +156,10 @@ func init() {
 	gorootTestSkips["inline_literal.go"] = true // bug, runtime.FuncForPC
 	gorootTestSkips["nilptr.go"] = true         // skip drawin
 	gorootTestSkips["recover.go"] = true        // skip test16
+	gorootTestSkips["heapsampling.go"] = true   // runtime.MemProfileRecord
+	gorootTestSkips["makeslice.go"] = true      // panic info, allocation size out of range
+	gorootTestSkips["stackobj.go"] = true       //
+	gorootTestSkips["stackobj3.go"] = true      //
 }
 
 func _init() {
@@ -222,7 +226,7 @@ func TestTestdataFiles(t *testing.T) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func TestGorootTest(t *testing.T) {
+func _TestGorootTest(t *testing.T) {
 	var failures []string
 
 	for _, input := range gorootTestTests {
@@ -264,7 +268,7 @@ func getGorootTestRuns(t *testing.T) (files []string) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func _TestGorootTest(t *testing.T) {
+func TestGorootTest(t *testing.T) {
 	files := getGorootTestRuns(t)
 	var failures []string
 

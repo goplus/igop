@@ -474,7 +474,13 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.MakeSlice:
 		typ := fr.i.toType(instr.Type())
 		Len := asInt(fr.get(instr.Len))
+		if Len < 0 {
+			panic("makeslice: len out of range")
+		}
 		Cap := asInt(fr.get(instr.Cap))
+		if Cap < 0 {
+			panic("makeslice: cap out of range")
+		}
 		fr.env[instr] = reflect.MakeSlice(typ, Len, Cap).Interface()
 		// slice := make([]value, asInt(fr.get(instr.Cap)))
 		// tElt := instr.Type().Underlying().(*types.Slice).Elem()
@@ -521,6 +527,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		switch v.Kind() {
 		case reflect.Slice:
 		case reflect.Array:
+		case reflect.Invalid:
+			panic(errorString("invalid memory address or nil pointer dereference"))
 		default:
 			panic(fmt.Sprintf("unexpected x type in IndexAddr: %T", x))
 		}
