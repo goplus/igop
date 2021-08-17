@@ -139,27 +139,28 @@ var testdataTests = []string{
 }
 
 var (
-	gorootTestSkips = make(map[string]bool)
+	gorootTestSkips = make(map[string]string)
 )
 
 func init() {
 	if runtime.GOARCH == "386" {
 		interp.UnsafeSizes = &types.StdSizes{WordSize: 4, MaxAlign: 4}
-		gorootTestSkips["printbig.go"] = true // load failed
+		gorootTestSkips["printbig.go"] = "load failed"
 	}
-	gorootTestSkips["closure.go"] = true        // runtime.ReadMemStats
-	gorootTestSkips["divmod.go"] = true         // timeout
-	gorootTestSkips["copy.go"] = true           // slow
-	gorootTestSkips["gcstring.go"] = true       // timeout
-	gorootTestSkips["finprofiled.go"] = true    // slow
-	gorootTestSkips["gcgort.go"] = true         // slow
-	gorootTestSkips["inline_literal.go"] = true // bug, runtime.FuncForPC
-	gorootTestSkips["nilptr.go"] = true         // skip drawin
-	gorootTestSkips["recover.go"] = true        // skip test16
-	gorootTestSkips["heapsampling.go"] = true   // runtime.MemProfileRecord
-	gorootTestSkips["makeslice.go"] = true      // panic info, allocation size out of range
-	gorootTestSkips["stackobj.go"] = true       //
-	gorootTestSkips["stackobj3.go"] = true      //
+	gorootTestSkips["closure.go"] = "runtime.ReadMemStats"
+	gorootTestSkips["divmod.go"] = "timeout"
+	gorootTestSkips["copy.go"] = "slow"
+	gorootTestSkips["gcstring.go"] = "timeout"
+	gorootTestSkips["finprofiled.go"] = "slow"
+	gorootTestSkips["gcgort.go"] = "slow"
+	gorootTestSkips["inline_literal.go"] = "TODO, runtime.FuncForPC"
+	gorootTestSkips["nilptr.go"] = "skip drawin"
+	gorootTestSkips["recover.go"] = "TODO, fix test16"
+	gorootTestSkips["heapsampling.go"] = "runtime.MemProfileRecord"
+	gorootTestSkips["makeslice.go"] = "TODO, panic info, allocation size out of range"
+	gorootTestSkips["stackobj.go"] = "collected"
+	gorootTestSkips["stackobj3.go"] = "collected"
+	gorootTestSkips["nilptr_aix.go"] = "slow"
 }
 
 func _init() {
@@ -230,7 +231,7 @@ func _TestGorootTest(t *testing.T) {
 	var failures []string
 
 	for _, input := range gorootTestTests {
-		if gorootTestSkips[input] {
+		if _, ok := gorootTestSkips[input]; ok {
 			continue
 		}
 		if !run(t, filepath.Join(build.Default.GOROOT, "test", input)) {
@@ -273,7 +274,9 @@ func TestGorootTest(t *testing.T) {
 	var failures []string
 
 	for _, input := range files {
-		if _, f := filepath.Split(input); gorootTestSkips[f] {
+		_, f := filepath.Split(input)
+		if info, ok := gorootTestSkips[f]; ok {
+			fmt.Println("Skip:", input, info)
 			continue
 		}
 		if !run(t, input) {
