@@ -89,6 +89,7 @@ type interpreter struct {
 	ctx        xtypes.Context
 	types      map[types.Type]reflect.Type
 	typesMutex sync.RWMutex
+	callFrame  *frame
 }
 
 func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
@@ -694,10 +695,21 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 				fn = f
 			}
 		} else {
-			if f, ok := rv.Type().MethodByName(call.Method.Name()); ok {
-				fn = f.Func.Interface()
+			rtype := rv.Type()
+			mname := call.Method.Name()
+			if s := rtype.String(); (s == "*reflect.rtype" || s == "reflect.Type") &&
+				mname == "Method" || mname == "MethodByName" {
+				if mname == "Method" {
+					fn = reflectx.MethodByIndex
+				} else {
+					fn = reflectx.MethodByName
+				}
 			} else {
-				panic("method invoked on nil interface")
+				if f, ok := rtype.MethodByName(mname); ok {
+					fn = f.Func.Interface()
+				} else {
+					panic("method invoked on nil interface")
+				}
 			}
 		}
 		args = append(args, v)
@@ -717,6 +729,7 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 // callpos is the position of the callsite.
 //
 func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
+	i.callFrame = caller
 	switch fn := fn.(type) {
 	case *ssa.Function:
 		if fn == nil {
@@ -986,7 +999,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 				for i := 0; i < len(args); i++ {
 					iargs[i] = args[i].Interface()
 				}
-				r := call(i, nil, token.NoPos, f, iargs, nil)
+				r := call(i, i.callFrame, token.NoPos, f, iargs, nil)
 				switch mtyp.NumOut() {
 				case 0:
 					return nil

@@ -135,6 +135,7 @@ var testdataTests = []string{
 	"recover.go",
 	"reflect.go",
 	"static.go",
+	"recover2.go",
 }
 
 var (
@@ -154,6 +155,7 @@ func init() {
 	gorootTestSkips["gcgort.go"] = true         // slow
 	gorootTestSkips["inline_literal.go"] = true // bug, runtime.FuncForPC
 	gorootTestSkips["nilptr.go"] = true         // skip drawin
+	gorootTestSkips["recover.go"] = true        // skip test16
 }
 
 func _init() {
