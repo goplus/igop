@@ -146,12 +146,14 @@ func init() {
 		interp.UnsafeSizes = &types.StdSizes{WordSize: 4, MaxAlign: 4}
 		gorootTestSkips["printbig.go"] = true // load failed
 	}
-	gorootTestSkips["closure.go"] = true     // runtime.ReadMemStats
-	gorootTestSkips["divmod.go"] = true      // timeout
-	gorootTestSkips["copy.go"] = true        // slow
-	gorootTestSkips["gcstring.go"] = true    // timeout
-	gorootTestSkips["finprofiled.go"] = true // slow
-	gorootTestSkips["gcgort.go"] = true      // slow
+	gorootTestSkips["closure.go"] = true        // runtime.ReadMemStats
+	gorootTestSkips["divmod.go"] = true         // timeout
+	gorootTestSkips["copy.go"] = true           // slow
+	gorootTestSkips["gcstring.go"] = true       // timeout
+	gorootTestSkips["finprofiled.go"] = true    // slow
+	gorootTestSkips["gcgort.go"] = true         // slow
+	gorootTestSkips["inline_literal.go"] = true // bug, runtime.FuncForPC
+	gorootTestSkips["nilptr.go"] = true         // skip drawin
 }
 
 func _init() {
