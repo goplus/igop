@@ -184,13 +184,15 @@ func _init() {
 
 func run(t *testing.T, input string) bool {
 	fmt.Println("Input:", input)
+	start := time.Now()
 	err := interp.Run(0, input, nil)
+	sec := time.Since(start).Seconds()
 	if err != nil {
 		t.Error(err)
-		fmt.Println("FAIL")
+		fmt.Printf("FAIL %0.3fs\n", sec)
 		return false
 	}
-	fmt.Println("PASS")
+	fmt.Printf("PASS %0.3fs\n", sec)
 	return true
 }
 
