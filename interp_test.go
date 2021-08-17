@@ -162,9 +162,10 @@ func init() {
 	gorootTestSkips["recover.go"] = "TODO, fix test16"
 	gorootTestSkips["heapsampling.go"] = "runtime.MemProfileRecord"
 	gorootTestSkips["makeslice.go"] = "TODO, panic info, allocation size out of range"
-	gorootTestSkips["stackobj.go"] = "collected"
-	gorootTestSkips["stackobj3.go"] = "collected"
+	gorootTestSkips["stackobj.go"] = "skip gc"
+	gorootTestSkips["stackobj3.go"] = "skip gc"
 	gorootTestSkips["nilptr_aix.go"] = "slow"
+	gorootTestSkips["init1.go"] = "skip gc"
 }
 
 func _init() {
