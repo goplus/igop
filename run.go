@@ -108,21 +108,21 @@ func LoadMainPkg(cfg *loader.Config) (*ssa.Package, error) {
 	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
 	prog.Build()
 
-	var pkg *ssa.Package
+	var mainPkg *ssa.Package
 	if len(iprog.Created) > 0 {
-		pkg = prog.Package(iprog.Created[0].Pkg)
+		mainPkg = prog.Package(iprog.Created[0].Pkg)
 	} else {
 		for _, pkg := range prog.AllPackages() {
 			if pkg.Pkg.Name() == "main" {
-				pkg = pkg
+				mainPkg = pkg
 				break
 			}
 		}
 	}
-	if pkg == nil {
+	if mainPkg == nil {
 		return nil, errors.New("not found main package")
 	}
-	return pkg, nil
+	return mainPkg, nil
 }
 
 func LoadPkg(cfg *loader.Config, paths []string) ([]*ssa.Package, error) {
