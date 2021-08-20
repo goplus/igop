@@ -54,9 +54,6 @@ jobs:
     - name: Go Test amd64
       run: GOARCH=amd64 go test -v .
 
-    - name: Go Test 386
-      run: GOARCH=386 go test -v .
-
   windows:
     name: Test Go1.14 for Windows
     runs-on: windows-latest
