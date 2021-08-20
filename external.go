@@ -52,4 +52,5 @@ func RegisterPackage(pkg string, ifacemap map[string]interface{}, typelist []int
 
 func init() {
 	RegisterExternal("runtime.init", func() {})
+	RegisterPackage("unsafe", nil, nil)
 }

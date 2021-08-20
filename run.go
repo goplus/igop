@@ -4,14 +4,22 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"go/ast"
 	"go/build"
+	"go/importer"
 	"go/parser"
 	"go/token"
 	"go/types"
 	"os"
+	"path/filepath"
+	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
-	"golang.org/x/tools/go/loader"
+	"github.com/goplus/reflectx"
+
+	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
 )
@@ -20,14 +28,120 @@ var (
 	UnsafeSizes types.Sizes
 )
 
-func loaderConfig() *loader.Config {
-	cfg := &loader.Config{}
-	cfg.TypeChecker.Sizes = UnsafeSizes
-	return cfg
+func loadFile(input string, src interface{}) (*ssa.Package, error) {
+	if !filepath.IsAbs(input) {
+		wd, _ := os.Getwd()
+		input = filepath.Join(wd, input)
+	}
+	const mode = parser.AllErrors | parser.ParseComments
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, input, src, mode)
+	if err != nil {
+		return nil, err
+	}
+	var hasOtherPkgs bool
+	for _, im := range f.Imports {
+		v, _ := strconv.Unquote(im.Path.Value)
+		if v == "unsafe" && UnsafeSizes != nil {
+			hasOtherPkgs = true
+			break
+		}
+		if !externPackages[v] {
+			hasOtherPkgs = true
+			break
+		}
+	}
+	if !hasOtherPkgs {
+		pkg := types.NewPackage("main", "")
+		ssapkg, _, err := ssautil.BuildPackage(&types.Config{Importer: importer.Default()}, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions)
+		if err != nil {
+			return nil, err
+		}
+		ssapkg.Build()
+		return ssapkg, nil
+	}
+	cfg := &packages.Config{
+		Fset: fset,
+		Mode: packages.NeedName | packages.NeedDeps | packages.LoadTypes | packages.NeedSyntax | packages.NeedTypesInfo,
+	}
+	cfg.ParseFile = func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+		if filename == input {
+			return f, nil
+		}
+		return parser.ParseFile(fset, filename, src, mode)
+	}
+	list, err := packages.Load(cfg, input)
+	if err != nil {
+		return nil, err
+	}
+	list[0].ID = "main"
+	list[0].PkgPath = "main"
+	// hack fix types.Types.Path() command-line-arguments
+	v := reflect.ValueOf(list[0].Types).Elem()
+	reflectx.Field(v, 0).SetString("main")
+	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
+	prog.Build()
+	mainPkgs := ssautil.MainPackages(pkgs)
+	if len(mainPkgs) == 0 {
+		return nil, errors.New("not found main package")
+	}
+	return mainPkgs[0], nil
+}
+
+func loadPkg(input string) (*ssa.Package, error) {
+	wd, _ := os.Getwd()
+	p, err := build.Import(input, wd, 0)
+	if err != nil {
+		return nil, err
+	}
+	var hasOtherPkgs bool
+	for _, im := range p.Imports {
+		if !externPackages[im] {
+			hasOtherPkgs = true
+			break
+		}
+	}
+	if !hasOtherPkgs {
+		const mode = parser.AllErrors | parser.ParseComments
+		fset := token.NewFileSet()
+		var files []*ast.File
+		for _, fname := range p.GoFiles {
+			filename := filepath.Join(p.Dir, fname)
+			f, err := parser.ParseFile(fset, filename, nil, mode)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, f)
+		}
+		pkg := types.NewPackage("main", "")
+		ssapkg, _, err := ssautil.BuildPackage(&types.Config{Importer: importer.Default()}, fset, pkg, files, ssa.SanityCheckFunctions)
+		if err != nil {
+			return nil, err
+		}
+		ssapkg.Build()
+		return ssapkg, nil
+	}
+	cfg := &packages.Config{
+		Mode: packages.NeedName | packages.NeedDeps | packages.LoadTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypesSizes,
+	}
+	list, err := packages.Load(cfg, input)
+	if err != nil {
+		return nil, err
+	}
+	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
+	prog.Build()
+	mainPkgs := ssautil.MainPackages(pkgs)
+	if len(mainPkgs) == 0 {
+		return nil, errors.New("not found main package")
+	}
+	return mainPkgs[0], nil
 }
 
 func Run(mode Mode, input string, args []string) error {
-	pkg, err := Load(input)
+	if strings.HasSuffix(input, ".go") {
+		return RunFile(mode, input, nil, args)
+	}
+	pkg, err := loadPkg(input)
 	if err != nil {
 		return err
 	}
@@ -48,102 +162,28 @@ func RunTest(mode Mode, input string, args []string) error {
 }
 
 func RunFile(mode Mode, filename string, src interface{}, args []string) error {
-	pkg, err := LoadFile(filename, src)
+	pkg, err := loadFile(filename, src)
 	if err != nil {
 		return err
 	}
 	return RunPkg(pkg, mode, filename, "main", args)
 }
 
-func Load(pkg string) (*ssa.Package, error) {
-	cfg := loaderConfig()
-	_, err := cfg.FromArgs([]string{pkg}, false)
-	if err != nil {
-		return nil, fmt.Errorf("FromArgs(%v) failed: %s", pkg, err)
-	}
-	return LoadMainPkg(cfg)
-}
-
 func LoadTest(input string) (string, []*ssa.Package, error) {
-	wd, _ := os.Getwd()
-	p, err := build.Import(input, wd, 0)
+	cfg := &packages.Config{
+		Mode:  packages.NeedName | packages.NeedDeps | packages.LoadTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypesSizes,
+		Tests: true,
+	}
+	list, err := packages.Load(cfg, input)
 	if err != nil {
 		return "", nil, err
 	}
-	var paths []string
-	if len(p.TestImports) > 0 {
-		paths = append(paths, p.ImportPath)
-	}
-	if len(p.XTestGoFiles) > 0 {
-		paths = append(paths, p.ImportPath+"_test")
-	}
-	cfg := loaderConfig()
-	_, err = cfg.FromArgs([]string{input}, true)
-	if err != nil {
-		return "", nil, fmt.Errorf("FromArgs(%v) failed: %s", input, err)
-	}
-	pkgs, err := LoadPkg(cfg, paths)
-	return p.ImportPath, pkgs, err
-}
-
-func LoadFile(filename string, src interface{}) (*ssa.Package, error) {
-	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, filename, src, parser.AllErrors)
-	if err != nil {
-		return nil, fmt.Errorf("Parser file error: %v", err)
-	}
-	cfg := loaderConfig()
-	cfg.Fset = fset
-	cfg.CreateFromFiles("", f)
-	return LoadMainPkg(cfg)
-}
-
-func LoadMainPkg(cfg *loader.Config) (*ssa.Package, error) {
-	cfg.Load()
-	iprog, err := cfg.Load()
-	if err != nil {
-		return nil, fmt.Errorf("loader failed: %s", err)
-	}
-
-	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
+	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
 	prog.Build()
-
-	var mainPkg *ssa.Package
-	if len(iprog.Created) > 0 {
-		mainPkg = prog.Package(iprog.Created[0].Pkg)
-	} else {
-		for _, pkg := range prog.AllPackages() {
-			if pkg.Pkg.Name() == "main" {
-				mainPkg = pkg
-				break
-			}
-		}
+	if len(pkgs) == 0 {
+		return "", nil, errors.New("not found package")
 	}
-	if mainPkg == nil {
-		return nil, errors.New("not found main package")
-	}
-	return mainPkg, nil
-}
-
-func LoadPkg(cfg *loader.Config, paths []string) ([]*ssa.Package, error) {
-	cfg.Load()
-	iprog, err := cfg.Load()
-	if err != nil {
-		return nil, fmt.Errorf("loader failed: %s", err)
-	}
-	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
-	prog.Build()
-	m := make(map[string]*ssa.Package)
-	for _, pkg := range prog.AllPackages() {
-		m[pkg.Pkg.Path()] = pkg
-	}
-	var pkgs []*ssa.Package
-	for _, path := range paths {
-		if pkg, ok := m[path]; ok {
-			pkgs = append(pkgs, pkg)
-		}
-	}
-	return pkgs, nil
+	return pkgs[0].Pkg.Path(), pkgs, nil
 }
 
 func RunTestPkg(pkgs []*ssa.Package, mode Mode, input string, args []string) {
