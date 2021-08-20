@@ -42,10 +42,6 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	var hasOtherPkgs bool
 	for _, im := range f.Imports {
 		v, _ := strconv.Unquote(im.Path.Value)
-		if v == "unsafe" && UnsafeSizes != nil {
-			hasOtherPkgs = true
-			break
-		}
 		if !externPackages[v] {
 			hasOtherPkgs = true
 			break
@@ -62,7 +58,7 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	}
 	cfg := &packages.Config{
 		Fset: fset,
-		Mode: packages.NeedName | packages.NeedDeps | packages.LoadTypes | packages.NeedSyntax | packages.NeedTypesInfo,
+		Mode: packages.NeedName | packages.NeedDeps | packages.LoadTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypesSizes,
 	}
 	cfg.ParseFile = func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
 		if filename == input {
