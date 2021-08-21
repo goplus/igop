@@ -223,8 +223,15 @@ func LoadTest(input string) (string, []*ssa.Package, error) {
 	if err != nil {
 		return "", nil, err
 	}
-	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
+	prog, ppkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
 	prog.Build()
+	var pkgs []*ssa.Package
+	for _, p := range ppkgs {
+		if p == nil {
+			continue
+		}
+		pkgs = append(pkgs, p)
+	}
 	if len(pkgs) == 0 {
 		return "", nil, errors.New("not found package")
 	}
