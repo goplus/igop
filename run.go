@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/goplus/reflectx"
-
+	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
@@ -27,6 +27,40 @@ import (
 var (
 	UnsafeSizes types.Sizes
 )
+
+func loadFile2(input string, src interface{}) (*ssa.Package, error) {
+	if !filepath.IsAbs(input) {
+		wd, _ := os.Getwd()
+		input = filepath.Join(wd, input)
+	}
+	const mode = parser.AllErrors | parser.ParseComments
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, input, src, mode)
+	if err != nil {
+		return nil, err
+	}
+	cfg := &loader.Config{}
+	cfg.Fset = fset
+	cfg.CreateFromFiles(input, f)
+	iprog, err := cfg.Load()
+	if err != nil {
+		return nil, err
+	}
+	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
+	prog.Build()
+	var mainPkg *ssa.Package
+	if len(iprog.Created) > 0 {
+		mainPkg = prog.Package(iprog.Created[0].Pkg)
+	} else {
+		if pkgs := ssautil.MainPackages(prog.AllPackages()); len(pkgs) > 0 {
+			mainPkg = pkgs[0]
+		}
+	}
+	if mainPkg == nil {
+		return nil, errors.New("not found main package")
+	}
+	return mainPkg, nil
+}
 
 func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	if !filepath.IsAbs(input) {
@@ -144,7 +178,19 @@ func Run(mode Mode, input string, args []string) error {
 	return RunPkg(pkg, mode, input, "main", args)
 }
 
+func foundPkg(pkg string) (*build.Package, error) {
+	if filepath.IsAbs(pkg) {
+		return build.ImportDir(pkg, build.FindOnly)
+	} else {
+		return build.Import(pkg, ".", build.FindOnly)
+	}
+}
+
 func RunTest(mode Mode, input string, args []string) error {
+	p, err := foundPkg(input)
+	if err != nil {
+		return fmt.Errorf("not found pkg: %v", err)
+	}
 	pkgpath, pkgs, err := LoadTest(input)
 	if err != nil {
 		return err
@@ -152,6 +198,9 @@ func RunTest(mode Mode, input string, args []string) error {
 	if len(pkgs) == 0 {
 		fmt.Printf("?\t%s [no test files]\n", pkgpath)
 		return nil
+	}
+	if p.Dir != "." {
+		os.Chdir(p.Dir)
 	}
 	RunTestPkg(pkgs, mode, pkgpath, args)
 	return nil
