@@ -1034,6 +1034,12 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 				}
 			}
 		}
+		if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
+			return func(args []reflect.Value) []reflect.Value {
+				return v.Call(args)
+			}
+		}
+		panic(fmt.Sprintf("Not found func %v", fn))
 		return nil
 	}, func(name *types.TypeName) (reflect.Type, bool) {
 		if typ, ok := externTypes[name.Type().String()]; ok {
