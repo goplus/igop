@@ -409,8 +409,9 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		default:
 			v := reflect.ValueOf(val)
 			if v.IsValid() {
-				//reflectx.SetValue(x.Elem(), v)
 				SetValue(x.Elem(), v)
+			} else {
+				SetValue(x.Elem(), reflect.New(x.Elem().Type()).Elem())
 			}
 		}
 		//store(deref(instr.Addr.Type()), fr.get(instr.Addr).(*value), fr.get(instr.Val))

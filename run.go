@@ -223,6 +223,18 @@ func LoadTest(input string) (string, []*ssa.Package, error) {
 	if err != nil {
 		return "", nil, err
 	}
+	var foundError bool
+	for _, v := range list {
+		if len(v.Errors) > 0 {
+			for _, err := range v.Errors {
+				fmt.Fprintln(os.Stderr, err)
+			}
+			foundError = true
+		}
+	}
+	if foundError {
+		return "", nil, errors.New("build failed")
+	}
 	prog, ppkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
 	prog.Build()
 	var pkgs []*ssa.Package
