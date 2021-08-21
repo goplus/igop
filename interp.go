@@ -393,7 +393,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		x := fr.get(instr.X)
 		ch := reflect.ValueOf(c)
 		if x == nil {
-			ch.Send(reflect.Zero(ch.Type().Elem()))
+			ch.Send(reflect.New(ch.Type().Elem()).Elem())
 		} else {
 			ch.Send(reflect.ValueOf(x))
 		}
@@ -565,7 +565,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			if ok {
 				rv = v.Interface()
 			} else {
-				rv = reflect.Zero(vm.Type().Elem()).Interface()
+				rv = reflect.New(vm.Type().Elem()).Elem().Interface()
 			}
 			if instr.CommaOk {
 				fr.env[instr] = tuple{rv, ok}
@@ -638,7 +638,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			if state.Send != nil {
 				v := fr.get(state.Send)
 				if v == nil {
-					send = reflect.Zero(ch.Type().Elem())
+					send = reflect.New(ch.Type().Elem()).Elem()
 				} else {
 					send = reflect.ValueOf(v)
 				}
@@ -661,8 +661,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 					// No need to copy since send makes an unaliased copy.
 					v = recv.Interface()
 				} else {
-					typ := fr.i.toType(st.Chan.Type()).Elem()
-					v = reflect.Zero(typ).Interface()
+					typ := fr.i.toType(st.Chan.Type())
+					v = reflect.New(typ.Elem()).Elem().Interface()
 					//v = zero(st.Chan.Type().Underlying().(*types.Chan).Elem())
 				}
 				r = append(r, v)

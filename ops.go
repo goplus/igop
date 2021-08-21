@@ -1080,7 +1080,7 @@ func unop(instr *ssa.UnOp, x value) value {
 		vx := reflect.ValueOf(x)
 		v, ok := vx.Recv()
 		if !ok {
-			v = reflect.Zero(vx.Type().Elem())
+			v = reflect.New(vx.Type().Elem()).Elem()
 		}
 		if instr.CommaOk {
 			return tuple{v.Interface(), ok}
@@ -1236,7 +1236,7 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 		if !instr.CommaOk {
 			panic(err.Error())
 		}
-		return tuple{reflect.Zero(typ).Interface(), false}
+		return tuple{reflect.New(typ).Elem().Interface(), false}
 	}
 	if instr.CommaOk {
 		return tuple{v, true}

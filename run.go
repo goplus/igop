@@ -25,6 +25,11 @@ import (
 )
 
 var (
+	ErrTypesCheck   = errors.New("types check error")
+	ErrNotFoundMain = errors.New("not found main package")
+)
+
+var (
 	UnsafeSizes types.Sizes
 )
 
@@ -57,7 +62,7 @@ func loadFile2(input string, src interface{}) (*ssa.Package, error) {
 		}
 	}
 	if mainPkg == nil {
-		return nil, errors.New("not found main package")
+		return nil, ErrNotFoundMain
 	}
 	return mainPkg, nil
 }
@@ -83,7 +88,17 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	}
 	if !hasOtherPkgs {
 		pkg := types.NewPackage("main", "")
-		ssapkg, _, err := ssautil.BuildPackage(&types.Config{Importer: importer.Default()}, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions)
+		var chkerr error
+		ssapkg, _, err := ssautil.BuildPackage(&types.Config{
+			Importer: importer.Default(),
+			Error: func(err error) {
+				fmt.Fprintln(os.Stderr, err)
+				chkerr = ErrTypesCheck
+			},
+		}, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions)
+		if chkerr != nil {
+			return nil, chkerr
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -101,6 +116,14 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 		return parser.ParseFile(fset, filename, src, mode)
 	}
 	list, err := packages.Load(cfg, input)
+	for _, v := range list {
+		if len(v.Errors) > 0 {
+			for _, e := range v.Errors {
+				fmt.Fprintln(os.Stderr, e)
+			}
+			err = ErrTypesCheck
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +167,17 @@ func loadPkg(input string) (*ssa.Package, error) {
 			files = append(files, f)
 		}
 		pkg := types.NewPackage("main", "")
-		ssapkg, _, err := ssautil.BuildPackage(&types.Config{Importer: importer.Default()}, fset, pkg, files, ssa.SanityCheckFunctions)
+		var chkerr error
+		ssapkg, _, err := ssautil.BuildPackage(&types.Config{
+			Importer: importer.Default(),
+			Error: func(err error) {
+				fmt.Fprintln(os.Stderr, err)
+				chkerr = ErrTypesCheck
+			},
+		}, fset, pkg, files, ssa.SanityCheckFunctions)
+		if chkerr != nil {
+			return nil, chkerr
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -155,6 +188,14 @@ func loadPkg(input string) (*ssa.Package, error) {
 		Mode: packages.NeedName | packages.NeedDeps | packages.LoadTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypesSizes,
 	}
 	list, err := packages.Load(cfg, input)
+	for _, v := range list {
+		if len(v.Errors) > 0 {
+			for _, e := range v.Errors {
+				fmt.Fprintln(os.Stderr, e)
+			}
+			err = ErrTypesCheck
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +203,7 @@ func loadPkg(input string) (*ssa.Package, error) {
 	prog.Build()
 	mainPkgs := ssautil.MainPackages(pkgs)
 	if len(mainPkgs) == 0 {
-		return nil, errors.New("not found main package")
+		return nil, ErrNotFoundMain
 	}
 	return mainPkgs[0], nil
 }
