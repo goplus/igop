@@ -191,16 +191,16 @@ func RunTest(mode Mode, input string, args []string) error {
 	if err != nil {
 		return fmt.Errorf("not found pkg: %v", err)
 	}
-	pkgpath, pkgs, err := LoadTest(input)
+	if p.Dir != "." {
+		os.Chdir(p.Dir)
+	}
+	pkgpath, pkgs, err := LoadTest(".")
 	if err != nil {
 		return err
 	}
 	if len(pkgs) == 0 {
 		fmt.Printf("?\t%s [no test files]\n", pkgpath)
 		return nil
-	}
-	if p.Dir != "." {
-		os.Chdir(p.Dir)
 	}
 	RunTestPkg(pkgs, mode, pkgpath, args)
 	return nil
