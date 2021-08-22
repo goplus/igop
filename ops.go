@@ -185,6 +185,10 @@ func slice(x, lo, hi, max value) value {
 
 	switch v.Kind() {
 	case reflect.String:
+		// optimization x[len(x):], see $GOROOT/test/slicecap.go
+		if l == h {
+			return v.Slice(0, 0).Interface()
+		}
 		return v.Slice(l, h).Interface()
 	case reflect.Slice, reflect.Array:
 		return v.Slice3(l, h, m).Interface()
