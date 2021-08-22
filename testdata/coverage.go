@@ -326,11 +326,10 @@ func init() {
 	defer func() {
 		r := fmt.Sprint(recover())
 		// Exact error varies by toolchain.
-		println("TODO fix msg", r)
-		// if r != "runtime error: interface conversion: interface is nil, not main.I" &&
-		// 	r != "interface conversion: interface is nil, not main.I" {
-		// 	panic("I->I type assertion succeeded for nil value")
-		// }
+		if r != "runtime error: interface conversion: interface is nil, not main.I" &&
+			r != "interface conversion: interface is nil, not main.I" {
+			panic("I->I type assertion succeeded for nil value")
+		}
 	}()
 	var x I
 	_ = x.(I)

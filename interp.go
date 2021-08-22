@@ -77,7 +77,19 @@ const (
 	EnableDumpInstr                  //Print instr type & value
 )
 
-type methodSet map[string]*ssa.Function
+type plainError string
+
+func (e plainError) Error() string {
+	return string(e)
+}
+
+type runtimeError string
+
+func (e runtimeError) RuntimeError() {}
+
+func (e runtimeError) Error() string {
+	return "runtime error: " + string(e)
+}
 
 // State shared between all interpreted goroutines.
 type interpreter struct {
@@ -529,7 +541,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		case reflect.Slice:
 		case reflect.Array:
 		case reflect.Invalid:
-			panic(errorString("invalid memory address or nil pointer dereference"))
+			panic(runtimeError("invalid memory address or nil pointer dereference"))
 		default:
 			panic(fmt.Sprintf("unexpected x type in IndexAddr: %T", x))
 		}
@@ -931,14 +943,6 @@ func runFrame(fr *frame) {
 	}
 }
 
-type errorString string
-
-func (e errorString) RuntimeError() {}
-
-func (e errorString) Error() string {
-	return "runtime error: " + string(e)
-}
-
 // doRecover implements the recover() built-in.
 func doRecover(caller *frame) value {
 	// recover() must be exactly one level beneath the deferred
@@ -962,8 +966,12 @@ func doRecover(caller *frame) value {
 			//return iface{caller.i.runtimeErrorString, p.Error()}
 		case string:
 			// The interpreter explicitly called panic().
-			return errorString(p)
+			return runtimeError(p)
 			//return iface{caller.i.runtimeErrorString, p}
+		case plainError:
+			return p.Error()
+		case runtimeError:
+			return p
 		case *reflect.ValueError:
 			return p
 		default:
@@ -1089,6 +1097,8 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 			fmt.Fprintln(os.Stderr, "panic:", p.Error())
 		case string:
 			fmt.Fprintln(os.Stderr, "panic:", p)
+		case plainError:
+			fmt.Fprintln(os.Stderr, "panic:", p.Error())
 		default:
 			fmt.Fprintf(os.Stderr, "panic: unexpected type: %T: %v\n", p, p)
 		}

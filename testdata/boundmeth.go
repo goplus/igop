@@ -122,11 +122,10 @@ func nilInterfaceMethodValue() {
 	defer func() {
 		r := fmt.Sprint(recover())
 		// runtime panic string varies across toolchains
-		println("TODO fix msg", r)
-		// if r != "interface conversion: interface is nil, not error" &&
-		// 	r != "runtime error: invalid memory address or nil pointer dereference" {
-		// 	panic("want runtime panic from nil interface method value, got " + r)
-		// }
+		if r != "interface conversion: interface is nil, not error" &&
+			r != "runtime error: invalid memory address or nil pointer dereference" {
+			panic("want runtime panic from nil interface method value, got " + r)
+		}
 	}()
 	f = err.Error // runtime panic: err is nil
 	panic("unreachable")

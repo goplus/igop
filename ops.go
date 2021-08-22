@@ -1214,7 +1214,7 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	var err error
 	typ := i.toType(instr.AssertedType)
 	if iv == nil {
-		err = fmt.Errorf("panic: interface conversion: interface is nil, not %v", typ)
+		err = plainError(fmt.Sprintf("interface conversion: interface is nil, not %v", typ))
 	} else {
 		rv := reflect.ValueOf(iv)
 		rt := rv.Type()
@@ -1222,12 +1222,12 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 			v = iv
 		} else {
 			if !rt.AssignableTo(typ) {
-				err = fmt.Errorf("interface conversion: %v is %v, not %v", instr.X.Type(), rt, typ)
+				err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v", instr.X.Type(), rt, typ))
 				if itype, ok := instr.AssertedType.Underlying().(*types.Interface); ok {
 					if it, ok := i.findType(rt); ok {
 						if meth, _ := types.MissingMethod(it, itype, true); meth != nil {
-							err = fmt.Errorf("interface conversion: %v is not %v: missing method %s",
-								rt, instr.AssertedType, meth.Name())
+							err = runtimeError(fmt.Sprintf("interface conversion: %v is not %v: missing method %s",
+								rt, instr.AssertedType, meth.Name()))
 						}
 					}
 				}
@@ -1238,7 +1238,7 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 	}
 	if err != nil {
 		if !instr.CommaOk {
-			panic(err.Error())
+			panic(err)
 		}
 		return tuple{reflect.New(typ).Elem().Interface(), false}
 	}
