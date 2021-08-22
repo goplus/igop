@@ -78,6 +78,9 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
+	if f.Name.Name != "main" {
+		return nil, ErrNotFoundMain
+	}
 	var hasOtherPkgs bool
 	for _, im := range f.Imports {
 		v, _ := strconv.Unquote(im.Path.Value)
@@ -136,7 +139,7 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	prog.Build()
 	mainPkgs := ssautil.MainPackages(pkgs)
 	if len(mainPkgs) == 0 {
-		return nil, errors.New("not found main package")
+		return nil, ErrNotFoundMain
 	}
 	return mainPkgs[0], nil
 }
@@ -146,6 +149,9 @@ func loadPkg(input string) (*ssa.Package, error) {
 	p, err := build.Import(input, wd, 0)
 	if err != nil {
 		return nil, err
+	}
+	if p.Name != "main" {
+		return nil, ErrNotFoundMain
 	}
 	var hasOtherPkgs bool
 	for _, im := range p.Imports {
