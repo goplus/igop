@@ -1145,7 +1145,11 @@ func unop(instr *ssa.UnOp, x value) value {
 			return r.Interface()
 		}
 	case token.MUL:
-		return reflect.ValueOf(x).Elem().Interface()
+		v := reflect.ValueOf(x).Elem()
+		if !v.IsValid() {
+			panic(runtimeError("invalid memory address or nil pointer dereference"))
+		}
+		return v.Interface()
 		//return load(deref(instr.X.Type()), x.(*value))
 	case token.NOT:
 		switch x := x.(type) {

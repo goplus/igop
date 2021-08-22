@@ -123,7 +123,7 @@ var gorootTestTests = []string{
 var testdataTests = []string{
 	"boundmeth.go",
 	"complit.go",
-	"coverage.go", //TODO fix panic info
+	"coverage.go",
 	"defer.go",
 	"fieldprom.go",
 	"ifaceconv.go",

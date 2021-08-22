@@ -509,11 +509,11 @@ func init() {
 	defer func() {
 		r := fmt.Sprint(recover())
 		// Exact error varies by toolchain:
-		println("TODO fix msg", r)
-		// if r != "runtime error: value method (main.T).f called using nil *main.T pointer" &&
-		// 	r != "value method (main.T).f called using nil *main.T pointer" {
-		// 	panic("want panic from call with nil receiver, got " + r)
-		// }
+		if r != "runtime error: value method (main.T).f called using nil *main.T pointer" &&
+			r != "value method (main.T).f called using nil *main.T pointer" &&
+			r != "runtime error: invalid memory address or nil pointer dereference" {
+			panic("want panic from call with nil receiver, got " + r)
+		}
 	}()
 	i.f()
 	panic("unreachable")
