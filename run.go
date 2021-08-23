@@ -25,7 +25,8 @@ import (
 )
 
 var (
-	ErrTypesCheck   = errors.New("types check error")
+	ErrNoPackage    = errors.New("no package")
+	ErrPackage      = errors.New("package contain errors")
 	ErrNotFoundMain = errors.New("not found main package")
 )
 
@@ -96,7 +97,7 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 			Importer: importer.Default(),
 			Error: func(err error) {
 				fmt.Fprintln(os.Stderr, err)
-				chkerr = ErrTypesCheck
+				chkerr = ErrPackage
 			},
 		}, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions)
 		if chkerr != nil {
@@ -119,16 +120,14 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 		return parser.ParseFile(fset, filename, src, mode)
 	}
 	list, err := packages.Load(cfg, input)
-	for _, v := range list {
-		if len(v.Errors) > 0 {
-			for _, e := range v.Errors {
-				fmt.Fprintln(os.Stderr, e)
-			}
-			err = ErrTypesCheck
-		}
-	}
 	if err != nil {
 		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, ErrNoPackage
+	}
+	if packages.PrintErrors(list) > 0 {
+		return nil, ErrPackage
 	}
 	list[0].ID = "main"
 	list[0].PkgPath = "main"
@@ -178,7 +177,7 @@ func loadPkg(input string) (*ssa.Package, error) {
 			Importer: importer.Default(),
 			Error: func(err error) {
 				fmt.Fprintln(os.Stderr, err)
-				chkerr = ErrTypesCheck
+				chkerr = ErrPackage
 			},
 		}, fset, pkg, files, ssa.SanityCheckFunctions)
 		if chkerr != nil {
@@ -194,16 +193,14 @@ func loadPkg(input string) (*ssa.Package, error) {
 		Mode: packages.NeedName | packages.NeedDeps | packages.LoadTypes | packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypesSizes,
 	}
 	list, err := packages.Load(cfg, input)
-	for _, v := range list {
-		if len(v.Errors) > 0 {
-			for _, e := range v.Errors {
-				fmt.Fprintln(os.Stderr, e)
-			}
-			err = ErrTypesCheck
-		}
-	}
 	if err != nil {
 		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, ErrNoPackage
+	}
+	if packages.PrintErrors(list) > 0 {
+		return nil, ErrPackage
 	}
 	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
 	prog.Build()
