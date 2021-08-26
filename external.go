@@ -5,6 +5,7 @@
 package interp
 
 import (
+	"go/token"
 	"reflect"
 )
 
@@ -27,6 +28,54 @@ func RegisterExternals(m map[string]interface{}) {
 // register external type
 func RegisterType(key string, typ reflect.Type) {
 	externTypes[key] = typ
+	if typ.Kind() == reflect.Interface {
+		registerInterface(typ)
+	}
+}
+
+func registerType(typ reflect.Type) {
+	if pkgPath, pkgName := typ.PkgPath(), typ.Name(); pkgPath != "" && pkgName != "" {
+		externTypes[pkgPath+"."+pkgName] = typ
+		return
+	}
+	switch typ.Kind() {
+	case reflect.Interface:
+		n := typ.NumMethod()
+		for i := 0; i < n; i++ {
+			registerType(typ.Method(i).Type)
+		}
+	case reflect.Func:
+		numIn := typ.NumIn()
+		for i := 0; i < numIn; i++ {
+			registerType(typ.In(i))
+		}
+		numOut := typ.NumOut()
+		for i := 0; i < numOut; i++ {
+			registerType(typ.Out(i))
+		}
+	case reflect.Ptr:
+		registerType(typ.Elem())
+	case reflect.Array:
+		registerType(typ.Elem())
+	case reflect.Slice:
+		registerType(typ.Elem())
+	case reflect.Chan:
+		registerType(typ.Elem())
+	case reflect.Map:
+		registerType(typ.Key())
+		registerType(typ.Elem())
+	}
+}
+
+func registerInterface(typ reflect.Type) {
+	n := typ.NumMethod()
+	for i := 0; i < n; i++ {
+		m := typ.Method(i)
+		if token.IsExported(m.Name) {
+			continue
+		}
+		registerType(m.Type)
+	}
 }
 
 // register external type list
@@ -39,6 +88,9 @@ func RegisterTypeOf(ptrs ...interface{}) {
 		}
 		key += typ.Name()
 		externTypes[key] = typ
+		if typ.Kind() == reflect.Interface {
+			registerInterface(typ)
+		}
 	}
 }
 

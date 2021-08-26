@@ -809,6 +809,13 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 			//			return ext(fr, args)
 		}
 		if fn.Blocks == nil {
+			// check unexport method
+			if fn.Signature.Recv() != nil {
+				v := reflect.ValueOf(args[0])
+				if f, ok := v.Type().MethodByName(fn.Name()); ok {
+					return callReflect(i, caller, callpos, f.Func, args, nil)
+				}
+			}
 			panic("no code for function: " + name)
 		}
 	}
