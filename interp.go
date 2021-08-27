@@ -93,15 +93,16 @@ func (e runtimeError) Error() string {
 
 // State shared between all interpreted goroutines.
 type interpreter struct {
-	prog       *ssa.Program        // the SSA program
-	globals    map[ssa.Value]value // addresses of global variables (immutable)
-	mode       Mode                // interpreter options
-	sizes      types.Sizes         // the effective type-sizing function
-	goroutines int32               // atomically updated
-	ctx        xtypes.Context
-	types      map[types.Type]reflect.Type
-	typesMutex sync.RWMutex
-	callFrame  *frame
+	prog        *ssa.Program        // the SSA program
+	globals     map[ssa.Value]value // addresses of global variables (immutable)
+	mode        Mode                // interpreter options
+	sizes       types.Sizes         // the effective type-sizing function
+	goroutines  int32               // atomically updated
+	ctx         xtypes.Context
+	types       map[types.Type]reflect.Type
+	caller      *frame
+	typesMutex  sync.RWMutex
+	callerMutex sync.RWMutex
 }
 
 func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
@@ -750,7 +751,9 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 // callpos is the position of the callsite.
 //
 func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
-	i.callFrame = caller
+	i.callerMutex.Lock()
+	i.caller = caller
+	i.callerMutex.Unlock()
 	switch fn := fn.(type) {
 	case *ssa.Function:
 		if fn == nil {
@@ -1023,7 +1026,10 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 				for i := 0; i < len(args); i++ {
 					iargs[i] = args[i].Interface()
 				}
-				r := call(i, i.callFrame, token.NoPos, f, iargs, nil)
+				i.callerMutex.RLock()
+				caller := i.caller
+				i.callerMutex.RUnlock()
+				r := call(i, caller, token.NoPos, f, iargs, nil)
 				switch mtyp.NumOut() {
 				case 0:
 					return nil
