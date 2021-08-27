@@ -1063,9 +1063,6 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		}
 		return nil, false
 	})
-	RegisterExternal("os.Exit", func(code int) {
-		panic(exitPanic(code))
-	})
 	reflectx.Reset()
 
 	for _, pkg := range i.prog.AllPackages() {

@@ -295,6 +295,7 @@ func LoadTest(input string) (string, []*ssa.Package, error) {
 }
 
 func RunTestPkg(pkgs []*ssa.Package, mode Mode, input string, args []string) {
+	RegisterExternal("os.Exit", os.Exit)
 	var testPkgs []*ssa.Package
 	for _, pkg := range pkgs {
 		if p := pkg.Prog.CreateTestMainPackage(pkg); p != nil {
@@ -327,6 +328,9 @@ func RunTestPkg(pkgs []*ssa.Package, mode Mode, input string, args []string) {
 }
 
 func RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry string, args []string) error {
+	RegisterExternal("os.Exit", func(code int) {
+		panic(exitPanic(code))
+	})
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
