@@ -100,6 +100,11 @@ func RegisterPackage(pkg string, ifacemap map[string]interface{}, typelist []int
 	RegisterExternal(pkg+".init", func() {})
 	RegisterExternals(ifacemap)
 	RegisterTypeOf(typelist...)
+	if pkg == "os" {
+		RegisterExternal("os.Exit", func(code int) {
+			panic(exitPanic(code))
+		})
+	}
 }
 
 func init() {

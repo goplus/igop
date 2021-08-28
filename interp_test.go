@@ -166,6 +166,8 @@ func init() {
 	gorootTestSkips["stackobj3.go"] = "skip gc"
 	gorootTestSkips["nilptr_aix.go"] = "slow"
 	gorootTestSkips["init1.go"] = "skip gc"
+	gorootTestSkips["string_lit.go"] = "call to os.Exit(0) during test"
+	gorootTestSkips["switch.go"] = "call to os.Exit(0) during test"
 }
 
 func _init() {
