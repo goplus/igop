@@ -17,7 +17,6 @@ import (
 	"unsafe"
 
 	"github.com/goplus/reflectx"
-
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -37,7 +36,8 @@ type exitPanic int
 // dynamic type tag appropriate for c.Type().
 func constValue(i *interpreter, c *ssa.Const) value {
 	if c.IsNil() {
-		return reflect.Zero(i.toType(c.Type())).Interface()
+		t := c.Type()
+		return reflect.Zero(i.toType(t)).Interface()
 		// return zero(c.Type()) // typed nil
 	}
 	if t, ok := c.Type().Underlying().(*types.Basic); ok {

@@ -204,6 +204,20 @@ func (fr *frame) get(key ssa.Value) value {
 	if key == nil {
 		return nil
 	}
+	if ck, ok := key.(*ssa.Const); ok {
+		c := constValue(fr.i, ck)
+		if c == nil {
+			return c
+		}
+		typ := fr.i.toType(key.Type())
+		if typ.PkgPath() == "" {
+			return c
+		}
+		v := reflect.New(typ).Elem()
+		SetValue(v, reflect.ValueOf(c))
+		return v.Interface()
+	}
+
 	if key.Parent() == nil {
 		if ext, ok := externValues[key.String()]; ok {
 			if fr.i.mode&EnableTracing != 0 {
@@ -227,7 +241,7 @@ func (fr *frame) get(key ssa.Value) value {
 			return c
 		}
 		v := reflect.New(typ).Elem()
-		reflectx.SetValue(v, reflect.ValueOf(c))
+		SetValue(v, reflect.ValueOf(c))
 		return v.Interface()
 	case *ssa.Global:
 		if r, ok := fr.i.globals[key]; ok {
@@ -481,7 +495,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			// local
 			//addr = fr.env[instr].(*value)
 			v := reflect.ValueOf(fr.env[instr])
-			reflectx.SetValue(v.Elem(), reflect.Zero(typ))
+			SetValue(v.Elem(), reflect.Zero(typ))
 		}
 		//*addr = zero(deref(instr.Type()))
 
@@ -519,17 +533,26 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		fr.env[instr] = fr.get(instr.Iter).(iter).next()
 
 	case *ssa.FieldAddr:
-		v := reflect.ValueOf(fr.get(instr.X)).Elem()
-		fr.env[instr] = reflectx.Field(v, instr.Field).Addr().Interface()
+		//v := reflect.ValueOf(fr.get(instr.X)).Elem()
+		//fr.env[instr] = reflectx.Field(v, instr.Field).Addr().Interface()
 		//fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
-
-	case *ssa.Field:
-		v := reflect.ValueOf(fr.get(instr.X))
-		for v.Kind() == reflect.Ptr {
-			v = v.Elem()
+		v, err := xtypes.FieldAddr(fr.get(instr.X), instr.Field)
+		if err != nil {
+			panic(runtimeError(err.Error()))
 		}
-		fr.env[instr] = reflectx.Field(v, instr.Field).Interface()
+		fr.env[instr] = v
+	case *ssa.Field:
+		// v := reflect.ValueOf(fr.get(instr.X))
+		// for v.Kind() == reflect.Ptr {
+		// 	v = v.Elem()
+		// }
+		//fr.env[instr] = reflectx.Field(v, instr.Field).Interface()
 		//fr.env[instr] = fr.get(instr.X).(structure)[instr.Field]
+		v, err := xtypes.Field(fr.get(instr.X), instr.Field)
+		if err != nil {
+			panic(runtimeError(err.Error()))
+		}
+		fr.env[instr] = v
 
 	case *ssa.IndexAddr:
 		x := fr.get(instr.X)
