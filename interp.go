@@ -204,20 +204,19 @@ func (fr *frame) get(key ssa.Value) value {
 	if key == nil {
 		return nil
 	}
-	if ck, ok := key.(*ssa.Const); ok {
-		c := constValue(fr.i, ck)
-		if c == nil {
-			return c
-		}
-		typ := fr.i.toType(key.Type())
-		if typ.PkgPath() == "" {
-			return c
-		}
-		v := reflect.New(typ).Elem()
-		SetValue(v, reflect.ValueOf(c))
-		return v.Interface()
-	}
-
+	// if ck, ok := key.(*ssa.Const); ok {
+	// 	c := constValue(fr.i, ck)
+	// 	if c == nil {
+	// 		return c
+	// 	}
+	// 	typ := fr.i.toType(key.Type())
+	// 	if typ.PkgPath() == "" {
+	// 		return c
+	// 	}
+	// 	v := reflect.New(typ).Elem()
+	// 	SetValue(v, reflect.ValueOf(c))
+	// 	return v.Interface()
+	// }
 	if key.Parent() == nil {
 		if ext, ok := externValues[key.String()]; ok {
 			if fr.i.mode&EnableTracing != 0 {
