@@ -193,7 +193,7 @@ type frame struct {
 	fn               *ssa.Function
 	block, prevBlock *ssa.BasicBlock
 	env              map[ssa.Value]value // dynamic values of SSA variables
-	locals           []value
+	locals           map[ssa.Value]reflect.Value
 	defers           *deferred
 	result           value
 	panicking        bool
@@ -491,10 +491,12 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			//fr.env[instr] = addr
 			fr.env[instr] = reflect.New(typ).Interface()
 		} else {
+			//fr.env[instr] = fr.locals[instr]
 			// local
 			//addr = fr.env[instr].(*value)
 			v := reflect.ValueOf(fr.env[instr])
-			SetValue(v.Elem(), reflect.Zero(typ))
+			SetValue(v.Elem(), fr.locals[instr])
+			//SetValue(v.Elem(), reflect.Zero(typ))
 		}
 		//*addr = zero(deref(instr.Type()))
 
@@ -532,8 +534,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		fr.env[instr] = fr.get(instr.Iter).(iter).next()
 
 	case *ssa.FieldAddr:
-		//v := reflect.ValueOf(fr.get(instr.X)).Elem()
-		//fr.env[instr] = reflectx.Field(v, instr.Field).Addr().Interface()
+		// v := reflect.ValueOf(fr.get(instr.X)).Elem()
+		// fr.env[instr] = reflectx.Field(v, instr.Field).Addr().Interface()
 		//fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
 		v, err := xtypes.FieldAddr(fr.get(instr.X), instr.Field)
 		if err != nil {
@@ -846,12 +848,11 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 	}
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fn.Blocks[0]
-	fr.locals = make([]value, len(fn.Locals))
-	for i, l := range fn.Locals {
+	fr.locals = make(map[ssa.Value]reflect.Value)
+	for _, l := range fn.Locals {
 		typ := fr.i.toType(deref(l.Type()))
-		v := reflect.New(typ).Interface()
-		fr.locals[i] = v //zero(deref(l.Type()))
-		fr.env[l] = v    //&fr.locals[i]
+		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
+		fr.env[l] = reflect.New(typ).Interface() //&fr.locals[i]
 	}
 	for i, p := range fn.Params {
 		fr.env[p] = args[i]
