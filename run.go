@@ -297,7 +297,7 @@ func LoadTest(input string) (string, []*ssa.Package, error) {
 func RunTestPkg(pkgs []*ssa.Package, mode Mode, input string, args []string) {
 	var testPkgs []*ssa.Package
 	for _, pkg := range pkgs {
-		if p := pkg.Prog.CreateTestMainPackage(pkg); p != nil {
+		if p := CreateTestMainPackage(pkg); p != nil {
 			testPkgs = append(testPkgs, p)
 		}
 	}
