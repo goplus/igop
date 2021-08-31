@@ -46,10 +46,6 @@ func CreateTestMainPackage(pkg *ssa.Package) *ssa.Package {
 	sort.Slice(data.Tests, func(i, j int) bool {
 		return data.Tests[i].Pos() < data.Tests[j].Pos()
 	})
-	for _, v := range data.Tests {
-		log.Println(v)
-	}
-
 	sort.Slice(data.Benchmarks, func(i, j int) bool {
 		return data.Benchmarks[i].Pos() < data.Benchmarks[j].Pos()
 	})
