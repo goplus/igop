@@ -168,6 +168,8 @@ func init() {
 	gorootTestSkips["init1.go"] = "skip gc"
 	gorootTestSkips["string_lit.go"] = "call to os.Exit(0) during test"
 	gorootTestSkips["switch.go"] = "call to os.Exit(0) during test"
+	gorootTestSkips["ken/divconst.go"] = "slow"
+	gorootTestSkips["ken/modconst.go"] = "slow"
 }
 
 func _init() {
@@ -249,13 +251,21 @@ func _TestGorootTest(t *testing.T) {
 }
 
 // $GOROOT/test/*.go runs
-func getGorootTestRuns(t *testing.T) (files []string) {
-	dir := filepath.Join(build.Default.GOROOT, "test")
+func getGorootTestRuns(t *testing.T) (dir string, files []string) {
+	dir = filepath.Join(build.Default.GOROOT, "test")
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			if path == dir {
 				return nil
 			}
+			_, n := filepath.Split(path)
+			switch n {
+			case "fixedbugs":
+				return filepath.SkipDir
+			case "bench", "dwarf", "codegen":
+				return filepath.SkipDir
+			}
+			return nil
 			return filepath.SkipDir
 		}
 		data, err := ioutil.ReadFile(path)
@@ -277,11 +287,11 @@ func getGorootTestRuns(t *testing.T) (files []string) {
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
 func TestGorootTest(t *testing.T) {
-	files := getGorootTestRuns(t)
+	dir, files := getGorootTestRuns(t)
 	var failures []string
 
 	for _, input := range files {
-		_, f := filepath.Split(input)
+		f := input[len(dir)+1:]
 		if info, ok := gorootTestSkips[f]; ok {
 			fmt.Println("Skip:", input, info)
 			continue
