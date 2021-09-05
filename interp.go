@@ -1092,7 +1092,6 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		}
 		return nil, false
 	})
-	//reflectx.Reset()
 
 	for _, pkg := range i.prog.AllPackages() {
 		if _, ok := externPackages[pkg.Pkg.Path()]; ok {

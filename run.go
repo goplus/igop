@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/goplus/reflectx"
-	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
@@ -34,39 +33,39 @@ var (
 	UnsafeSizes types.Sizes
 )
 
-func loadFile2(input string, src interface{}) (*ssa.Package, error) {
-	if !filepath.IsAbs(input) {
-		wd, _ := os.Getwd()
-		input = filepath.Join(wd, input)
-	}
-	const mode = parser.AllErrors | parser.ParseComments
-	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, input, src, mode)
-	if err != nil {
-		return nil, err
-	}
-	cfg := &loader.Config{}
-	cfg.Fset = fset
-	cfg.CreateFromFiles(input, f)
-	iprog, err := cfg.Load()
-	if err != nil {
-		return nil, err
-	}
-	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
-	prog.Build()
-	var mainPkg *ssa.Package
-	if len(iprog.Created) > 0 {
-		mainPkg = prog.Package(iprog.Created[0].Pkg)
-	} else {
-		if pkgs := ssautil.MainPackages(prog.AllPackages()); len(pkgs) > 0 {
-			mainPkg = pkgs[0]
-		}
-	}
-	if mainPkg == nil {
-		return nil, ErrNotFoundMain
-	}
-	return mainPkg, nil
-}
+// func loadFile2(input string, src interface{}) (*ssa.Package, error) {
+// 	if !filepath.IsAbs(input) {
+// 		wd, _ := os.Getwd()
+// 		input = filepath.Join(wd, input)
+// 	}
+// 	const mode = parser.AllErrors | parser.ParseComments
+// 	fset := token.NewFileSet()
+// 	f, err := parser.ParseFile(fset, input, src, mode)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	cfg := &loader.Config{}
+// 	cfg.Fset = fset
+// 	cfg.CreateFromFiles(input, f)
+// 	iprog, err := cfg.Load()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
+// 	prog.Build()
+// 	var mainPkg *ssa.Package
+// 	if len(iprog.Created) > 0 {
+// 		mainPkg = prog.Package(iprog.Created[0].Pkg)
+// 	} else {
+// 		if pkgs := ssautil.MainPackages(prog.AllPackages()); len(pkgs) > 0 {
+// 			mainPkg = pkgs[0]
+// 		}
+// 	}
+// 	if mainPkg == nil {
+// 		return nil, ErrNotFoundMain
+// 	}
+// 	return mainPkg, nil
+// }
 
 func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	if !filepath.IsAbs(input) {
