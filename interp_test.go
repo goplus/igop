@@ -170,6 +170,8 @@ func init() {
 	gorootTestSkips["switch.go"] = "call to os.Exit(0) during test"
 	gorootTestSkips["ken/divconst.go"] = "slow"
 	gorootTestSkips["ken/modconst.go"] = "slow"
+	gorootTestSkips["convert4.go"] = "TODO: go1.17"
+	gorootTestSkips["unsafebuiltins.go"] = "TODO: go1.17"
 }
 
 func _init() {
