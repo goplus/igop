@@ -1451,6 +1451,25 @@ func callBuiltin(inter *interpreter, caller *frame, callpos token.Pos, fn *ssa.B
 				recvType, methodName, recvType))
 		}
 		return recv
+
+	case "Add":
+		ptr := args[0].(unsafe.Pointer)
+		length := asInt(args[1])
+		return unsafe.Pointer(uintptr(ptr) + uintptr(length))
+	case "Slice":
+		//func Slice(ptr *ArbitraryType, len IntegerType) []ArbitraryType
+		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
+		ptr := reflect.ValueOf(args[0])
+		length := asInt(args[1])
+		if ptr.IsNil() {
+			if length == 0 {
+				return reflect.New(reflect.SliceOf(ptr.Type().Elem())).Elem().Interface()
+			}
+			panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
+		}
+		typ := reflect.ArrayOf(length, ptr.Type().Elem())
+		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
+		return v.Elem().Slice(0, length).Interface()
 	}
 
 	panic("unknown built-in: " + fn.Name())
