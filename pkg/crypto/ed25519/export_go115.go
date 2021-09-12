@@ -1,5 +1,6 @@
 // export by github.com/goplus/interp/cmd/qexp
 
+//go:build go1.15
 // +build go1.15
 
 package ed25519

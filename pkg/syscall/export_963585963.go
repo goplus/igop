@@ -1,5 +1,6 @@
 // export by github.com/goplus/interp/cmd/qexp
 
+//go:build darwin || freebsd || linux
 // +build darwin freebsd linux
 
 package syscall

@@ -1,5 +1,6 @@
 // export by github.com/goplus/interp/cmd/qexp
 
+//go:build go1.16
 // +build go1.16
 
 package parse

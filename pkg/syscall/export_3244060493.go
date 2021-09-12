@@ -1,5 +1,6 @@
 // export by github.com/goplus/interp/cmd/qexp
 
+//go:build freebsd || netbsd || openbsd
 // +build freebsd netbsd openbsd
 
 package syscall
