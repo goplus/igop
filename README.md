@@ -4,6 +4,11 @@
 [![Go1.15](https://github.com/goplus/interp/workflows/Go1.15/badge.svg)](https://github.com/goplus/interp/actions?query=workflow%3AGo1.15)
 [![Go1.16](https://github.com/goplus/interp/workflows/Go1.16/badge.svg)](https://github.com/goplus/interp/actions?query=workflow%3AGo1.16)
 
+**Go1.17**
+
+set env
+
+`GOEXPERIMENT=noregabi`
 
 ### igop command line
 ```
