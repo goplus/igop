@@ -51,6 +51,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"unsafe"
@@ -706,7 +707,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			}
 		}
 		fr.env[instr] = r
-
+	case *ssa.SliceToArrayPointer:
+		typ := fr.i.toType(instr.Type())
+		x := fr.get(instr.X)
+		v := reflect.ValueOf(x)
+		fr.env[instr] = v.Convert(typ).Interface()
 	default:
 		panic(fmt.Sprintf("unexpected instruction: %T", instr))
 	}
@@ -999,6 +1004,10 @@ func doRecover(caller *frame) value {
 			//return iface{caller.i.runtimeErrorString, p.Error()}
 		case string:
 			// The interpreter explicitly called panic().
+			// ssa.SliceToArrayPointer -> reflect cvtSliceArrayPtr
+			if strings.HasPrefix(p, "reflect: cannot convert slice with length") {
+				p = p[9:]
+			}
 			return runtimeError(p)
 			//return iface{caller.i.runtimeErrorString, p}
 		case plainError:
