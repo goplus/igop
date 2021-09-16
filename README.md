@@ -26,31 +26,18 @@ igop test        # test package
 package main
 
 import (
-	"fmt"
-
 	"github.com/goplus/interp"
+	_ "github.com/goplus/interp/pkg"
 )
 
 var source = `
-package main
-
-import "fmt"
-
-func main() {
-	fmt.Println("hello")
-}
+println("Hello, Go+")
 `
 
-func init() {
-	interp.RegisterExternal("fmt.init", func() {})
-	interp.RegisterExternal("fmt.Println", fmt.Println)
-}
-
 func main() {
-	err := interp.RunFile(interp.EnableTracing,"main.go", source, nil)
+	err := interp.RunFile(0, "main.gop", source, nil)
 	if err != nil {
 		panic(err)
 	}
 }
-
 ```
