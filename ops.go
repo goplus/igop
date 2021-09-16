@@ -83,6 +83,8 @@ func constValue(i *interpreter, c *ssa.Const) value {
 				return constant.StringVal(c.Value)
 			}
 			return string(rune(c.Int64()))
+		case types.UnsafePointer:
+			return unsafe.Pointer(uintptr(c.Uint64()))
 		}
 	}
 
