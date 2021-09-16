@@ -7,6 +7,7 @@ package interp
 import (
 	"go/token"
 	"reflect"
+	"runtime"
 )
 
 var externPackages = make(map[string]bool)
@@ -22,6 +23,14 @@ func RegisterExternal(key string, i interface{}) {
 func RegisterExternals(m map[string]interface{}) {
 	for k, v := range m {
 		externValues[k] = reflect.ValueOf(v)
+	}
+}
+
+func RegisterFuncs(funcs ...interface{}) {
+	for _, fn := range funcs {
+		if v := reflect.ValueOf(fn); v.Kind() == reflect.Func {
+			externValues[runtime.FuncForPC(v.Pointer()).Name()] = v
+		}
 	}
 }
 
