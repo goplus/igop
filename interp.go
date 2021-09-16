@@ -135,6 +135,11 @@ func ptrCount(s string) (string, int) {
 	panic("failed ptrCount " + s)
 }
 
+func isUntyped(typ types.Type) bool {
+	t, ok := typ.Underlying().(*types.Basic)
+	return ok && t.Info()&types.IsUntyped != 0
+}
+
 func (i *interpreter) toType(typ types.Type) reflect.Type {
 	i.typesMutex.RLock()
 	tt, ok := i.types[typ]
@@ -144,6 +149,9 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	}
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
+	if isUntyped(typ) {
+		typ = types.Default(typ)
+	}
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {
 		panic(fmt.Sprintf("toType %v error: %v", typ, err))
