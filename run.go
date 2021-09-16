@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/goplus/interp/internal/gopfile"
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"
@@ -250,6 +251,15 @@ func RunTest(mode Mode, input string, args []string) error {
 }
 
 func RunFile(mode Mode, filename string, src interface{}, args []string) error {
+	ext := filepath.Ext(filename)
+	switch ext {
+	case ".gop":
+		data, err := gopfile.Build(filename, src)
+		if err != nil {
+			return err
+		}
+		src = data
+	}
 	pkg, err := loadFile(filename, src)
 	if err != nil {
 		return err
