@@ -368,7 +368,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		default:
 			v = reflect.ValueOf(x)
 		}
-		fr.env[instr] = v.Convert(typ).Interface()
+		if !v.IsValid() {
+			fr.env[instr] = reflect.New(typ).Elem()
+		} else {
+			fr.env[instr] = v.Convert(typ).Interface()
+		}
 		//fr.env[instr] = fr.get(instr.X)
 
 	case *ssa.Convert:
