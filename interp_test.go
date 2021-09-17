@@ -170,6 +170,8 @@ func init() {
 	gorootTestSkips["switch.go"] = "call to os.Exit(0) during test"
 	gorootTestSkips["ken/divconst.go"] = "slow"
 	gorootTestSkips["ken/modconst.go"] = "slow"
+	gorootTestSkips["fixedbugs/bug347.go"] = "TODO: runtime.Caller"
+	gorootTestSkips["fixedbugs/bug348.go"] = "TODO: runtime.Caller"
 }
 
 func _init() {
