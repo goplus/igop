@@ -510,7 +510,7 @@ func init() {
 		r := fmt.Sprint(recover())
 		// Exact error varies by toolchain:
 		if r != "runtime error: value method (main.T).f called using nil *main.T pointer" &&
-			r != "value method (main.T).f called using nil *main.T pointer" &&
+			r != "value method main.T.f called using nil *T pointer" &&
 			r != "runtime error: invalid memory address or nil pointer dereference" {
 			panic("want panic from call with nil receiver, got " + r)
 		}

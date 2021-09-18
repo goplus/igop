@@ -1028,7 +1028,7 @@ func doRecover(caller *frame) value {
 			return runtimeError(p)
 			//return iface{caller.i.runtimeErrorString, p}
 		case plainError:
-			return p.Error()
+			return p
 		case runtimeError:
 			return p
 		case *reflect.ValueError:

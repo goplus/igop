@@ -1446,11 +1446,17 @@ func callBuiltin(inter *interpreter, caller *frame, callpos token.Pos, fn *ssa.B
 
 	case "ssa:wrapnilchk":
 		recv := args[0]
-		if recv == nil {
+		if reflect.ValueOf(recv).IsNil() {
 			recvType := args[1]
 			methodName := args[2]
-			panic(fmt.Sprintf("value method (%s).%s called using nil *%s pointer",
-				recvType, methodName, recvType))
+			var info value
+			if s, ok := recvType.(string); ok && strings.HasPrefix(s, "main.") {
+				info = s[5:]
+			} else {
+				info = recvType
+			}
+			panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
+				recvType, methodName, info)))
 		}
 		return recv
 
