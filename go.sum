@@ -1,9 +1,10 @@
-github.com/goplus/gop v1.0.0 h1:2q6twxLlVTZQOzA9x2KN/VPaLct6HWT+HnBtTpeSrho=
-github.com/goplus/gop v1.0.0/go.mod h1:WuPQluuiJ7WU2EsbkHp/JyB9Tju0/Q74VIaDF+6nyy4=
-github.com/goplus/gox v1.3.7 h1:AORQLV3xOW/PVqWHPQaHDwHci2optSyYQZGAkGk5Xb4=
-github.com/goplus/gox v1.3.7/go.mod h1:wuG+GDqIZUFW8PzVWZPIg6kzrEUQIfUnvRmUZpvJpTg=
-github.com/goplus/reflectx v0.6.0 h1:+ucLpjylwiYGgplWgAJFNyHCj5ZEuWLxZu4a1iCOufI=
+github.com/goplus/gop v1.0.1 h1:g/c1rkLirRCL0j9ZGxo3rvY2Qf945YCRQVNEFqu5K0M=
+github.com/goplus/gop v1.0.1/go.mod h1:0Wm82og4yiW4JqVmsurJWGoNqjwRytp0zevYw0nMInA=
+github.com/goplus/gox v1.6.6 h1:mc7PKOa/bvdPg+l8p+rsMIIt3f0bnzMw0+To/12Beb4=
+github.com/goplus/gox v1.6.6/go.mod h1:wuG+GDqIZUFW8PzVWZPIg6kzrEUQIfUnvRmUZpvJpTg=
 github.com/goplus/reflectx v0.6.0/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
+github.com/goplus/reflectx v0.6.1 h1:3TncHSbbx0aTgGuRvfWW+fgNkgZ4HddHBW7tjOoIrfs=
+github.com/goplus/reflectx v0.6.1/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
 github.com/goplus/xtypes v0.2.0 h1:wXm3pw7JX3y3UM1yvKdjuU2DhgD8NpKfHi2cMrq2tR4=
 github.com/goplus/xtypes v0.2.0/go.mod h1:gD6/6Cw0i+wj6jQnuSpWRuQ7iY0Z+ZKd25ixXIxBN+k=
 github.com/qiniu/x v1.11.5 h1:TYr5cl4g2yoHAZeDK4MTjKF6CMoG+IHlCDvvM5qym6U=

@@ -299,7 +299,8 @@ func (fr *frame) runDefers() {
 		fr.runDefer(d)
 	}
 	fr.defers = nil
-	if fr.panicking {
+	// runtime.Goexit() fr.panic == nil
+	if fr.panicking && fr.panic != nil {
 		panic(fr.panic) // new panic, or still panicking
 	}
 }
