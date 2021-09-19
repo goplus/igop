@@ -348,6 +348,17 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		fr.env[instr] = unop(instr, fr.get(instr.X))
 
 	case *ssa.BinOp:
+		if instr.Op == token.SHR || instr.Op == token.SHL {
+			if c, ok := instr.Y.(*ssa.Convert); ok {
+				v := reflect.ValueOf(fr.get(c.X))
+				vk := v.Kind()
+				if vk >= reflect.Int && vk <= reflect.Int64 {
+					if v.Int() < 0 {
+						panic(runtimeError("negative shift amount"))
+					}
+				}
+			}
+		}
 		fr.env[instr] = binop(instr, instr.X.Type(), fr.get(instr.X), fr.get(instr.Y))
 
 	case *ssa.Call:
