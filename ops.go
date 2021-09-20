@@ -1046,11 +1046,31 @@ func equalValue(vx, vy reflect.Value) bool {
 			return vx.Pointer() == vy.Pointer()
 		case reflect.Struct:
 			return equalStruct(vx, vy)
+		case reflect.Array:
+			return equalArray(vx, vy)
 		default:
 			return vx.Interface() == vy.Interface()
 		}
 	}
 	return false
+}
+
+func equalArray(vx, vy reflect.Value) bool {
+	xlen := vx.Len()
+	if xlen != vy.Len() {
+		return false
+	}
+	if vx.Type().Elem() != vy.Type().Elem() {
+		return false
+	}
+	for i := 0; i < xlen; i++ {
+		fx := vx.Index(i)
+		fy := vy.Index(i)
+		if !equalNil(fx, fy) {
+			return false
+		}
+	}
+	return true
 }
 
 func equalStruct(vx, vy reflect.Value) bool {
