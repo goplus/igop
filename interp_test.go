@@ -172,6 +172,10 @@ func init() {
 	gorootTestSkips["ken/modconst.go"] = "slow"
 	gorootTestSkips["fixedbugs/bug347.go"] = "TODO: runtime.Caller"
 	gorootTestSkips["fixedbugs/bug348.go"] = "TODO: runtime.Caller"
+	gorootTestSkips["fixedbugs/issue24491b.go"] = "timeout"
+	gorootTestSkips["fixedbugs/issue22781.go"] = "slow"
+	gorootTestSkips["fixedbugs/issue16249.go"] = "slow"
+	gorootTestSkips["fixedbugs/issue13169.go"] = "slow"
 }
 
 var (
@@ -255,10 +259,12 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 			switch n {
 			case "abi":
 				return filepath.SkipDir
-			case "fixedbugs":
-				return filepath.SkipDir
 			case "bench", "dwarf", "codegen":
 				return filepath.SkipDir
+			default:
+				if strings.Contains(n, ".dir") {
+					return filepath.SkipDir
+				}
 			}
 			return nil
 			return filepath.SkipDir
