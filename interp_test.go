@@ -177,6 +177,12 @@ func init() {
 	gorootTestSkips["fixedbugs/issue16249.go"] = "slow"
 	gorootTestSkips["fixedbugs/issue13169.go"] = "slow"
 	gorootTestSkips["fixedbugs/bug261.go"] = "TODO: ssa slice[low|high] bug https://github.com/golang/tools/pull/341"
+	gorootTestSkips["fixedbugs/issue11656.go"] = "TODO: runtime.Caller"
+	gorootTestSkips["fixedbugs/issue15281.go"] = "runtime.ReadMemStats"
+	gorootTestSkips["fixedbugs/issue17381.go"] = "runtime.FuncForPC"
+	gorootTestSkips["fixedbugs/issue18149.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/issue22083.go"] = "debug.Stack"
+	gorootTestSkips["fixedbugs/issue22662.go"] = "runtime.Caller"
 }
 
 var (
