@@ -450,6 +450,14 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		//fr.get(instr.Chan).(chan value) <- fr.get(instr.X)
 
 	case *ssa.Store:
+		// skip struct field _
+		if addr, ok := instr.Addr.(*ssa.FieldAddr); ok {
+			if s, ok := addr.X.Type().(*types.Pointer).Elem().(*types.Struct); ok {
+				if s.Field(addr.Field).Name() == "_" {
+					break
+				}
+			}
+		}
 		x := reflect.ValueOf(fr.get(instr.Addr))
 		val := fr.get(instr.Val)
 		switch fn := val.(type) {
