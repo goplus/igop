@@ -502,7 +502,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		size := fr.get(instr.Size)
 		buffer := asInt(size)
 		if buffer < 0 {
-			panic("makechan: size out of range")
+			panic(runtimeError("makechan: size out of range"))
 		}
 		fr.env[instr] = reflect.MakeChan(typ, buffer).Interface()
 		//fr.env[instr] = make(chan value, asInt(fr.get(instr.Size)))
@@ -1036,15 +1036,7 @@ func doRecover(caller *frame) value {
 			return p
 			//return iface{caller.i.runtimeErrorString, p.Error()}
 		case string:
-			// The interpreter explicitly called panic().
-			// ssa.SliceToArrayPointer -> reflect cvtSliceArrayPtr
-			if strings.HasPrefix(p, "reflect: cannot convert slice with length") {
-				p = p[9:]
-			} else if strings.HasPrefix(p, "reflect:") {
-				return p
-			}
 			return p
-			//return iface{caller.i.runtimeErrorString, p}
 		case plainError:
 			return p
 		case runtimeError:

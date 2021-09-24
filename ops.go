@@ -193,6 +193,9 @@ func slice(x, lo, hi, max value) value {
 		}
 		return v.Slice(l, h).Interface()
 	case reflect.Slice, reflect.Array:
+		if l > m || h > m {
+			panic(runtimeError("slice index out of bounds"))
+		}
 		return v.Slice3(l, h, m).Interface()
 	}
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
