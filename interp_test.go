@@ -264,7 +264,7 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 			}
 			_, n := filepath.Split(path)
 			switch n {
-			case "abi":
+			case "abi", "fixedbugs":
 				return filepath.SkipDir
 			case "bench", "dwarf", "codegen":
 				return filepath.SkipDir

@@ -739,6 +739,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		typ := fr.i.toType(instr.Type())
 		x := fr.get(instr.X)
 		v := reflect.ValueOf(x)
+		vLen := v.Len()
+		tLen := typ.Elem().Len()
+		if tLen > vLen {
+			panic(runtimeError(fmt.Sprintf("cannot convert slice with length %v to pointer to array with length %v", vLen, tLen)))
+		}
 		fr.env[instr] = v.Convert(typ).Interface()
 	default:
 		panic(fmt.Sprintf("unexpected instruction: %T", instr))
@@ -1035,8 +1040,10 @@ func doRecover(caller *frame) value {
 			// ssa.SliceToArrayPointer -> reflect cvtSliceArrayPtr
 			if strings.HasPrefix(p, "reflect: cannot convert slice with length") {
 				p = p[9:]
+			} else if strings.HasPrefix(p, "reflect:") {
+				return p
 			}
-			return runtimeError(p)
+			return p
 			//return iface{caller.i.runtimeErrorString, p}
 		case plainError:
 			return p
