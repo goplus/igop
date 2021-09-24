@@ -415,7 +415,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		fr.env[instr] = fr.get(instr.Tuple).(tuple)[instr.Index]
 
 	case *ssa.Slice:
-		fr.env[instr] = slice(fr.get(instr.X), fr.get(instr.Low), fr.get(instr.High), fr.get(instr.Max))
+		_, ok := instr.X.(*ssa.Alloc)
+		fr.env[instr] = slice(fr.get(instr.X), fr.get(instr.Low), fr.get(instr.High), fr.get(instr.Max), ok)
 
 	case *ssa.Return:
 		switch len(instr.Results) {
@@ -536,11 +537,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		typ := fr.i.toType(instr.Type())
 		Len := asInt(fr.get(instr.Len))
 		if Len < 0 {
-			panic("makeslice: len out of range")
+			panic(runtimeError("makeslice: len out of range"))
 		}
 		Cap := asInt(fr.get(instr.Cap))
 		if Cap < 0 {
-			panic("makeslice: cap out of range")
+			panic(runtimeError("makeslice: cap out of range"))
 		}
 		fr.env[instr] = reflect.MakeSlice(typ, Len, Cap).Interface()
 		// slice := make([]value, asInt(fr.get(instr.Cap)))

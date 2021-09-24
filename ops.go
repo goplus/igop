@@ -156,7 +156,7 @@ func asUint64(x value) uint64 {
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
-func slice(x, lo, hi, max value) value {
+func slice(x, lo, hi, max value, makeslice bool) value {
 	var Len, Cap int
 	v := reflect.ValueOf(x)
 	if v.Kind() == reflect.Ptr {
@@ -193,7 +193,13 @@ func slice(x, lo, hi, max value) value {
 		}
 		return v.Slice(l, h).Interface()
 	case reflect.Slice, reflect.Array:
-		if l > m || h > m {
+		if makeslice {
+			if h < 0 {
+				panic(runtimeError("makeslice: len out of range"))
+			} else if h > m {
+				panic(runtimeError("makeslice: cap out of range"))
+			}
+		} else if l > m || h > m {
 			panic(runtimeError("slice index out of bounds"))
 		}
 		return v.Slice3(l, h, m).Interface()
