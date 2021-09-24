@@ -333,6 +333,21 @@ func SetValue(v reflect.Value, x reflect.Value) {
 	}
 }
 
+// 0 = 32bit, 1 = 64bit
+const ptrSizeIndex = (^uintptr(0) >> 63)
+
+var (
+	maxMem int
+)
+
+func init() {
+	if ptrSizeIndex == 0 {
+		maxMem = 1<<31 - 1
+	} else {
+		maxMem = 1 << 59
+	}
+}
+
 // visitInstr interprets a single ssa.Instruction within the activation
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
@@ -536,11 +551,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.MakeSlice:
 		typ := fr.i.toType(instr.Type())
 		Len := asInt(fr.get(instr.Len))
-		if Len < 0 {
+		if Len < 0 || Len >= maxMem {
 			panic(runtimeError("makeslice: len out of range"))
 		}
 		Cap := asInt(fr.get(instr.Cap))
-		if Cap < 0 {
+		if Cap < 0 || Cap >= maxMem {
 			panic(runtimeError("makeslice: cap out of range"))
 		}
 		fr.env[instr] = reflect.MakeSlice(typ, Len, Cap).Interface()
