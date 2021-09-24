@@ -1256,6 +1256,16 @@ func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
 								rt, instr.AssertedType, meth.Name()))
 						}
 					}
+				} else if typ.PkgPath() == rt.PkgPath() && typ.Name() == rt.Name() {
+					t1, ok1 := i.findType(typ)
+					t2, ok2 := i.findType(rt)
+					if ok1 && ok2 {
+						n1, ok1 := t1.(*types.Named)
+						n2, ok2 := t2.(*types.Named)
+						if ok1 && ok2 && n1.Obj().Parent() != n2.Obj().Parent() {
+							err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v (types from different scopes)", instr.X.Type(), rt, typ))
+						}
+					}
 				}
 			} else {
 				v = rv.Convert(typ).Interface()
