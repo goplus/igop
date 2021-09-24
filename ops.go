@@ -1347,7 +1347,14 @@ func callBuiltin(inter *interpreter, caller *frame, callpos token.Pos, fn *ssa.B
 			// append([]byte, ...string) []byte
 			args[1] = []byte(s)
 		}
-		return reflect.AppendSlice(reflect.ValueOf(args[0]), reflect.ValueOf(args[1])).Interface()
+		v0 := reflect.ValueOf(args[0])
+		v1 := reflect.ValueOf(args[1])
+		i0 := v0.Len()
+		i1 := v1.Len()
+		if i0+i1 < i0 {
+			panic(runtimeError("growslice: cap out of range"))
+		}
+		return reflect.AppendSlice(v0, v1).Interface()
 		// append([]T, ...[]T) []T
 		// return append(args[0].([]value), args[1].([]value)...)
 
