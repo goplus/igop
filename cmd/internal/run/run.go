@@ -257,7 +257,7 @@ func hasMultiFiles(srcDir string, ext string) bool {
 	var has bool
 	if f, err := os.Open(srcDir); err == nil {
 		defer f.Close()
-		fis, _ := f.ReadDir(-1)
+		fis, _ := f.Readdir(-1)
 		for _, fi := range fis {
 			if !fi.IsDir() && filepath.Ext(fi.Name()) == ext {
 				if has {
