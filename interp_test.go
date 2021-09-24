@@ -176,6 +176,7 @@ func init() {
 	gorootTestSkips["fixedbugs/issue22781.go"] = "slow"
 	gorootTestSkips["fixedbugs/issue16249.go"] = "slow"
 	gorootTestSkips["fixedbugs/issue13169.go"] = "slow"
+	gorootTestSkips["fixedbugs/bug261.go"] = "TODO: ssa slice[low|high] bug https://github.com/golang/tools/pull/341"
 }
 
 var (
