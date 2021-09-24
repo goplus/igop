@@ -16,15 +16,15 @@ package interp_test
 // fmt or testing, as it proved too fragile.
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"go/build"
 	"go/types"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -174,36 +174,42 @@ func init() {
 	gorootTestSkips["fixedbugs/bug348.go"] = "TODO: runtime.Caller"
 }
 
-func _init() {
-	interp.RegisterExternal("runtime.init", func() {})
-	interp.RegisterExternal("runtime.GC", runtime.GC)
-	interp.RegisterExternal("os.init", func() {})
-	interp.RegisterExternal("os.Getenv", os.Getenv)
-	interp.RegisterExternal("fmt.init", func() {})
-	interp.RegisterExternal("fmt.Print", fmt.Print)
-	interp.RegisterExternal("fmt.Printf", fmt.Printf)
-	interp.RegisterExternal("fmt.Println", fmt.Println)
-	interp.RegisterExternal("fmt.Sprint", fmt.Sprint)
-	interp.RegisterExternal("math.init", func() {})
-	interp.RegisterExternal("strings.init", func() {})
-	interp.RegisterExternal("strings.IndexByte", strings.IndexByte)
-	interp.RegisterExternal("strings.Contains", strings.Contains)
-	interp.RegisterExternal("reflect.init", func() {})
-	interp.RegisterExternal("reflect.TypeOf", reflect.TypeOf)
-	interp.RegisterExternal("reflect.SliceOf", reflect.SliceOf)
-	interp.RegisterExternal("time.init", func() {})
-	interp.RegisterExternal("time.Sleep", time.Sleep)
-	interp.RegisterTypeOf((*time.Duration)(nil))
-	interp.RegisterExternal("errors.init", func() {})
-	interp.RegisterExternal("errors.New", errors.New)
+var (
+	igop string
+)
+
+func init() {
+	var err error
+	igop, err = exec.LookPath("igop")
+	if err != nil {
+		panic(fmt.Sprintf("not found igop: %v", err))
+	}
 }
 
-func run(t *testing.T, input string) bool {
+func runInterp(t *testing.T, input string) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
 	err := interp.Run(0, input, nil)
 	sec := time.Since(start).Seconds()
 	if err != nil {
+		t.Error(err)
+		fmt.Printf("FAIL %0.3fs\n", sec)
+		return false
+	}
+	fmt.Printf("PASS %0.3fs\n", sec)
+	return true
+}
+
+func runIgop(t *testing.T, input string) bool {
+	fmt.Println("Input:", input)
+	start := time.Now()
+	cmd := exec.Command(igop, "run", input)
+	data, err := cmd.CombinedOutput()
+	if len(data) > 0 {
+		fmt.Println(string(data))
+	}
+	sec := time.Since(start).Seconds()
+	if err != nil || bytes.Contains(data, []byte("BUG")) {
 		t.Error(err)
 		fmt.Printf("FAIL %0.3fs\n", sec)
 		return false
@@ -230,22 +236,7 @@ func TestTestdataFiles(t *testing.T) {
 
 	var failures []string
 	for _, input := range testdataTests {
-		if !run(t, filepath.Join(cwd, "testdata", input)) {
-			failures = append(failures, input)
-		}
-	}
-	printFailures(failures)
-}
-
-// TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func _TestGorootTest(t *testing.T) {
-	var failures []string
-
-	for _, input := range gorootTestTests {
-		if _, ok := gorootTestSkips[input]; ok {
-			continue
-		}
-		if !run(t, filepath.Join(build.Default.GOROOT, "test", input)) {
+		if !runInterp(t, filepath.Join(cwd, "testdata", input)) {
 			failures = append(failures, input)
 		}
 	}
@@ -300,7 +291,7 @@ func TestGorootTest(t *testing.T) {
 			fmt.Println("Skip:", input, info)
 			continue
 		}
-		if !run(t, input) {
+		if !runIgop(t, input) {
 			failures = append(failures, input)
 		}
 	}
