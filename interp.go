@@ -202,6 +202,7 @@ type frame struct {
 	block, prevBlock *ssa.BasicBlock
 	env              map[ssa.Value]value // dynamic values of SSA variables
 	locals           map[ssa.Value]reflect.Value
+	mapUnderscoreKey map[types.Type]bool
 	defers           *deferred
 	result           value
 	panicking        bool
@@ -346,6 +347,16 @@ func init() {
 	} else {
 		maxMem = 1 << 59
 	}
+}
+
+func hasUnderscore(st *types.Struct) bool {
+	n := st.NumFields()
+	for i := 0; i < n; i++ {
+		if st.Field(i).Name() == "_" {
+			return true
+		}
+	}
+	return false
 }
 
 // visitInstr interprets a single ssa.Instruction within the activation
@@ -567,12 +578,16 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		// fr.env[instr] = slice[:asInt(fr.get(instr.Len))]
 
 	case *ssa.MakeMap:
-		typ := fr.i.toType(instr.Type())
+		typ := instr.Type()
 		reserve := 0
 		if instr.Reserve != nil {
 			reserve = asInt(fr.get(instr.Reserve))
 		}
-		fr.env[instr] = reflect.MakeMapWithSize(typ, reserve).Interface()
+		key := typ.Underlying().(*types.Map).Key()
+		if st, ok := key.Underlying().(*types.Struct); ok && hasUnderscore(st) {
+			fr.mapUnderscoreKey[typ] = true
+		}
+		fr.env[instr] = reflect.MakeMapWithSize(fr.i.toType(typ), reserve).Interface()
 		//fr.env[instr] = makeMap(instr.Type().Underlying().(*types.Map).Key(), reserve)
 
 	case *ssa.Range:
@@ -665,22 +680,22 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		//fr.env[instr] = lookup(instr, fr.get(instr.X), fr.get(instr.Index))
 
 	case *ssa.MapUpdate:
-		m := fr.get(instr.Map)
-		key := fr.get(instr.Key)
+		vm := reflect.ValueOf(fr.get(instr.Map))
+		vk := reflect.ValueOf(fr.get(instr.Key))
 		v := fr.get(instr.Value)
 		if fn, ok := v.(*ssa.Function); ok {
 			typ := fr.i.toType(fn.Type())
 			v = fr.toFunc(typ, fn).Interface()
 		}
-		reflect.ValueOf(m).SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(v))
-		// switch m := m.(type) {
-		// case map[value]value:
-		// 	m[key] = v
-		// case *hashmap:
-		// 	m.insert(key.(hashable), v)
-		// default:
-		// 	panic(fmt.Sprintf("illegal map type: %T", m))
-		// }
+		if fr.mapUnderscoreKey[instr.Map.Type()] {
+			for _, vv := range vm.MapKeys() {
+				if equalStruct(vk, vv) {
+					vk = vv
+					break
+				}
+			}
+		}
+		vm.SetMapIndex(vk, reflect.ValueOf(v))
 
 	case *ssa.TypeAssert:
 		v := fr.get(instr.X)
@@ -910,6 +925,7 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fn.Blocks[0]
 	fr.locals = make(map[ssa.Value]reflect.Value)
+	fr.mapUnderscoreKey = make(map[types.Type]bool)
 	for _, l := range fn.Locals {
 		typ := fr.i.toType(deref(l.Type()))
 		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
