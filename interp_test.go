@@ -148,9 +148,6 @@ func init() {
 		gorootTestSkips["printbig.go"] = "load failed"
 		gorootTestSkips["peano.go"] = "stack overflow"
 	}
-	if runtime.GOOS == "windows" {
-		gorootTestSkips["env.go"] = "skip GOARCH"
-	}
 	gorootTestSkips["closure.go"] = "runtime.ReadMemStats"
 	gorootTestSkips["divmod.go"] = "timeout"
 	gorootTestSkips["copy.go"] = "slow"
@@ -201,6 +198,16 @@ func init() {
 	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
 	gorootTestSkips["fixedbugs/issue30116.go"] = "BUG, optimization check"
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
+
+	if runtime.GOOS == "windows" {
+		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
+
+		skips := make(map[string]string)
+		for k, v := range gorootTestSkips {
+			skips[filepath.FromSlash(k)] = v
+		}
+		gorootTestSkips = skips
+	}
 }
 
 var (
