@@ -164,25 +164,43 @@ func init() {
 	gorootTestSkips["makeslice.go"] = "TODO, panic info, allocation size out of range"
 	gorootTestSkips["stackobj.go"] = "skip gc"
 	gorootTestSkips["stackobj3.go"] = "skip gc"
-	gorootTestSkips["nilptr_aix.go"] = "slow"
+	gorootTestSkips["nilptr_aix.go"] = "skip"
 	gorootTestSkips["init1.go"] = "skip gc"
 	gorootTestSkips["string_lit.go"] = "call to os.Exit(0) during test"
 	gorootTestSkips["switch.go"] = "call to os.Exit(0) during test"
 	gorootTestSkips["ken/divconst.go"] = "slow"
 	gorootTestSkips["ken/modconst.go"] = "slow"
-	gorootTestSkips["fixedbugs/bug347.go"] = "TODO: runtime.Caller"
-	gorootTestSkips["fixedbugs/bug348.go"] = "TODO: runtime.Caller"
+	gorootTestSkips["fixedbugs/bug347.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/bug348.go"] = "runtime.Caller"
 	gorootTestSkips["fixedbugs/issue24491b.go"] = "timeout"
 	gorootTestSkips["fixedbugs/issue22781.go"] = "slow"
 	gorootTestSkips["fixedbugs/issue16249.go"] = "slow"
 	gorootTestSkips["fixedbugs/issue13169.go"] = "slow"
-	gorootTestSkips["fixedbugs/bug261.go"] = "TODO: ssa slice[low|high] bug https://github.com/golang/tools/pull/341"
-	gorootTestSkips["fixedbugs/issue11656.go"] = "TODO: runtime.Caller"
+	gorootTestSkips["fixedbugs/bug261.go"] = "BUG, ssa slice[low|high] https://github.com/golang/tools/pull/341"
+	gorootTestSkips["fixedbugs/issue11656.go"] = "runtime.Caller"
 	gorootTestSkips["fixedbugs/issue15281.go"] = "runtime.ReadMemStats"
 	gorootTestSkips["fixedbugs/issue17381.go"] = "runtime.FuncForPC"
 	gorootTestSkips["fixedbugs/issue18149.go"] = "runtime.Caller"
 	gorootTestSkips["fixedbugs/issue22083.go"] = "debug.Stack"
 	gorootTestSkips["fixedbugs/issue22662.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/issue27201.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/issue27201.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/issue27518b.go"] = "BUG, runtime.SetFinalizer"
+	gorootTestSkips["fixedbugs/issue29504.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/issue32477.go"] = "BUG, runtime.SetFinalizer"
+	gorootTestSkips["fixedbugs/issue41239.go"] = "BUG, reflect.Append: different capacity on append"
+	gorootTestSkips["fixedbugs/issue32477.go"] = "BUG, runtime.SetFinalizer"
+	gorootTestSkips["fixedbugs/issue45175.go"] = "BUG, ssa.Phi call order"
+	gorootTestSkips["fixedbugs/issue4562.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/issue4618.go"] = "testing.AllocsPerRun"
+	gorootTestSkips["fixedbugs/issue4667.go"] = "testing.AllocsPerRun"
+	gorootTestSkips["fixedbugs/issue5856.go"] = "runtime.Caller"
+	gorootTestSkips["fixedbugs/issue5963.go"] = "BUG, recover"
+	gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
+	gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
+	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
+	gorootTestSkips["fixedbugs/issue30116.go"] = "BUG, optimization check"
+	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
 }
 
 var (
@@ -264,7 +282,7 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 			}
 			_, n := filepath.Split(path)
 			switch n {
-			case "abi", "fixedbugs":
+			case "abi":
 				return filepath.SkipDir
 			case "bench", "dwarf", "codegen":
 				return filepath.SkipDir
