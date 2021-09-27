@@ -634,7 +634,9 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			panic(fmt.Sprintf("unexpected x type in IndexAddr: %T", x))
 		}
 		index := asInt(idx)
-		if length := v.Len(); index >= length {
+		if index < 0 {
+			panic(runtimeError(fmt.Sprintf("index out of range [%v]", index)))
+		} else if length := v.Len(); index >= length {
 			panic(runtimeError(fmt.Sprintf("index out of range [%v] with length %v", index, length)))
 		}
 		fr.env[instr] = v.Index(index).Addr().Interface()
