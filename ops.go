@@ -233,8 +233,18 @@ func slice(x, lo, hi, max value, makeslice bool) value {
 					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v:]", l, h)))
 				}
 			} else {
-				if l > m || h > m {
-					panic(runtimeError("slice index out of bounds"))
+				if h < 0 {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v]", h)))
+				} else if h > Cap {
+					if kind == reflect.Slice {
+						panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with capacity %v", h, Cap)))
+					} else {
+						panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with length %v", h, Cap)))
+					}
+				} else if l < 0 {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:]", l)))
+				} else if l > h {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v]", l, h)))
 				}
 			}
 		}
