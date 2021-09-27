@@ -441,8 +441,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		fr.env[instr] = fr.get(instr.Tuple).(tuple)[instr.Index]
 
 	case *ssa.Slice:
-		_, ok := instr.X.(*ssa.Alloc)
-		fr.env[instr] = slice(fr.get(instr.X), fr.get(instr.Low), fr.get(instr.High), fr.get(instr.Max), ok)
+		fr.env[instr] = slice(fr, instr)
 
 	case *ssa.Return:
 		switch len(instr.Results) {

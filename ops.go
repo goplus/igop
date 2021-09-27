@@ -155,19 +155,13 @@ func asUint64(x value) uint64 {
 	panic(fmt.Sprintf("cannot convert %T to uint64", x))
 }
 
-func toi(v value) string {
-	if v == nil {
-		return ""
-	}
-	return fmt.Sprintf("%v", v)
-}
-
-func tos3(lo, hi, max value) string {
-	return fmt.Sprintf("[%v:%v:%v]", toi(lo), toi(hi), toi(max))
-}
-
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
-func slice(x, lo, hi, max value, makeslice bool) value {
+func slice(fr *frame, instr *ssa.Slice) value {
+	_, makeslice := instr.X.(*ssa.Alloc)
+	x := fr.get(instr.X)
+	lo := fr.get(instr.Low)
+	hi := fr.get(instr.High)
+	max := fr.get(instr.Max)
 	var Len, Cap int
 	v := reflect.ValueOf(x)
 	if v.Kind() == reflect.Ptr {
