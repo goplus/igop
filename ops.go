@@ -176,6 +176,7 @@ func slice(x, lo, hi, max value, makeslice bool) value {
 	switch v.Kind() {
 	case reflect.String:
 		Len = v.Len()
+		Cap = Len
 	case reflect.Slice, reflect.Array:
 		Len = v.Len()
 		Cap = v.Cap()
@@ -199,7 +200,49 @@ func slice(x, lo, hi, max value, makeslice bool) value {
 		slice3 = true
 	}
 
-	switch kind := v.Kind(); kind {
+	kind := v.Kind()
+	if makeslice {
+		if h < 0 {
+			panic(runtimeError("makeslice: len out of range"))
+		} else if h > m {
+			panic(runtimeError("makeslice: cap out of range"))
+		}
+	} else {
+		if slice3 {
+			if m < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v]", m)))
+			} else if m > Cap {
+				if kind == reflect.Slice {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with capacity %v", m, Cap)))
+				} else {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with length %v", m, Cap)))
+				}
+			} else if h < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:]", h)))
+			} else if h > m {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:%v]", h, m)))
+			} else if l < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v::]", l)))
+			} else if l > h {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v:]", l, h)))
+			}
+		} else {
+			if h < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v]", h)))
+			} else if h > Cap {
+				if kind == reflect.Slice {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with capacity %v", h, Cap)))
+				} else {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with length %v", h, Cap)))
+				}
+			} else if l < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:]", l)))
+			} else if l > h {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v]", l, h)))
+			}
+		}
+	}
+	switch kind {
 	case reflect.String:
 		// optimization x[len(x):], see $GOROOT/test/slicecap.go
 		if l == h {
@@ -207,47 +250,6 @@ func slice(x, lo, hi, max value, makeslice bool) value {
 		}
 		return v.Slice(l, h).Interface()
 	case reflect.Slice, reflect.Array:
-		if makeslice {
-			if h < 0 {
-				panic(runtimeError("makeslice: len out of range"))
-			} else if h > m {
-				panic(runtimeError("makeslice: cap out of range"))
-			}
-		} else {
-			if slice3 {
-				if m < 0 {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v]", m)))
-				} else if m > Cap {
-					if kind == reflect.Slice {
-						panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with capacity %v", m, Cap)))
-					} else {
-						panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with length %v", m, Cap)))
-					}
-				} else if h < 0 {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:]", h)))
-				} else if h > m {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:%v]", h, m)))
-				} else if l < 0 {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v::]", l)))
-				} else if l > h {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v:]", l, h)))
-				}
-			} else {
-				if h < 0 {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v]", h)))
-				} else if h > Cap {
-					if kind == reflect.Slice {
-						panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with capacity %v", h, Cap)))
-					} else {
-						panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with length %v", h, Cap)))
-					}
-				} else if l < 0 {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:]", l)))
-				} else if l > h {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v]", l, h)))
-				}
-			}
-		}
 		return v.Slice3(l, h, m).Interface()
 	}
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
