@@ -196,15 +196,14 @@ func init() {
 	gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
-	gorootTestSkips["fixedbugs/issue30116.go"] = "BUG, optimization check"
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
 
 	ver := runtime.Version()
 	if strings.HasPrefix(ver, "go1.15.") {
 		gorootTestSkips["fixedbugs/issue15039.go"] = "BUG, uint64 -> string"
-		gorootTestSkips["fixedbugs/issue9355.go"] = "BUG, TODO"
+		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
 	} else if strings.HasPrefix(ver, "go1.14.") {
-		gorootTestSkips["fixedbugs/issue9355.go"] = "BUG, TODO"
+		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
 	}
 
 	if runtime.GOOS == "windows" {
