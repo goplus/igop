@@ -155,6 +155,17 @@ func asUint64(x value) uint64 {
 	panic(fmt.Sprintf("cannot convert %T to uint64", x))
 }
 
+func toi(v value) string {
+	if v == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", v)
+}
+
+func tos3(lo, hi, max value) string {
+	return fmt.Sprintf("[%v:%v:%v]", toi(lo), toi(hi), toi(max))
+}
+
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
 func slice(x, lo, hi, max value, makeslice bool) value {
 	var Len, Cap int
@@ -180,12 +191,15 @@ func slice(x, lo, hi, max value, makeslice bool) value {
 		h = asInt(hi)
 	}
 
+	var slice3 bool
+
 	m := Cap
 	if max != nil {
 		m = asInt(max)
+		slice3 = true
 	}
 
-	switch v.Kind() {
+	switch kind := v.Kind(); kind {
 	case reflect.String:
 		// optimization x[len(x):], see $GOROOT/test/slicecap.go
 		if l == h {
@@ -199,8 +213,30 @@ func slice(x, lo, hi, max value, makeslice bool) value {
 			} else if h > m {
 				panic(runtimeError("makeslice: cap out of range"))
 			}
-		} else if l > m || h > m {
-			panic(runtimeError("slice index out of bounds"))
+		} else {
+			if slice3 {
+				if m < 0 {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v]", m)))
+				} else if m > Cap {
+					if kind == reflect.Slice {
+						panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with capacity %v", m, Cap)))
+					} else {
+						panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with length %v", m, Cap)))
+					}
+				} else if h < 0 {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:]", h)))
+				} else if h > m {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:%v]", h, m)))
+				} else if l < 0 {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v::]", l)))
+				} else if l > h {
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v:]", l, h)))
+				}
+			} else {
+				if l > m || h > m {
+					panic(runtimeError("slice index out of bounds"))
+				}
+			}
 		}
 		return v.Slice3(l, h, m).Interface()
 	}
