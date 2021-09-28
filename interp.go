@@ -1167,6 +1167,16 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 			return typ, true
 		}
 		return nil, false
+	}, func(typ types.Type) (reflect.Type, bool) {
+		if t, ok := i.types[typ]; ok {
+			return t, true
+		}
+		for k, v := range i.types {
+			if types.Identical(k, typ) {
+				return v, true
+			}
+		}
+		return nil, false
 	})
 
 	for _, pkg := range i.prog.AllPackages() {

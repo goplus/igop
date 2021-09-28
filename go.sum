@@ -5,8 +5,8 @@ github.com/goplus/gox v1.6.6/go.mod h1:wuG+GDqIZUFW8PzVWZPIg6kzrEUQIfUnvRmUZpvJp
 github.com/goplus/reflectx v0.6.0/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
 github.com/goplus/reflectx v0.6.1 h1:3TncHSbbx0aTgGuRvfWW+fgNkgZ4HddHBW7tjOoIrfs=
 github.com/goplus/reflectx v0.6.1/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
-github.com/goplus/xtypes v0.2.0 h1:wXm3pw7JX3y3UM1yvKdjuU2DhgD8NpKfHi2cMrq2tR4=
-github.com/goplus/xtypes v0.2.0/go.mod h1:gD6/6Cw0i+wj6jQnuSpWRuQ7iY0Z+ZKd25ixXIxBN+k=
+github.com/goplus/xtypes v0.2.1 h1:rFYaeGjYojN6OzbIZBPD0wQsgDWtdaZmSw9EKAHSzSM=
+github.com/goplus/xtypes v0.2.1/go.mod h1:gD6/6Cw0i+wj6jQnuSpWRuQ7iY0Z+ZKd25ixXIxBN+k=
 github.com/qiniu/x v1.11.5 h1:TYr5cl4g2yoHAZeDK4MTjKF6CMoG+IHlCDvvM5qym6U=
 github.com/qiniu/x v1.11.5/go.mod h1:03Ni9tj+N2h2aKnAz+6N0Xfl8FwMEDRC2PAlxekASDs=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
