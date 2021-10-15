@@ -64,9 +64,11 @@ func (p *Program) Export(path string) (extList []string, typList []string) {
 				extList = append(extList, fmt.Sprintf("%q : &%v", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Function:
 				extList = append(extList, fmt.Sprintf("%q : %v", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
+			case *ssa.Const:
 			case *ssa.Type:
 				named := t.Type().(*types.Named)
 				typeName := named.Obj().Name()
+
 				typList = append(typList, fmt.Sprintf("(*%v.%v)(nil)", pkgName, typeName))
 				if named.Obj().Pkg() != pkg.Pkg {
 					continue

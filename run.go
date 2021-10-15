@@ -68,6 +68,19 @@ var (
 // 	return mainPkg, nil
 // }
 
+type Importer struct {
+	Default types.Importer
+}
+
+func NewImporter() types.Importer {
+	return &Importer{importer.Default()}
+}
+
+func (i *Importer) Import(path string) (*types.Package, error) {
+	pkg, err := i.Default.Import(path)
+	return pkg, err
+}
+
 func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	if !filepath.IsAbs(input) {
 		wd, _ := os.Getwd()
@@ -91,10 +104,11 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 		}
 	}
 	if !hasOtherPkgs {
+		impl := NewImporter()
 		pkg := types.NewPackage("main", "")
 		var chkerr error
 		ssapkg, _, err := ssautil.BuildPackage(&types.Config{
-			Importer: importer.Default(),
+			Importer: impl,
 			Error: func(err error) {
 				fmt.Fprintln(os.Stderr, err)
 				chkerr = ErrPackage
