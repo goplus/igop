@@ -323,12 +323,12 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		panic("unreachable")
 	}
 	var named *types.Named
-	if pkg := rt.PkgPath(); pkg != "" {
-		p := r.GetPackage(pkg)
-		obj := types.NewTypeName(token.NoPos, p, rt.Name(), nil)
+	if path := rt.PkgPath(); path != "" {
+		pkg := r.GetPackage(path)
+		obj := types.NewTypeName(token.NoPos, pkg, rt.Name(), nil)
 		named = types.NewNamed(obj, typ, nil)
 		typ = named
-		p.Scope().Insert(obj)
+		pkg.Scope().Insert(obj)
 	}
 	r.Rcache[rt] = typ
 	r.Tcache[typ] = rt
@@ -354,12 +354,13 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 	}
 	if named != nil {
 		if kind != reflect.Interface {
+			pkg := named.Obj().Pkg()
 			n := rt.NumMethod()
 			recv := types.NewVar(token.NoPos, nil, "", typ)
 			for i := 0; i < n; i++ {
 				im := rt.Method(i)
 				sig := r.toFunc(recv, 1, im.Type)
-				named.AddMethod(types.NewFunc(token.NoPos, nil, im.Name, sig))
+				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
@@ -368,7 +369,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 			for i := 0; i < n; i++ {
 				im := prt.Method(i)
 				sig := r.toFunc(precv, 1, im.Type)
-				named.AddMethod(types.NewFunc(token.NoPos, nil, im.Name, sig))
+				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 		}
 	}

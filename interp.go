@@ -140,6 +140,9 @@ func isUntyped(typ types.Type) bool {
 }
 
 func (i *interpreter) toType(typ types.Type) reflect.Type {
+	if r, ok := rtyp.Tcache[typ]; ok {
+		return r
+	}
 	i.typesMutex.RLock()
 	tt, ok := i.types[typ]
 	i.typesMutex.RUnlock()
@@ -909,7 +912,13 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		if pkg, ok := instPkgs[pkgPath]; ok {
 			if ext, ok := pkg.Funcs[name]; ok {
 				if i.mode&EnableTracing != 0 {
-					fmt.Fprintln(os.Stderr, "\t(external)")
+					fmt.Fprintln(os.Stderr, "\t(external func)")
+				}
+				return callReflect(i, caller, callpos, ext, args, nil)
+			}
+			if ext, ok := pkg.Methods[name]; ok {
+				if i.mode&EnableTracing != 0 {
+					fmt.Fprintln(os.Stderr, "\t(external method)")
 				}
 				return callReflect(i, caller, callpos, ext, args, nil)
 			}
