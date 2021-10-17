@@ -51,6 +51,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"unsafe"
@@ -230,6 +231,14 @@ func (fr *frame) get(key ssa.Value) value {
 	// 	return v.Interface()
 	// }
 	if key.Parent() == nil {
+		path := key.String()
+		if paths := strings.Split(path, "."); len(paths) == 2 {
+			if pkg, ok := instPkgs[paths[0]]; ok {
+				if ext, ok := pkg.Vars[path]; ok {
+					return ext.Interface()
+				}
+			}
+		}
 		if ext, ok := externValues[key.String()]; ok {
 			if fr.i.mode&EnableTracing != 0 {
 				fmt.Fprintln(os.Stderr, "\t(external)")

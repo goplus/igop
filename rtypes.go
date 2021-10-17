@@ -108,7 +108,7 @@ func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
 		r.InsertFunc(name, fn)
 	}
 	for name, v := range pkg.Vars {
-		r.InsertVar(name, v)
+		r.InsertVar(name, v.Elem())
 	}
 	for name, c := range pkg.Consts {
 		r.InsertConst(name, c)
