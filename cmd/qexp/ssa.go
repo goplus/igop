@@ -100,6 +100,11 @@ func (p *Program) constToLit(c constant.Value) string {
 	case constant.String:
 		return fmt.Sprintf("constant.MakeString(%q)", constant.StringVal(c))
 	case constant.Int:
+		if v, ok := constant.Int64Val(c); ok {
+			return fmt.Sprintf("constant.MakeInt64(%v)", v)
+		} else if v, ok := constant.Uint64Val(c); ok {
+			return fmt.Sprintf("constant.MakeUint64(%v)", v)
+		}
 		return fmt.Sprintf("constant.MakeFromLiteral(%q, token.INT, 0)", c.ExactString())
 	case constant.Float:
 		s := c.ExactString()
