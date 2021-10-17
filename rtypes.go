@@ -208,18 +208,14 @@ func (r *Rtyp) Insert(v reflect.Value) {
 	}
 }
 
-func (r *Rtyp) toFunc(recv *types.Var, rt reflect.Type) *types.Signature {
+func (r *Rtyp) toFunc(recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
 	numIn := rt.NumIn()
 	numOut := rt.NumOut()
-	inOff := 0
-	if recv != nil {
-		inOff = 1
-	}
-	in := make([]*types.Var, numIn-inOff, numIn-inOff)
+	in := make([]*types.Var, numIn-inoff, numIn-inoff)
 	out := make([]*types.Var, numOut, numOut)
-	for i := inOff; i < numIn; i++ {
+	for i := inoff; i < numIn; i++ {
 		it := r.ToType(rt.In(i))
-		in[i-inOff] = types.NewVar(token.NoPos, nil, "", it)
+		in[i-inoff] = types.NewVar(token.NoPos, nil, "", it)
 	}
 	for i := 0; i < numOut; i++ {
 		it := r.ToType(rt.Out(i))
@@ -284,7 +280,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		dir := toDir(rt.ChanDir())
 		typ = types.NewChan(dir, elem)
 	case reflect.Func:
-		typ = r.toFunc(nil, rt)
+		typ = r.toFunc(nil, 0, rt)
 	case reflect.Interface:
 		n := rt.NumMethod()
 		imethods = make([]*types.Func, n, n)
@@ -293,7 +289,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 			sig := sigDummy
 			imethods[i] = types.NewFunc(token.NoPos, nil, im.Name, sig)
 		}
-		typ = types.NewInterfaceType(imethods, nil).Complete()
+		typ = types.NewInterfaceType(imethods, nil)
 	case reflect.Map:
 		key := r.ToType(rt.Key())
 		elem := r.ToType(rt.Elem())
@@ -351,9 +347,10 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		n := rt.NumMethod()
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
-			sig := r.toFunc(nil, im.Type)
+			sig := r.toFunc(imethods[i].Type().(*types.Signature).Recv(), 0, im.Type)
 			imethods[i] = types.NewFunc(token.NoPos, nil, im.Name, sig)
 		}
+		typ.Underlying().(*types.Interface).Complete()
 	}
 	if named != nil {
 		if kind != reflect.Interface {
@@ -361,7 +358,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 			recv := types.NewVar(token.NoPos, nil, "", typ)
 			for i := 0; i < n; i++ {
 				im := rt.Method(i)
-				sig := r.toFunc(recv, im.Type)
+				sig := r.toFunc(recv, 1, im.Type)
 				named.AddMethod(types.NewFunc(token.NoPos, nil, im.Name, sig))
 			}
 			prt := reflect.PtrTo(rt)
@@ -370,7 +367,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 			n = prt.NumMethod()
 			for i := 0; i < n; i++ {
 				im := prt.Method(i)
-				sig := r.toFunc(precv, im.Type)
+				sig := r.toFunc(precv, 1, im.Type)
 				named.AddMethod(types.NewFunc(token.NoPos, nil, im.Name, sig))
 			}
 		}
