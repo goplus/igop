@@ -135,7 +135,7 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 			case *ssa.NamedConst:
 				e.Consts = append(e.Consts, fmt.Sprintf("%q: interp.ConstValue{%q, %v}", pkgPath+"."+t.Name(), t.Type().String(), p.constToLit(t.Value.Value)))
 			case *ssa.Global:
-				e.Vars = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
+				e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Function:
 				e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Type:
