@@ -77,6 +77,9 @@ func NewImporter() types.Importer {
 }
 
 func (i *Importer) Import(path string) (*types.Package, error) {
+	if pkg, ok := loadTypesPackage(path); ok {
+		return pkg, nil
+	}
 	pkg, err := i.Default.Import(path)
 	return pkg, err
 }

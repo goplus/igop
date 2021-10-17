@@ -5,21 +5,54 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"log"
 	"reflect"
 	"runtime"
 	"strings"
 )
 
 var (
-	rtyp = NewRtyp()
+	rtyp          = NewRtyp()
+	instPkgs      = make(map[string]*Package)
+	instTypesPkgs = make(map[string]*types.Package)
 )
 
-func InstallPackage(pkg *Package) {
-	err := rtyp.InsertPackage(pkg)
-	if err != nil {
-		log.Panicf("install package %v failed: %v", pkg.Path, err)
+func loadTypesPackage(path string) (*types.Package, bool) {
+	if p, ok := instTypesPkgs[path]; ok {
+		return p, true
 	}
+	if pkg, ok := instPkgs[path]; ok {
+		err := rtyp.InsertPackage(pkg)
+		if err != nil {
+			panic(fmt.Sprintf("insert package %v failed", path))
+		}
+		if p, ok := rtyp.Packages[path]; ok {
+			p.MarkComplete()
+			instTypesPkgs[path] = p
+			return p, true
+		}
+	}
+	return nil, false
+}
+
+func InstallPackage(pkg *Package) {
+	if p, ok := instPkgs[pkg.Path]; ok {
+		p.Types = append(p.Types, pkg.Types...)
+		for k, v := range pkg.Vars {
+			p.Vars[k] = v
+		}
+		for k, v := range pkg.Funcs {
+			p.Funcs[k] = v
+		}
+		for k, v := range pkg.Methods {
+			p.Methods[k] = v
+		}
+		for k, v := range pkg.Consts {
+			p.Consts[k] = v
+		}
+		return
+	}
+	instPkgs[pkg.Path] = pkg
+	externPackages[pkg.Path] = true
 }
 
 type ConstValue struct {
@@ -54,12 +87,20 @@ func NewRtyp() *Rtyp {
 	return r
 }
 
+var (
+	rinit = reflect.ValueOf(func() bool { return true })
+)
+
 func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = e.(error)
 		}
 	}()
+	finit := pkg.Path + ".init"
+	if _, ok := pkg.Funcs[finit]; !ok {
+		pkg.Funcs[finit] = rinit
+	}
 	for _, typ := range pkg.Types {
 		r.InsertType(typ)
 	}

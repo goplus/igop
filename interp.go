@@ -905,6 +905,15 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 	}
 	if fn.Parent() == nil {
 		name := fn.String()
+		pkgPath := fn.Pkg.Pkg.Path()
+		if pkg, ok := instPkgs[pkgPath]; ok {
+			if ext, ok := pkg.Funcs[name]; ok {
+				if i.mode&EnableTracing != 0 {
+					fmt.Fprintln(os.Stderr, "\t(external)")
+				}
+				return callReflect(i, caller, callpos, ext, args, nil)
+			}
+		}
 		if ext := externValues[name]; ext.Kind() == reflect.Func {
 			if i.mode&EnableTracing != 0 {
 				fmt.Fprintln(os.Stderr, "\t(external)")
