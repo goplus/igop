@@ -110,7 +110,7 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 		impl := NewImporter()
 		pkg := types.NewPackage("main", "")
 		var chkerr error
-		ssapkg, _, err := ssautil.BuildPackage(&types.Config{
+		ssapkg, _, err := BuildPackage(&types.Config{
 			Importer: impl,
 			Error: func(err error) {
 				fmt.Fprintln(os.Stderr, err)
