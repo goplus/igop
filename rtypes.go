@@ -11,6 +11,17 @@ import (
 	"strings"
 )
 
+var (
+	rtyp = NewRtyp()
+)
+
+func InstallPackage(pkg *Package) {
+	err := rtyp.InsertPackage(pkg)
+	if err != nil {
+		log.Panicf("install package %v failed: %v", pkg.Path, err)
+	}
+}
+
 type ConstValue struct {
 	Typ   string
 	Value constant.Value
@@ -43,10 +54,10 @@ func NewRtyp() *Rtyp {
 	return r
 }
 
-func (r *Rtyp) InsertPackage(pkg *Package) {
+func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
 	defer func() {
-		if err := recover(); err != nil {
-			log.Printf("insert package %v error: %v\n", pkg.Path, err)
+		if e := recover(); e != nil {
+			err = e.(error)
 		}
 	}()
 	for _, typ := range pkg.Types {
@@ -61,6 +72,7 @@ func (r *Rtyp) InsertPackage(pkg *Package) {
 	for name, c := range pkg.Consts {
 		r.InsertConst(name, c)
 	}
+	return
 }
 
 func (r *Rtyp) InsertType(rt reflect.Type) {
