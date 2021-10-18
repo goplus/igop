@@ -34,10 +34,10 @@ func joinList(list []string) string {
 func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte, error) {
 	imports := []string{fmt.Sprintf("%v %q\n", sname, pkg.Path)}
 	imports = append(imports, `"reflect"`)
-	if len(pkg.Consts) > 0 {
+	if len(pkg.UntypedConsts) > 0 {
 		imports = append(imports, `"go/constant"`)
 		var hasToken bool
-		for _, c := range pkg.Consts {
+		for _, c := range pkg.UntypedConsts {
 			if strings.Index(c, "token.") >= 0 {
 				hasToken = true
 				break
@@ -51,11 +51,13 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 	r := strings.NewReplacer("$PKGNAME", pkg.Name,
 		"$IMPORTS", strings.Join(imports, "\n"),
 		"$PKGPATH", pkg.Path,
+		"$DEPS", joinList(pkg.Deps),
 		"$TYPES", joinList(pkg.Types),
 		"$VARS", joinList(pkg.Vars),
 		"$FUNCS", joinList(pkg.Funcs),
 		"$METHODS", joinList(pkg.Methods),
-		"$CONSTS", joinList(pkg.Consts),
+		"$TYPEDCONSTS", joinList(pkg.TypedConsts),
+		"$UNTYPEDCONSTS", joinList(pkg.UntypedConsts),
 		"$TAGS", strings.Join(tagList, "\n"),
 		"$ID", id)
 	src := r.Replace(template_pkg)
@@ -154,19 +156,26 @@ func init() {
 `
 
 /*
-type ConstValue struct {
+type TypedConst struct {
+	Typ   reflect.Type
+	Value constant.Value
+}
+
+type UntypedConst struct {
 	Typ   string
 	Value constant.Value
 }
 
 type Package struct {
-	Name    string
-	Path    string
-	Types   []reflect.Type
-	Vars    map[string]reflect.Value
-	Funcs   map[string]reflect.Value
-	Methods map[string]reflect.Value
-	Consts  map[string]ConstValue
+	Name          string
+	Path          string
+	Types         []reflect.Type
+	Vars          map[string]reflect.Value
+	Funcs         map[string]reflect.Value
+	Methods       map[string]reflect.Value
+	TypedConsts   map[string]TypedConst
+	UntypedConsts map[string]UntypedConst
+	Deps          map[string]string
 }
 */
 
@@ -190,7 +199,9 @@ func init() {
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
 		Methods: map[string]reflect.Value{$METHODS},
-		Consts: map[string]interp.ConstValue{$CONSTS},
+		TypedConsts: map[string]interp.TypedConst{$TYPEDCONSTS},
+		UntypedConsts: map[string]interp.UntypedConst{$UNTYPEDCONSTS},
+		Deps: map[string]string{$DEPS},
 	})
 }
 `

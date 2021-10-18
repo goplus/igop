@@ -23,7 +23,7 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 	if pkg, ok := instPkgs[path]; ok {
 		err := rtyp.InsertPackage(pkg)
 		if err != nil {
-			panic(fmt.Sprintf("insert package %v failed", path))
+			panic(fmt.Errorf("insert package %v failed: %v", path, err))
 		}
 		if p, ok := rtyp.Packages[path]; ok {
 			p.MarkComplete()
@@ -46,8 +46,8 @@ func InstallPackage(pkg *Package) {
 		for k, v := range pkg.Methods {
 			p.Methods[k] = v
 		}
-		for k, v := range pkg.Consts {
-			p.Consts[k] = v
+		for k, v := range pkg.UntypedConsts {
+			p.UntypedConsts[k] = v
 		}
 		return
 	}
@@ -55,25 +55,34 @@ func InstallPackage(pkg *Package) {
 	externPackages[pkg.Path] = true
 }
 
-type ConstValue struct {
+type TypedConst struct {
+	Typ   reflect.Type
+	Value constant.Value
+}
+
+type UntypedConst struct {
 	Typ   string
 	Value constant.Value
 }
 
 type Package struct {
-	Name    string
-	Path    string
-	Types   []reflect.Type
-	Vars    map[string]reflect.Value
-	Funcs   map[string]reflect.Value
-	Methods map[string]reflect.Value
-	Consts  map[string]ConstValue
+	Name          string
+	Path          string
+	Types         []reflect.Type
+	Vars          map[string]reflect.Value
+	Funcs         map[string]reflect.Value
+	Methods       map[string]reflect.Value
+	TypedConsts   map[string]TypedConst
+	UntypedConsts map[string]UntypedConst
+	Deps          map[string]string
 }
 
 type Rtyp struct {
 	Packages map[string]*types.Package
 	Rcache   map[reflect.Type]types.Type
 	Tcache   map[types.Type]reflect.Type
+	pkgs     map[string]*Package
+	curpkg   *Package
 }
 
 func NewRtyp() *Rtyp {
@@ -81,6 +90,7 @@ func NewRtyp() *Rtyp {
 		Packages: make(map[string]*types.Package),
 		Rcache:   make(map[reflect.Type]types.Type),
 		Tcache:   make(map[types.Type]reflect.Type),
+		pkgs:     make(map[string]*Package),
 	}
 	r.Rcache[reflect.TypeOf((*error)(nil)).Elem()] = types.Universe.Lookup("error").Type()
 	r.Rcache[reflect.TypeOf((*interface{})(nil)).Elem()] = types.NewInterfaceType(nil, nil)
@@ -92,11 +102,17 @@ var (
 )
 
 func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
+	if _, ok := r.pkgs[pkg.Name]; ok {
+		return nil
+	}
 	defer func() {
 		if e := recover(); e != nil {
 			err = e.(error)
 		}
+		r.curpkg = nil
 	}()
+	r.pkgs[pkg.Path] = pkg
+	r.curpkg = pkg
 	finit := pkg.Path + ".init"
 	if _, ok := pkg.Funcs[finit]; !ok {
 		pkg.Funcs[finit] = rinit
@@ -110,8 +126,11 @@ func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
 	for name, v := range pkg.Vars {
 		r.InsertVar(name, v.Elem())
 	}
-	for name, c := range pkg.Consts {
-		r.InsertConst(name, c)
+	for name, c := range pkg.TypedConsts {
+		r.InsertTypedConst(name, c)
+	}
+	for name, c := range pkg.UntypedConsts {
+		r.InsertUntypedConst(name, c)
 	}
 	return
 }
@@ -137,11 +156,18 @@ func (r *Rtyp) InsertConstEx(path string, typ types.Type, c constant.Value) {
 	p.Scope().Insert(types.NewConst(token.NoPos, p, name, typ, c))
 }
 
-func (r *Rtyp) parserNamed(path string) (pkg *types.Package, name string) {
-	paths := strings.Split(path, ".")
-	if len(paths) == 2 {
-		if p := r.GetPackage(paths[0]); p != nil && paths[1] != "" {
-			return p, paths[1]
+func splitPath(path string) (pkg string, name string, ok bool) {
+	pos := strings.LastIndex(path, ".")
+	if pos == -1 {
+		return path, "", false
+	}
+	return path[:pos], path[pos+1:], true
+}
+
+func (r *Rtyp) parserNamed(path string) (*types.Package, string) {
+	if pkg, name, ok := splitPath(path); ok {
+		if p := r.GetPackage(pkg); p != nil {
+			return p, name
 		}
 	}
 	panic(fmt.Errorf("parse path failed: %v", path))
@@ -155,7 +181,12 @@ func (r *Rtyp) LookupType(typ string) types.Type {
 	return p.Scope().Lookup(name).Type()
 }
 
-func (r *Rtyp) InsertConst(path string, v ConstValue) {
+func (r *Rtyp) InsertTypedConst(path string, v TypedConst) {
+	typ := r.ToType(v.Typ)
+	r.InsertConstEx(path, typ, v.Value)
+}
+
+func (r *Rtyp) InsertUntypedConst(path string, v UntypedConst) {
 	var typ types.Type
 	if t, ok := basicTypes[v.Typ]; ok {
 		typ = t
@@ -180,8 +211,15 @@ func (r *Rtyp) GetPackage(pkg string) *types.Package {
 	if p, ok := r.Packages[pkg]; ok {
 		return p
 	}
-	pkgs := strings.Split(pkg, "/")
-	p := types.NewPackage(pkg, pkgs[len(pkgs)-1])
+	var name string
+	if r.curpkg != nil {
+		name = r.curpkg.Deps[pkg]
+	}
+	if name == "" {
+		pkgs := strings.Split(pkg, "/")
+		name = pkgs[len(pkgs)-1]
+	}
+	p := types.NewPackage(pkg, name)
 	r.Packages[pkg] = p
 	return p
 }

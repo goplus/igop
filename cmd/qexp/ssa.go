@@ -25,7 +25,7 @@ func loadProgram(path string) (*Program, error) {
 		return nil, fmt.Errorf("conf.Load failed: %s", err)
 	}
 
-	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions)
+	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions|ssa.NaiveForm)
 	prog.Build()
 	return &Program{prog: prog}, nil
 }
@@ -68,18 +68,22 @@ type Package struct {
 	Funcs   map[string]reflect.Value
 	Methods map[string]reflect.Value
 	Consts  map[string]ConstValue
+	Deps    map[string]string
 }
 
 */
 
 type Package struct {
-	Name    string
-	Path    string
-	Types   []string
-	Vars    []string
-	Funcs   []string
-	Methods []string
-	Consts  []string
+	Name          string
+	Path          string
+	Deps          []string
+	Types         []string
+	Vars          []string
+	Funcs         []string
+	Methods       []string
+	Consts        []string
+	TypedConsts   []string
+	UntypedConsts []string
 }
 
 /*
@@ -129,11 +133,18 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 	pkgName := pkg.Pkg.Name()
 	e := &Package{Name: pkgName, Path: pkgPath}
 	pkgName = sname
+	for _, v := range pkg.Pkg.Imports() {
+		e.Deps = append(e.Deps, fmt.Sprintf("%q: %q", v.Path(), v.Name()))
+	}
 	for k, v := range pkg.Members {
 		if token.IsExported(k) {
 			switch t := v.(type) {
 			case *ssa.NamedConst:
-				e.Consts = append(e.Consts, fmt.Sprintf("%q: interp.ConstValue{%q, %v}", pkgPath+"."+t.Name(), t.Type().String(), p.constToLit(t.Value.Value)))
+				if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
+					e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: interp.UntypedConst{%q, %v}", pkgPath+"."+t.Name(), t.Type().String(), p.constToLit(t.Value.Value)))
+				} else {
+					e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : interp.TypedConst{reflect.TypeOf(%v), %v}", pkgPath+"."+t.Name(), pkgName+"."+t.Name(), p.constToLit(t.Value.Value)))
+				}
 			case *ssa.Global:
 				e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Function:
