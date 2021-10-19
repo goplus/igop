@@ -5,6 +5,7 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
+	"log"
 	"strings"
 
 	"golang.org/x/tools/go/loader"
@@ -78,6 +79,7 @@ type Package struct {
 	Path          string
 	Deps          []string
 	Types         []string
+	AliasTypes    []string
 	Vars          []string
 	Funcs         []string
 	Methods       []string
@@ -136,8 +138,13 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 	for _, v := range pkg.Pkg.Imports() {
 		e.Deps = append(e.Deps, fmt.Sprintf("%q: %q", v.Path(), v.Name()))
 	}
+	checked := make(map[ssa.Member]bool)
 	for k, v := range pkg.Members {
 		if token.IsExported(k) {
+			if checked[v] {
+				continue
+			}
+			checked[v] = true
 			switch t := v.(type) {
 			case *ssa.NamedConst:
 				if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
@@ -150,13 +157,37 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 			case *ssa.Function:
 				e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Type:
-				named := t.Type().(*types.Named)
-				typeName := named.Obj().Name()
-				e.Types = append(e.Types, fmt.Sprintf("reflect.TypeOf((*%v.%v)(nil))", pkgName, typeName))
-				if named.Obj().Pkg() != pkg.Pkg {
+				typ := t.Type()
+				if obj, ok := t.Object().(*types.TypeName); ok && obj.IsAlias() {
+					name := obj.Name()
+					switch typ := obj.Type().(type) {
+					case *types.Named:
+						pname := typ.Obj().Pkg().Name()
+						if typ.Obj().Pkg().Path() == pkg.Pkg.Path() {
+							pname = sname
+						}
+						typeName := typ.Obj().Name()
+						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", pkgPath+"."+name, pname, typeName))
+					case *types.Basic:
+						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", pkgPath+"."+name, typ.Name()))
+					default:
+						log.Panicln("error parser", typ)
+					}
 					continue
 				}
-				methods := IntuitiveMethodSet(t.Type())
+				var typeName string
+				switch t := typ.(type) {
+				case *types.Named:
+					typeName = t.Obj().Name()
+					e.Types = append(e.Types, fmt.Sprintf("reflect.TypeOf((*%v.%v)(nil))", pkgName, typeName))
+					if t.Obj().Pkg() != pkg.Pkg {
+						continue
+					}
+				case *types.Basic:
+					typeName = t.Name()
+					e.Types = append(e.Types, fmt.Sprintf("reflect.TypeOf((*%v.%v)(nil))", pkgName, typeName))
+				}
+				methods := IntuitiveMethodSet(typ)
 				for _, method := range methods {
 					name := method.Obj().Name()
 					if token.IsExported(name) {

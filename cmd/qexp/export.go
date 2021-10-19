@@ -53,6 +53,7 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 		"$PKGPATH", pkg.Path,
 		"$DEPS", joinList(pkg.Deps),
 		"$TYPES", joinList(pkg.Types),
+		"$ALIASTYPES", joinList(pkg.AliasTypes),
 		"$VARS", joinList(pkg.Vars),
 		"$FUNCS", joinList(pkg.Funcs),
 		"$METHODS", joinList(pkg.Methods),
@@ -170,6 +171,7 @@ type Package struct {
 	Name          string
 	Path          string
 	Types         []reflect.Type
+	AliasTypes    map[string]reflect.Type
 	Vars          map[string]reflect.Value
 	Funcs         map[string]reflect.Value
 	Methods       map[string]reflect.Value
@@ -196,6 +198,7 @@ func init() {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Types: []reflect.Type{$TYPES},
+		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
 		Methods: map[string]reflect.Value{$METHODS},

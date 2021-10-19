@@ -69,6 +69,7 @@ type Package struct {
 	Name          string
 	Path          string
 	Types         []reflect.Type
+	AliasTypes    map[string]reflect.Type
 	Vars          map[string]reflect.Value
 	Funcs         map[string]reflect.Value
 	Methods       map[string]reflect.Value
@@ -120,6 +121,9 @@ func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
 	for _, typ := range pkg.Types {
 		r.InsertType(typ)
 	}
+	for name, typ := range pkg.AliasTypes {
+		r.InsertAlias(name, typ)
+	}
 	for name, fn := range pkg.Funcs {
 		r.InsertFunc(name, fn)
 	}
@@ -137,6 +141,12 @@ func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
 
 func (r *Rtyp) InsertType(rt reflect.Type) {
 	r.ToType(rt)
+}
+
+func (r *Rtyp) InsertAlias(path string, rt reflect.Type) {
+	p, name := r.parserNamed(path)
+	typ := r.ToType(rt)
+	p.Scope().Insert(types.NewTypeName(token.NoPos, p, name, typ))
 }
 
 func (r *Rtyp) InsertFunc(path string, v reflect.Value) {
@@ -383,9 +393,10 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		}
 	} else if kind == reflect.Interface {
 		n := rt.NumMethod()
+		recv := types.NewVar(token.NoPos, nil, "", typ)
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
-			sig := r.toFunc(imethods[i].Type().(*types.Signature).Recv(), 0, im.Type)
+			sig := r.toFunc(recv, 0, im.Type)
 			imethods[i] = types.NewFunc(token.NoPos, nil, im.Name, sig)
 		}
 		typ.Underlying().(*types.Interface).Complete()
@@ -393,8 +404,8 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 	if named != nil {
 		if kind != reflect.Interface {
 			pkg := named.Obj().Pkg()
-			n := rt.NumMethod()
 			recv := types.NewVar(token.NoPos, nil, "", typ)
+			n := rt.NumMethod()
 			for i := 0; i < n; i++ {
 				im := rt.Method(i)
 				sig := r.toFunc(recv, 1, im.Type)
