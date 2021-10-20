@@ -1,4 +1,4 @@
-module github.com/goplus/interp
+module github.com/goplus/gossa
 
 go 1.14
 
