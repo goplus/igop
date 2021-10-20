@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package plan9obj
 
 import (
 	"debug/plan9obj"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("debug/plan9obj", extMap, typList)
+	gossa.RegisterPackage("debug/plan9obj", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package template
 
 import (
 	"html/template"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("html/template", extMap, typList)
+	gossa.RegisterPackage("html/template", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

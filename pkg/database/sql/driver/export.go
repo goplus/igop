@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package driver
 
 import (
 	"database/sql/driver"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("database/sql/driver", extMap, typList)
+	gossa.RegisterPackage("database/sql/driver", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

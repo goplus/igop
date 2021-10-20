@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package mime
 
 import (
 	"mime"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("mime", extMap, typList)
+	gossa.RegisterPackage("mime", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package base64
 
 import (
 	"encoding/base64"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("encoding/base64", extMap, typList)
+	gossa.RegisterPackage("encoding/base64", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

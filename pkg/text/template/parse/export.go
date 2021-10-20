@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package parse
 
 import (
 	"text/template/parse"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("text/template/parse", extMap, typList)
+	gossa.RegisterPackage("text/template/parse", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

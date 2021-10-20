@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package aes
 
 import (
 	"crypto/aes"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/aes", extMap, typList)
+	gossa.RegisterPackage("crypto/aes", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package scanner
 
 import (
 	"text/scanner"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("text/scanner", extMap, typList)
+	gossa.RegisterPackage("text/scanner", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

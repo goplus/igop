@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package quotedprintable
 
 import (
 	"mime/quotedprintable"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("mime/quotedprintable", extMap, typList)
+	gossa.RegisterPackage("mime/quotedprintable", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

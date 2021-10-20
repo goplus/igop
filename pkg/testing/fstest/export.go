@@ -1,11 +1,11 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package fstest
 
 import (
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("testing/fstest", nil, nil)
+	gossa.RegisterPackage("testing/fstest", nil, nil)
 }

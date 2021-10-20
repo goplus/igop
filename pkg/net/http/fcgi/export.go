@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package fcgi
 
 import (
 	"net/http/fcgi"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net/http/fcgi", extMap, typList)
+	gossa.RegisterPackage("net/http/fcgi", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

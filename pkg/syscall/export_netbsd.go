@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package syscall
 
 import (
 	"syscall"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("syscall", extMap_netbsd, typList_netbsd)
+	gossa.RegisterPackage("syscall", extMap_netbsd, typList_netbsd)
 }
 
 var extMap_netbsd = map[string]interface{}{}

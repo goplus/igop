@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package hash
 
 import (
 	"hash"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("hash", extMap, typList)
+	gossa.RegisterPackage("hash", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

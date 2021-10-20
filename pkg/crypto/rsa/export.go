@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package rsa
 
 import (
 	"crypto/rsa"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/rsa", extMap, typList)
+	gossa.RegisterPackage("crypto/rsa", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package cookiejar
 
 import (
 	"net/http/cookiejar"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net/http/cookiejar", extMap, typList)
+	gossa.RegisterPackage("net/http/cookiejar", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

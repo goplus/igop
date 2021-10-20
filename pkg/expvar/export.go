@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package expvar
 
 import (
 	"expvar"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("expvar", extMap, typList)
+	gossa.RegisterPackage("expvar", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

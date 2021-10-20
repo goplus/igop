@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package macho
 
 import (
 	"debug/macho"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("debug/macho", extMap, typList)
+	gossa.RegisterPackage("debug/macho", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

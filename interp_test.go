@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package interp_test
+package gossa_test
 
 // This test runs the SSA interpreter over sample Go programs.
 // Because the interpreter requires intrinsics for assembly
@@ -30,17 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goplus/interp"
-	_ "github.com/goplus/interp/pkg"
-	// _ "github.com/goplus/interp/pkg/errors"
-	// _ "github.com/goplus/interp/pkg/fmt"
-	// _ "github.com/goplus/interp/pkg/math"
-	// _ "github.com/goplus/interp/pkg/os"
-	// _ "github.com/goplus/interp/pkg/reflect"
-	// _ "github.com/goplus/interp/pkg/runtime"
-	// _ "github.com/goplus/interp/pkg/strings"
-	// _ "github.com/goplus/interp/pkg/sync"
-	// _ "github.com/goplus/interp/pkg/time"
+	"github.com/goplus/gossa"
+	_ "github.com/goplus/gossa/pkg"
 )
 
 // Each line contains a space-separated list of $GOROOT/test/
@@ -144,7 +135,7 @@ var (
 
 func init() {
 	if runtime.GOARCH == "386" {
-		interp.UnsafeSizes = &types.StdSizes{WordSize: 4, MaxAlign: 4}
+		gossa.UnsafeSizes = &types.StdSizes{WordSize: 4, MaxAlign: 4}
 		gorootTestSkips["printbig.go"] = "load failed"
 		gorootTestSkips["peano.go"] = "stack overflow"
 	}
@@ -219,21 +210,21 @@ func init() {
 }
 
 var (
-	igop string
+	gossaCmd string
 )
 
 func init() {
 	var err error
-	igop, err = exec.LookPath("igop")
+	gossaCmd, err = exec.LookPath("gossa")
 	if err != nil {
-		panic(fmt.Sprintf("not found igop: %v", err))
+		panic(fmt.Sprintf("not found gossa: %v", err))
 	}
 }
 
-func runInterp(t *testing.T, input string) bool {
+func runInput(t *testing.T, input string) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
-	err := interp.Run(0, input, nil)
+	err := gossa.Run(0, input, nil)
 	sec := time.Since(start).Seconds()
 	if err != nil {
 		t.Error(err)
@@ -244,10 +235,10 @@ func runInterp(t *testing.T, input string) bool {
 	return true
 }
 
-func runIgop(t *testing.T, input string) bool {
+func runCommand(t *testing.T, input string) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
-	cmd := exec.Command(igop, "run", input)
+	cmd := exec.Command(gossaCmd, "run", input)
 	data, err := cmd.CombinedOutput()
 	if len(data) > 0 {
 		fmt.Println(string(data))
@@ -280,7 +271,7 @@ func TestTestdataFiles(t *testing.T) {
 
 	var failures []string
 	for _, input := range testdataTests {
-		if !runInterp(t, filepath.Join(cwd, "testdata", input)) {
+		if !runInput(t, filepath.Join(cwd, "testdata", input)) {
 			failures = append(failures, input)
 		}
 	}
@@ -337,7 +328,7 @@ func TestGorootTest(t *testing.T) {
 			fmt.Println("Skip:", input, info)
 			continue
 		}
-		if !runIgop(t, input) {
+		if !runCommand(t, input) {
 			failures = append(failures, input)
 		}
 	}

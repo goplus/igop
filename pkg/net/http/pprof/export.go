@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package pprof
 
 import (
 	"net/http/pprof"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net/http/pprof", extMap, typList)
+	gossa.RegisterPackage("net/http/pprof", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

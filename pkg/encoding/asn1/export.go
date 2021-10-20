@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package asn1
 
 import (
 	"encoding/asn1"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("encoding/asn1", extMap, typList)
+	gossa.RegisterPackage("encoding/asn1", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package pkix
 
 import (
 	"crypto/x509/pkix"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/x509/pkix", extMap, typList)
+	gossa.RegisterPackage("crypto/x509/pkix", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

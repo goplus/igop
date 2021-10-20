@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package rc4
 
 import (
 	"crypto/rc4"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/rc4", extMap, typList)
+	gossa.RegisterPackage("crypto/rc4", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

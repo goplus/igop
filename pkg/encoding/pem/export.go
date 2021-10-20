@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package pem
 
 import (
 	"encoding/pem"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("encoding/pem", extMap, typList)
+	gossa.RegisterPackage("encoding/pem", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package zip
 
 import (
 	"archive/zip"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("archive/zip", extMap, typList)
+	gossa.RegisterPackage("archive/zip", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

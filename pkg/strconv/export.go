@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package strconv
 
 import (
 	"strconv"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("strconv", extMap, typList)
+	gossa.RegisterPackage("strconv", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

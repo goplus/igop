@@ -48,7 +48,7 @@ func main() {
 				fmt.Println("warning skip empty export pkg", pkg)
 				continue
 			}
-			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/interp/pkg/%v"`, pkg))
+			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/gossa/pkg/%v"`, pkg))
 			if _, ok := fileMap[""]; !ok {
 				fileMap[""] = &File{}
 			}

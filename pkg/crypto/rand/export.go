@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package rand
 
 import (
 	"crypto/rand"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/rand", extMap, typList)
+	gossa.RegisterPackage("crypto/rand", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

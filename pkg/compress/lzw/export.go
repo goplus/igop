@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package lzw
 
 import (
 	"compress/lzw"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("compress/lzw", extMap, typList)
+	gossa.RegisterPackage("compress/lzw", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

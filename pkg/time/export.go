@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package time
 
 import (
 	"time"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("time", extMap, typList)
+	gossa.RegisterPackage("time", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

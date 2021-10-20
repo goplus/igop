@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package adler32
 
 import (
 	"hash/adler32"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("hash/adler32", extMap, typList)
+	gossa.RegisterPackage("hash/adler32", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

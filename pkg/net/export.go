@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package net
 
 import (
 	"net"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net", extMap, typList)
+	gossa.RegisterPackage("net", extMap, typList)
 }
 
 var extMap = map[string]interface{}{
