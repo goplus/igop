@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package math
 
 import (
 	"math"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("math", extMap, typList)
+	gossa.RegisterPackage("math", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

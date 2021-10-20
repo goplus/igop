@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package dwarf
 
 import (
 	"debug/dwarf"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("debug/dwarf", extMap, typList)
+	gossa.RegisterPackage("debug/dwarf", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

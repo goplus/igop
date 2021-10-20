@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package help implements the ``igop help'' command.
+// Package help implements the ``gossa help'' command.
 package help
 
 import (
@@ -16,12 +16,12 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/goplus/interp/cmd/internal/base"
+	"github.com/goplus/gossa/cmd/internal/base"
 )
 
 // Help implements the 'help' command.
 func Help(w io.Writer, args []string) {
-	cmd := base.Igop
+	cmd := base.Gossa
 Args:
 	for i, arg := range args {
 		for _, sub := range cmd.Commands {
@@ -32,11 +32,11 @@ Args:
 		}
 
 		// helpSuccess is the help command using as many args as possible that would succeed.
-		helpSuccess := "igop help"
+		helpSuccess := "gossa help"
 		if i > 0 {
 			helpSuccess += " " + strings.Join(args[:i], " ")
 		}
-		fmt.Fprintf(os.Stderr, "igop help %s: unknown help topic. Run '%s'.\n", strings.Join(args, " "), helpSuccess)
+		fmt.Fprintf(os.Stderr, "gossa help %s: unknown help topic. Run '%s'.\n", strings.Join(args, " "), helpSuccess)
 		os.Exit(2)
 	}
 
@@ -45,7 +45,7 @@ Args:
 	} else {
 		cmd.Usage(w)
 	}
-	// not exit 2: succeeded at 'igop help cmd'.
+	// not exit 2: succeeded at 'gossa help cmd'.
 	return
 }
 
@@ -59,7 +59,7 @@ The commands are:
 {{range .Commands}}{{if or (.Runnable) .Commands}}
 	{{.Name | printf "%-11s"}} {{.Short}}{{end}}{{end}}
 
-Use "igop help{{with .LongName}} {{.}}{{end}} <command>" for more information about a command.
+Use "gossa help{{with .LongName}} {{.}}{{end}} <command>" for more information about a command.
 
 `
 

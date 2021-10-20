@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package regexp
 
 import (
 	"regexp"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("regexp", extMap, typList)
+	gossa.RegisterPackage("regexp", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

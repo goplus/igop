@@ -1,8 +1,8 @@
-# interp - Golang SSA interpreter
+# gossa - Golang SSA interpreter
 
-[![Go1.14](https://github.com/goplus/interp/workflows/Go1.14/badge.svg)](https://github.com/goplus/interp/actions?query=workflow%3AGo1.14)
-[![Go1.15](https://github.com/goplus/interp/workflows/Go1.15/badge.svg)](https://github.com/goplus/interp/actions?query=workflow%3AGo1.15)
-[![Go1.16](https://github.com/goplus/interp/workflows/Go1.16/badge.svg)](https://github.com/goplus/interp/actions?query=workflow%3AGo1.16)
+[![Go1.14](https://github.com/goplus/gossa/workflows/Go1.14/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.14)
+[![Go1.15](https://github.com/goplus/gossa/workflows/Go1.15/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.15)
+[![Go1.16](https://github.com/goplus/gossa/workflows/Go1.16/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.16)
 
 **Go1.17**
 
@@ -12,23 +12,23 @@ set env
 
 ### igop command line
 ```
-go get -u github.com/goplus/interp/cmd/igop
+go get -u github.com/goplus/gossa/cmd/gossa
 ```
 
 Commands
 ```
-igop run         # interpret package [gop|go]
-igop test        # test package [gop|go]
+gossa run         # interpret package [gop|go]
+gossa test        # test package [gop|go]
 ```
 
-### interp package
+### gossa package
 **run gop source**
 ```
 package main
 
 import (
-	"github.com/goplus/interp"
-	_ "github.com/goplus/interp/pkg"
+	"github.com/goplus/gossa"
+	_ "github.com/goplus/gossa/pkg"
 )
 
 var source = `
@@ -36,7 +36,7 @@ println("Hello, Go+")
 `
 
 func main() {
-	err := interp.RunFile(0, "main.gop", source, nil)
+	err := gossa.RunFile(0, "main.gop", source, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -47,8 +47,8 @@ func main() {
 package main
 
 import (
-	"github.com/goplus/interp"
-	_ "github.com/goplus/interp/pkg"
+	"github.com/goplus/gossa"
+	_ "github.com/goplus/gossa/pkg"
 )
 
 var source = `
@@ -62,7 +62,7 @@ func main() {
 `
 
 func main() {
-	err := interp.RunFile(0,"main.go", source, nil)
+	err := gossa.RunFile(0,"main.go", source, nil)
 	if err != nil {
 		panic(err)
 	}

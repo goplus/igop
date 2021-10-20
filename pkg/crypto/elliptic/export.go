@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package elliptic
 
 import (
 	"crypto/elliptic"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/elliptic", extMap, typList)
+	gossa.RegisterPackage("crypto/elliptic", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

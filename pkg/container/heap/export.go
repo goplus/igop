@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package heap
 
 import (
 	"container/heap"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("container/heap", extMap, typList)
+	gossa.RegisterPackage("container/heap", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

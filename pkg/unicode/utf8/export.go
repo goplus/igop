@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package utf8
 
 import (
 	"unicode/utf8"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("unicode/utf8", extMap, typList)
+	gossa.RegisterPackage("unicode/utf8", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package filepath
 
 import (
 	"path/filepath"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("path/filepath", extMap, typList)
+	gossa.RegisterPackage("path/filepath", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

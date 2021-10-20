@@ -28,8 +28,8 @@ jobs:
     - name: Build
       run: go build -v .
 
-    - name: Install igop
-      run: go install -v ./cmd/igop
+    - name: Install gossa
+      run: go install -v ./cmd/gossa
 
     - name: Go Test
       run: GOARCH=amd64 go test -v .
@@ -54,8 +54,8 @@ jobs:
     - name: Build
       run: go build -v .
 
-    - name: Install igop
-      run: go install -v ./cmd/igop
+    - name: Install gossa
+      run: go install -v ./cmd/gossa
 
     - name: Go Test amd64
       run: GOARCH=amd64 go test -v .
@@ -80,8 +80,8 @@ jobs:
     - name: Build
       run: go build -v .
 
-    - name: Install igop
-      run: go install -v ./cmd/igop
+    - name: Install gossa
+      run: go install -v ./cmd/gossa
 
     - name: Go Test amd64
       run: |

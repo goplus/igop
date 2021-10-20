@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package base32
 
 import (
 	"encoding/base32"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("encoding/base32", extMap, typList)
+	gossa.RegisterPackage("encoding/base32", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -1,11 +1,11 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package syslog
 
 import (
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("log/syslog", nil, nil)
+	gossa.RegisterPackage("log/syslog", nil, nil)
 }

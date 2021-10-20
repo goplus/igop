@@ -1,4 +1,4 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 //go:build go1.16
 // +build go1.16
@@ -8,11 +8,11 @@ package zip
 import (
 	"archive/zip"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("archive/zip", extMap_go116, typList_go116)
+	gossa.RegisterPackage("archive/zip", extMap_go116, typList_go116)
 }
 
 var extMap_go116 = map[string]interface{}{

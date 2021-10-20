@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package ioutil
 
 import (
 	"io/ioutil"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("io/ioutil", extMap, typList)
+	gossa.RegisterPackage("io/ioutil", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

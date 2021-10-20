@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package smtp
 
 import (
 	"net/smtp"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net/smtp", extMap, typList)
+	gossa.RegisterPackage("net/smtp", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

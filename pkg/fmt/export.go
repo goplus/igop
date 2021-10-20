@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package fmt
 
 import (
 	"fmt"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("fmt", extMap, typList)
+	gossa.RegisterPackage("fmt", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

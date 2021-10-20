@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package bzip2
 
 import (
 	"compress/bzip2"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("compress/bzip2", extMap, typList)
+	gossa.RegisterPackage("compress/bzip2", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

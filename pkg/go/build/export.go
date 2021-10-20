@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package build
 
 import (
 	"go/build"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("go/build", extMap, typList)
+	gossa.RegisterPackage("go/build", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

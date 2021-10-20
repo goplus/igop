@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package ascii85
 
 import (
 	"encoding/ascii85"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("encoding/ascii85", extMap, typList)
+	gossa.RegisterPackage("encoding/ascii85", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

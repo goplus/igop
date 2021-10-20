@@ -1,4 +1,4 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 //go:build darwin || freebsd || linux || netbsd || openbsd
 // +build darwin freebsd linux netbsd openbsd
@@ -8,11 +8,11 @@ package syslog
 import (
 	"log/syslog"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("log/syslog", extMap_3927522974, typList_3927522974)
+	gossa.RegisterPackage("log/syslog", extMap_3927522974, typList_3927522974)
 }
 
 var extMap_3927522974 = map[string]interface{}{

@@ -42,7 +42,7 @@
 //
 // * os.Exit is implemented using panic, causing deferred functions to
 // run.
-package interp
+package gossa
 
 import (
 	"fmt"

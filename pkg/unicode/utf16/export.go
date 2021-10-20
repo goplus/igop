@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package utf16
 
 import (
 	"unicode/utf16"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("unicode/utf16", extMap, typList)
+	gossa.RegisterPackage("unicode/utf16", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

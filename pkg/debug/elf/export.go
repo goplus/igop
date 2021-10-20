@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package elf
 
 import (
 	"debug/elf"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("debug/elf", extMap, typList)
+	gossa.RegisterPackage("debug/elf", extMap, typList)
 }
 
 var extMap = map[string]interface{}{
