@@ -65,11 +65,21 @@ func (p *Program) Export(path string) (extList []string, typList []string) {
 			case *ssa.Function:
 				extList = append(extList, fmt.Sprintf("%q : %v", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Type:
-				named := t.Type().(*types.Named)
-				typeName := named.Obj().Name()
-				typList = append(typList, fmt.Sprintf("(*%v.%v)(nil)", pkgName, typeName))
-				if named.Obj().Pkg() != pkg.Pkg {
+				typ := t.Type()
+				if obj, ok := t.Object().(*types.TypeName); ok && obj.IsAlias() {
 					continue
+				}
+				var typeName string
+				switch t := typ.(type) {
+				case *types.Named:
+					typeName = t.Obj().Name()
+					typList = append(typList, fmt.Sprintf("(*%v.%v)(nil)", pkgName, typeName))
+					if t.Obj().Pkg() != pkg.Pkg {
+						continue
+					}
+				case *types.Basic:
+					typeName = t.Name()
+					typList = append(typList, fmt.Sprintf("(*%v.%v)(nil)", pkgName, typeName))
 				}
 				methods := IntuitiveMethodSet(t.Type())
 				for _, method := range methods {
