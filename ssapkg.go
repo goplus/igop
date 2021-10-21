@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"log"
 
 	"golang.org/x/tools/go/ssa"
 )
@@ -25,6 +26,7 @@ func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, fil
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
+		log.Println("types check", err)
 		return nil, nil, err
 	}
 

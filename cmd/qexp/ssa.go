@@ -162,12 +162,7 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 					name := obj.Name()
 					switch typ := obj.Type().(type) {
 					case *types.Named:
-						pname := typ.Obj().Pkg().Name()
-						if typ.Obj().Pkg().Path() == pkg.Pkg.Path() {
-							pname = sname
-						}
-						typeName := typ.Obj().Name()
-						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", pkgPath+"."+name, pname, typeName))
+						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", pkgPath+"."+name, sname, name))
 					case *types.Basic:
 						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", pkgPath+"."+name, typ.Name()))
 					default:

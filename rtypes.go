@@ -8,6 +8,10 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+
+	"golang.org/x/tools/go/types/typeutil"
+
+	xcall "github.com/goplus/interp/internal/reflect"
 )
 
 var (
@@ -81,7 +85,7 @@ type Package struct {
 type Rtyp struct {
 	Packages map[string]*types.Package
 	Rcache   map[reflect.Type]types.Type
-	Tcache   map[types.Type]reflect.Type
+	Tcache   *typeutil.Map
 	pkgs     map[string]*Package
 	curpkg   *Package
 }
@@ -90,7 +94,7 @@ func NewRtyp() *Rtyp {
 	r := &Rtyp{
 		Packages: make(map[string]*types.Package),
 		Rcache:   make(map[reflect.Type]types.Type),
-		Tcache:   make(map[types.Type]reflect.Type),
+		Tcache:   &typeutil.Map{},
 		pkgs:     make(map[string]*Package),
 	}
 	r.Rcache[reflect.TypeOf((*error)(nil)).Elem()] = types.Universe.Lookup("error").Type()
@@ -379,7 +383,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		pkg.Scope().Insert(obj)
 	}
 	r.Rcache[rt] = typ
-	r.Tcache[typ] = rt
+	r.Tcache.Set(typ, rt)
 	if kind == reflect.Struct {
 		n := rt.NumField()
 		for i := 0; i < n; i++ {
@@ -393,11 +397,12 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		}
 	} else if kind == reflect.Interface {
 		n := rt.NumMethod()
+		pkg := named.Obj().Pkg()
 		recv := types.NewVar(token.NoPos, nil, "", typ)
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
 			sig := r.toFunc(recv, 0, im.Type)
-			imethods[i] = types.NewFunc(token.NoPos, nil, im.Name, sig)
+			imethods[i] = types.NewFunc(token.NoPos, pkg, im.Name, sig)
 		}
 		typ.Underlying().(*types.Interface).Complete()
 	}
@@ -405,19 +410,25 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		if kind != reflect.Interface {
 			pkg := named.Obj().Pkg()
 			recv := types.NewVar(token.NoPos, nil, "", typ)
-			n := rt.NumMethod()
-			for i := 0; i < n; i++ {
-				im := rt.Method(i)
-				sig := r.toFunc(recv, 1, im.Type)
+			for _, im := range xcall.AllMethod(rt) {
+				var sig *types.Signature
+				if im.Type != nil {
+					sig = r.toFunc(recv, 1, im.Type)
+				} else {
+					continue
+				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, nil, "", ptyp)
-			n = prt.NumMethod()
-			for i := 0; i < n; i++ {
-				im := prt.Method(i)
-				sig := r.toFunc(precv, 1, im.Type)
+			for _, im := range xcall.AllMethod(prt) {
+				var sig *types.Signature
+				if im.Type != nil {
+					sig = r.toFunc(precv, 1, im.Type)
+				} else {
+					continue
+				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 		}

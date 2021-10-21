@@ -48,6 +48,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -141,8 +142,8 @@ func isUntyped(typ types.Type) bool {
 }
 
 func (i *interpreter) toType(typ types.Type) reflect.Type {
-	if r, ok := rtyp.Tcache[typ]; ok {
-		return r
+	if r := rtyp.Tcache.At(typ); r != nil {
+		return r.(reflect.Type)
 	}
 	i.typesMutex.RLock()
 	tt, ok := i.types[typ]
@@ -155,6 +156,7 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	if isUntyped(typ) {
 		typ = types.Default(typ)
 	}
+	log.Println("============", typ)
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {
 		panic(fmt.Sprintf("toType %v error: %v", typ, err))
@@ -1190,6 +1192,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		panic(fmt.Sprintf("Not found func %v", fn))
 		return nil
 	}, func(name *types.TypeName) (reflect.Type, bool) {
+
 		if typ, ok := externTypes[name.Type().String()]; ok {
 			return typ, true
 		}
