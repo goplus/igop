@@ -1192,12 +1192,17 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		panic(fmt.Sprintf("Not found func %v", fn))
 		return nil
 	}, func(name *types.TypeName) (reflect.Type, bool) {
-
+		if t := rtyp.Tcache.At(name.Type()); t != nil {
+			return t.(reflect.Type), true
+		}
 		if typ, ok := externTypes[name.Type().String()]; ok {
 			return typ, true
 		}
 		return nil, false
 	}, func(typ types.Type) (reflect.Type, bool) {
+		if t := rtyp.Tcache.At(typ); t != nil {
+			return t.(reflect.Type), true
+		}
 		if t, ok := i.types[typ]; ok {
 			return t, true
 		}

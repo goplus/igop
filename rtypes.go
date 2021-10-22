@@ -277,8 +277,9 @@ func (r *Rtyp) toFunc(recv *types.Var, inoff int, rt reflect.Type) *types.Signat
 }
 
 var (
-	typDummy = types.NewStruct(nil, nil)
-	sigDummy = types.NewSignature(nil, nil, nil, false)
+	typDummy   = types.NewStruct(nil, nil)
+	sigDummy   = types.NewSignature(nil, nil, nil, false)
+	sigInvalid = &types.Signature{}
 )
 
 func (r *Rtyp) ToType(rt reflect.Type) types.Type {
@@ -415,7 +416,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 				if im.Type != nil {
 					sig = r.toFunc(recv, 1, im.Type)
 				} else {
-					continue
+					sig = sigInvalid
 				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
@@ -427,7 +428,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 				if im.Type != nil {
 					sig = r.toFunc(precv, 1, im.Type)
 				} else {
-					continue
+					sig = sigInvalid
 				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
