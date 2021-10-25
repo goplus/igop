@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package palette
 
 import (
 	"image/color/palette"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("image/color/palette", extMap, typList)
+	gossa.RegisterPackage("image/color/palette", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

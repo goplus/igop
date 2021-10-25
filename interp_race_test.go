@@ -1,6 +1,7 @@
+//go:build race
 // +build race
 
-package interp_test
+package gossa_test
 
 func init() {
 	gorootTestSkips["atomicload.go"] = "unsupport race"

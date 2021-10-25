@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package quick
 
 import (
 	"testing/quick"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("testing/quick", extMap, typList)
+	gossa.RegisterPackage("testing/quick", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

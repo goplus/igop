@@ -1,4 +1,4 @@
-package interp
+package gossa
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/tools/go/types/typeutil"
 
-	xcall "github.com/goplus/interp/internal/reflect"
+	xcall "github.com/goplus/gossa/internal/reflect"
 )
 
 var (

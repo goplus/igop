@@ -1,4 +1,4 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 //go:build go1.16
 // +build go1.16
@@ -8,11 +8,11 @@ package syscall
 import (
 	"syscall"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("syscall", extMap_go116_windows_amd64, typList_go116_windows_amd64)
+	gossa.RegisterPackage("syscall", extMap_go116_windows_amd64, typList_go116_windows_amd64)
 }
 
 var extMap_go116_windows_amd64 = map[string]interface{}{

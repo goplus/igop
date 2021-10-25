@@ -7,7 +7,7 @@ package reflect
 import (
 	"unsafe"
 
-	"github.com/goplus/interp/internal/unsafeheader"
+	"github.com/goplus/gossa/internal/unsafeheader"
 )
 
 // Swapper returns a function that swaps the elements in the provided

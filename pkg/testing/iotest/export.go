@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package iotest
 
 import (
 	"testing/iotest"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("testing/iotest", extMap, typList)
+	gossa.RegisterPackage("testing/iotest", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

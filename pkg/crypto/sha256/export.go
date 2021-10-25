@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package sha256
 
 import (
 	"crypto/sha256"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/sha256", extMap, typList)
+	gossa.RegisterPackage("crypto/sha256", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

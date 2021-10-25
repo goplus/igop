@@ -102,17 +102,17 @@ func exportSource(pkgPath string, id string, tagList []string, extList []string,
 	return data, nil
 }
 
-var template_export = `// export by github.com/goplus/interp/cmd/qexp
+var template_export = `// export by github.com/goplus/gossa/cmd/qexp
 package $PKGNAME
 
 import (
 	"$PKGPATH"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("$PKGPATH",extMap,typList)
+	gossa.RegisterPackage("$PKGPATH",extMap,typList)
 }
 
 var extMap = map[string]interface{}{$EXTMAP}
@@ -120,7 +120,7 @@ var extMap = map[string]interface{}{$EXTMAP}
 var typList = []interface{}{$TYPLIST}
 `
 
-var template_tags = `// export by github.com/goplus/interp/cmd/qexp
+var template_tags = `// export by github.com/goplus/gossa/cmd/qexp
 
 $TAGS
 
@@ -129,11 +129,11 @@ package $PKGNAME
 import (
 	"$PKGPATH"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("$PKGPATH",extMap$ID,typList$ID)
+	gossa.RegisterPackage("$PKGPATH",extMap$ID,typList$ID)
 }
 
 var extMap$ID = map[string]interface{}{$EXTMAP}
@@ -141,18 +141,18 @@ var extMap$ID = map[string]interface{}{$EXTMAP}
 var typList$ID = []interface{}{$TYPLIST}
 `
 
-var template_empty = `// export by github.com/goplus/interp/cmd/qexp
+var template_empty = `// export by github.com/goplus/gossa/cmd/qexp
 
 $TAGS
 
 package $PKGNAME
 
 import (
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("$PKGPATH",nil,nil)
+	gossa.RegisterPackage("$PKGPATH",nil,nil)
 }
 `
 
@@ -181,7 +181,7 @@ type Package struct {
 }
 */
 
-var template_pkg = `// export by github.com/goplus/interp/cmd/qexp
+var template_pkg = `// export by github.com/goplus/gossa/cmd/qexp
 
 $TAGS
 
@@ -190,11 +190,11 @@ package $PKGNAME
 import (
 	$IMPORTS
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.InstallPackage(&interp.Package {
+	gossa.InstallPackage(&gossa.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Types: []reflect.Type{$TYPES},
@@ -202,8 +202,8 @@ func init() {
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
 		Methods: map[string]reflect.Value{$METHODS},
-		TypedConsts: map[string]interp.TypedConst{$TYPEDCONSTS},
-		UntypedConsts: map[string]interp.UntypedConst{$UNTYPEDCONSTS},
+		TypedConsts: map[string]gossa.TypedConst{$TYPEDCONSTS},
+		UntypedConsts: map[string]gossa.UntypedConst{$UNTYPEDCONSTS},
 		Deps: map[string]string{$DEPS},
 	})
 }

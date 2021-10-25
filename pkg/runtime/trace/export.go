@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package trace
 
 import (
 	"runtime/trace"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("runtime/trace", extMap, typList)
+	gossa.RegisterPackage("runtime/trace", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

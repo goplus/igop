@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package sync
 
 import (
 	"sync"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("sync", extMap, typList)
+	gossa.RegisterPackage("sync", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

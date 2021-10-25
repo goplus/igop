@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package zlib
 
 import (
 	"compress/zlib"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("compress/zlib", extMap, typList)
+	gossa.RegisterPackage("compress/zlib", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

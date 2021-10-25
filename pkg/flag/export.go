@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package flag
 
 import (
 	"flag"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("flag", extMap, typList)
+	gossa.RegisterPackage("flag", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

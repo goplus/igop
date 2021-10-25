@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package binary
 
 import (
 	"encoding/binary"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("encoding/binary", extMap, typList)
+	gossa.RegisterPackage("encoding/binary", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

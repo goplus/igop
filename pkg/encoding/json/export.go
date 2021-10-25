@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package json
 
 import (
 	"encoding/json"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("encoding/json", extMap, typList)
+	gossa.RegisterPackage("encoding/json", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

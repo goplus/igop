@@ -22,20 +22,22 @@ import (
 	"os"
 	"strings"
 
-	"github.com/goplus/interp/cmd/internal/base"
-	"github.com/goplus/interp/cmd/internal/help"
-	"github.com/goplus/interp/cmd/internal/run"
-	"github.com/goplus/interp/cmd/internal/test"
+	"github.com/goplus/gossa/cmd/internal/base"
+	"github.com/goplus/gossa/cmd/internal/help"
+	"github.com/goplus/gossa/cmd/internal/run"
+	"github.com/goplus/gossa/cmd/internal/test"
+
+	_ "github.com/goplus/gossa/pkg"
 )
 
 func mainUsage() {
-	help.PrintUsage(os.Stderr, base.Igop)
+	help.PrintUsage(os.Stderr, base.Gossa)
 	os.Exit(2)
 }
 
 func init() {
 	base.Usage = mainUsage
-	base.Igop.Commands = []*base.Command{
+	base.Gossa.Commands = []*base.Command{
 		run.Cmd,
 		test.Cmd,
 	}
@@ -55,7 +57,7 @@ func main() {
 	}
 
 BigCmdLoop:
-	for bigCmd := base.Igop; ; {
+	for bigCmd := base.Gossa; ; {
 		for _, cmd := range bigCmd.Commands {
 			if cmd.Name() != args[0] {
 				continue
@@ -84,7 +86,7 @@ BigCmdLoop:
 		if i := strings.LastIndex(base.CmdName, " "); i >= 0 {
 			helpArg = " " + base.CmdName[:i]
 		}
-		fmt.Fprintf(os.Stderr, "igop %s: unknown command\nRun 'igop help%s' for usage.\n", base.CmdName, helpArg)
+		fmt.Fprintf(os.Stderr, "gossa %s: unknown command\nRun 'gossa help%s' for usage.\n", base.CmdName, helpArg)
 		os.Exit(2)
 	}
 }

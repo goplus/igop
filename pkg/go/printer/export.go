@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package printer
 
 import (
 	"go/printer"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("go/printer", extMap, typList)
+	gossa.RegisterPackage("go/printer", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

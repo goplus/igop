@@ -1,4 +1,4 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 //go:build darwin || freebsd || openbsd
 // +build darwin freebsd openbsd
@@ -8,11 +8,11 @@ package syscall
 import (
 	"syscall"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("syscall", extMap_874880614, typList_874880614)
+	gossa.RegisterPackage("syscall", extMap_874880614, typList_874880614)
 }
 
 var extMap_874880614 = map[string]interface{}{

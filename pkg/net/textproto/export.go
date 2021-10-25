@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package textproto
 
 import (
 	"net/textproto"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net/textproto", extMap, typList)
+	gossa.RegisterPackage("net/textproto", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

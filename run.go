@@ -1,4 +1,4 @@
-package interp
+package gossa
 
 import (
 	"errors"
@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goplus/interp/internal/gopfile"
+	"github.com/goplus/gossa/internal/gopfile"
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"

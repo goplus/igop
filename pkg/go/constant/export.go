@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package constant
 
 import (
 	"go/constant"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("go/constant", extMap, typList)
+	gossa.RegisterPackage("go/constant", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

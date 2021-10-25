@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package sha512
 
 import (
 	"crypto/sha512"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/sha512", extMap, typList)
+	gossa.RegisterPackage("crypto/sha512", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

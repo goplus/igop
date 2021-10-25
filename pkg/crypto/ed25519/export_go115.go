@@ -1,4 +1,4 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 //go:build go1.15
 // +build go1.15
@@ -8,11 +8,11 @@ package ed25519
 import (
 	"crypto/ed25519"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("crypto/ed25519", extMap_go115, typList_go115)
+	gossa.RegisterPackage("crypto/ed25519", extMap_go115, typList_go115)
 }
 
 var extMap_go115 = map[string]interface{}{

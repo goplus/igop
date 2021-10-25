@@ -1,4 +1,4 @@
-package interp
+package gossa
 
 import (
 	"go/ast"

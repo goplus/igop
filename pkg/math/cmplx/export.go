@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package cmplx
 
 import (
 	"math/cmplx"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("math/cmplx", extMap, typList)
+	gossa.RegisterPackage("math/cmplx", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

@@ -28,10 +28,9 @@ import (
 	"github.com/goplus/gop/parser"
 	"github.com/goplus/gop/scanner"
 	"github.com/goplus/gop/token"
+	"github.com/goplus/gossa"
+	"github.com/goplus/gossa/cmd/internal/base"
 	"github.com/goplus/gox"
-	"github.com/goplus/interp"
-	"github.com/goplus/interp/cmd/internal/base"
-	_ "github.com/goplus/interp/pkg"
 	"github.com/qiniu/x/log"
 	"golang.org/x/tools/go/packages"
 )
@@ -40,7 +39,7 @@ import (
 
 // Cmd - gop run
 var Cmd = &base.Command{
-	UsageLine: "igop run [-asm -quiet -debug -prof] <gopSrcDir|gopSrcFile>",
+	UsageLine: "gossa run [-asm -quiet -debug -prof] <gopSrcDir|gopSrcFile>",
 	Short:     "Run a Go+ program",
 }
 
@@ -187,7 +186,7 @@ func IsDir(target string) (bool, error) {
 func goRun(target string, args []string) {
 	dir, file := filepath.Split(target)
 	os.Chdir(dir)
-	err := interp.Run(0, file, args)
+	err := gossa.Run(0, file, args)
 	if err != nil {
 		os.Exit(2)
 	}

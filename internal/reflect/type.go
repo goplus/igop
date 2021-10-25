@@ -22,7 +22,7 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
-	"github.com/goplus/interp/internal/unsafeheader"
+	"github.com/goplus/gossa/internal/unsafeheader"
 )
 
 // Type is the representation of a Go type.

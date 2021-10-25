@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package ring
 
 import (
 	"container/ring"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("container/ring", extMap, typList)
+	gossa.RegisterPackage("container/ring", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

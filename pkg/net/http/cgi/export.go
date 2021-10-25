@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package cgi
 
 import (
 	"net/http/cgi"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net/http/cgi", extMap, typList)
+	gossa.RegisterPackage("net/http/cgi", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

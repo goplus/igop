@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package httputil
 
 import (
 	"net/http/httputil"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("net/http/httputil", extMap, typList)
+	gossa.RegisterPackage("net/http/httputil", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

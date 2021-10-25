@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package bufio
 
 import (
 	"bufio"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("bufio", extMap, typList)
+	gossa.RegisterPackage("bufio", extMap, typList)
 }
 
 var extMap = map[string]interface{}{

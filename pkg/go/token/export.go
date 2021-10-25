@@ -1,15 +1,15 @@
-// export by github.com/goplus/interp/cmd/qexp
+// export by github.com/goplus/gossa/cmd/qexp
 
 package token
 
 import (
 	"go/token"
 
-	"github.com/goplus/interp"
+	"github.com/goplus/gossa"
 )
 
 func init() {
-	interp.RegisterPackage("go/token", extMap, typList)
+	gossa.RegisterPackage("go/token", extMap, typList)
 }
 
 var extMap = map[string]interface{}{
