@@ -95,8 +95,9 @@ func (e runtimeError) Error() string {
 }
 
 // State shared between all interpreted goroutines.
-type interpreter struct {
+type Interp struct {
 	prog        *ssa.Program        // the SSA program
+	mainpkg     *ssa.Package        // the SSA main package
 	globals     map[ssa.Value]value // addresses of global variables (immutable)
 	mode        Mode                // interpreter options
 	sizes       types.Sizes         // the effective type-sizing function
@@ -104,17 +105,18 @@ type interpreter struct {
 	ctx         xtypes.Context
 	types       map[types.Type]reflect.Type
 	caller      *frame
+	record      *TypesRecord
 	typesMutex  sync.RWMutex
 	callerMutex sync.RWMutex
 }
 
-func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
+func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
 	i.typesMutex.RLock()
 	defer i.typesMutex.RUnlock()
 	return i.findTypeHelper(t)
 }
 
-func (i *interpreter) findTypeHelper(t reflect.Type) (types.Type, bool) {
+func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
 	for k, v := range i.types {
 		if v == t {
 			return k, true
@@ -126,6 +128,53 @@ func (i *interpreter) findTypeHelper(t reflect.Type) (types.Type, bool) {
 		}
 	}
 	return nil, false
+}
+
+func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
+	typ := fn.Type().(*types.Signature).Recv().Type()
+	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
+		return func(args []reflect.Value) []reflect.Value {
+			iargs := make([]value, len(args))
+			for i := 0; i < len(args); i++ {
+				iargs[i] = args[i].Interface()
+			}
+			i.callerMutex.RLock()
+			caller := i.caller
+			i.callerMutex.RUnlock()
+			r := call(i, caller, token.NoPos, f, iargs, nil)
+			switch mtyp.NumOut() {
+			case 0:
+				return nil
+			case 1:
+				if r == nil {
+					return []reflect.Value{reflect.New(mtyp.Out(0)).Elem()}
+				} else {
+					return []reflect.Value{reflect.ValueOf(r)}
+				}
+			default:
+				v, ok := r.(tuple)
+				if !ok {
+					panic(fmt.Errorf("result type must tuple: %T", v))
+				}
+				res := make([]reflect.Value, len(v))
+				for j := 0; j < len(v); j++ {
+					if v[j] == nil {
+						res[j] = reflect.New(mtyp.Out(j)).Elem()
+					} else {
+						res[j] = reflect.ValueOf(v[j])
+					}
+				}
+				return res
+			}
+		}
+	}
+	if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
+		return func(args []reflect.Value) []reflect.Value {
+			return v.Call(args)
+		}
+	}
+	panic(fmt.Sprintf("Not found func %v", fn))
+	return nil
 }
 
 func ptrCount(s string) (string, int) {
@@ -142,14 +191,14 @@ func isUntyped(typ types.Type) bool {
 	return ok && t.Info()&types.IsUntyped != 0
 }
 
-func (i *interpreter) toType(typ types.Type) reflect.Type {
-	if i.mode&EnableDumpTypes != 0 {
-		fmt.Fprintf(os.Stderr, "loadtypes %v\n", typ)
-	}
+func (i *Interp) toType(typ types.Type) reflect.Type {
 	if r := rtyp.Tcache.At(typ); r != nil {
 		return r.(reflect.Type)
 	}
-	return record.ToType(typ)
+	if i.mode&EnableDumpTypes != 0 {
+		fmt.Fprintf(os.Stderr, "dynamic type %v\n", typ)
+	}
+	return i.record.ToType(typ)
 
 	i.typesMutex.RLock()
 	tt, ok := i.types[typ]
@@ -207,7 +256,7 @@ type deferred struct {
 }
 
 type frame struct {
-	i                *interpreter
+	i                *Interp
 	caller           *frame
 	fn               *ssa.Function
 	block, prevBlock *ssa.BasicBlock
@@ -326,7 +375,7 @@ func (fr *frame) runDefers() {
 
 // lookupMethod returns the method set for type typ, which may be one
 // of the interpreter's fake types.
-func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Function {
+func lookupMethod(i *Interp, typ types.Type, meth *types.Func) *ssa.Function {
 	return i.prog.LookupMethod(typ, meth.Pkg(), meth.Name())
 }
 
@@ -870,7 +919,7 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
 //
-func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
+func call(i *Interp, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
 	i.callerMutex.Lock()
 	i.caller = caller
 	i.callerMutex.Unlock()
@@ -906,7 +955,7 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 // and lexical environment env, returning its result.
 // callpos is the position of the callsite.
 //
-func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
 	if i.mode&EnableTracing != 0 {
 		fset := fn.Prog.Fset
 		// TODO(adonovan): fix: loc() lies for external functions.
@@ -982,7 +1031,7 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 	return fr.result
 }
 
-func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+func callReflect(i *Interp, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
 	var ins []reflect.Value
 	typ := fn.Type()
 	if fn.Type().IsVariadic() {
@@ -1125,7 +1174,7 @@ func doRecover(caller *frame) value {
 }
 
 // setGlobal sets the value of a system-initialized global variable.
-func setGlobal(i *interpreter, pkg *ssa.Package, name string, v value) {
+func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 	// if g, ok := i.globals[pkg.Var(name)]; ok {
 	// 	*g = v
 	// 	return
@@ -1143,8 +1192,75 @@ func setGlobal(i *interpreter, pkg *ssa.Package, name string, v value) {
 //
 // The SSA program must include the "runtime" package.
 //
+
+func NewInterp(mainpkg *ssa.Package, mode Mode) *Interp {
+	i := &Interp{
+		prog:       mainpkg.Prog,
+		mainpkg:    mainpkg,
+		globals:    make(map[ssa.Value]value),
+		mode:       mode,
+		goroutines: 1,
+		types:      make(map[types.Type]reflect.Type),
+	}
+	i.record = NewTypesRecord(i)
+	i.record.Load(mainpkg)
+	for _, pkg := range i.prog.AllPackages() {
+		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
+			if i.mode&EnableDumpPackage != 0 {
+				fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
+			}
+			continue
+		}
+		if i.mode&EnableDumpPackage != 0 {
+			fmt.Fprintln(os.Stderr, "initialize", pkg)
+		}
+		// Initialize global storage.
+		for _, m := range pkg.Members {
+			switch v := m.(type) {
+			case *ssa.Global:
+				typ := i.toType(deref(v.Type()))
+				i.globals[v] = reflect.New(typ).Interface()
+			}
+		}
+	}
+	return i
+}
+
+func (i *Interp) Run(entry string) (r value, exitCode int) {
+	// Top-level error handler.
+	exitCode = 2
+	defer func() {
+		if exitCode != 2 || i.mode&DisableRecover != 0 {
+			return
+		}
+		switch p := recover().(type) {
+		case exitPanic:
+			exitCode = int(p)
+			return
+		case targetPanic:
+			fmt.Fprintln(os.Stderr, "panic:", toString(p.v))
+		case runtime.Error:
+			fmt.Fprintln(os.Stderr, "panic:", p.Error())
+		case string:
+			fmt.Fprintln(os.Stderr, "panic:", p)
+		case plainError:
+			fmt.Fprintln(os.Stderr, "panic:", p.Error())
+		default:
+			fmt.Fprintf(os.Stderr, "panic: unexpected type: %T: %v\n", p, p)
+		}
+	}()
+	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
+		r = call(i, nil, token.NoPos, mainFn, nil, nil)
+		exitCode = 0
+	} else {
+		fmt.Fprintln(os.Stderr, "No function.", entry)
+		exitCode = 1
+	}
+	return
+}
+
 func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
-	i := &interpreter{
+	i := &Interp{
 		prog:       mainpkg.Prog,
 		globals:    make(map[ssa.Value]value),
 		mode:       mode,

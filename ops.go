@@ -34,7 +34,7 @@ type exitPanic int
 
 // constValue returns the value of the constant with the
 // dynamic type tag appropriate for c.Type().
-func constValue(i *interpreter, c *ssa.Const) value {
+func constValue(i *Interp, c *ssa.Const) value {
 	if c.IsNil() {
 		t := c.Type()
 		return reflect.Zero(i.toType(t)).Interface()
@@ -1286,7 +1286,7 @@ failed:
 // It returns the extracted value on success, and panics on failure,
 // unless instr.CommaOk, in which case it always returns a "value,ok" tuple.
 //
-func typeAssert(i *interpreter, instr *ssa.TypeAssert, iv interface{}) value {
+func typeAssert(i *Interp, instr *ssa.TypeAssert, iv interface{}) value {
 	var v value
 	var err error
 	typ := i.toType(instr.AssertedType)
@@ -1385,7 +1385,7 @@ func print(b []byte) (int, error) {
 
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
-func callBuiltin(inter *interpreter, caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
+func callBuiltin(inter *Interp, caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
 	switch fn.Name() {
 	case "append":
 		if len(args) == 1 {
@@ -1656,7 +1656,7 @@ func convert(x interface{}, typ reflect.Type) interface{} {
 // interface itype.
 // On success it returns "", on failure, an error message.
 //
-func checkInterface(i *interpreter, itype *types.Interface, x iface) string {
+func checkInterface(i *Interp, itype *types.Interface, x iface) string {
 	if meth, _ := types.MissingMethod(x.t, itype, true); meth != nil {
 		return fmt.Sprintf("interface conversion: %v is not %v: missing method %s",
 			x.t, itype, meth.Name())

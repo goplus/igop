@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	record        = NewTypesRecord()
 	tyEmptyStruct = reflect.TypeOf((*struct{})(nil)).Elem()
 )
 
@@ -43,11 +42,18 @@ var basicTypes = [...]reflect.Type{
 	types.UntypedString:  reflect.TypeOf(""),
 }
 
-type TypesRecord struct {
+type FindMethod interface {
+	FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value
 }
 
-func NewTypesRecord() *TypesRecord {
-	return &TypesRecord{}
+type TypesRecord struct {
+	find FindMethod
+}
+
+func NewTypesRecord(find FindMethod) *TypesRecord {
+	return &TypesRecord{
+		find: find,
+	}
 }
 
 func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
@@ -155,6 +161,61 @@ func (r *TypesRecord) ToTypeList(tuple *types.Tuple) []reflect.Type {
 	return list
 }
 
+func isPointer(typ types.Type) bool {
+	_, ok := typ.Underlying().(*types.Pointer)
+	return ok
+}
+
+func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type {
+	methods := IntuitiveMethodSet(t)
+	numMethods := len(methods)
+	if numMethods == 0 {
+		return styp
+	}
+	var mcount, pcount int
+	for i := 0; i < numMethods; i++ {
+		sig := methods[i].Type().(*types.Signature)
+		pointer := isPointer(sig.Recv().Type())
+		if !pointer {
+			mcount++
+		}
+		pcount++
+	}
+	typ := reflectx.NewMethodSet(styp, mcount, pcount)
+	fn := func() error {
+		var ms []reflectx.Method
+		for i := 0; i < numMethods; i++ {
+			fn := methods[i].Obj().(*types.Func)
+			sig := methods[i].Type().(*types.Signature)
+			pointer := isPointer(sig.Recv().Type())
+			mtyp := r.ToType(sig)
+			var mfn func(args []reflect.Value) []reflect.Value
+			idx := methods[i].Index()
+			if len(idx) > 1 {
+				isptr := isPointer(fn.Type().Underlying().(*types.Signature).Recv().Type())
+				mfn = func(args []reflect.Value) []reflect.Value {
+					this := args[0].FieldByIndex(idx[:len(idx)-1])
+					if isptr && this.Kind() != reflect.Ptr {
+						this = this.Addr()
+					}
+					m := this.MethodByName(fn.Name())
+					return m.Call(args[1:])
+				}
+			} else {
+				mfn = r.find.FindMethod(mtyp, fn)
+			}
+			var pkgpath string
+			if pkg := fn.Pkg(); pkg != nil {
+				pkgpath = pkg.Path()
+			}
+			ms = append(ms, reflectx.MakeMethod(fn.Name(), pkgpath, pointer, mtyp, mfn))
+		}
+		return reflectx.SetMethodSet(typ, ms, false)
+	}
+	fn()
+	return typ
+}
+
 func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
 	switch d {
 	case types.SendRecv:
@@ -167,8 +228,8 @@ func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
 	return 0
 }
 
-func (r *TypesRecord) LoadType(typ types.Type) {
-	r.ToType(typ)
+func (r *TypesRecord) LoadType(typ types.Type) reflect.Type {
+	return r.ToType(typ)
 }
 
 func (r *TypesRecord) Load(pkg *ssa.Package) error {
@@ -241,4 +302,32 @@ func (r *TypesRecord) Load(pkg *ssa.Package) error {
 		}
 	}
 	return nil
+}
+
+// golang.org/x/tools/go/types/typeutil.IntuitiveMethodSet
+func IntuitiveMethodSet(T types.Type) []*types.Selection {
+	isPointerToConcrete := func(T types.Type) bool {
+		ptr, ok := T.(*types.Pointer)
+		return ok && !types.IsInterface(ptr.Elem())
+	}
+
+	var result []*types.Selection
+	mset := types.NewMethodSet(T)
+	if types.IsInterface(T) || isPointerToConcrete(T) {
+		for i, n := 0, mset.Len(); i < n; i++ {
+			result = append(result, mset.At(i))
+		}
+	} else {
+		// T is some other concrete type.
+		// Report methods of T and *T, preferring those of T.
+		pmset := types.NewMethodSet(types.NewPointer(T))
+		for i, n := 0, pmset.Len(); i < n; i++ {
+			meth := pmset.At(i)
+			if m := mset.Lookup(meth.Obj().Pkg(), meth.Obj().Name()); m != nil {
+				meth = m
+			}
+			result = append(result, meth)
+		}
+	}
+	return result
 }
