@@ -15,17 +15,40 @@ import (
 )
 
 var (
-	rtyp          = NewRtyp()
+	rtyp          = NewTypesLoader()
 	instPkgs      = make(map[string]*Package)
 	instTypesPkgs = make(map[string]*types.Package)
 )
+
+var (
+	basicTypes = make(map[string]*types.Basic)
+)
+
+var (
+	typesDummyStruct    = types.NewStruct(nil, nil)
+	typesDummySig       = types.NewSignature(nil, nil, nil, false)
+	typesError          = types.Universe.Lookup("error").Type()
+	typesEmptyInterface = types.NewInterfaceType(nil, nil)
+)
+
+var (
+	tyEmptyInterface = reflect.TypeOf((*interface{})(nil)).Elem()
+	tyErrorInterface = reflect.TypeOf((*error)(nil)).Elem()
+)
+
+func init() {
+	for i := types.Invalid; i < types.UntypedNil; i++ {
+		typ := types.Typ[i]
+		basicTypes[typ.String()] = typ
+	}
+}
 
 func loadTypesPackage(path string) (*types.Package, bool) {
 	if p, ok := instTypesPkgs[path]; ok {
 		return p, true
 	}
 	if pkg, ok := instPkgs[path]; ok {
-		err := rtyp.InsertPackage(pkg)
+		err := rtyp.InstallPackage(pkg)
 		if err != nil {
 			panic(fmt.Errorf("insert package %v failed: %v", path, err))
 		}
@@ -82,7 +105,7 @@ type Package struct {
 	Deps          map[string]string
 }
 
-type Rtyp struct {
+type TypesLoader struct {
 	Packages map[string]*types.Package
 	Rcache   map[reflect.Type]types.Type
 	Tcache   *typeutil.Map
@@ -90,15 +113,17 @@ type Rtyp struct {
 	curpkg   *Package
 }
 
-func NewRtyp() *Rtyp {
-	r := &Rtyp{
+func NewTypesLoader() *TypesLoader {
+	r := &TypesLoader{
 		Packages: make(map[string]*types.Package),
 		Rcache:   make(map[reflect.Type]types.Type),
 		Tcache:   &typeutil.Map{},
 		pkgs:     make(map[string]*Package),
 	}
-	r.Rcache[reflect.TypeOf((*error)(nil)).Elem()] = types.Universe.Lookup("error").Type()
-	r.Rcache[reflect.TypeOf((*interface{})(nil)).Elem()] = types.NewInterfaceType(nil, nil)
+	r.Rcache[tyErrorInterface] = typesError
+	r.Rcache[tyEmptyInterface] = typesEmptyInterface
+	// r.preload(typError, tyErrorInterface)
+	// r.preload(typEmptyInterface, tyErrorInterface)
 	return r
 }
 
@@ -106,7 +131,7 @@ var (
 	rinit = reflect.ValueOf(func() bool { return true })
 )
 
-func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
+func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
 	if _, ok := r.pkgs[pkg.Name]; ok {
 		return nil
 	}
@@ -143,29 +168,29 @@ func (r *Rtyp) InsertPackage(pkg *Package) (err error) {
 	return
 }
 
-func (r *Rtyp) InsertType(rt reflect.Type) {
+func (r *TypesLoader) InsertType(rt reflect.Type) {
 	r.ToType(rt)
 }
 
-func (r *Rtyp) InsertAlias(path string, rt reflect.Type) {
+func (r *TypesLoader) InsertAlias(path string, rt reflect.Type) {
 	p, name := r.parserNamed(path)
 	typ := r.ToType(rt)
 	p.Scope().Insert(types.NewTypeName(token.NoPos, p, name, typ))
 }
 
-func (r *Rtyp) InsertFunc(path string, v reflect.Value) {
+func (r *TypesLoader) InsertFunc(path string, v reflect.Value) {
 	p, name := r.parserNamed(path)
 	typ := r.ToType(v.Type())
 	p.Scope().Insert(types.NewFunc(token.NoPos, p, name, typ.(*types.Signature)))
 }
 
-func (r *Rtyp) InsertVar(path string, v reflect.Value) {
+func (r *TypesLoader) InsertVar(path string, v reflect.Value) {
 	p, name := r.parserNamed(path)
 	typ := r.ToType(v.Type())
 	p.Scope().Insert(types.NewVar(token.NoPos, p, name, typ))
 }
 
-func (r *Rtyp) InsertConstEx(path string, typ types.Type, c constant.Value) {
+func (r *TypesLoader) InsertConstEx(path string, typ types.Type, c constant.Value) {
 	p, name := r.parserNamed(path)
 	p.Scope().Insert(types.NewConst(token.NoPos, p, name, typ, c))
 }
@@ -178,7 +203,7 @@ func splitPath(path string) (pkg string, name string, ok bool) {
 	return path[:pos], path[pos+1:], true
 }
 
-func (r *Rtyp) parserNamed(path string) (*types.Package, string) {
+func (r *TypesLoader) parserNamed(path string) (*types.Package, string) {
 	if pkg, name, ok := splitPath(path); ok {
 		if p := r.GetPackage(pkg); p != nil {
 			return p, name
@@ -187,7 +212,7 @@ func (r *Rtyp) parserNamed(path string) (*types.Package, string) {
 	panic(fmt.Errorf("parse path failed: %v", path))
 }
 
-func (r *Rtyp) LookupType(typ string) types.Type {
+func (r *TypesLoader) LookupType(typ string) types.Type {
 	if t, ok := basicTypes[typ]; ok {
 		return t
 	}
@@ -195,12 +220,12 @@ func (r *Rtyp) LookupType(typ string) types.Type {
 	return p.Scope().Lookup(name).Type()
 }
 
-func (r *Rtyp) InsertTypedConst(path string, v TypedConst) {
+func (r *TypesLoader) InsertTypedConst(path string, v TypedConst) {
 	typ := r.ToType(v.Typ)
 	r.InsertConstEx(path, typ, v.Value)
 }
 
-func (r *Rtyp) InsertUntypedConst(path string, v UntypedConst) {
+func (r *TypesLoader) InsertUntypedConst(path string, v UntypedConst) {
 	var typ types.Type
 	if t, ok := basicTypes[v.Typ]; ok {
 		typ = t
@@ -210,18 +235,7 @@ func (r *Rtyp) InsertUntypedConst(path string, v UntypedConst) {
 	r.InsertConstEx(path, typ, v.Value)
 }
 
-var (
-	basicTypes = make(map[string]*types.Basic)
-)
-
-func init() {
-	for i := types.Invalid; i < types.UntypedNil; i++ {
-		typ := types.Typ[i]
-		basicTypes[typ.String()] = typ
-	}
-}
-
-func (r *Rtyp) GetPackage(pkg string) *types.Package {
+func (r *TypesLoader) GetPackage(pkg string) *types.Package {
 	if p, ok := r.Packages[pkg]; ok {
 		return p
 	}
@@ -250,7 +264,7 @@ func toDir(dir reflect.ChanDir) types.ChanDir {
 	panic("unreachable")
 }
 
-func (r *Rtyp) Insert(v reflect.Value) {
+func (r *TypesLoader) Insert(v reflect.Value) {
 	typ := r.ToType(v.Type())
 	if v.Kind() == reflect.Func {
 		name := runtime.FuncForPC(v.Pointer()).Name()
@@ -260,7 +274,7 @@ func (r *Rtyp) Insert(v reflect.Value) {
 	}
 }
 
-func (r *Rtyp) toFunc(recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
+func (r *TypesLoader) toFunc(recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
 	numIn := rt.NumIn()
 	numOut := rt.NumOut()
 	in := make([]*types.Var, numIn-inoff, numIn-inoff)
@@ -276,12 +290,7 @@ func (r *Rtyp) toFunc(recv *types.Var, inoff int, rt reflect.Type) *types.Signat
 	return types.NewSignature(recv, types.NewTuple(in...), types.NewTuple(out...), rt.IsVariadic())
 }
 
-var (
-	typDummy = types.NewStruct(nil, nil)
-	sigDummy = types.NewSignature(nil, nil, nil, false)
-)
-
-func (r *Rtyp) ToType(rt reflect.Type) types.Type {
+func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	if t, ok := r.Rcache[rt]; ok {
 		return t
 	}
@@ -338,7 +347,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 		imethods = make([]*types.Func, n, n)
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
-			sig := sigDummy
+			sig := typesDummySig
 			imethods[i] = types.NewFunc(token.NoPos, nil, im.Name, sig)
 		}
 		typ = types.NewInterfaceType(imethods, nil)
@@ -415,7 +424,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 				if im.Type != nil {
 					sig = r.toFunc(recv, 1, im.Type)
 				} else {
-					sig = sigDummy
+					sig = typesDummySig
 				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
@@ -427,7 +436,7 @@ func (r *Rtyp) ToType(rt reflect.Type) types.Type {
 				if im.Type != nil {
 					sig = r.toFunc(precv, 1, im.Type)
 				} else {
-					sig = sigDummy
+					sig = typesDummySig
 				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
