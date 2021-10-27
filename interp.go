@@ -149,6 +149,8 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	if r := rtyp.Tcache.At(typ); r != nil {
 		return r.(reflect.Type)
 	}
+	return record.ToType(typ)
+
 	i.typesMutex.RLock()
 	tt, ok := i.types[typ]
 	i.typesMutex.RUnlock()

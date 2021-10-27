@@ -1,17 +1,18 @@
 package gossa
 
 import (
+	"go/token"
 	"go/types"
-	"log"
 	"reflect"
 	"unsafe"
 
+	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/types/typeutil"
 )
 
 var (
-	record = NewTypesRecord()
+	record        = NewTypesRecord()
+	tyEmptyStruct = reflect.TypeOf((*struct{})(nil)).Elem()
 )
 
 var basicTypes = [...]reflect.Type{
@@ -43,24 +44,16 @@ var basicTypes = [...]reflect.Type{
 }
 
 type TypesRecord struct {
-	Tcache *typeutil.Map
 }
 
 func NewTypesRecord() *TypesRecord {
-	return &TypesRecord{
-		Tcache: &typeutil.Map{},
-	}
+	return &TypesRecord{}
 }
 
 func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
-	if rt := r.Tcache.At(typ); rt != nil {
-		return rt.(reflect.Type)
-	}
 	if rt := rtyp.Tcache.At(typ); rt != nil {
-		r.Tcache.Set(typ, rt)
 		return rt.(reflect.Type)
 	}
-	log.Printf("-----> %v: %T", typ, typ)
 	var rt reflect.Type
 	switch t := typ.(type) {
 	case *types.Basic:
@@ -85,14 +78,11 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 		elem := r.ToType(t.Elem())
 		rt = reflect.ChanOf(toReflectChanDir(t.Dir()), elem)
 	case *types.Struct:
-		//return toStructType(t, ctx)
-		panic("impl")
+		rt = r.toStructType(t)
 	case *types.Named:
-		panic("impl")
-		//return toNamedType(t, ctx)
+		rt = r.toNamedType(t)
 	case *types.Interface:
-		panic("impl")
-		//return toInterfaceType(t, ctx)
+		rt = r.toInterfaceType(t)
 	case *types.Signature:
 		in := r.ToTypeList(t.Params())
 		out := r.ToTypeList(t.Results())
@@ -100,8 +90,57 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 	default:
 		panic("unreachable")
 	}
-	r.Tcache.Set(typ, rt)
+	rtyp.Tcache.Set(typ, rt)
 	return rt
+}
+
+func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
+	if t.Empty() {
+		return tyEmptyInterface
+	}
+	panic("impl")
+	return nil
+}
+
+func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
+	name := t.Obj()
+	if name.Pkg() == nil {
+		if name.Name() == "error" {
+			return tyErrorInterface
+		}
+		return r.ToType(t.Underlying())
+	}
+	utype := r.ToType(t.Underlying())
+	typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), utype)
+	return typ
+}
+
+func (r *TypesRecord) toStructType(t *types.Struct) reflect.Type {
+	n := t.NumFields()
+	if n == 0 {
+		return tyEmptyStruct
+	}
+	flds := make([]reflect.StructField, n)
+	for i := 0; i < n; i++ {
+		flds[i] = r.toStructField(t.Field(i), t.Tag(i))
+	}
+	typ := reflectx.StructOf(flds)
+	return typ
+}
+
+func (r *TypesRecord) toStructField(v *types.Var, tag string) reflect.StructField {
+	name := v.Name()
+	typ := r.ToType(v.Type())
+	fld := reflect.StructField{
+		Name:      name,
+		Type:      typ,
+		Tag:       reflect.StructTag(tag),
+		Anonymous: v.Anonymous(),
+	}
+	if !token.IsExported(name) {
+		fld.PkgPath = v.Pkg().Path()
+	}
+	return fld
 }
 
 func (r *TypesRecord) ToTypeList(tuple *types.Tuple) []reflect.Type {
@@ -129,8 +168,7 @@ func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
 }
 
 func (r *TypesRecord) LoadType(typ types.Type) {
-	rt := r.ToType(typ)
-	log.Println("=======>", typ, rt)
+	r.ToType(typ)
 }
 
 func (r *TypesRecord) Load(pkg *ssa.Package) error {
@@ -141,7 +179,7 @@ func (r *TypesRecord) Load(pkg *ssa.Package) error {
 			continue
 		}
 		checked[typ] = true
-		// log.Println(k, v, v.Type())
+		r.LoadType(typ)
 		switch t := v.(type) {
 		case *ssa.NamedConst:
 			// if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
@@ -151,9 +189,7 @@ func (r *TypesRecord) Load(pkg *ssa.Package) error {
 			// }
 		case *ssa.Global:
 			// e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
-			r.LoadType(typ)
 		case *ssa.Function:
-			r.LoadType(typ)
 			// e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
 		case *ssa.Type:
 			// typ := t.Type()
@@ -204,8 +240,5 @@ func (r *TypesRecord) Load(pkg *ssa.Package) error {
 			panic("unreachable")
 		}
 	}
-
-	log.Println(r.Tcache.KeysString())
-
 	return nil
 }
