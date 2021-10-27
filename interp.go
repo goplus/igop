@@ -48,7 +48,6 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
-	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -74,9 +73,11 @@ const (
 type Mode uint
 
 const (
-	DisableRecover  Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	EnableTracing                    // Print a trace of all instructions as they are interpreted.
-	EnableDumpInstr                  //Print instr type & value
+	DisableRecover    Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	EnableTracing                      // Print a trace of all instructions as they are interpreted.
+	EnableDumpPackage                  // Print package
+	EnableDumpInstr                    // Print instr type & value
+	EnableDumpTypes                    // Print types to reflect
 )
 
 type plainError string
@@ -156,7 +157,9 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	if isUntyped(typ) {
 		typ = types.Default(typ)
 	}
-	log.Println("============", typ)
+	if i.mode&EnableDumpTypes != 0 {
+		fmt.Fprintf(os.Stderr, "loadtypes %v\n", typ)
+	}
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {
 		panic(fmt.Sprintf("toType %v error: %v", typ, err))
@@ -1216,12 +1219,12 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 
 	for _, pkg := range i.prog.AllPackages() {
 		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
-			if i.mode&EnableTracing != 0 {
+			if i.mode&EnableDumpPackage != 0 {
 				fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
 			}
 			continue
 		}
-		if i.mode&EnableTracing != 0 {
+		if i.mode&EnableDumpPackage != 0 {
 			fmt.Fprintln(os.Stderr, "initialize", pkg)
 		}
 		// Initialize global storage.

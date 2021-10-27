@@ -12,4 +12,6 @@ require (
 	golang.org/x/tools v0.1.7
 )
 
+replace github.com/goplus/spx => ../spx
 replace github.com/goplus/reflectx => ../reflectx
+replace github.com/goplus/xtypes => ../xtypes
