@@ -143,6 +143,9 @@ func isUntyped(typ types.Type) bool {
 }
 
 func (i *interpreter) toType(typ types.Type) reflect.Type {
+	if i.mode&EnableDumpTypes != 0 {
+		fmt.Fprintf(os.Stderr, "loadtypes %v\n", typ)
+	}
 	if r := rtyp.Tcache.At(typ); r != nil {
 		return r.(reflect.Type)
 	}
@@ -156,9 +159,6 @@ func (i *interpreter) toType(typ types.Type) reflect.Type {
 	defer i.typesMutex.Unlock()
 	if isUntyped(typ) {
 		typ = types.Default(typ)
-	}
-	if i.mode&EnableDumpTypes != 0 {
-		fmt.Fprintf(os.Stderr, "loadtypes %v\n", typ)
 	}
 	t, err := xtypes.ToType(typ, i.ctx)
 	if err != nil {

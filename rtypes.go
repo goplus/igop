@@ -21,7 +21,7 @@ var (
 )
 
 var (
-	basicTypes = make(map[string]*types.Basic)
+	basicTypeNames = make(map[string]*types.Basic)
 )
 
 var (
@@ -39,7 +39,7 @@ var (
 func init() {
 	for i := types.Invalid; i < types.UntypedNil; i++ {
 		typ := types.Typ[i]
-		basicTypes[typ.String()] = typ
+		basicTypeNames[typ.String()] = typ
 	}
 }
 
@@ -213,7 +213,7 @@ func (r *TypesLoader) parserNamed(path string) (*types.Package, string) {
 }
 
 func (r *TypesLoader) LookupType(typ string) types.Type {
-	if t, ok := basicTypes[typ]; ok {
+	if t, ok := basicTypeNames[typ]; ok {
 		return t
 	}
 	p, name := r.parserNamed(typ)
@@ -227,7 +227,7 @@ func (r *TypesLoader) InsertTypedConst(path string, v TypedConst) {
 
 func (r *TypesLoader) InsertUntypedConst(path string, v UntypedConst) {
 	var typ types.Type
-	if t, ok := basicTypes[v.Typ]; ok {
+	if t, ok := basicTypeNames[v.Typ]; ok {
 		typ = t
 	} else {
 		typ = r.LookupType(v.Typ)
@@ -252,7 +252,7 @@ func (r *TypesLoader) GetPackage(pkg string) *types.Package {
 	return p
 }
 
-func toDir(dir reflect.ChanDir) types.ChanDir {
+func toTypeChanDir(dir reflect.ChanDir) types.ChanDir {
 	switch dir {
 	case reflect.RecvDir:
 		return types.RecvOnly
@@ -338,7 +338,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		typ = types.NewArray(elem, int64(rt.Len()))
 	case reflect.Chan:
 		elem := r.ToType(rt.Elem())
-		dir := toDir(rt.ChanDir())
+		dir := toTypeChanDir(rt.ChanDir())
 		typ = types.NewChan(dir, elem)
 	case reflect.Func:
 		typ = r.toFunc(nil, 0, rt)

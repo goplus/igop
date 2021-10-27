@@ -57,5 +57,8 @@ func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, fil
 	// Create and build the primary package.
 	ssapkg := prog.CreatePackage(pkg, files, info, false)
 	ssapkg.Build()
+
+	record.Load(ssapkg)
+
 	return ssapkg, info, nil
 }
