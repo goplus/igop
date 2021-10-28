@@ -78,7 +78,8 @@ type Package struct {
 	Name          string
 	Path          string
 	Deps          []string
-	Types         []string
+	NamedTypes    []string
+	Interfaces    []string
 	AliasTypes    []string
 	Vars          []string
 	Funcs         []string
@@ -170,21 +171,20 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 					}
 					continue
 				}
-				var typeName string
-				switch t := typ.(type) {
-				case *types.Named:
-					typeName = t.Obj().Name()
-					e.Types = append(e.Types, fmt.Sprintf("reflect.TypeOf((*%v.%v)(nil))", pkgName, typeName))
-					if t.Obj().Pkg() != pkg.Pkg {
-						continue
-					}
-				case *types.Basic:
-					typeName = t.Name()
-					e.Types = append(e.Types, fmt.Sprintf("reflect.TypeOf((*%v.%v)(nil))", pkgName, typeName))
-				}
+				var ms, pms []string
+				recvId := typ.String()
+				typeName := typ.(*types.Named).Obj().Name()
 				methods := IntuitiveMethodSet(typ)
 				for _, method := range methods {
 					name := method.Obj().Name()
+					mid := method.Obj().Type().(*types.Signature).Recv().Type().String()
+					if mid[0] == '*' {
+						if mid[1:] == recvId {
+							pms = append(pms, name)
+						}
+					} else if mid == recvId {
+						ms = append(ms, name)
+					}
 					if token.IsExported(name) {
 						info := fmt.Sprintf("(%v).%v", method.Recv(), name)
 						if pkgPath == pkgName {
@@ -199,6 +199,12 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 							e.Methods = append(e.Methods, fmt.Sprintf("%q: reflect.ValueOf(%v)", info, fn))
 						}
 					}
+				}
+				if types.IsInterface(typ) {
+					e.Interfaces = append(e.Interfaces, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", pkgPath+"."+typeName, pkgName, typeName))
+				} else {
+					e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : {reflect.TypeOf((*%v.%v)(nil)).Elem(),\"%v\",\"%v\"}", pkgPath+"."+typeName, pkgName, typeName,
+						strings.Join(ms, ","), strings.Join(pms, ",")))
 				}
 			default:
 				panic("unreachable")

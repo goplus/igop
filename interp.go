@@ -48,6 +48,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -117,6 +118,14 @@ func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
 }
 
 func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
+	return rtyp.ToType(t), true
+
+	if rt, ok := rtyp.Rcache[t]; ok {
+		return rt, true
+	}
+
+	log.Println("---------- findTypeHelper", t, t.NumMethod(), rtyp.Rcache[t])
+
 	for k, v := range i.types {
 		if v == t {
 			return k, true
@@ -192,6 +201,8 @@ func isUntyped(typ types.Type) bool {
 }
 
 func (i *Interp) toType(typ types.Type) reflect.Type {
+	i.typesMutex.RLock()
+	defer i.typesMutex.RUnlock()
 	if r := rtyp.Tcache.At(typ); r != nil {
 		return r.(reflect.Type)
 	}
@@ -200,9 +211,7 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 	}
 	return i.record.ToType(typ)
 
-	i.typesMutex.RLock()
 	tt, ok := i.types[typ]
-	i.typesMutex.RUnlock()
 	if ok {
 		return tt
 	}

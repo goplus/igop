@@ -52,7 +52,8 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 		"$IMPORTS", strings.Join(imports, "\n"),
 		"$PKGPATH", pkg.Path,
 		"$DEPS", joinList(pkg.Deps),
-		"$TYPES", joinList(pkg.Types),
+		"$NAMEDTYPES", joinList(pkg.NamedTypes),
+		"$INTERFACES", joinList(pkg.Interfaces),
 		"$ALIASTYPES", joinList(pkg.AliasTypes),
 		"$VARS", joinList(pkg.Vars),
 		"$FUNCS", joinList(pkg.Funcs),
@@ -197,14 +198,15 @@ func init() {
 	gossa.InstallPackage(&gossa.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
-		Types: []reflect.Type{$TYPES},
+		Deps: map[string]string{$DEPS},
+		Interfaces: map[string]reflect.Type{$INTERFACES},
+		NamedTypes: map[string]gossa.NamedType{$NAMEDTYPES},
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
 		Methods: map[string]reflect.Value{$METHODS},
 		TypedConsts: map[string]gossa.TypedConst{$TYPEDCONSTS},
 		UntypedConsts: map[string]gossa.UntypedConst{$UNTYPEDCONSTS},
-		Deps: map[string]string{$DEPS},
 	})
 }
 `

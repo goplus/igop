@@ -1,6 +1,7 @@
 package gossa
 
 import (
+	"fmt"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -97,15 +98,28 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 		panic("unreachable")
 	}
 	rtyp.Tcache.Set(typ, rt)
+	rtyp.Rcache[rt] = typ
 	return rt
 }
 
 func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
-	if t.Empty() {
+	n := t.NumMethods()
+	if n == 0 {
 		return tyEmptyInterface
 	}
-	panic("impl")
-	return nil
+	ms := make([]reflect.Method, n, n)
+	for i := 0; i < n; i++ {
+		fn := t.Method(i)
+		mtyp := r.ToType(fn.Type())
+		ms[i] = reflect.Method{
+			Name: fn.Name(),
+			Type: mtyp,
+		}
+		if pkg := fn.Pkg(); pkg != nil {
+			ms[i].PkgPath = pkg.Path()
+		}
+	}
+	return reflectx.InterfaceOf(nil, ms)
 }
 
 func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
@@ -118,6 +132,9 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	}
 	utype := r.ToType(t.Underlying())
 	typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), utype)
+	if typ.Kind() != reflect.Interface {
+		typ = r.toMethodSet(t, typ)
+	}
 	return typ
 }
 
@@ -166,6 +183,10 @@ func isPointer(typ types.Type) bool {
 	return ok
 }
 
+func (r *TypesRecord) toMethodSet1(t *types.Named, styp reflect.Type) reflect.Type {
+	return styp
+}
+
 func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type {
 	methods := IntuitiveMethodSet(t)
 	numMethods := len(methods)
@@ -212,7 +233,10 @@ func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type 
 		}
 		return reflectx.SetMethodSet(typ, ms, false)
 	}
-	fn()
+	err := fn()
+	if err != nil {
+		panic(fmt.Errorf("SetMethodSet failed: %v", typ))
+	}
 	return typ
 }
 

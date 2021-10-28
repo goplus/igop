@@ -63,7 +63,12 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 
 func InstallPackage(pkg *Package) {
 	if p, ok := instPkgs[pkg.Path]; ok {
-		p.Types = append(p.Types, pkg.Types...)
+		for k, v := range pkg.Interfaces {
+			p.Interfaces[k] = v
+		}
+		for k, v := range pkg.NamedTypes {
+			p.NamedTypes[k] = v
+		}
 		for k, v := range pkg.Vars {
 			p.Vars[k] = v
 		}
@@ -92,10 +97,17 @@ type UntypedConst struct {
 	Value constant.Value
 }
 
+type NamedType struct {
+	Typ        reflect.Type
+	Methods    string
+	PtrMethods string
+}
+
 type Package struct {
 	Name          string
 	Path          string
-	Types         []reflect.Type
+	Interfaces    map[string]reflect.Type
+	NamedTypes    map[string]NamedType
 	AliasTypes    map[string]reflect.Type
 	Vars          map[string]reflect.Value
 	Funcs         map[string]reflect.Value
@@ -147,8 +159,11 @@ func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
 	if _, ok := pkg.Funcs[finit]; !ok {
 		pkg.Funcs[finit] = rinit
 	}
-	for _, typ := range pkg.Types {
-		r.InsertType(typ)
+	for name, typ := range pkg.Interfaces {
+		r.InsertInterface(name, typ)
+	}
+	for name, typ := range pkg.NamedTypes {
+		r.InsertNamedType(name, typ)
 	}
 	for name, typ := range pkg.AliasTypes {
 		r.InsertAlias(name, typ)
@@ -168,8 +183,12 @@ func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
 	return
 }
 
-func (r *TypesLoader) InsertType(rt reflect.Type) {
+func (r *TypesLoader) InsertInterface(path string, rt reflect.Type) {
 	r.ToType(rt)
+}
+
+func (r *TypesLoader) InsertNamedType(name string, t NamedType) {
+	r.ToType(t.Typ)
 }
 
 func (r *TypesLoader) InsertAlias(path string, rt reflect.Type) {
@@ -417,24 +436,54 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	}
 	if named != nil {
 		if kind != reflect.Interface {
+			var filter func(name string, ptr bool) bool
 			pkg := named.Obj().Pkg()
-			recv := types.NewVar(token.NoPos, nil, "", typ)
-			for _, im := range xcall.AllMethod(rt) {
-				var sig *types.Signature
-				if im.Type != nil {
-					sig = r.toFunc(recv, 1, im.Type)
-				} else {
-					sig = typesDummySig
+			if p, ok := r.pkgs[pkg.Path()]; ok {
+				if t, ok := p.NamedTypes[pkg.Path()+"."+named.Obj().Name()]; ok {
+					m := make(map[string]bool)
+					pm := make(map[string]bool)
+					for _, v := range strings.Split(t.Methods, ",") {
+						m[v] = true
+					}
+					for _, v := range strings.Split(t.PtrMethods, ",") {
+						pm[v] = true
+					}
+					filter = func(name string, ptr bool) bool {
+						if ptr {
+							return pm[name]
+						}
+						return m[name]
+					}
 				}
-				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, nil, "", ptyp)
+			skip := make(map[string]bool)
 			for _, im := range xcall.AllMethod(prt) {
+				if filter != nil && !filter(im.Name, true) {
+					continue
+				}
 				var sig *types.Signature
 				if im.Type != nil {
 					sig = r.toFunc(precv, 1, im.Type)
+				} else {
+					sig = typesDummySig
+				}
+				skip[im.Name] = true
+				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
+			}
+			recv := types.NewVar(token.NoPos, nil, "", typ)
+			for _, im := range xcall.AllMethod(rt) {
+				if skip[im.Name] {
+					continue
+				}
+				if filter != nil && !filter(im.Name, false) {
+					continue
+				}
+				var sig *types.Signature
+				if im.Type != nil {
+					sig = r.toFunc(recv, 1, im.Type)
 				} else {
 					sig = typesDummySig
 				}
