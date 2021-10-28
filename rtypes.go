@@ -156,7 +156,9 @@ func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
 	r.pkgs[pkg.Path] = pkg
 	r.curpkg = pkg
 	finit := pkg.Path + ".init"
-	if _, ok := pkg.Funcs[finit]; !ok {
+	if pkg.Funcs == nil {
+		pkg.Funcs = map[string]reflect.Value{finit: rinit}
+	} else if _, ok := pkg.Funcs[finit]; !ok {
 		pkg.Funcs[finit] = rinit
 	}
 	for name, typ := range pkg.Interfaces {

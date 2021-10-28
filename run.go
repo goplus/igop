@@ -84,7 +84,7 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 	return pkg, err
 }
 
-func loadFile(input string, src interface{}) (*ssa.Package, error) {
+func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 	if !filepath.IsAbs(input) {
 		wd, _ := os.Getwd()
 		input = filepath.Join(wd, input)
@@ -95,9 +95,9 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
-	if f.Name.Name != "main" {
-		return nil, ErrNotFoundMain
-	}
+	// if f.Name.Name != "main" {
+	// 	return nil, ErrNotFoundMain
+	// }
 	var hasOtherPkgs bool
 	for _, im := range f.Imports {
 		v, _ := strconv.Unquote(im.Path.Value)
@@ -108,7 +108,7 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	}
 	if !hasOtherPkgs {
 		impl := NewImporter()
-		pkg := types.NewPackage("main", "")
+		pkg := types.NewPackage(f.Name.Name, "")
 		var chkerr error
 		ssapkg, _, err := BuildPackage(&types.Config{
 			Importer: impl,
@@ -277,7 +277,7 @@ func RunFile(mode Mode, filename string, src interface{}, args []string) error {
 		}
 		src = data
 	}
-	pkg, err := loadFile(filename, src)
+	pkg, err := LoadFile(filename, src)
 	if err != nil {
 		return err
 	}
