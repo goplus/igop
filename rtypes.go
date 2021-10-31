@@ -10,8 +10,6 @@ import (
 	"strings"
 
 	"golang.org/x/tools/go/types/typeutil"
-
-	xcall "github.com/goplus/gossa/internal/reflect"
 )
 
 var (
@@ -462,7 +460,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, nil, "", ptyp)
 			skip := make(map[string]bool)
-			for _, im := range xcall.AllMethod(prt) {
+			for _, im := range AllMethod(prt) {
 				if filter != nil && !filter(im.Name, true) {
 					continue
 				}
@@ -476,7 +474,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			recv := types.NewVar(token.NoPos, nil, "", typ)
-			for _, im := range xcall.AllMethod(rt) {
+			for _, im := range AllMethod(rt) {
 				if skip[im.Name] {
 					continue
 				}
