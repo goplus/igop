@@ -677,7 +677,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		// v := reflect.ValueOf(fr.get(instr.X)).Elem()
 		// fr.env[instr] = reflectx.Field(v, instr.Field).Addr().Interface()
 		//fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
-		v, err := xtypes.FieldAddr(fr.get(instr.X), instr.Field)
+		v, err := FieldAddr(fr.get(instr.X), instr.Field)
 		if err != nil {
 			panic(runtimeError(err.Error()))
 		}
@@ -689,7 +689,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		// }
 		//fr.env[instr] = reflectx.Field(v, instr.Field).Interface()
 		//fr.env[instr] = fr.get(instr.X).(structure)[instr.Field]
-		v, err := xtypes.Field(fr.get(instr.X), instr.Field)
+		v, err := Field(fr.get(instr.X), instr.Field)
 		if err != nil {
 			panic(runtimeError(err.Error()))
 		}

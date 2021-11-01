@@ -1,22 +1,27 @@
-//go:build !go1.17
-// +build !go1.17
-
 package gossa
 
 import (
+	"errors"
 	"reflect"
 
 	"github.com/goplus/reflectx"
 )
 
-func AllMethod(typ reflect.Type) []reflect.Method {
-	n := reflectx.AllNumMethod(typ)
-	if n == 0 {
-		return nil
+func FieldAddr(v interface{}, index int) (interface{}, error) {
+	x := reflect.ValueOf(v).Elem()
+	if !x.IsValid() {
+		return nil, errors.New("invalid memory address or nil pointer dereference")
 	}
-	ms := make([]reflect.Method, n, n)
-	for i := 0; i < n; i++ {
-		ms[i] = reflectx.AllMethod(typ, i)
+	return reflectx.Field(x, index).Addr().Interface(), nil
+}
+
+func Field(v interface{}, index int) (interface{}, error) {
+	x := reflect.ValueOf(v)
+	for x.Kind() == reflect.Ptr {
+		x = x.Elem()
 	}
-	return ms
+	if !x.IsValid() {
+		return nil, errors.New("invalid memory address or nil pointer dereference")
+	}
+	return reflectx.Field(x, index).Interface(), nil
 }
