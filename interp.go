@@ -118,6 +118,7 @@ func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
 }
 
 func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
+	log.Println("===========>", t)
 	return rtyp.ToType(t), true
 
 	if rt, ok := rtyp.Rcache[t]; ok {

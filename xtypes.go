@@ -215,12 +215,26 @@ func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type 
 			if len(idx) > 1 {
 				isptr := isPointer(fn.Type().Underlying().(*types.Signature).Recv().Type())
 				mfn = func(args []reflect.Value) []reflect.Value {
-					this := args[0].FieldByIndex(idx[:len(idx)-1])
-					if isptr && this.Kind() != reflect.Ptr {
-						this = this.Addr()
+					v := args[0]
+					for v.Kind() == reflect.Ptr {
+						v = v.Elem()
 					}
-					m := this.MethodByName(fn.Name())
-					return m.Call(args[1:])
+					v = reflectx.FieldByIndex(v, idx[:len(idx)-1])
+					if isptr && v.Kind() != reflect.Ptr {
+						v = v.Addr()
+					}
+					m, _ := reflectx.MethodByName(v.Type(), fn.Name())
+					args[0] = v
+					return m.Func.Call(args)
+					// //return reflectx.MethodByName(args[0].Type(), fn.Name()).Func.Call(args)
+					// log.Println("=========", i, args, fn.Name(), idx, reflectx.MethodByIndex(args[0].Type(), idx[len(idx)-1]))
+					// return reflectx.MethodByIndex(args[0].Type(), idx[len(idx)-1]).Func.Call(args)
+					// this := reflectx.FieldByIndex(args[0], idx[:len(idx)-1])
+					// if isptr && this.Kind() != reflect.Ptr {
+					// 	this = this.Addr()
+					// }
+					// m := this.MethodByName(fn.Name())
+					// return m.Call(args[1:])
 				}
 			} else {
 				mfn = r.find.FindMethod(mtyp, fn)
