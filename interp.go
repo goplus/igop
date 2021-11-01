@@ -202,14 +202,14 @@ func isUntyped(typ types.Type) bool {
 }
 
 func (i *Interp) toType(typ types.Type) reflect.Type {
-	i.typesMutex.RLock()
-	defer i.typesMutex.RUnlock()
 	if r := rtyp.Tcache.At(typ); r != nil {
 		return r.(reflect.Type)
 	}
 	if i.mode&EnableDumpTypes != 0 {
 		fmt.Fprintf(os.Stderr, "dynamic type %v\n", typ)
 	}
+	i.typesMutex.Lock()
+	defer i.typesMutex.Unlock()
 	return i.record.ToType(typ)
 
 	tt, ok := i.types[typ]

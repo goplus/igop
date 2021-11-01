@@ -13,7 +13,94 @@ import (
 
 var (
 	tyEmptyStruct = reflect.TypeOf((*struct{})(nil)).Elem()
+	tyEmptyPtr    = reflect.TypeOf((*struct{})(nil))
+	tyEmptyMap    = reflect.TypeOf((*map[struct{}]struct{})(nil)).Elem()
+	tyEmptySlice  = reflect.TypeOf((*[]struct{})(nil)).Elem()
+	tyEmptyArray  = reflect.TypeOf((*[0]struct{})(nil)).Elem()
+	tyEmptyChan   = reflect.TypeOf((*chan struct{})(nil)).Elem()
+	tyEmptyFunc   = reflect.TypeOf((*func())(nil)).Elem()
 )
+
+/*
+	Array
+	Chan
+	Func
+	Interface
+	Map
+	Ptr
+	Slice
+	String
+	Struct
+	UnsafePointer
+*/
+
+func emptyType(kind reflect.Kind) reflect.Type {
+	switch kind {
+	case reflect.Array:
+		return tyEmptyArray
+	case reflect.Chan:
+		return tyEmptyChan
+	case reflect.Func:
+		return tyEmptyFunc
+	case reflect.Interface:
+		return tyEmptyInterface
+	case reflect.Map:
+		return tyEmptyMap
+	case reflect.Ptr:
+		return tyEmptyPtr
+	case reflect.Slice:
+		return tyEmptySlice
+	case reflect.Struct:
+		return tyEmptyStruct
+	default:
+		return basicTypes[kind]
+	}
+	panic(fmt.Errorf("emptyType: unreachable kind %v", kind))
+}
+
+func toEmptyType(typ types.Type) reflect.Type {
+	switch t := typ.(type) {
+	case *types.Basic:
+		kind := t.Kind()
+		if kind > types.Invalid && kind < types.UntypedNil {
+			return basicTypes[kind]
+		}
+		panic(fmt.Errorf("toEmptyType: invalid type %v", typ))
+	case *types.Pointer:
+		return tyEmptyPtr
+	case *types.Slice:
+		return tyEmptySlice
+	case *types.Array:
+		return tyEmptyArray
+	case *types.Map:
+		return tyEmptyMap
+	case *types.Chan:
+		return tyEmptyChan
+	case *types.Struct:
+		return tyEmptyStruct
+	case *types.Named:
+		return toEmptyType(typ.Underlying())
+	case *types.Interface:
+		return tyEmptyInterface
+	case *types.Signature:
+		in := t.Params().Len()
+		out := t.Results().Len()
+		if in+out == 0 {
+			return tyEmptyFunc
+		}
+		ins := make([]reflect.Type, in, in)
+		outs := make([]reflect.Type, out, out)
+		for i := 0; i < in; i++ {
+			ins[i] = tyEmptyStruct
+		}
+		for i := 0; i < out; i++ {
+			outs[i] = tyEmptyStruct
+		}
+		return reflect.FuncOf(ins, outs, t.Variadic())
+	default:
+		panic(fmt.Errorf("toEmptyType: unreachable %v", typ))
+	}
+}
 
 var basicTypes = [...]reflect.Type{
 	types.Bool:          reflect.TypeOf(false),
@@ -130,12 +217,37 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 		}
 		return r.ToType(t.Underlying())
 	}
-	utype := r.ToType(t.Underlying())
-	typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), utype)
-	if typ.Kind() != reflect.Interface {
-		typ = r.toMethodSet(t, typ)
+	methods := IntuitiveMethodSet(t)
+	numMethods := len(methods)
+	if numMethods == 0 {
+		styp := toEmptyType(t.Underlying())
+		typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), styp)
+		rtyp.Tcache.Set(t, typ)
+		rtyp.Rcache[typ] = t
+		utype := r.ToType(t.Underlying())
+		reflectx.SetUnderlying(typ, utype)
+		return typ
+	} else {
+		var mcount, pcount int
+		for i := 0; i < numMethods; i++ {
+			sig := methods[i].Type().(*types.Signature)
+			if !isPointer(sig.Recv().Type()) {
+				mcount++
+			}
+			pcount++
+		}
+		etyp := toEmptyType(t.Underlying())
+		styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
+		typ := reflectx.NewMethodSet(styp, mcount, pcount)
+		rtyp.Tcache.Set(t, typ)
+		rtyp.Rcache[typ] = t
+		utype := r.ToType(t.Underlying())
+		reflectx.SetUnderlying(typ, utype)
+		if typ.Kind() != reflect.Interface {
+			r.setMethods(typ, methods)
+		}
+		return typ
 	}
-	return typ
 }
 
 func (r *TypesRecord) toStructType(t *types.Struct) reflect.Type {
@@ -183,8 +295,41 @@ func isPointer(typ types.Type) bool {
 	return ok
 }
 
-func (r *TypesRecord) toMethodSet1(t *types.Named, styp reflect.Type) reflect.Type {
-	return styp
+func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) error {
+	numMethods := len(methods)
+	var ms []reflectx.Method
+	for i := 0; i < numMethods; i++ {
+		fn := methods[i].Obj().(*types.Func)
+		sig := methods[i].Type().(*types.Signature)
+		pointer := isPointer(sig.Recv().Type())
+		mtyp := r.ToType(sig)
+		var mfn func(args []reflect.Value) []reflect.Value
+		idx := methods[i].Index()
+		if len(idx) > 1 {
+			isptr := isPointer(fn.Type().Underlying().(*types.Signature).Recv().Type())
+			mfn = func(args []reflect.Value) []reflect.Value {
+				v := args[0]
+				for v.Kind() == reflect.Ptr {
+					v = v.Elem()
+				}
+				v = reflectx.FieldByIndex(v, idx[:len(idx)-1])
+				if isptr && v.Kind() != reflect.Ptr {
+					v = v.Addr()
+				}
+				m, _ := reflectx.MethodByName(v.Type(), fn.Name())
+				args[0] = v
+				return m.Func.Call(args)
+			}
+		} else {
+			mfn = r.find.FindMethod(mtyp, fn)
+		}
+		var pkgpath string
+		if pkg := fn.Pkg(); pkg != nil {
+			pkgpath = pkg.Path()
+		}
+		ms = append(ms, reflectx.MakeMethod(fn.Name(), pkgpath, pointer, mtyp, mfn))
+	}
+	return reflectx.SetMethodSet(typ, ms, false)
 }
 
 func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type {
@@ -226,15 +371,6 @@ func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type 
 					m, _ := reflectx.MethodByName(v.Type(), fn.Name())
 					args[0] = v
 					return m.Func.Call(args)
-					// //return reflectx.MethodByName(args[0].Type(), fn.Name()).Func.Call(args)
-					// log.Println("=========", i, args, fn.Name(), idx, reflectx.MethodByIndex(args[0].Type(), idx[len(idx)-1]))
-					// return reflectx.MethodByIndex(args[0].Type(), idx[len(idx)-1]).Func.Call(args)
-					// this := reflectx.FieldByIndex(args[0], idx[:len(idx)-1])
-					// if isptr && this.Kind() != reflect.Ptr {
-					// 	this = this.Addr()
-					// }
-					// m := this.MethodByName(fn.Name())
-					// return m.Call(args[1:])
 				}
 			} else {
 				mfn = r.find.FindMethod(mtyp, fn)
@@ -279,65 +415,6 @@ func (r *TypesRecord) Load(pkg *ssa.Package) error {
 		}
 		checked[typ] = true
 		r.LoadType(typ)
-		switch t := v.(type) {
-		case *ssa.NamedConst:
-			// if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
-			// 	e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: gossa.UntypedConst{%q, %v}", pkgPath+"."+t.Name(), t.Type().String(), p.constToLit(t.Value.Value)))
-			// } else {
-			// 	e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : gossa.TypedConst{reflect.TypeOf(%v), %v}", pkgPath+"."+t.Name(), pkgName+"."+t.Name(), p.constToLit(t.Value.Value)))
-			// }
-		case *ssa.Global:
-			// e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
-		case *ssa.Function:
-			// e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
-		case *ssa.Type:
-			// typ := t.Type()
-			// if obj, ok := t.Object().(*types.TypeName); ok && obj.IsAlias() {
-			// 	name := obj.Name()
-			// 	switch typ := obj.Type().(type) {
-			// 	case *types.Named:
-			// 		e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", pkgPath+"."+name, sname, name))
-			// 	case *types.Basic:
-			// 		e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", pkgPath+"."+name, typ.Name()))
-			// 	default:
-			// 		log.Panicln("error parser", typ)
-			// 	}
-			// 	continue
-			// }
-			// var typeName string
-			// switch t := typ.(type) {
-			// case *types.Named:
-			// 	typeName = t.Obj().Name()
-			// 	e.Types = append(e.Types, fmt.Sprintf("reflect.TypeOf((*%v.%v)(nil))", pkgName, typeName))
-			// 	if t.Obj().Pkg() != pkg.Pkg {
-			// 		continue
-			// 	}
-			// case *types.Basic:
-			// 	typeName = t.Name()
-			// 	e.Types = append(e.Types, fmt.Sprintf("reflect.TypeOf((*%v.%v)(nil))", pkgName, typeName))
-			// }
-			// methods := IntuitiveMethodSet(typ)
-			// for _, method := range methods {
-			// 	name := method.Obj().Name()
-			// 	if token.IsExported(name) {
-			// 		info := fmt.Sprintf("(%v).%v", method.Recv(), name)
-			// 		if pkgPath == pkgName {
-			// 			e.Methods = append(e.Methods, fmt.Sprintf("%q : reflect.ValueOf(%v)", info, info))
-			// 		} else {
-			// 			var fn string
-			// 			if isPointer(method.Recv()) {
-			// 				fn = fmt.Sprintf("(*%v.%v).%v", pkgName, typeName, name)
-			// 			} else {
-			// 				fn = fmt.Sprintf("(%v.%v).%v", pkgName, typeName, name)
-			// 			}
-			// 			e.Methods = append(e.Methods, fmt.Sprintf("%q: reflect.ValueOf(%v)", info, fn))
-			// 		}
-			// 	}
-			// }
-		default:
-			_ = t
-			panic("unreachable")
-		}
 	}
 	return nil
 }
