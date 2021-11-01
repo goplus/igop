@@ -1044,21 +1044,16 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 func callReflect(i *Interp, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
 	var ins []reflect.Value
 	typ := fn.Type()
-	if fn.Type().IsVariadic() {
-		for i := 0; i < len(args); i++ {
-			if i == len(args)-1 {
-				v := reflect.ValueOf(args[len(args)-1])
-				for j := 0; j < v.Len(); j++ {
-					ins = append(ins, v.Index(j))
-				}
+	isVariadic := fn.Type().IsVariadic()
+	if isVariadic {
+		for i := 0; i < len(args)-1; i++ {
+			if args[i] == nil {
+				ins = append(ins, reflect.New(typ.In(i)).Elem())
 			} else {
-				if args[i] == nil {
-					ins = append(ins, reflect.New(typ.In(i)).Elem())
-				} else {
-					ins = append(ins, reflect.ValueOf(args[i]))
-				}
+				ins = append(ins, reflect.ValueOf(args[i]))
 			}
 		}
+		ins = append(ins, reflect.ValueOf(args[len(args)-1]))
 	} else {
 		ins = make([]reflect.Value, len(args), len(args))
 		for i := 0; i < len(args); i++ {
@@ -1070,7 +1065,11 @@ func callReflect(i *Interp, caller *frame, callpos token.Pos, fn reflect.Value, 
 		}
 	}
 	var results []reflect.Value
-	results = fn.Call(ins)
+	if isVariadic {
+		results = fn.CallSlice(ins)
+	} else {
+		results = fn.Call(ins)
+	}
 	switch len(results) {
 	case 0:
 		return nil
