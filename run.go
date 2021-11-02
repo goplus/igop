@@ -116,7 +116,7 @@ func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 				fmt.Fprintln(os.Stderr, err)
 				chkerr = ErrPackage
 			},
-		}, fset, pkg, []*ast.File{f}, ssa.NaiveForm) //ssa.SanityCheckFunctions)
+		}, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
 		if chkerr != nil {
 			return nil, chkerr
 		}
