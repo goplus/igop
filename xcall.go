@@ -12,7 +12,7 @@ func FieldAddr(v interface{}, index int) (interface{}, error) {
 	if !x.IsValid() {
 		return nil, errors.New("invalid memory address or nil pointer dereference")
 	}
-	return reflectx.Field(x, index).Addr().Interface(), nil
+	return reflectx.FieldX(x, index).Addr().Interface(), nil
 }
 
 func Field(v interface{}, index int) (interface{}, error) {
@@ -23,5 +23,5 @@ func Field(v interface{}, index int) (interface{}, error) {
 	if !x.IsValid() {
 		return nil, errors.New("invalid memory address or nil pointer dereference")
 	}
-	return reflectx.Field(x, index).Interface(), nil
+	return reflectx.FieldX(x, index).Interface(), nil
 }
