@@ -48,7 +48,6 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
-	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -114,19 +113,13 @@ type Interp struct {
 func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
 	i.typesMutex.RLock()
 	defer i.typesMutex.RUnlock()
-	return i.findTypeHelper(t)
+	return inst.ToType(t), true
 }
 
 func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
-	log.Println("===========>", t)
-	return rtyp.ToType(t), true
-
-	if rt, ok := rtyp.Rcache[t]; ok {
+	if rt, ok := inst.Rcache[t]; ok {
 		return rt, true
 	}
-
-	log.Println("---------- findTypeHelper", t, t.NumMethod(), rtyp.Rcache[t])
-
 	for k, v := range i.types {
 		if v == t {
 			return k, true
@@ -204,7 +197,7 @@ func isUntyped(typ types.Type) bool {
 func (i *Interp) toType(typ types.Type) reflect.Type {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	if r := rtyp.Tcache.At(typ); r != nil {
+	if r := inst.Tcache.At(typ); r != nil {
 		return r.(reflect.Type)
 	}
 	if i.mode&EnableDumpTypes != 0 {
@@ -1361,7 +1354,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		panic(fmt.Sprintf("Not found func %v", fn))
 		return nil
 	}, func(name *types.TypeName) (reflect.Type, bool) {
-		if t := rtyp.Tcache.At(name.Type()); t != nil {
+		if t := inst.Tcache.At(name.Type()); t != nil {
 			return t.(reflect.Type), true
 		}
 		if typ, ok := externTypes[name.Type().String()]; ok {
@@ -1369,7 +1362,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		}
 		return nil, false
 	}, func(typ types.Type) (reflect.Type, bool) {
-		if t := rtyp.Tcache.At(typ); t != nil {
+		if t := inst.Tcache.At(typ); t != nil {
 			return t.(reflect.Type), true
 		}
 		if t, ok := i.types[typ]; ok {

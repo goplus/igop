@@ -48,7 +48,7 @@ func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, fil
 	createAll(pkg.Imports())
 
 	// create other depends
-	for _, p := range rtyp.Packages {
+	for _, p := range inst.Packages {
 		if !created[p] {
 			prog.CreatePackage(p, nil, nil, true)
 		}

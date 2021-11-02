@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	rtyp          = NewTypesLoader()
+	inst          = NewTypesLoader()
 	instPkgs      = make(map[string]*Package)
 	instTypesPkgs = make(map[string]*types.Package)
 )
@@ -46,11 +46,11 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 		return p, true
 	}
 	if pkg, ok := instPkgs[path]; ok {
-		err := rtyp.InstallPackage(pkg)
+		err := inst.InstallPackage(pkg)
 		if err != nil {
 			panic(fmt.Errorf("insert package %v failed: %v", path, err))
 		}
-		if p, ok := rtyp.Packages[path]; ok {
+		if p, ok := inst.Packages[path]; ok {
 			p.MarkComplete()
 			instTypesPkgs[path] = p
 			return p, true

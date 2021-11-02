@@ -145,7 +145,7 @@ func NewTypesRecord(find FindMethod) *TypesRecord {
 }
 
 func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
-	if rt := rtyp.Tcache.At(typ); rt != nil {
+	if rt := inst.Tcache.At(typ); rt != nil {
 		return rt.(reflect.Type)
 	}
 	var rt reflect.Type
@@ -184,8 +184,8 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 	default:
 		panic("unreachable")
 	}
-	rtyp.Tcache.Set(typ, rt)
-	rtyp.Rcache[rt] = typ
+	inst.Tcache.Set(typ, rt)
+	inst.Rcache[rt] = typ
 	return rt
 }
 
@@ -222,8 +222,8 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	if numMethods == 0 {
 		styp := toEmptyType(t.Underlying())
 		typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), styp)
-		rtyp.Tcache.Set(t, typ)
-		rtyp.Rcache[typ] = t
+		inst.Tcache.Set(t, typ)
+		inst.Rcache[typ] = t
 		utype := r.ToType(t.Underlying())
 		reflectx.SetUnderlying(typ, utype)
 		return typ
@@ -239,8 +239,8 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 		etyp := toEmptyType(t.Underlying())
 		styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
 		typ := reflectx.NewMethodSet(styp, mcount, pcount)
-		rtyp.Tcache.Set(t, typ)
-		rtyp.Rcache[typ] = t
+		inst.Tcache.Set(t, typ)
+		inst.Rcache[typ] = t
 		utype := r.ToType(t.Underlying())
 		reflectx.SetUnderlying(typ, utype)
 		if typ.Kind() != reflect.Interface {
