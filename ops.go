@@ -1135,8 +1135,8 @@ func equalStruct(vx, vy reflect.Value) bool {
 		if f.Name == "_" {
 			continue
 		}
-		fx := reflectx.FieldByIndex(vx, f.Index)
-		fy := reflectx.FieldByIndex(vy, f.Index)
+		fx := reflectx.FieldByIndexX(vx, f.Index)
+		fy := reflectx.FieldByIndexX(vy, f.Index)
 		// check uncomparable
 		switch f.Type.Kind() {
 		case reflect.Slice, reflect.Map, reflect.Func:

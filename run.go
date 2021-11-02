@@ -150,7 +150,7 @@ func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 	list[0].PkgPath = "main"
 	// hack fix types.Types.Path() command-line-arguments
 	v := reflect.ValueOf(list[0].Types).Elem()
-	reflectx.Field(v, 0).SetString("main")
+	reflectx.FieldX(v, 0).SetString("main")
 	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
 	prog.Build()
 	mainPkgs := ssautil.MainPackages(pkgs)

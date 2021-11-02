@@ -312,7 +312,7 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) e
 				for v.Kind() == reflect.Ptr {
 					v = v.Elem()
 				}
-				v = reflectx.FieldByIndex(v, idx[:len(idx)-1])
+				v = reflectx.FieldByIndexX(v, idx[:len(idx)-1])
 				if isptr && v.Kind() != reflect.Ptr {
 					v = v.Addr()
 				}
@@ -364,7 +364,7 @@ func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type 
 					for v.Kind() == reflect.Ptr {
 						v = v.Elem()
 					}
-					v = reflectx.FieldByIndex(v, idx[:len(idx)-1])
+					v = reflectx.FieldByIndexX(v, idx[:len(idx)-1])
 					if isptr && v.Kind() != reflect.Ptr {
 						v = v.Addr()
 					}

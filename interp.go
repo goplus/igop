@@ -111,8 +111,8 @@ type Interp struct {
 }
 
 func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
-	i.typesMutex.RLock()
-	defer i.typesMutex.RUnlock()
+	i.typesMutex.Lock()
+	defer i.typesMutex.Unlock()
 	return inst.ToType(t), true
 }
 
