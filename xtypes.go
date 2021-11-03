@@ -344,64 +344,6 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) e
 	return reflectx.SetMethodSet(typ, ms, false)
 }
 
-func (r *TypesRecord) toMethodSet(t types.Type, styp reflect.Type) reflect.Type {
-	methods := IntuitiveMethodSet(t)
-	numMethods := len(methods)
-	if numMethods == 0 {
-		return styp
-	}
-	var mcount, pcount int
-	for i := 0; i < numMethods; i++ {
-		sig := methods[i].Type().(*types.Signature)
-		pointer := isPointer(sig.Recv().Type())
-		if !pointer {
-			mcount++
-		}
-		pcount++
-	}
-	typ := reflectx.NewMethodSet(styp, mcount, pcount)
-	fn := func() error {
-		var ms []reflectx.Method
-		for i := 0; i < numMethods; i++ {
-			fn := methods[i].Obj().(*types.Func)
-			sig := methods[i].Type().(*types.Signature)
-			pointer := isPointer(sig.Recv().Type())
-			mtyp := r.ToType(sig)
-			var mfn func(args []reflect.Value) []reflect.Value
-			idx := methods[i].Index()
-			if len(idx) > 1 {
-				isptr := isPointer(fn.Type().Underlying().(*types.Signature).Recv().Type())
-				mfn = func(args []reflect.Value) []reflect.Value {
-					v := args[0]
-					for v.Kind() == reflect.Ptr {
-						v = v.Elem()
-					}
-					v = reflectx.FieldByIndexX(v, idx[:len(idx)-1])
-					if isptr && v.Kind() != reflect.Ptr {
-						v = v.Addr()
-					}
-					m, _ := reflectx.MethodByName(v.Type(), fn.Name())
-					args[0] = v
-					return m.Func.Call(args)
-				}
-			} else {
-				mfn = r.find.FindMethod(mtyp, fn)
-			}
-			var pkgpath string
-			if pkg := fn.Pkg(); pkg != nil {
-				pkgpath = pkg.Path()
-			}
-			ms = append(ms, reflectx.MakeMethod(fn.Name(), pkgpath, pointer, mtyp, mfn))
-		}
-		return reflectx.SetMethodSet(typ, ms, false)
-	}
-	err := fn()
-	if err != nil {
-		panic(fmt.Errorf("SetMethodSet failed: %v", typ))
-	}
-	return typ
-}
-
 func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
 	switch d {
 	case types.SendRecv:
@@ -425,6 +367,7 @@ func (r *TypesRecord) Load(pkg *ssa.Package) {
 		if checked[typ] {
 			continue
 		}
+		checked[typ] = true
 		r.LoadType(typ)
 	}
 }
