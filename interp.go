@@ -618,8 +618,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			// new
 			//addr = new(value)
 			//fr.env[instr] = addr
-			v := reflect.New(typ)         //.Interface()
-			fr.env[instr] = v.Interface() //reflect.New(typ).Interface()
+			fr.env[instr] = reflect.New(typ).Interface()
 		} else {
 			//fr.env[instr] = fr.locals[instr]
 			// local

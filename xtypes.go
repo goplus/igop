@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
+	"strconv"
 	"unsafe"
 
 	"github.com/goplus/reflectx"
@@ -58,28 +59,37 @@ func emptyType(kind reflect.Kind) reflect.Type {
 	panic(fmt.Errorf("emptyType: unreachable kind %v", kind))
 }
 
-func toEmptyType(typ types.Type) reflect.Type {
+func toMockType(typ types.Type) reflect.Type {
 	switch t := typ.(type) {
 	case *types.Basic:
 		kind := t.Kind()
 		if kind > types.Invalid && kind < types.UntypedNil {
 			return basicTypes[kind]
 		}
-		panic(fmt.Errorf("toEmptyType: invalid type %v", typ))
+		panic(fmt.Errorf("toMockType: invalid type %v", typ))
 	case *types.Pointer:
 		return tyEmptyPtr
 	case *types.Slice:
 		return tyEmptySlice
 	case *types.Array:
-		return tyEmptyArray
+		e := toMockType(t.Elem())
+		return reflect.ArrayOf(int(t.Len()), e)
 	case *types.Map:
 		return tyEmptyMap
 	case *types.Chan:
 		return tyEmptyChan
 	case *types.Struct:
-		return tyEmptyStruct
+		n := t.NumFields()
+		fs := make([]reflect.StructField, n, n)
+		for i := 0; i < n; i++ {
+			ft := t.Field(i)
+			fs[i].Name = "F" + strconv.Itoa(i)
+			fs[i].Type = toMockType(ft.Type())
+			fs[i].Anonymous = ft.Embedded()
+		}
+		return reflect.StructOf(fs)
 	case *types.Named:
-		return toEmptyType(typ.Underlying())
+		return toMockType(typ.Underlying())
 	case *types.Interface:
 		return tyEmptyInterface
 	case *types.Signature:
@@ -210,21 +220,22 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 }
 
 func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
+	ut := t.Underlying()
 	name := t.Obj()
 	if name.Pkg() == nil {
 		if name.Name() == "error" {
 			return tyErrorInterface
 		}
-		return r.ToType(t.Underlying())
+		return r.ToType(ut)
 	}
 	methods := IntuitiveMethodSet(t)
 	numMethods := len(methods)
 	if numMethods == 0 {
-		styp := toEmptyType(t.Underlying())
+		styp := toMockType(t.Underlying())
 		typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), styp)
 		inst.Tcache.Set(t, typ)
 		inst.Rcache[typ] = t
-		utype := r.ToType(t.Underlying())
+		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
 		return typ
 	} else {
@@ -236,12 +247,13 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 			}
 			pcount++
 		}
-		etyp := toEmptyType(t.Underlying())
+		// toMockType for size/align
+		etyp := toMockType(ut)
 		styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
 		typ := reflectx.NewMethodSet(styp, mcount, pcount)
 		inst.Tcache.Set(t, typ)
 		inst.Rcache[typ] = t
-		utype := r.ToType(t.Underlying())
+		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
 		if typ.Kind() != reflect.Interface {
 			r.setMethods(typ, methods)
@@ -406,17 +418,15 @@ func (r *TypesRecord) LoadType(typ types.Type) reflect.Type {
 	return r.ToType(typ)
 }
 
-func (r *TypesRecord) Load(pkg *ssa.Package) error {
+func (r *TypesRecord) Load(pkg *ssa.Package) {
 	checked := make(map[types.Type]bool)
 	for _, v := range pkg.Members {
 		typ := v.Type()
 		if checked[typ] {
 			continue
 		}
-		checked[typ] = true
 		r.LoadType(typ)
 	}
-	return nil
 }
 
 // golang.org/x/tools/go/types/typeutil.IntuitiveMethodSet
