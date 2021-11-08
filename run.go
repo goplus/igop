@@ -151,7 +151,7 @@ func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 	// hack fix types.Types.Path() command-line-arguments
 	v := reflect.ValueOf(list[0].Types).Elem()
 	reflectx.FieldX(v, 0).SetString("main")
-	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
+	prog, pkgs := ssautil.AllPackages(list, ssa.NaiveForm)
 	prog.Build()
 	mainPkgs := ssautil.MainPackages(pkgs)
 	if len(mainPkgs) == 0 {
