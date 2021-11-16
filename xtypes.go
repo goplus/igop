@@ -145,18 +145,20 @@ type FindMethod interface {
 }
 
 type TypesRecord struct {
-	find FindMethod
+	cached TypeCached
+	finder FindMethod
 }
 
-func NewTypesRecord(find FindMethod) *TypesRecord {
+func NewTypesRecord(cached TypeCached, finder FindMethod) *TypesRecord {
 	return &TypesRecord{
-		find: find,
+		cached: cached,
+		finder: finder,
 	}
 }
 
 func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
-	if rt := inst.Tcache.At(typ); rt != nil {
-		return rt.(reflect.Type)
+	if rt, ok := r.cached.LoadType(typ); ok {
+		return rt
 	}
 	var rt reflect.Type
 	switch t := typ.(type) {
@@ -194,8 +196,7 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 	default:
 		panic("unreachable")
 	}
-	inst.Tcache.Set(typ, rt)
-	inst.Rcache[rt] = typ
+	r.cached.SaveType(typ, rt)
 	return rt
 }
 
@@ -233,8 +234,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	if numMethods == 0 {
 		styp := toMockType(t.Underlying())
 		typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), styp)
-		inst.Tcache.Set(t, typ)
-		inst.Rcache[typ] = t
+		r.cached.SaveType(t, typ)
 		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
 		return typ
@@ -251,8 +251,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 		etyp := toMockType(ut)
 		styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
 		typ := reflectx.NewMethodSet(styp, mcount, pcount)
-		inst.Tcache.Set(t, typ)
-		inst.Rcache[typ] = t
+		r.cached.SaveType(t, typ)
 		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
 		if typ.Kind() != reflect.Interface {
@@ -333,7 +332,7 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) e
 				return m.Func.Call(args)
 			}
 		} else {
-			mfn = r.find.FindMethod(mtyp, fn)
+			mfn = r.finder.FindMethod(mtyp, fn)
 		}
 		var pkgpath string
 		if pkg := fn.Pkg(); pkg != nil {

@@ -360,7 +360,7 @@ func RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry string, args []
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	interp := NewInterp(mainPkg, mode)
+	interp := newInterp(mainPkg, mode)
 	interp.Run("init")
 	_, exitCode := interp.Run(entry)
 	if exitCode != 0 {

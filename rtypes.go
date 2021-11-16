@@ -115,6 +115,11 @@ type Package struct {
 	Deps          map[string]string
 }
 
+type TypeCached interface {
+	LoadType(typ types.Type) (reflect.Type, bool)
+	SaveType(typ types.Type, rt reflect.Type)
+}
+
 type TypesLoader struct {
 	Packages map[string]*types.Package
 	Rcache   map[reflect.Type]types.Type
@@ -135,6 +140,18 @@ func NewTypesLoader() *TypesLoader {
 	// r.preload(typError, tyErrorInterface)
 	// r.preload(typEmptyInterface, tyErrorInterface)
 	return r
+}
+
+func (r *TypesLoader) LoadType(typ types.Type) (reflect.Type, bool) {
+	if rt := r.Tcache.At(typ); rt != nil {
+		return rt.(reflect.Type), true
+	}
+	return nil, false
+}
+
+func (r *TypesLoader) SaveType(typ types.Type, rt reflect.Type) {
+	r.Tcache.Set(typ, rt)
+	r.Rcache[rt] = typ
 }
 
 var (

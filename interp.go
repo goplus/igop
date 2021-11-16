@@ -105,6 +105,7 @@ type Interp struct {
 	ctx         xtypes.Context
 	types       map[types.Type]reflect.Type
 	caller      *frame
+	inst        *TypesLoader
 	record      *TypesRecord
 	typesMutex  sync.RWMutex
 	callerMutex sync.RWMutex
@@ -1234,7 +1235,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 // return i
 // }
 
-func NewInterp(mainpkg *ssa.Package, mode Mode) *Interp {
+func newInterp(mainpkg *ssa.Package, mode Mode) *Interp {
 	i := &Interp{
 		prog:       mainpkg.Prog,
 		mainpkg:    mainpkg,
@@ -1243,7 +1244,7 @@ func NewInterp(mainpkg *ssa.Package, mode Mode) *Interp {
 		goroutines: 1,
 		types:      make(map[types.Type]reflect.Type),
 	}
-	i.record = NewTypesRecord(i)
+	i.record = NewTypesRecord(inst, i)
 	i.record.Load(mainpkg)
 	for _, pkg := range i.prog.AllPackages() {
 		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
