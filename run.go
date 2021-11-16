@@ -346,7 +346,7 @@ func RunTestPkg(pkgs []*ssa.Package, mode Mode, input string, args []string) {
 	}
 	for _, pkg := range testPkgs {
 		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		if code := Interpret(pkg, mode, "main"); code != 0 {
+		if code := _Interpret(pkg, mode, "main"); code != 0 {
 			failed = true
 		}
 	}
@@ -360,7 +360,7 @@ func RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry string, args []
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	interp := newInterp(mainPkg, mode)
+	interp := newInterp(inst, mainPkg, mode)
 	interp.Run("init")
 	_, exitCode := interp.Run(entry)
 	if exitCode != 0 {

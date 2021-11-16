@@ -137,8 +137,6 @@ func NewTypesLoader() *TypesLoader {
 	}
 	r.Rcache[tyErrorInterface] = typesError
 	r.Rcache[tyEmptyInterface] = typesEmptyInterface
-	// r.preload(typError, tyErrorInterface)
-	// r.preload(typEmptyInterface, tyErrorInterface)
 	return r
 }
 

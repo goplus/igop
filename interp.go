@@ -114,11 +114,11 @@ type Interp struct {
 func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	return inst.ToType(t), true
+	return i.inst.ToType(t), true
 }
 
 func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
-	if rt, ok := inst.Rcache[t]; ok {
+	if rt, ok := i.inst.Rcache[t]; ok {
 		return rt, true
 	}
 	for k, v := range i.types {
@@ -198,29 +198,10 @@ func isUntyped(typ types.Type) bool {
 func (i *Interp) toType(typ types.Type) reflect.Type {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	if r := inst.Tcache.At(typ); r != nil {
-		return r.(reflect.Type)
-	}
 	if i.mode&EnableDumpTypes != 0 {
 		fmt.Fprintf(os.Stderr, "dynamic type %v\n", typ)
 	}
 	return i.record.ToType(typ)
-
-	tt, ok := i.types[typ]
-	if ok {
-		return tt
-	}
-	i.typesMutex.Lock()
-	defer i.typesMutex.Unlock()
-	if isUntyped(typ) {
-		typ = types.Default(typ)
-	}
-	t, err := xtypes.ToType(typ, i.ctx)
-	if err != nil {
-		panic(fmt.Sprintf("toType %v error: %v", typ, err))
-	}
-	i.types[typ] = t
-	return t
 }
 
 func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
@@ -1235,7 +1216,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 // return i
 // }
 
-func newInterp(mainpkg *ssa.Package, mode Mode) *Interp {
+func newInterp(inst *TypesLoader, mainpkg *ssa.Package, mode Mode) *Interp {
 	i := &Interp{
 		prog:       mainpkg.Prog,
 		mainpkg:    mainpkg,
@@ -1244,7 +1225,8 @@ func newInterp(mainpkg *ssa.Package, mode Mode) *Interp {
 		goroutines: 1,
 		types:      make(map[types.Type]reflect.Type),
 	}
-	i.record = NewTypesRecord(inst, i)
+	i.inst = inst
+	i.record = NewTypesRecord(i.inst, i)
 	i.record.Load(mainpkg)
 	for _, pkg := range i.prog.AllPackages() {
 		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
@@ -1301,7 +1283,8 @@ func (i *Interp) Run(entry string) (r value, exitCode int) {
 	return
 }
 
-func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
+// remove
+func _Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 	i := &Interp{
 		prog:       mainpkg.Prog,
 		globals:    make(map[ssa.Value]value),
@@ -1355,7 +1338,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		panic(fmt.Sprintf("Not found func %v", fn))
 		return nil
 	}, func(name *types.TypeName) (reflect.Type, bool) {
-		if t := inst.Tcache.At(name.Type()); t != nil {
+		if t := i.inst.Tcache.At(name.Type()); t != nil {
 			return t.(reflect.Type), true
 		}
 		if typ, ok := externTypes[name.Type().String()]; ok {
@@ -1363,7 +1346,7 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		}
 		return nil, false
 	}, func(typ types.Type) (reflect.Type, bool) {
-		if t := inst.Tcache.At(typ); t != nil {
+		if t := i.inst.Tcache.At(typ); t != nil {
 			return t.(reflect.Type), true
 		}
 		if t, ok := i.types[typ]; ok {
