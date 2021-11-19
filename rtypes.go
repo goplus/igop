@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	inst           = NewTypesLoader()
-	registerPkgMap = make(map[string]*Package)
-	instTypesPkgs  = make(map[string]*types.Package)
+	inst          = NewTypesLoader()
+	instTypesPkgs = make(map[string]*types.Package)
 )
 
 var (
@@ -45,7 +44,7 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 	if p, ok := instTypesPkgs[path]; ok {
 		return p, true
 	}
-	if pkg, ok := registerPkgMap[path]; ok {
+	if pkg, ok := registerPkgs[path]; ok {
 		err := inst.InstallPackage(pkg)
 		if err != nil {
 			panic(fmt.Errorf("insert package %v failed: %v", path, err))
@@ -57,63 +56,6 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 		}
 	}
 	return nil, false
-}
-
-// register pkg
-func InstallPackage(pkg *Package) {
-	if p, ok := registerPkgMap[pkg.Path]; ok {
-		for k, v := range pkg.Interfaces {
-			p.Interfaces[k] = v
-		}
-		for k, v := range pkg.NamedTypes {
-			p.NamedTypes[k] = v
-		}
-		for k, v := range pkg.Vars {
-			p.Vars[k] = v
-		}
-		for k, v := range pkg.Funcs {
-			p.Funcs[k] = v
-		}
-		for k, v := range pkg.Methods {
-			p.Methods[k] = v
-		}
-		for k, v := range pkg.UntypedConsts {
-			p.UntypedConsts[k] = v
-		}
-		return
-	}
-	registerPkgMap[pkg.Path] = pkg
-	externPackages[pkg.Path] = true
-}
-
-type TypedConst struct {
-	Typ   reflect.Type
-	Value constant.Value
-}
-
-type UntypedConst struct {
-	Typ   string
-	Value constant.Value
-}
-
-type NamedType struct {
-	Typ        reflect.Type
-	Methods    string
-	PtrMethods string
-}
-
-type Package struct {
-	Name          string
-	Path          string
-	Interfaces    map[string]reflect.Type
-	NamedTypes    map[string]NamedType
-	AliasTypes    map[string]reflect.Type
-	Vars          map[string]reflect.Value
-	Funcs         map[string]reflect.Value
-	Methods       map[string]reflect.Value
-	TypedConsts   map[string]TypedConst
-	UntypedConsts map[string]UntypedConst
-	Deps          map[string]string
 }
 
 type TypeCached interface {

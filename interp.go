@@ -274,7 +274,7 @@ func (fr *frame) get(key ssa.Value) value {
 	if key.Parent() == nil {
 		path := key.String()
 		if paths := strings.Split(path, "."); len(paths) == 2 {
-			if pkg, ok := registerPkgMap[paths[0]]; ok {
+			if pkg, ok := registerPkgs[paths[0]]; ok {
 				if ext, ok := pkg.Vars[path]; ok {
 					return ext.Interface()
 				}
@@ -959,7 +959,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 	if fn.Parent() == nil {
 		name := fn.String()
 		pkgPath := fn.Pkg.Pkg.Path()
-		if pkg, ok := registerPkgMap[pkgPath]; ok {
+		if pkg, ok := registerPkgs[pkgPath]; ok {
 			if ext, ok := pkg.Funcs[name]; ok {
 				if i.mode&EnableTracing != 0 {
 					fmt.Fprintln(os.Stderr, "\t(external func)")
