@@ -346,13 +346,10 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		n := rt.NumField()
 		fields = make([]*types.Var, n, n)
 		tags := make([]string, n, n)
+		pkg := r.GetPackage(rt.PkgPath())
 		for i := 0; i < n; i++ {
 			f := rt.Field(i)
 			ft := types.Typ[types.UnsafePointer] //r.ToType(f.Type)
-			var pkg *types.Package
-			if f.PkgPath != "" {
-				pkg = r.GetPackage(f.PkgPath)
-			}
 			fields[i] = types.NewVar(token.NoPos, pkg, f.Name, ft)
 			tags[i] = string(f.Tag)
 		}
@@ -374,13 +371,10 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	r.Tcache.Set(typ, rt)
 	if kind == reflect.Struct {
 		n := rt.NumField()
+		pkg := r.GetPackage(rt.PkgPath())
 		for i := 0; i < n; i++ {
 			f := rt.Field(i)
 			ft := r.ToType(f.Type)
-			var pkg *types.Package
-			if f.PkgPath != "" {
-				pkg = r.GetPackage(f.PkgPath)
-			}
 			fields[i] = types.NewField(token.NoPos, pkg, f.Name, ft, f.Anonymous)
 		}
 	} else if kind == reflect.Interface {
