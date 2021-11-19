@@ -274,7 +274,7 @@ func (fr *frame) get(key ssa.Value) value {
 	if key.Parent() == nil {
 		path := key.String()
 		if paths := strings.Split(path, "."); len(paths) == 2 {
-			if pkg, ok := instPkgs[paths[0]]; ok {
+			if pkg, ok := registerPkgMap[paths[0]]; ok {
 				if ext, ok := pkg.Vars[path]; ok {
 					return ext.Interface()
 				}
@@ -959,7 +959,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 	if fn.Parent() == nil {
 		name := fn.String()
 		pkgPath := fn.Pkg.Pkg.Path()
-		if pkg, ok := instPkgs[pkgPath]; ok {
+		if pkg, ok := registerPkgMap[pkgPath]; ok {
 			if ext, ok := pkg.Funcs[name]; ok {
 				if i.mode&EnableTracing != 0 {
 					fmt.Fprintln(os.Stderr, "\t(external func)")
@@ -1176,45 +1176,6 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 //
 // The SSA program must include the "runtime" package.
 //
-
-// func NewInterpEx(fset *token.FileSet, mode ssa.BuilderMode) *Interp {
-// 	if fset == nil {
-// 		fset = token.NewFileSet()
-// 	}
-// 	i := &Interp{
-// 		prog:       ssa.NewProgram(fset, mode),
-// 		mainpkg:    mainpkg,
-// 		globals:    make(map[ssa.Value]value),
-// 		mode:       mode,
-// 		goroutines: 1,
-// 		types:      make(map[types.Type]reflect.Type),
-// 	}
-// 	i.record = NewTypesRecord(i)
-// 	return i
-// }
-
-// i.record.Load(mainpkg)
-// for _, pkg := range i.prog.AllPackages() {
-// 	if _, ok := externPackages[pkg.Pkg.Path()]; ok {
-// 		if i.mode&EnableDumpPackage != 0 {
-// 			fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
-// 		}
-// 		continue
-// 	}
-// 	if i.mode&EnableDumpPackage != 0 {
-// 		fmt.Fprintln(os.Stderr, "initialize", pkg)
-// 	}
-// 	// Initialize global storage.
-// 	for _, m := range pkg.Members {
-// 		switch v := m.(type) {
-// 		case *ssa.Global:
-// 			typ := i.toType(deref(v.Type()))
-// 			i.globals[v] = reflect.New(typ).Interface()
-// 		}
-// 	}
-// }
-// return i
-// }
 
 func newInterp(inst *TypesLoader, mainpkg *ssa.Package, mode Mode) *Interp {
 	i := &Interp{

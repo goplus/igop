@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	inst          = NewTypesLoader()
-	instPkgs      = make(map[string]*Package)
-	instTypesPkgs = make(map[string]*types.Package)
+	inst           = NewTypesLoader()
+	registerPkgMap = make(map[string]*Package)
+	instTypesPkgs  = make(map[string]*types.Package)
 )
 
 var (
@@ -45,7 +45,7 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 	if p, ok := instTypesPkgs[path]; ok {
 		return p, true
 	}
-	if pkg, ok := instPkgs[path]; ok {
+	if pkg, ok := registerPkgMap[path]; ok {
 		err := inst.InstallPackage(pkg)
 		if err != nil {
 			panic(fmt.Errorf("insert package %v failed: %v", path, err))
@@ -59,8 +59,9 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 	return nil, false
 }
 
+// register pkg
 func InstallPackage(pkg *Package) {
-	if p, ok := instPkgs[pkg.Path]; ok {
+	if p, ok := registerPkgMap[pkg.Path]; ok {
 		for k, v := range pkg.Interfaces {
 			p.Interfaces[k] = v
 		}
@@ -81,7 +82,7 @@ func InstallPackage(pkg *Package) {
 		}
 		return
 	}
-	instPkgs[pkg.Path] = pkg
+	registerPkgMap[pkg.Path] = pkg
 	externPackages[pkg.Path] = true
 }
 
