@@ -251,18 +251,18 @@ func (r *TypesLoader) Insert(v reflect.Value) {
 	}
 }
 
-func (r *TypesLoader) toFunc(recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
+func (r *TypesLoader) toFunc(pkg *types.Package, recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
 	numIn := rt.NumIn()
 	numOut := rt.NumOut()
 	in := make([]*types.Var, numIn-inoff, numIn-inoff)
 	out := make([]*types.Var, numOut, numOut)
 	for i := inoff; i < numIn; i++ {
 		it := r.ToType(rt.In(i))
-		in[i-inoff] = types.NewVar(token.NoPos, nil, "", it)
+		in[i-inoff] = types.NewVar(token.NoPos, pkg, "", it)
 	}
 	for i := 0; i < numOut; i++ {
 		it := r.ToType(rt.Out(i))
-		out[i] = types.NewVar(token.NoPos, nil, "", it)
+		out[i] = types.NewVar(token.NoPos, pkg, "", it)
 	}
 	return types.NewSignature(recv, types.NewTuple(in...), types.NewTuple(out...), rt.IsVariadic())
 }
@@ -318,14 +318,16 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		dir := toTypeChanDir(rt.ChanDir())
 		typ = types.NewChan(dir, elem)
 	case reflect.Func:
-		typ = r.toFunc(nil, 0, rt)
+		pkg := r.GetPackage(r.curpkg.Path)
+		typ = r.toFunc(pkg, nil, 0, rt)
 	case reflect.Interface:
 		n := rt.NumMethod()
 		imethods = make([]*types.Func, n, n)
+		pkg := r.GetPackage(rt.PkgPath())
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
 			sig := typesDummySig
-			imethods[i] = types.NewFunc(token.NoPos, nil, im.Name, sig)
+			imethods[i] = types.NewFunc(token.NoPos, pkg, im.Name, sig)
 		}
 		typ = types.NewInterfaceType(imethods, nil)
 	case reflect.Map:
@@ -384,10 +386,10 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	} else if kind == reflect.Interface {
 		n := rt.NumMethod()
 		pkg := named.Obj().Pkg()
-		recv := types.NewVar(token.NoPos, nil, "", typ)
+		recv := types.NewVar(token.NoPos, pkg, "", typ)
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
-			sig := r.toFunc(recv, 0, im.Type)
+			sig := r.toFunc(pkg, recv, 0, im.Type)
 			imethods[i] = types.NewFunc(token.NoPos, pkg, im.Name, sig)
 		}
 		typ.Underlying().(*types.Interface).Complete()
@@ -416,7 +418,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			}
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
-			precv := types.NewVar(token.NoPos, nil, "", ptyp)
+			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
 			skip := make(map[string]bool)
 			for _, im := range AllMethod(prt) {
 				if filter != nil && !filter(im.Name, true) {
@@ -424,14 +426,14 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				}
 				var sig *types.Signature
 				if im.Type != nil {
-					sig = r.toFunc(precv, 1, im.Type)
+					sig = r.toFunc(pkg, precv, 1, im.Type)
 				} else {
 					sig = typesDummySig
 				}
 				skip[im.Name] = true
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
-			recv := types.NewVar(token.NoPos, nil, "", typ)
+			recv := types.NewVar(token.NoPos, pkg, "", typ)
 			for _, im := range AllMethod(rt) {
 				if skip[im.Name] {
 					continue
@@ -441,7 +443,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				}
 				var sig *types.Signature
 				if im.Type != nil {
-					sig = r.toFunc(recv, 1, im.Type)
+					sig = r.toFunc(pkg, recv, 1, im.Type)
 				} else {
 					sig = typesDummySig
 				}

@@ -11,3 +11,5 @@ require (
 	github.com/qiniu/x v1.11.5
 	golang.org/x/tools v0.1.7
 )
+
+replace github.com/goplus/gox => ../gox
