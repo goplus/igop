@@ -49,15 +49,11 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 		return p, true
 	}
 	if pkg, ok := registerPkgs[path]; ok {
-		err := inst.InstallPackage(pkg)
+		p, err := inst.InstallPackage(pkg)
 		if err != nil {
 			panic(fmt.Errorf("insert package %v failed: %v", path, err))
 		}
-		if p, ok := inst.Packages[path]; ok {
-			p.MarkComplete()
-			instTypesPkgs[path] = p
-			return p, true
-		}
+		return p, true
 	}
 	return nil, false
 }
@@ -89,6 +85,11 @@ func NewTypesLoader() *TypesLoader {
 	return r
 }
 
+func (r *TypesLoader) LookupPackage(pkgpath string) (*types.Package, bool) {
+	pkg, ok := r.Packages[pkgpath]
+	return pkg, ok
+}
+
 func (r *TypesLoader) LookupByTypes(typ types.Type) (reflect.Type, bool) {
 	if rt := r.tcache.At(typ); rt != nil {
 		return rt.(reflect.Type), true
@@ -101,9 +102,9 @@ func (r *TypesLoader) LookupByReflect(typ reflect.Type) (types.Type, bool) {
 	return t, ok
 }
 
-func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
+func (r *TypesLoader) InstallPackage(pkg *Package) (*types.Package, error) {
 	if _, ok := r.install[pkg.Path]; ok {
-		return nil
+		return r.Packages[pkg.Path], nil
 	}
 	r.install[pkg.Path] = pkg
 	for path, _ := range pkg.Deps {
@@ -111,7 +112,15 @@ func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
 			r.InstallPackage(dep)
 		}
 	}
-	return r.installPackage(pkg)
+	if err := r.installPackage(pkg); err != nil {
+		return nil, err
+	}
+	p, ok := r.Packages[pkg.Path]
+	if !ok {
+		return nil, ErrPackage
+	}
+	p.MarkComplete()
+	return p, nil
 }
 
 func (r *TypesLoader) installPackage(pkg *Package) (err error) {
