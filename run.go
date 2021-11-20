@@ -69,18 +69,34 @@ var (
 // }
 
 type Importer struct {
-	Default types.Importer
+	inst          *TypesLoader
+	instTypesPkgs map[string]*types.Package
+	impl          types.Importer
 }
 
-func NewImporter() types.Importer {
-	return &Importer{importer.Default()}
+func NewImporter(inst *TypesLoader) types.Importer {
+	return &Importer{
+		inst:          inst,
+		instTypesPkgs: make(map[string]*types.Package),
+		impl:          importer.Default(),
+	}
 }
 
 func (i *Importer) Import(path string) (*types.Package, error) {
-	if pkg, ok := loadTypesPackage(path); ok {
+	if pkg, ok := i.instTypesPkgs[path]; ok {
 		return pkg, nil
 	}
-	pkg, err := i.Default.Import(path)
+	if p, ok := registerPkgs[path]; ok {
+		pkg, err := i.inst.InstallPackage(p)
+		if err == nil {
+			i.instTypesPkgs[path] = pkg
+		}
+		return pkg, nil
+	}
+	pkg, err := i.impl.Import(path)
+	if err == nil {
+		i.instTypesPkgs[path] = pkg
+	}
 	return pkg, err
 }
 
@@ -107,7 +123,7 @@ func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 		}
 	}
 	if !hasOtherPkgs {
-		impl := NewImporter()
+		impl := NewImporter(DefaultLoader)
 		pkg := types.NewPackage(f.Name.Name, "")
 		var chkerr error
 		ssapkg, _, err := BuildPackage(&types.Config{
@@ -116,7 +132,7 @@ func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 				fmt.Fprintln(os.Stderr, err)
 				chkerr = ErrPackage
 			},
-		}, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
+		}, fset, pkg, []*ast.File{f}, DefaultLoader.Packages(), ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
 		if chkerr != nil {
 			return nil, chkerr
 		}
@@ -360,7 +376,7 @@ func RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry string, args []
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	interp := newInterp(inst, mainPkg, mode)
+	interp := newInterp(DefaultLoader, mainPkg, mode)
 	interp.Run("init")
 	_, exitCode := interp.Run(entry)
 	if exitCode != 0 {

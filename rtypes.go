@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	inst          = NewTypesLoader()
-	instTypesPkgs = make(map[string]*types.Package)
+	DefaultLoader = NewTypesLoader()
 )
 
 var (
@@ -44,20 +43,6 @@ func init() {
 	}
 }
 
-func loadTypesPackage(path string) (*types.Package, bool) {
-	if p, ok := instTypesPkgs[path]; ok {
-		return p, true
-	}
-	if pkg, ok := registerPkgs[path]; ok {
-		p, err := inst.InstallPackage(pkg)
-		if err != nil {
-			panic(fmt.Errorf("insert package %v failed: %v", path, err))
-		}
-		return p, true
-	}
-	return nil, false
-}
-
 // lookup by types or reflect
 type TypeLookup interface {
 	LookupByTypes(typ types.Type) (reflect.Type, bool)
@@ -65,7 +50,7 @@ type TypeLookup interface {
 }
 
 type TypesLoader struct {
-	Packages map[string]*types.Package
+	packages map[string]*types.Package
 	install  map[string]*Package
 	rcache   map[reflect.Type]types.Type
 	tcache   *typeutil.Map
@@ -75,7 +60,7 @@ type TypesLoader struct {
 // install package and readonly
 func NewTypesLoader() *TypesLoader {
 	r := &TypesLoader{
-		Packages: make(map[string]*types.Package),
+		packages: make(map[string]*types.Package),
 		install:  make(map[string]*Package),
 		rcache:   make(map[reflect.Type]types.Type),
 		tcache:   &typeutil.Map{},
@@ -85,8 +70,15 @@ func NewTypesLoader() *TypesLoader {
 	return r
 }
 
+func (r *TypesLoader) Packages() (pkgs []*types.Package) {
+	for _, pkg := range r.packages {
+		pkgs = append(pkgs, pkg)
+	}
+	return
+}
+
 func (r *TypesLoader) LookupPackage(pkgpath string) (*types.Package, bool) {
-	pkg, ok := r.Packages[pkgpath]
+	pkg, ok := r.packages[pkgpath]
 	return pkg, ok
 }
 
@@ -104,7 +96,7 @@ func (r *TypesLoader) LookupByReflect(typ reflect.Type) (types.Type, bool) {
 
 func (r *TypesLoader) InstallPackage(pkg *Package) (*types.Package, error) {
 	if _, ok := r.install[pkg.Path]; ok {
-		return r.Packages[pkg.Path], nil
+		return r.packages[pkg.Path], nil
 	}
 	r.install[pkg.Path] = pkg
 	for path, _ := range pkg.Deps {
@@ -115,7 +107,7 @@ func (r *TypesLoader) InstallPackage(pkg *Package) (*types.Package, error) {
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
 	}
-	p, ok := r.Packages[pkg.Path]
+	p, ok := r.packages[pkg.Path]
 	if !ok {
 		return nil, ErrPackage
 	}
@@ -233,7 +225,7 @@ func (r *TypesLoader) InsertUntypedConst(path string, v UntypedConst) {
 }
 
 func (r *TypesLoader) GetPackage(pkg string) *types.Package {
-	if p, ok := r.Packages[pkg]; ok {
+	if p, ok := r.packages[pkg]; ok {
 		return p
 	}
 	var name string
@@ -245,7 +237,7 @@ func (r *TypesLoader) GetPackage(pkg string) *types.Package {
 		name = pkgs[len(pkgs)-1]
 	}
 	p := types.NewPackage(pkg, name)
-	r.Packages[pkg] = p
+	r.packages[pkg] = p
 	return p
 }
 

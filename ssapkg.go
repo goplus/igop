@@ -9,7 +9,7 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, files []*ast.File, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
+func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, files []*ast.File, deps []*types.Package, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
 	if fset == nil {
 		panic("no token.FileSet")
 	}
@@ -48,7 +48,7 @@ func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, fil
 	createAll(pkg.Imports())
 
 	// create other depends
-	for _, p := range inst.Packages {
+	for _, p := range deps {
 		if !created[p] {
 			prog.CreatePackage(p, nil, nil, true)
 		}
