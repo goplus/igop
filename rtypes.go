@@ -100,16 +100,25 @@ var (
 )
 
 func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
-	if _, ok := r.pkgs[pkg.Name]; ok {
+	if _, ok := r.pkgs[pkg.Path]; ok {
 		return nil
 	}
+	r.pkgs[pkg.Path] = pkg
+	for path, _ := range pkg.Deps {
+		if dep, ok := registerPkgs[path]; ok {
+			r.InstallPackage(dep)
+		}
+	}
+	return r.installPackage(pkg)
+}
+
+func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = e.(error)
 		}
 		r.curpkg = nil
 	}()
-	r.pkgs[pkg.Path] = pkg
 	r.curpkg = pkg
 	finit := pkg.Path + ".init"
 	if pkg.Funcs == nil {
