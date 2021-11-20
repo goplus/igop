@@ -114,25 +114,32 @@ type Interp struct {
 func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	return i.inst.ToType(t), true
+	return i.record.LookupByReflect(t)
+	// typ, ok := i.inst.rcache[t]
+	// if !ok {
+	// 	log.Println("~~~~~", typ)
+	// }
+	// return typ, ok
+
+	// return i.inst.ToType(t), true
 }
 
-func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
-	if rt, ok := i.inst.Rcache[t]; ok {
-		return rt, true
-	}
-	for k, v := range i.types {
-		if v == t {
-			return k, true
-		}
-	}
-	if t.Kind() == reflect.Ptr {
-		if typ, ok := i.findTypeHelper(t.Elem()); ok {
-			return types.NewPointer(typ), true
-		}
-	}
-	return nil, false
-}
+// func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
+// 	if rt, ok := i.inst.rcache[t]; ok {
+// 		return rt, true
+// 	}
+// 	for k, v := range i.types {
+// 		if v == t {
+// 			return k, true
+// 		}
+// 	}
+// 	if t.Kind() == reflect.Ptr {
+// 		if typ, ok := i.findTypeHelper(t.Elem()); ok {
+// 			return types.NewPointer(typ), true
+// 		}
+// 	}
+// 	return nil, false
+// }
 
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
@@ -1299,7 +1306,7 @@ func _Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		panic(fmt.Sprintf("Not found func %v", fn))
 		return nil
 	}, func(name *types.TypeName) (reflect.Type, bool) {
-		if t := i.inst.Tcache.At(name.Type()); t != nil {
+		if t := i.inst.tcache.At(name.Type()); t != nil {
 			return t.(reflect.Type), true
 		}
 		if typ, ok := externTypes[name.Type().String()]; ok {
@@ -1307,7 +1314,7 @@ func _Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		}
 		return nil, false
 	}, func(typ types.Type) (reflect.Type, bool) {
-		if t := i.inst.Tcache.At(typ); t != nil {
+		if t := i.inst.tcache.At(typ); t != nil {
 			return t.(reflect.Type), true
 		}
 		if t, ok := i.types[typ]; ok {

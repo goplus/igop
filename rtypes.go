@@ -58,41 +58,55 @@ func loadTypesPackage(path string) (*types.Package, bool) {
 	return nil, false
 }
 
-type TypeCached interface {
-	LoadType(typ types.Type) (reflect.Type, bool)
-	SaveType(typ types.Type, rt reflect.Type)
+// lookup by types or reflect
+type TypeLookup interface {
+	LookupByTypes(typ types.Type) (reflect.Type, bool)
+	LookupByReflect(typ reflect.Type) (types.Type, bool)
 }
 
 type TypesLoader struct {
 	Packages map[string]*types.Package
-	Rcache   map[reflect.Type]types.Type
-	Tcache   *typeutil.Map
-	pkgs     map[string]*Package
+	install  map[string]*Package
+	rcache   map[reflect.Type]types.Type
+	tcache   *typeutil.Map
 	curpkg   *Package
 }
 
+// install package and readonly
 func NewTypesLoader() *TypesLoader {
 	r := &TypesLoader{
 		Packages: make(map[string]*types.Package),
-		Rcache:   make(map[reflect.Type]types.Type),
-		Tcache:   &typeutil.Map{},
-		pkgs:     make(map[string]*Package),
+		install:  make(map[string]*Package),
+		rcache:   make(map[reflect.Type]types.Type),
+		tcache:   &typeutil.Map{},
 	}
-	r.Rcache[tyErrorInterface] = typesError
-	r.Rcache[tyEmptyInterface] = typesEmptyInterface
+	r.rcache[tyErrorInterface] = typesError
+	r.rcache[tyEmptyInterface] = typesEmptyInterface
 	return r
 }
 
+func (r *TypesLoader) LookupByTypes(typ types.Type) (reflect.Type, bool) {
+	if rt := r.tcache.At(typ); rt != nil {
+		return rt.(reflect.Type), true
+	}
+	return nil, false
+}
+
+func (r *TypesLoader) LookupByReflect(typ reflect.Type) (types.Type, bool) {
+	t, ok := r.rcache[typ]
+	return t, ok
+}
+
 func (r *TypesLoader) LoadType(typ types.Type) (reflect.Type, bool) {
-	if rt := r.Tcache.At(typ); rt != nil {
+	if rt := r.tcache.At(typ); rt != nil {
 		return rt.(reflect.Type), true
 	}
 	return nil, false
 }
 
 func (r *TypesLoader) SaveType(typ types.Type, rt reflect.Type) {
-	r.Tcache.Set(typ, rt)
-	r.Rcache[rt] = typ
+	r.tcache.Set(typ, rt)
+	r.rcache[rt] = typ
 }
 
 var (
@@ -100,10 +114,10 @@ var (
 )
 
 func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
-	if _, ok := r.pkgs[pkg.Path]; ok {
+	if _, ok := r.install[pkg.Path]; ok {
 		return nil
 	}
-	r.pkgs[pkg.Path] = pkg
+	r.install[pkg.Path] = pkg
 	for path, _ := range pkg.Deps {
 		if dep, ok := registerPkgs[path]; ok {
 			r.InstallPackage(dep)
@@ -277,7 +291,7 @@ func (r *TypesLoader) toFunc(pkg *types.Package, recv *types.Var, inoff int, rt 
 }
 
 func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
-	if t, ok := r.Rcache[rt]; ok {
+	if t, ok := r.rcache[rt]; ok {
 		return t
 	}
 	var typ types.Type
@@ -376,8 +390,8 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		typ = named
 		pkg.Scope().Insert(obj)
 	}
-	r.Rcache[rt] = typ
-	r.Tcache.Set(typ, rt)
+	r.rcache[rt] = typ
+	r.tcache.Set(typ, rt)
 	if kind == reflect.Struct {
 		n := rt.NumField()
 		pkg := r.GetPackage(rt.PkgPath())
@@ -401,7 +415,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		if kind != reflect.Interface {
 			var filter func(name string, ptr bool) bool
 			pkg := named.Obj().Pkg()
-			if p, ok := r.pkgs[pkg.Path()]; ok {
+			if p, ok := r.install[pkg.Path()]; ok {
 				if t, ok := p.NamedTypes[pkg.Path()+"."+named.Obj().Name()]; ok {
 					m := make(map[string]bool)
 					pm := make(map[string]bool)

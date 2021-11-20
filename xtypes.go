@@ -10,6 +10,7 @@ import (
 
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
+	"golang.org/x/tools/go/types/typeutil"
 )
 
 var (
@@ -145,19 +146,46 @@ type FindMethod interface {
 }
 
 type TypesRecord struct {
-	cached TypeCached
+	lookup TypeLookup
 	finder FindMethod
+	rcache map[reflect.Type]types.Type
+	tcache *typeutil.Map
 }
 
-func NewTypesRecord(cached TypeCached, finder FindMethod) *TypesRecord {
+func NewTypesRecord(lookup TypeLookup, finder FindMethod) *TypesRecord {
 	return &TypesRecord{
-		cached: cached,
+		lookup: lookup,
 		finder: finder,
+		rcache: make(map[reflect.Type]types.Type),
+		tcache: &typeutil.Map{},
 	}
 }
 
+func (r *TypesRecord) LookupByTypes(typ types.Type) (rt reflect.Type, ok bool) {
+	rt, ok = r.lookup.LookupByTypes(typ)
+	if !ok {
+		if rt := r.tcache.At(typ); rt != nil {
+			return rt.(reflect.Type), true
+		}
+	}
+	return
+}
+
+func (r *TypesRecord) LookupByReflect(rt reflect.Type) (typ types.Type, ok bool) {
+	typ, ok = r.lookup.LookupByReflect(rt)
+	if !ok {
+		typ, ok = r.rcache[rt]
+	}
+	return
+}
+
+func (r *TypesRecord) saveType(typ types.Type, rt reflect.Type) {
+	r.tcache.Set(typ, rt)
+	r.rcache[rt] = typ
+}
+
 func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
-	if rt, ok := r.cached.LoadType(typ); ok {
+	if rt, ok := r.LookupByTypes(typ); ok {
 		return rt
 	}
 	var rt reflect.Type
@@ -196,7 +224,7 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 	default:
 		panic("unreachable")
 	}
-	r.cached.SaveType(typ, rt)
+	r.saveType(typ, rt)
 	return rt
 }
 
@@ -234,7 +262,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	if numMethods == 0 {
 		styp := toMockType(t.Underlying())
 		typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), styp)
-		r.cached.SaveType(t, typ)
+		r.saveType(t, typ)
 		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
 		return typ
@@ -251,7 +279,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 		etyp := toMockType(ut)
 		styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
 		typ := reflectx.NewMethodSet(styp, mcount, pcount)
-		r.cached.SaveType(t, typ)
+		r.saveType(t, typ)
 		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
 		if typ.Kind() != reflect.Interface {
