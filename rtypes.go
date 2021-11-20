@@ -33,6 +33,10 @@ var (
 	tyErrorInterface = reflect.TypeOf((*error)(nil)).Elem()
 )
 
+var (
+	rinit = reflect.ValueOf(func() bool { return true })
+)
+
 func init() {
 	for i := types.Invalid; i < types.UntypedNil; i++ {
 		typ := types.Typ[i]
@@ -96,22 +100,6 @@ func (r *TypesLoader) LookupByReflect(typ reflect.Type) (types.Type, bool) {
 	t, ok := r.rcache[typ]
 	return t, ok
 }
-
-func (r *TypesLoader) LoadType(typ types.Type) (reflect.Type, bool) {
-	if rt := r.tcache.At(typ); rt != nil {
-		return rt.(reflect.Type), true
-	}
-	return nil, false
-}
-
-func (r *TypesLoader) SaveType(typ types.Type, rt reflect.Type) {
-	r.tcache.Set(typ, rt)
-	r.rcache[rt] = typ
-}
-
-var (
-	rinit = reflect.ValueOf(func() bool { return true })
-)
 
 func (r *TypesLoader) InstallPackage(pkg *Package) (err error) {
 	if _, ok := r.install[pkg.Path]; ok {
