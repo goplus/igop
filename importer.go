@@ -6,12 +6,12 @@ import (
 )
 
 type Importer struct {
-	loader *TypesLoader
+	loader Loader
 	pkgs   map[string]*types.Package
 	impl   types.Importer
 }
 
-func NewImporter(loader *TypesLoader) types.Importer {
+func NewImporter(loader Loader) types.Importer {
 	return &Importer{
 		loader: loader,
 		pkgs:   make(map[string]*types.Package),

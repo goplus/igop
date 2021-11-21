@@ -146,15 +146,15 @@ type FindMethod interface {
 }
 
 type TypesRecord struct {
-	lookup TypeLookup
+	loader Loader
 	finder FindMethod
 	rcache map[reflect.Type]types.Type
 	tcache *typeutil.Map
 }
 
-func NewTypesRecord(lookup TypeLookup, finder FindMethod) *TypesRecord {
+func NewTypesRecord(loader Loader, finder FindMethod) *TypesRecord {
 	return &TypesRecord{
-		lookup: lookup,
+		loader: loader,
 		finder: finder,
 		rcache: make(map[reflect.Type]types.Type),
 		tcache: &typeutil.Map{},
@@ -162,7 +162,7 @@ func NewTypesRecord(lookup TypeLookup, finder FindMethod) *TypesRecord {
 }
 
 func (r *TypesRecord) LookupByTypes(typ types.Type) (rt reflect.Type, ok bool) {
-	rt, ok = r.lookup.LookupByTypes(typ)
+	rt, ok = r.loader.LookupByTypes(typ)
 	if !ok {
 		if rt := r.tcache.At(typ); rt != nil {
 			return rt.(reflect.Type), true
@@ -172,7 +172,7 @@ func (r *TypesRecord) LookupByTypes(typ types.Type) (rt reflect.Type, ok bool) {
 }
 
 func (r *TypesRecord) LookupByReflect(rt reflect.Type) (typ types.Type, ok bool) {
-	typ, ok = r.lookup.LookupByReflect(rt)
+	typ, ok = r.loader.LookupByReflect(rt)
 	if !ok {
 		typ, ok = r.rcache[rt]
 	}

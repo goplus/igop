@@ -12,8 +12,16 @@ import (
 	"golang.org/x/tools/go/types/typeutil"
 )
 
+// types loader interface
+type Loader interface {
+	InstallPackage(pkg *Package) (*types.Package, error)
+	Packages() []*types.Package
+	LookupByTypes(typ types.Type) (reflect.Type, bool)
+	LookupByReflect(typ reflect.Type) (types.Type, bool)
+}
+
 var (
-	DefaultLoader = NewTypesLoader()
+	DefaultLoader Loader = NewTypesLoader()
 )
 
 var (
@@ -41,12 +49,6 @@ func init() {
 		typ := types.Typ[i]
 		basicTypeNames[typ.String()] = typ
 	}
-}
-
-// lookup by types or reflect
-type TypeLookup interface {
-	LookupByTypes(typ types.Type) (reflect.Type, bool)
-	LookupByReflect(typ reflect.Type) (types.Type, bool)
 }
 
 type TypesLoader struct {

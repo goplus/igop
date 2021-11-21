@@ -8,7 +8,7 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-func BuildPackage(loader *TypesLoader, fset *token.FileSet, pkg *types.Package, files []*ast.File, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
+func BuildPackage(loader Loader, fset *token.FileSet, pkg *types.Package, files []*ast.File, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
 	if fset == nil {
 		panic("no token.FileSet")
 	}

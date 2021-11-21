@@ -68,6 +68,19 @@ var (
 // 	return mainPkg, nil
 // }
 
+// func LoadAst(pkg *ast.Package) (*ssa.Package, error) {
+// 	pkg := types.NewPackage(f.Name.Name, "")
+// 	var chkerr error
+// 	ssapkg, _, err := BuildPackage(DefaultLoader, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
+// 	if chkerr != nil {
+// 		return nil, chkerr
+// 	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	ssapkg.Build()
+// }
+
 func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 	if !filepath.IsAbs(input) {
 		wd, _ := os.Getwd()
