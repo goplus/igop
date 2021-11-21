@@ -1184,7 +1184,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 // The SSA program must include the "runtime" package.
 //
 
-func newInterp(inst Loader, mainpkg *ssa.Package, mode Mode) *Interp {
+func NewInterp(inst Loader, mainpkg *ssa.Package, mode Mode) *Interp {
 	i := &Interp{
 		prog:       mainpkg.Prog,
 		mainpkg:    mainpkg,
