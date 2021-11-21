@@ -1,12 +1,9 @@
 package gossa
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
-	"log"
-	"os"
 
 	"golang.org/x/tools/go/ssa"
 )
@@ -27,22 +24,20 @@ func BuildPackage(loader *TypesLoader, fset *token.FileSet, pkg *types.Package, 
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
-	var chkerr error
+	//var chkerr error
 	tc := &types.Config{
 		Importer: NewImporter(loader),
-		Error: func(err error) {
-			fmt.Fprintln(os.Stderr, err)
-			chkerr = err
-		},
+		// Error: func(err error) {
+		// 	fmt.Fprintln(os.Stderr, "---", err)
+		// 	chkerr = err
+		// },
 	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
-		log.Println("types check", err)
 		return nil, nil, err
 	}
-	if chkerr != nil {
-		return nil, nil, chkerr
-	}
-
+	// if chkerr != nil {
+	// 	return nil, nil, chkerr
+	// }
 	prog := ssa.NewProgram(fset, mode)
 
 	// Create SSA packages for all imports.
