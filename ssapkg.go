@@ -11,7 +11,7 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-func BuildPackage(fset *token.FileSet, importer types.Importer, pkg *types.Package, files []*ast.File, deps []*types.Package, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
+func BuildPackage(loader *TypesLoader, fset *token.FileSet, pkg *types.Package, files []*ast.File, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
 	if fset == nil {
 		panic("no token.FileSet")
 	}
@@ -29,7 +29,7 @@ func BuildPackage(fset *token.FileSet, importer types.Importer, pkg *types.Packa
 	}
 	var chkerr error
 	tc := &types.Config{
-		Importer: importer,
+		Importer: NewImporter(loader),
 		Error: func(err error) {
 			fmt.Fprintln(os.Stderr, err)
 			chkerr = err
@@ -61,7 +61,7 @@ func BuildPackage(fset *token.FileSet, importer types.Importer, pkg *types.Packa
 	createAll(pkg.Imports())
 
 	// create other depends
-	for _, p := range deps {
+	for _, p := range loader.Packages() {
 		if !created[p] {
 			prog.CreatePackage(p, nil, nil, true)
 		}

@@ -11,9 +11,9 @@ type Importer struct {
 	impl   types.Importer
 }
 
-func NewImporter(inst *TypesLoader) types.Importer {
+func NewImporter(loader *TypesLoader) types.Importer {
 	return &Importer{
-		loader: inst,
+		loader: loader,
 		pkgs:   make(map[string]*types.Package),
 		impl:   importer.Default(),
 	}

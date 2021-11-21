@@ -91,11 +91,9 @@ func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 		}
 	}
 	if !hasOtherPkgs {
-		impl := NewImporter(DefaultLoader)
-		deps := DefaultLoader.Packages()
 		pkg := types.NewPackage(f.Name.Name, "")
 		var chkerr error
-		ssapkg, _, err := BuildPackage(fset, impl, pkg, []*ast.File{f}, deps, ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
+		ssapkg, _, err := BuildPackage(DefaultLoader, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
 		if chkerr != nil {
 			return nil, chkerr
 		}
