@@ -161,8 +161,8 @@ func NewTypesRecord(loader Loader, finder FindMethod) *TypesRecord {
 	}
 }
 
-func (r *TypesRecord) LookupByTypes(typ types.Type) (rt reflect.Type, ok bool) {
-	rt, ok = r.loader.LookupByTypes(typ)
+func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool) {
+	rt, ok = r.loader.LookupReflect(typ)
 	if !ok {
 		if rt := r.tcache.At(typ); rt != nil {
 			return rt.(reflect.Type), true
@@ -171,8 +171,8 @@ func (r *TypesRecord) LookupByTypes(typ types.Type) (rt reflect.Type, ok bool) {
 	return
 }
 
-func (r *TypesRecord) LookupByReflect(rt reflect.Type) (typ types.Type, ok bool) {
-	typ, ok = r.loader.LookupByReflect(rt)
+func (r *TypesRecord) LookupTypes(rt reflect.Type) (typ types.Type, ok bool) {
+	typ, ok = r.loader.LookupTypes(rt)
 	if !ok {
 		typ, ok = r.rcache[rt]
 	}
@@ -185,7 +185,7 @@ func (r *TypesRecord) saveType(typ types.Type, rt reflect.Type) {
 }
 
 func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
-	if rt, ok := r.LookupByTypes(typ); ok {
+	if rt, ok := r.LookupReflect(typ); ok {
 		return rt
 	}
 	var rt reflect.Type

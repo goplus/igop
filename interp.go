@@ -114,7 +114,7 @@ type Interp struct {
 func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	return i.record.LookupByReflect(t)
+	return i.record.LookupTypes(t)
 	// typ, ok := i.inst.rcache[t]
 	// if !ok {
 	// 	log.Println("~~~~~", typ)

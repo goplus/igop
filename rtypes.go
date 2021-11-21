@@ -16,12 +16,13 @@ import (
 type Loader interface {
 	InstallPackage(pkg *Package) (*types.Package, error)
 	Packages() []*types.Package
-	LookupByTypes(typ types.Type) (reflect.Type, bool)
-	LookupByReflect(typ reflect.Type) (types.Type, bool)
+	LookupPackage(pkgpath string) (*types.Package, bool)
+	LookupReflect(typ types.Type) (reflect.Type, bool)
+	LookupTypes(typ reflect.Type) (types.Type, bool)
 }
 
 var (
-	DefaultLoader Loader = NewTypesLoader()
+	DefaultLoader = NewTypesLoader()
 )
 
 var (
@@ -60,7 +61,7 @@ type TypesLoader struct {
 }
 
 // install package and readonly
-func NewTypesLoader() *TypesLoader {
+func NewTypesLoader() Loader {
 	r := &TypesLoader{
 		packages: make(map[string]*types.Package),
 		install:  make(map[string]*Package),
@@ -84,14 +85,14 @@ func (r *TypesLoader) LookupPackage(pkgpath string) (*types.Package, bool) {
 	return pkg, ok
 }
 
-func (r *TypesLoader) LookupByTypes(typ types.Type) (reflect.Type, bool) {
+func (r *TypesLoader) LookupReflect(typ types.Type) (reflect.Type, bool) {
 	if rt := r.tcache.At(typ); rt != nil {
 		return rt.(reflect.Type), true
 	}
 	return nil, false
 }
 
-func (r *TypesLoader) LookupByReflect(typ reflect.Type) (types.Type, bool) {
+func (r *TypesLoader) LookupTypes(typ reflect.Type) (types.Type, bool) {
 	t, ok := r.rcache[typ]
 	return t, ok
 }
