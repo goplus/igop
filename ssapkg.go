@@ -1,15 +1,17 @@
 package gossa
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
 	"log"
+	"os"
 
 	"golang.org/x/tools/go/ssa"
 )
 
-func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, files []*ast.File, deps []*types.Package, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
+func BuildPackage(fset *token.FileSet, importer types.Importer, pkg *types.Package, files []*ast.File, deps []*types.Package, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
 	if fset == nil {
 		panic("no token.FileSet")
 	}
@@ -25,9 +27,20 @@ func BuildPackage(tc *types.Config, fset *token.FileSet, pkg *types.Package, fil
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
+	var chkerr error
+	tc := &types.Config{
+		Importer: importer,
+		Error: func(err error) {
+			fmt.Fprintln(os.Stderr, err)
+			chkerr = err
+		},
+	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		log.Println("types check", err)
 		return nil, nil, err
+	}
+	if chkerr != nil {
+		return nil, nil, chkerr
 	}
 
 	prog := ssa.NewProgram(fset, mode)
