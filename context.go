@@ -1,7 +1,6 @@
 package gossa
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -17,14 +16,6 @@ import (
 
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
-)
-
-var (
-	ErrNoPackage        = errors.New("no package")
-	ErrPackage          = errors.New("package contain errors")
-	ErrNotFoundMain     = errors.New("not found main package")
-	ErrTestFailed       = errors.New("test failed")
-	ErrNotFoundImporter = errors.New("not found provider for types.Importer")
 )
 
 // types loader interface
