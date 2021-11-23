@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"go/types"
 	"os"
+	"reflect"
 	"time"
 
 	"golang.org/x/tools/go/ssa"
@@ -16,6 +17,15 @@ import (
 var (
 	Default = NewContext()
 )
+
+// types loader interface
+type Loader interface {
+	InstallPackage(path string) (*types.Package, error)
+	Packages() []*types.Package
+	LookupPackage(pkgpath string) (*types.Package, bool)
+	LookupReflect(typ types.Type) (reflect.Type, bool)
+	LookupTypes(typ reflect.Type) (types.Type, bool)
+}
 
 type Context struct {
 	Loader      Loader

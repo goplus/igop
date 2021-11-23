@@ -12,15 +12,6 @@ import (
 	"golang.org/x/tools/go/types/typeutil"
 )
 
-// types loader interface
-type Loader interface {
-	InstallPackage(pkg *Package) (*types.Package, error)
-	Packages() []*types.Package
-	LookupPackage(pkgpath string) (*types.Package, bool)
-	LookupReflect(typ types.Type) (reflect.Type, bool)
-	LookupTypes(typ reflect.Type) (types.Type, bool)
-}
-
 var (
 	DefaultLoader = NewTypesLoader()
 )
@@ -97,22 +88,21 @@ func (r *TypesLoader) LookupTypes(typ reflect.Type) (types.Type, bool) {
 	return t, ok
 }
 
-func (r *TypesLoader) InstallPackage(pkg *Package) (*types.Package, error) {
-	if _, ok := r.install[pkg.Path]; ok {
-		return r.packages[pkg.Path], nil
+func (r *TypesLoader) InstallPackage(path string) (*types.Package, error) {
+	if p, ok := r.packages[path]; ok {
+		return p, nil
 	}
-	r.install[pkg.Path] = pkg
-	for path, _ := range pkg.Deps {
-		if dep, ok := registerPkgs[path]; ok {
-			r.InstallPackage(dep)
-		}
+	pkg, ok := registerPkgs[path]
+	if !ok {
+		return nil, fmt.Errorf("Not found package %v", path)
+	}
+	p := types.NewPackage(pkg.Path, pkg.Name)
+	r.packages[path] = p
+	for dep, _ := range pkg.Deps {
+		r.InstallPackage(dep)
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
-	}
-	p, ok := r.packages[pkg.Path]
-	if !ok {
-		return nil, ErrPackage
 	}
 	p.MarkComplete()
 	return p, nil
