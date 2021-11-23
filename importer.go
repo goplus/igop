@@ -1,7 +1,6 @@
 package gossa
 
 import (
-	"go/importer"
 	"go/types"
 )
 
@@ -11,11 +10,11 @@ type Importer struct {
 	impl   types.Importer
 }
 
-func NewImporter(loader Loader) types.Importer {
+func NewImporter(loader Loader, importer types.Importer) *Importer {
 	return &Importer{
 		loader: loader,
 		pkgs:   make(map[string]*types.Package),
-		impl:   importer.Default(),
+		impl:   importer,
 	}
 }
 
@@ -26,6 +25,9 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 	if pkg, err := i.loader.InstallPackage(path); err == nil {
 		i.pkgs[path] = pkg
 		return pkg, nil
+	}
+	if i.impl == nil {
+		return nil, ErrNotFoundImporter
 	}
 	pkg, err := i.impl.Import(path)
 	if err == nil {

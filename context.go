@@ -20,10 +20,11 @@ import (
 )
 
 var (
-	ErrNoPackage    = errors.New("no package")
-	ErrPackage      = errors.New("package contain errors")
-	ErrNotFoundMain = errors.New("not found main package")
-	ErrTestFailed   = errors.New("test failed")
+	ErrNoPackage        = errors.New("no package")
+	ErrPackage          = errors.New("package contain errors")
+	ErrNotFoundMain     = errors.New("not found main package")
+	ErrTestFailed       = errors.New("test failed")
+	ErrNotFoundImporter = errors.New("not found provider for types.Importer")
 )
 
 // types loader interface
@@ -40,6 +41,7 @@ type Context struct {
 	Mode        Mode
 	ParserMode  parser.Mode
 	BuilderMode ssa.BuilderMode
+	Importer    types.Importer
 }
 
 func NewContext(mode Mode) *Context {
@@ -79,7 +81,7 @@ func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, erro
 
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
-	ssapkg, _, err := BuildPackage(c.Loader, fset, pkg, []*ast.File{file}, c.BuilderMode)
+	ssapkg, _, err := BuildPackage(c.Loader, c.Importer, fset, pkg, []*ast.File{file}, c.BuilderMode)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +95,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
-	ssapkg, _, err := BuildPackage(c.Loader, fset, pkg, files, c.BuilderMode)
+	ssapkg, _, err := BuildPackage(c.Loader, c.Importer, fset, pkg, files, c.BuilderMode)
 	if err != nil {
 		return nil, err
 	}

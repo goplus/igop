@@ -4,12 +4,11 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
-	"log"
 
 	"golang.org/x/tools/go/ssa"
 )
 
-func BuildPackage(loader Loader, fset *token.FileSet, pkg *types.Package, files []*ast.File, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
+func BuildPackage(loader Loader, importer types.Importer, fset *token.FileSet, pkg *types.Package, files []*ast.File, mode ssa.BuilderMode) (*ssa.Package, *types.Info, error) {
 	if fset == nil {
 		panic("no token.FileSet")
 	}
@@ -25,20 +24,13 @@ func BuildPackage(loader Loader, fset *token.FileSet, pkg *types.Package, files 
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
-	//var chkerr error
+
 	tc := &types.Config{
-		Importer: NewImporter(loader),
-		// Error: func(err error) {
-		// 	fmt.Fprintln(os.Stderr, "---", err)
-		// 	chkerr = err
-		// },
+		Importer: NewImporter(loader, importer),
 	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		return nil, nil, err
 	}
-	// if chkerr != nil {
-	// 	return nil, nil, chkerr
-	// }
 	prog := ssa.NewProgram(fset, mode)
 
 	// Create SSA packages for all imports.
@@ -56,10 +48,10 @@ func BuildPackage(loader Loader, fset *token.FileSet, pkg *types.Package, files 
 	}
 	createAll(pkg.Imports())
 
-	// create other depends
+	// create depends
 	for _, p := range loader.Packages() {
+		// indirect incomplete package
 		if !p.Complete() {
-			log.Println("incomplete", p)
 			p.MarkComplete()
 		}
 		if !created[p] {
