@@ -28,10 +28,6 @@ var (
 	tyErrorInterface = reflect.TypeOf((*error)(nil)).Elem()
 )
 
-var (
-	rinit = reflect.ValueOf(func() bool { return true })
-)
-
 func init() {
 	for i := types.Invalid; i < types.UntypedNil; i++ {
 		typ := types.Typ[i]
@@ -112,12 +108,6 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.curpkg = nil
 	}()
 	r.curpkg = pkg
-	finit := pkg.Path + ".init"
-	if pkg.Funcs == nil {
-		pkg.Funcs = map[string]reflect.Value{finit: rinit}
-	} else if _, ok := pkg.Funcs[finit]; !ok {
-		pkg.Funcs[finit] = rinit
-	}
 	for name, typ := range pkg.Interfaces {
 		r.InsertInterface(name, typ)
 	}
