@@ -995,6 +995,9 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 					return callReflect(i, caller, callpos, f.Func, args, nil)
 				}
 			}
+			if fn.Name() == "init" && fn.Type().String() == "func()" {
+				return true
+			}
 			panic("no code for function: " + name)
 		}
 	}

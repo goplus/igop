@@ -23,6 +23,7 @@ var (
 	ErrNoPackage    = errors.New("no package")
 	ErrPackage      = errors.New("package contain errors")
 	ErrNotFoundMain = errors.New("not found main package")
+	ErrTestFailed   = errors.New("test failed")
 )
 
 // types loader interface
@@ -117,7 +118,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args 
 	return nil
 }
 
-func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) {
+func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) error {
 	var failed bool
 	start := time.Now()
 	defer func() {
@@ -150,6 +151,10 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) {
 			failed = true
 		}
 	}
+	if failed {
+		return ErrTestFailed
+	}
+	return nil
 }
 
 func (c *Context) RunFile(filename string, src interface{}, args []string) error {
@@ -175,6 +180,14 @@ func (c *Context) Run(path string, args []string, mode Mode) error {
 	return c.RunPkg(mainPkgs[0], path, "main", args)
 }
 
+func (c *Context) RunTest(path string, args []string) error {
+	pkgs, err := c.LoadDir(path)
+	if err != nil {
+		return err
+	}
+	return c.TestPkg(pkgs, path, args)
+}
+
 func RunFile(filename string, src interface{}, args []string, mode Mode) error {
 	reflectx.Reset()
 	ctx := NewContext(mode)
@@ -185,4 +198,10 @@ func Run(path string, args []string, mode Mode) error {
 	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.Run(path, args, mode)
+}
+
+func RunTest(path string, args []string, mode Mode) error {
+	reflectx.Reset()
+	ctx := NewContext(mode)
+	return ctx.RunTest(path, args)
 }

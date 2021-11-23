@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"log"
 
 	"golang.org/x/tools/go/ssa"
 )
@@ -57,6 +58,10 @@ func BuildPackage(loader Loader, fset *token.FileSet, pkg *types.Package, files 
 
 	// create other depends
 	for _, p := range loader.Packages() {
+		if !p.Complete() {
+			log.Println("incomplete", p)
+			p.MarkComplete()
+		}
 		if !created[p] {
 			prog.CreatePackage(p, nil, nil, true)
 		}
