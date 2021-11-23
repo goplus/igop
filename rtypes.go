@@ -214,6 +214,9 @@ func (r *TypesLoader) InsertUntypedConst(path string, v UntypedConst) {
 }
 
 func (r *TypesLoader) GetPackage(pkg string) *types.Package {
+	if pkg == "" {
+		return nil
+	}
 	if p, ok := r.packages[pkg]; ok {
 		return p
 	}
