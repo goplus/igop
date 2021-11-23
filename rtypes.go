@@ -13,10 +13,6 @@ import (
 )
 
 var (
-	DefaultLoader = NewTypesLoader()
-)
-
-var (
 	basicTypeNames = make(map[string]*types.Basic)
 )
 

@@ -1,6 +1,7 @@
 package gossa
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -9,13 +10,19 @@ import (
 	"go/types"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
+	"github.com/goplus/reflectx"
+
 	"golang.org/x/tools/go/ssa"
+	"golang.org/x/tools/go/ssa/ssautil"
 )
 
 var (
-	Default = NewContext()
+	ErrNoPackage    = errors.New("no package")
+	ErrPackage      = errors.New("package contain errors")
+	ErrNotFoundMain = errors.New("not found main package")
 )
 
 // types loader interface
@@ -34,9 +41,10 @@ type Context struct {
 	BuilderMode ssa.BuilderMode
 }
 
-func NewContext() *Context {
+func NewContext(mode Mode) *Context {
 	ctx := &Context{
 		Loader:      NewTypesLoader(),
+		Mode:        mode,
 		ParserMode:  parser.AllErrors,
 		BuilderMode: ssa.SanityCheckFunctions,
 	}
@@ -142,4 +150,39 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) {
 			failed = true
 		}
 	}
+}
+
+func (c *Context) RunFile(filename string, src interface{}, args []string) error {
+	pkg, err := c.LoadFile(filename, src)
+	if err != nil {
+		return err
+	}
+	return c.RunPkg(pkg, filename, "main", args)
+}
+
+func (c *Context) Run(path string, args []string, mode Mode) error {
+	if strings.HasSuffix(path, ".go") {
+		return c.RunFile(path, nil, args)
+	}
+	pkgs, err := c.LoadDir(path)
+	if err != nil {
+		return err
+	}
+	mainPkgs := ssautil.MainPackages(pkgs)
+	if len(mainPkgs) == 0 {
+		return ErrNotFoundMain
+	}
+	return c.RunPkg(mainPkgs[0], path, "main", args)
+}
+
+func RunFile(filename string, src interface{}, args []string, mode Mode) error {
+	reflectx.Reset()
+	ctx := NewContext(mode)
+	return ctx.RunFile(filename, src, args)
+}
+
+func Run(path string, args []string, mode Mode) error {
+	reflectx.Reset()
+	ctx := NewContext(mode)
+	return ctx.Run(path, args, mode)
 }
