@@ -13,28 +13,34 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+var (
+	Default = NewContext()
+)
+
 type Context struct {
-	Loader Loader
+	Loader      Loader
+	Mode        Mode
+	ParserMode  parser.Mode
+	BuilderMode ssa.BuilderMode
 }
 
 func NewContext() *Context {
-	return &Context{
-		Loader: NewTypesLoader(),
+	ctx := &Context{
+		Loader:      NewTypesLoader(),
+		ParserMode:  parser.AllErrors,
+		BuilderMode: ssa.SanityCheckFunctions,
 	}
+	return ctx
 }
 
-const (
-	parserMode = parser.AllErrors | parser.ParseComments
-)
-
-func (c *Context) LoadDir(path string, mode ssa.BuilderMode) (pkgs []*ssa.Package, first error) {
+func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
 	fset := token.NewFileSet()
-	apkgs, err := parser.ParseDir(fset, path, nil, parserMode)
+	apkgs, err := parser.ParseDir(fset, path, nil, c.ParserMode)
 	if err != nil {
 		return nil, err
 	}
 	for _, apkg := range apkgs {
-		if pkg, err := c.LoadAstPackage(fset, apkg, mode); err == nil {
+		if pkg, err := c.LoadAstPackage(fset, apkg); err == nil {
 			pkgs = append(pkgs, pkg)
 		} else if first == nil {
 			first = err
@@ -43,18 +49,18 @@ func (c *Context) LoadDir(path string, mode ssa.BuilderMode) (pkgs []*ssa.Packag
 	return
 }
 
-func (c *Context) LoadFile(filename string, src interface{}, mode ssa.BuilderMode) (*ssa.Package, error) {
+func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
 	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, filename, src, parserMode)
+	file, err := parser.ParseFile(fset, filename, src, c.ParserMode)
 	if err != nil {
 		return nil, err
 	}
-	return c.LoadAstFile(fset, file, mode)
+	return c.LoadAstFile(fset, file)
 }
 
-func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File, mode ssa.BuilderMode) (*ssa.Package, error) {
+func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
-	ssapkg, _, err := BuildPackage(c.Loader, fset, pkg, []*ast.File{file}, mode)
+	ssapkg, _, err := BuildPackage(c.Loader, fset, pkg, []*ast.File{file}, c.BuilderMode)
 	if err != nil {
 		return nil, err
 	}
@@ -62,13 +68,13 @@ func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File, mode ssa.Buil
 	return ssapkg, nil
 }
 
-func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package, mode ssa.BuilderMode) (*ssa.Package, error) {
+func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.Package, error) {
 	pkg := types.NewPackage(apkg.Name, "")
 	var files []*ast.File
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
-	ssapkg, _, err := BuildPackage(c.Loader, fset, pkg, files, mode)
+	ssapkg, _, err := BuildPackage(c.Loader, fset, pkg, files, c.BuilderMode)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +82,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package, mode ss
 	return ssapkg, nil
 }
 
-func (c *Context) RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry string, args []string) error {
+func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args []string) error {
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
@@ -84,7 +90,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry st
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	interp := NewInterp(c.Loader, mainPkg, mode)
+	interp := NewInterp(c.Loader, mainPkg, c.Mode)
 	interp.Run("init")
 	_, exitCode := interp.Run(entry)
 	if exitCode != 0 {
@@ -93,7 +99,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry st
 	return nil
 }
 
-func (c *Context) TestPkg(pkgs []*ssa.Package, mode Mode, input string, args []string) {
+func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) {
 	var failed bool
 	start := time.Now()
 	defer func() {
@@ -119,7 +125,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, mode Mode, input string, args []s
 	}
 	for _, pkg := range testPkgs {
 		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		interp := NewInterp(c.Loader, pkg, mode)
+		interp := NewInterp(c.Loader, pkg, c.Mode)
 		interp.Run("init")
 		_, exitCode := interp.Run("main")
 		if exitCode != 0 {
