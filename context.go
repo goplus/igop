@@ -19,11 +19,6 @@ import (
 	"golang.org/x/tools/go/ssa/ssautil"
 )
 
-// register external interface
-func RegisterExternal(key string, i interface{}) {
-	externValues[key] = reflect.ValueOf(i)
-}
-
 func init() {
 	RegisterExternal("os.Exit", func(code int) {
 		panic(exitPanic(code))

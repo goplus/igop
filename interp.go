@@ -61,10 +61,6 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-var (
-	externValues = make(map[string]reflect.Value)
-)
-
 type continuation int
 
 const (

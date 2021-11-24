@@ -71,3 +71,12 @@ type Package struct {
 	UntypedConsts map[string]UntypedConst
 	Deps          map[string]string
 }
+
+var (
+	externValues = make(map[string]reflect.Value)
+)
+
+// register external interface
+func RegisterExternal(key string, i interface{}) {
+	externValues[key] = reflect.ValueOf(i)
+}
