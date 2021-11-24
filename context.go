@@ -158,7 +158,6 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 		fmt.Println("testing: warning: no tests to run")
 	}
 	for _, pkg := range testPkgs {
-		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 		interp := NewInterp(c.Loader, pkg, c.Mode)
 		interp.Run("init")
 		_, exitCode := interp.Run("main")
