@@ -168,11 +168,12 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			}
 		}
 	}
-	if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
-		return func(args []reflect.Value) []reflect.Value {
-			return v.Call(args)
-		}
-	}
+
+	// if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
+	// 	return func(args []reflect.Value) []reflect.Value {
+	// 		return v.Call(args)
+	// 	}
+	// }
 	panic(fmt.Sprintf("Not found func %v", fn))
 	return nil
 }
@@ -273,12 +274,12 @@ func (fr *frame) get(key ssa.Value) value {
 				}
 			}
 		}
-		if ext, ok := externValues[key.String()]; ok {
-			if fr.i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
-			}
-			return ext.Interface()
-		}
+		// if ext, ok := externValues[key.String()]; ok {
+		// 	if fr.i.mode&EnableTracing != 0 {
+		// 		fmt.Fprintln(os.Stderr, "\t(external)")
+		// 	}
+		// 	return ext.Interface()
+		// }
 	}
 	switch key := key.(type) {
 	case *ssa.Function:
@@ -966,13 +967,13 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 				return callReflect(i, caller, callpos, ext, args, nil)
 			}
 		}
-		if ext := externValues[name]; ext.Kind() == reflect.Func {
-			if i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
-			}
-			return callReflect(i, caller, callpos, ext, args, nil)
-			//			return ext(fr, args)
-		}
+		// if ext := externValues[name]; ext.Kind() == reflect.Func {
+		// 	if i.mode&EnableTracing != 0 {
+		// 		fmt.Fprintln(os.Stderr, "\t(external)")
+		// 	}
+		// 	return callReflect(i, caller, callpos, ext, args, nil)
+		// 	//			return ext(fr, args)
+		// }
 		if fn.Blocks == nil {
 			// check unexport method
 			if fn.Signature.Recv() != nil {
@@ -1186,12 +1187,12 @@ func NewInterp(inst Loader, mainpkg *ssa.Package, mode Mode) *Interp {
 	i.record = NewTypesRecord(i.inst, i)
 	i.record.Load(mainpkg)
 	for _, pkg := range i.prog.AllPackages() {
-		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
-			if i.mode&EnableDumpPackage != 0 {
-				fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
-			}
-			continue
-		}
+		// if _, ok := externPackages[pkg.Pkg.Path()]; ok {
+		// 	if i.mode&EnableDumpPackage != 0 {
+		// 		fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
+		// 	}
+		// 	continue
+		// }
 		if i.mode&EnableDumpPackage != 0 {
 			fmt.Fprintln(os.Stderr, "initialize", pkg)
 		}

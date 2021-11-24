@@ -39,7 +39,7 @@ func InstallPackage(pkg *Package) {
 		return
 	}
 	registerPkgs[pkg.Path] = pkg
-	externPackages[pkg.Path] = true
+	//	externPackages[pkg.Path] = true
 }
 
 type TypedConst struct {
