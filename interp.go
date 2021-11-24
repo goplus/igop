@@ -69,17 +69,6 @@ const (
 	kJump
 )
 
-// Mode is a bitmask of options affecting the interpreter.
-type Mode uint
-
-const (
-	DisableRecover    Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	EnableTracing                      // Print a trace of all instructions as they are interpreted.
-	EnableDumpPackage                  // Print package
-	EnableDumpInstr                    // Print instr type & value
-	EnableDumpTypes                    // Print types to reflect
-)
-
 type plainError string
 
 func (e plainError) Error() string {
@@ -205,9 +194,6 @@ func isUntyped(typ types.Type) bool {
 func (i *Interp) toType(typ types.Type) reflect.Type {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	if i.mode&EnableDumpTypes != 0 {
-		fmt.Fprintf(os.Stderr, "dynamic type %v\n", typ)
-	}
 	return i.record.ToType(typ)
 }
 

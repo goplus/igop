@@ -80,7 +80,7 @@ func (r *TypesLoader) LookupTypes(typ reflect.Type) (types.Type, bool) {
 	return t, ok
 }
 
-func (r *TypesLoader) InstallPackage(path string) (*types.Package, error) {
+func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	if p, ok := r.packages[path]; ok {
 		return p, nil
 	}
@@ -91,7 +91,7 @@ func (r *TypesLoader) InstallPackage(path string) (*types.Package, error) {
 	p := types.NewPackage(pkg.Path, pkg.Name)
 	r.packages[path] = p
 	for dep, _ := range pkg.Deps {
-		r.InstallPackage(dep)
+		r.Import(dep)
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err

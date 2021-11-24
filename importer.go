@@ -22,7 +22,7 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 	if pkg, ok := i.pkgs[path]; ok {
 		return pkg, nil
 	}
-	if pkg, err := i.loader.InstallPackage(path); err == nil {
+	if pkg, err := i.loader.Import(path); err == nil {
 		i.pkgs[path] = pkg
 		return pkg, nil
 	}

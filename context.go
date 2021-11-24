@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -18,9 +19,20 @@ import (
 	"golang.org/x/tools/go/ssa/ssautil"
 )
 
+// Mode is a bitmask of options affecting the interpreter.
+type Mode uint
+
+const (
+	DisableRecover    Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	EnableTracing                      // Print a trace of all instructions as they are interpreted.
+	EnableDumpPackage                  // Print package
+	EnableDumpInstr                    // Print instr type & value
+	EnableDumpTypes                    // Print types to reflect
+)
+
 // types loader interface
 type Loader interface {
-	InstallPackage(path string) (*types.Package, error)
+	Import(path string) (*types.Package, error)
 	Packages() []*types.Package
 	LookupPackage(pkgpath string) (*types.Package, bool)
 	LookupReflect(typ types.Type) (reflect.Type, bool)
@@ -72,7 +84,7 @@ func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, erro
 
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
-	ssapkg, _, err := BuildPackage(c.Loader, c.Importer, fset, pkg, []*ast.File{file}, c.BuilderMode)
+	ssapkg, _, err := c.BuildPackage(fset, pkg, []*ast.File{file})
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +98,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
-	ssapkg, _, err := BuildPackage(c.Loader, c.Importer, fset, pkg, files, c.BuilderMode)
+	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +126,16 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args 
 func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) error {
 	var failed bool
 	start := time.Now()
+	var testPkgs []*ssa.Package
+	for _, pkg := range pkgs {
+		p, err := CreateTestMainPackage(pkg)
+		if err != nil {
+			return err
+		}
+		if p != nil {
+			testPkgs = append(testPkgs, p)
+		}
+	}
 	defer func() {
 		sec := time.Since(start).Seconds()
 		if failed {
@@ -122,12 +144,6 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 			fmt.Printf("ok\t%s %0.3fs\n", input, sec)
 		}
 	}()
-	var testPkgs []*ssa.Package
-	for _, pkg := range pkgs {
-		if p := CreateTestMainPackage(pkg); p != nil {
-			testPkgs = append(testPkgs, p)
-		}
-	}
 	os.Args = []string{input}
 	if args != nil {
 		os.Args = append(os.Args, args...)
@@ -179,6 +195,65 @@ func (c *Context) RunTest(path string, args []string) error {
 		return err
 	}
 	return c.TestPkg(pkgs, path, args)
+}
+
+func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
+	if fset == nil {
+		panic("no token.FileSet")
+	}
+	if pkg.Path() == "" {
+		panic("package has no import path")
+	}
+
+	info := &types.Info{
+		Types:      make(map[ast.Expr]types.TypeAndValue),
+		Defs:       make(map[*ast.Ident]types.Object),
+		Uses:       make(map[*ast.Ident]types.Object),
+		Implicits:  make(map[ast.Node]types.Object),
+		Scopes:     make(map[ast.Node]*types.Scope),
+		Selections: make(map[*ast.SelectorExpr]*types.Selection),
+	}
+
+	tc := &types.Config{
+		Importer: NewImporter(ctx.Loader, ctx.Importer),
+	}
+	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
+		return nil, nil, err
+	}
+	prog := ssa.NewProgram(fset, ctx.BuilderMode)
+
+	// Create SSA packages for all imports.
+	// Order is not significant.
+	created := make(map[*types.Package]bool)
+	var createAll func(pkgs []*types.Package)
+	createAll = func(pkgs []*types.Package) {
+		for _, p := range pkgs {
+			if !created[p] {
+				created[p] = true
+				if !p.Complete() {
+					if ctx.Mode&EnableDumpTypes != 0 {
+						log.Println("indirect", p)
+					}
+					p.MarkComplete()
+				} else {
+					if ctx.Mode&EnableDumpTypes != 0 {
+						log.Println("imported", p)
+					}
+				}
+				prog.CreatePackage(p, nil, nil, true)
+				createAll(p.Imports())
+			}
+		}
+	}
+	// create imports
+	createAll(pkg.Imports())
+	// create indirect depends
+	createAll(ctx.Loader.Packages())
+
+	// Create and build the primary package.
+	ssapkg := prog.CreatePackage(pkg, files, info, false)
+	ssapkg.Build()
+	return ssapkg, info, nil
 }
 
 func RunFile(filename string, src interface{}, args []string, mode Mode) error {
