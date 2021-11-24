@@ -61,6 +61,10 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+var (
+	externValues = make(map[string]reflect.Value)
+)
+
 type continuation int
 
 const (
@@ -169,11 +173,11 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 		}
 	}
 
-	// if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
-	// 	return func(args []reflect.Value) []reflect.Value {
-	// 		return v.Call(args)
-	// 	}
-	// }
+	if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
+		return func(args []reflect.Value) []reflect.Value {
+			return v.Call(args)
+		}
+	}
 	panic(fmt.Sprintf("Not found func %v", fn))
 	return nil
 }
@@ -267,6 +271,12 @@ func (fr *frame) get(key ssa.Value) value {
 	// }
 	if key.Parent() == nil {
 		path := key.String()
+		if ext, ok := externValues[path]; ok {
+			if fr.i.mode&EnableTracing != 0 {
+				fmt.Fprintln(os.Stderr, "\t(external)")
+			}
+			return ext.Interface()
+		}
 		if paths := strings.Split(path, "."); len(paths) == 2 {
 			if pkg, ok := registerPkgs[paths[0]]; ok {
 				if ext, ok := pkg.Vars[path]; ok {
@@ -274,12 +284,6 @@ func (fr *frame) get(key ssa.Value) value {
 				}
 			}
 		}
-		// if ext, ok := externValues[key.String()]; ok {
-		// 	if fr.i.mode&EnableTracing != 0 {
-		// 		fmt.Fprintln(os.Stderr, "\t(external)")
-		// 	}
-		// 	return ext.Interface()
-		// }
 	}
 	switch key := key.(type) {
 	case *ssa.Function:
@@ -953,6 +957,12 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 	if fn.Parent() == nil {
 		name := fn.String()
 		pkgPath := fn.Pkg.Pkg.Path()
+		if ext := externValues[name]; ext.Kind() == reflect.Func {
+			if i.mode&EnableTracing != 0 {
+				fmt.Fprintln(os.Stderr, "\t(external)")
+			}
+			return callReflect(i, caller, callpos, ext, args, nil)
+		}
 		if pkg, ok := registerPkgs[pkgPath]; ok {
 			if ext, ok := pkg.Funcs[name]; ok {
 				if i.mode&EnableTracing != 0 {
@@ -967,13 +977,6 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 				return callReflect(i, caller, callpos, ext, args, nil)
 			}
 		}
-		// if ext := externValues[name]; ext.Kind() == reflect.Func {
-		// 	if i.mode&EnableTracing != 0 {
-		// 		fmt.Fprintln(os.Stderr, "\t(external)")
-		// 	}
-		// 	return callReflect(i, caller, callpos, ext, args, nil)
-		// 	//			return ext(fr, args)
-		// }
 		if fn.Blocks == nil {
 			// check unexport method
 			if fn.Signature.Recv() != nil {
