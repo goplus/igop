@@ -105,7 +105,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	return ssapkg, nil
 }
 
-func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args []string) error {
+func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args []string) (ret interface{}, exitCode int) {
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
@@ -115,11 +115,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args 
 
 	interp := NewInterp(c.Loader, mainPkg, c.Mode)
 	interp.Run("init")
-	_, exitCode := interp.Run(entry)
-	if exitCode != 0 {
-		return fmt.Errorf("interpreting %v: exit code was %d", input, exitCode)
-	}
-	return nil
+	return interp.Run(entry)
 }
 
 func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) error {
@@ -170,7 +166,11 @@ func (c *Context) RunFile(filename string, src interface{}, args []string) error
 	if err != nil {
 		return err
 	}
-	return c.RunPkg(pkg, filename, "main", args)
+	_, exitCode := c.RunPkg(pkg, filename, "main", args)
+	if exitCode == 0 {
+		return nil
+	}
+	return fmt.Errorf("interpreting %v: exit code was %d", filename, exitCode)
 }
 
 func (c *Context) Run(path string, args []string, mode Mode) error {
@@ -185,7 +185,12 @@ func (c *Context) Run(path string, args []string, mode Mode) error {
 	if len(mainPkgs) == 0 {
 		return ErrNotFoundMain
 	}
-	return c.RunPkg(mainPkgs[0], path, "main", args)
+	_, exitCode := c.RunPkg(mainPkgs[0], path, "main", args)
+	if exitCode == 0 {
+		return nil
+	}
+	return fmt.Errorf("interpreting %v: exit code was %d", path, exitCode)
+
 }
 
 func (c *Context) RunTest(path string, args []string) error {
