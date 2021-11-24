@@ -34,17 +34,16 @@ const (
 type Loader interface {
 	Import(path string) (*types.Package, error)
 	Packages() []*types.Package
-	LookupPackage(pkgpath string) (*types.Package, bool)
 	LookupReflect(typ types.Type) (reflect.Type, bool)
 	LookupTypes(typ reflect.Type) (types.Type, bool)
 }
 
 type Context struct {
-	Loader      Loader
-	Mode        Mode
-	ParserMode  parser.Mode
-	BuilderMode ssa.BuilderMode
-	Importer    types.Importer
+	Loader      Loader          // types loader
+	Mode        Mode            // mode
+	ParserMode  parser.Mode     // parser mode
+	BuilderMode ssa.BuilderMode // ssa builder mode
+	External    types.Importer  // external import
 }
 
 func NewContext(mode Mode) *Context {
@@ -215,7 +214,7 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 	}
 
 	tc := &types.Config{
-		Importer: NewImporter(ctx.Loader, ctx.Importer),
+		Importer: NewImporter(ctx.Loader, ctx.External),
 	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		return nil, nil, err
