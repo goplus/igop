@@ -173,9 +173,18 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 		}
 	}
 
-	if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
+	name := fn.FullName()
+	pkgPath := fn.Pkg().Path()
+	if v, ok := externValues[name]; ok && v.Kind() == reflect.Func {
 		return func(args []reflect.Value) []reflect.Value {
 			return v.Call(args)
+		}
+	}
+	if pkg, ok := registerPkgs[pkgPath]; ok {
+		if ext, ok := pkg.Methods[name]; ok {
+			return func(args []reflect.Value) []reflect.Value {
+				return ext.Call(args)
+			}
 		}
 	}
 	panic(fmt.Sprintf("Not found func %v", fn))
