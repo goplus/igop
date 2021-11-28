@@ -961,25 +961,27 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 	}
 	if fn.Parent() == nil {
 		name := fn.String()
-		pkgPath := fn.Pkg.Pkg.Path()
 		if ext := externValues[name]; ext.Kind() == reflect.Func {
 			if i.mode&EnableTracing != 0 {
 				fmt.Fprintln(os.Stderr, "\t(external)")
 			}
 			return callReflect(i, caller, callpos, ext, args, nil)
 		}
-		if pkg, ok := registerPkgs[pkgPath]; ok {
-			if ext, ok := pkg.Funcs[name]; ok {
-				if i.mode&EnableTracing != 0 {
-					fmt.Fprintln(os.Stderr, "\t(external func)")
+		if fn.Pkg != nil {
+			pkgPath := fn.Pkg.Pkg.Path()
+			if pkg, ok := registerPkgs[pkgPath]; ok {
+				if ext, ok := pkg.Funcs[name]; ok {
+					if i.mode&EnableTracing != 0 {
+						fmt.Fprintln(os.Stderr, "\t(external func)")
+					}
+					return callReflect(i, caller, callpos, ext, args, nil)
 				}
-				return callReflect(i, caller, callpos, ext, args, nil)
-			}
-			if ext, ok := pkg.Methods[name]; ok {
-				if i.mode&EnableTracing != 0 {
-					fmt.Fprintln(os.Stderr, "\t(external method)")
+				if ext, ok := pkg.Methods[name]; ok {
+					if i.mode&EnableTracing != 0 {
+						fmt.Fprintln(os.Stderr, "\t(external method)")
+					}
+					return callReflect(i, caller, callpos, ext, args, nil)
 				}
-				return callReflect(i, caller, callpos, ext, args, nil)
 			}
 		}
 		if fn.Blocks == nil {
