@@ -1181,15 +1181,6 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) *Interp {
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
 	for _, pkg := range i.prog.AllPackages() {
-		// if _, ok := externPackages[pkg.Pkg.Path()]; ok {
-		// 	if i.mode&EnableDumpPackage != 0 {
-		// 		fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
-		// 	}
-		// 	continue
-		// }
-		if i.mode&EnableDumpPackage != 0 {
-			fmt.Fprintln(os.Stderr, "initialize", pkg)
-		}
 		// Initialize global storage.
 		for _, m := range pkg.Members {
 			switch v := m.(type) {

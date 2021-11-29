@@ -114,7 +114,7 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.curpkg = nil
 	}()
 	r.curpkg = pkg
-	r.installed[pkg.Name] = pkg
+	r.installed[pkg.Path] = pkg
 	for name, typ := range pkg.Interfaces {
 		r.InsertInterface(name, typ)
 	}

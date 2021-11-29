@@ -33,7 +33,6 @@ const (
 	EnableTracing                      // Print a trace of all instructions as they are interpreted.
 	EnableDumpPackage                  // Print package
 	EnableDumpInstr                    // Print instr type & value
-	EnableDumpTypes                    // Print types to reflect
 )
 
 // types loader interface
@@ -241,12 +240,12 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 			if !created[p] {
 				created[p] = true
 				if !p.Complete() {
-					if ctx.Mode&EnableDumpTypes != 0 {
+					if ctx.Mode&EnableDumpPackage != 0 {
 						log.Println("indirect", p)
 					}
 					p.MarkComplete()
 				} else {
-					if ctx.Mode&EnableDumpTypes != 0 {
+					if ctx.Mode&EnableDumpPackage != 0 {
 						log.Println("imported", p)
 					}
 				}
