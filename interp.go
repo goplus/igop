@@ -48,6 +48,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -261,7 +262,7 @@ func (fr *frame) get(key ssa.Value) value {
 		path := key.String()
 		if ext, ok := externValues[path]; ok {
 			if fr.i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
+				log.Println("\t(external)")
 			}
 			return ext.Interface()
 		}
@@ -307,7 +308,7 @@ func (fr *frame) get(key ssa.Value) value {
 //
 func (fr *frame) runDefer(d *deferred) {
 	if fr.i.mode&EnableTracing != 0 {
-		fmt.Fprintf(os.Stderr, "%s: invoking deferred function call\n",
+		log.Printf("%s: invoking deferred function call\n",
 			fr.i.prog.Fset.Position(d.instr.Pos()))
 	}
 	var ok bool
@@ -404,7 +405,7 @@ func hasUnderscore(st *types.Struct) bool {
 // read the next instruction from.
 func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	if fr.i.mode&EnableDumpInstr != 0 {
-		fmt.Fprintf(os.Stderr, "Instr %T %+v\n", instr, instr)
+		log.Printf("Instr %T %+v\n", instr, instr)
 	}
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
@@ -931,12 +932,12 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 	if i.mode&EnableTracing != 0 {
 		fset := fn.Prog.Fset
 		// TODO(adonovan): fix: loc() lies for external functions.
-		fmt.Fprintf(os.Stderr, "Entering %s%s.\n", fn, loc(fset, fn.Pos()))
+		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
 		suffix := ""
 		if caller != nil {
 			suffix = ", resuming " + caller.fn.String() + loc(fset, callpos)
 		}
-		defer fmt.Fprintf(os.Stderr, "Leaving %s%s.\n", fn, suffix)
+		defer log.Printf("Leaving %s%s.\n", fn, suffix)
 	}
 	fr := &frame{
 		i:      i,
@@ -947,7 +948,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 		name := fn.String()
 		if ext := externValues[name]; ext.Kind() == reflect.Func {
 			if i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
+				log.Println("\t(external)")
 			}
 			return callReflect(i, caller, callpos, ext, args, nil)
 		}
@@ -956,13 +957,13 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 			if pkg, ok := i.installed(pkgPath); ok {
 				if ext, ok := pkg.Funcs[name]; ok {
 					if i.mode&EnableTracing != 0 {
-						fmt.Fprintln(os.Stderr, "\t(external func)")
+						log.Println("\t(external func)")
 					}
 					return callReflect(i, caller, callpos, ext, args, nil)
 				}
 				if ext, ok := pkg.Methods[name]; ok {
 					if i.mode&EnableTracing != 0 {
-						fmt.Fprintln(os.Stderr, "\t(external method)")
+						log.Println("\t(external method)")
 					}
 					return callReflect(i, caller, callpos, ext, args, nil)
 				}
@@ -1077,7 +1078,7 @@ func runFrame(fr *frame) {
 		fr.panicking = true
 		fr.panic = recover()
 		if fr.i.mode&EnableTracing != 0 {
-			fmt.Fprintf(os.Stderr, "Panicking: %T %v.\n", fr.panic, fr.panic)
+			log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
 		}
 		fr.runDefers()
 		fr.block = fr.fn.Recover
@@ -1085,15 +1086,15 @@ func runFrame(fr *frame) {
 
 	for {
 		if fr.i.mode&EnableTracing != 0 {
-			fmt.Fprintf(os.Stderr, ".%s:\n", fr.block)
+			log.Printf(".%s:\n", fr.block)
 		}
 	block:
 		for _, instr := range fr.block.Instrs {
 			if fr.i.mode&EnableTracing != 0 {
 				if v, ok := instr.(ssa.Value); ok {
-					fmt.Fprintln(os.Stderr, "\t", v.Name(), "=", instr)
+					log.Println("\t", v.Name(), "=", instr)
 				} else {
-					fmt.Fprintln(os.Stderr, "\t", instr)
+					log.Println("\t", instr)
 				}
 			}
 			fn, cond := visitInstr(fr, instr)
