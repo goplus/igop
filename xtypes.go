@@ -171,6 +171,11 @@ func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool) {
 	return
 }
 
+func (r *TypesRecord) LookupLocalTypes(rt reflect.Type) (typ types.Type, ok bool) {
+	typ, ok = r.rcache[rt]
+	return
+}
+
 func (r *TypesRecord) LookupTypes(rt reflect.Type) (typ types.Type, ok bool) {
 	typ, ok = r.loader.LookupTypes(rt)
 	if !ok {

@@ -108,6 +108,7 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.curpkg = nil
 	}()
 	r.curpkg = pkg
+	r.install[pkg.Name] = pkg
 	for name, typ := range pkg.Interfaces {
 		r.InsertInterface(name, typ)
 	}
@@ -407,6 +408,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
+
 			skip := make(map[string]bool)
 			for _, im := range AllMethod(prt) {
 				if filter != nil && !filter(im.Name, true) {

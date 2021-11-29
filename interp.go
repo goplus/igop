@@ -100,17 +100,14 @@ type Interp struct {
 	callerMutex sync.RWMutex
 }
 
-func (i *Interp) findType(t reflect.Type) (types.Type, bool) {
+func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	return i.record.LookupTypes(t)
-	// typ, ok := i.inst.rcache[t]
-	// if !ok {
-	// 	log.Println("~~~~~", typ)
-	// }
-	// return typ, ok
-
-	// return i.inst.ToType(t), true
+	if local {
+		return i.record.LookupLocalTypes(rt)
+	} else {
+		return i.record.LookupTypes(rt)
+	}
 }
 
 // func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
@@ -168,7 +165,6 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			}
 		}
 	}
-
 	name := fn.FullName()
 	pkgPath := fn.Pkg().Path()
 	if v, ok := externValues[name]; ok && v.Kind() == reflect.Func {
@@ -865,7 +861,7 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		//vt, ok := call.Value.(*ssa.MakeInterface)
 		// recv := v.(iface)
 		rv := reflect.ValueOf(v)
-		t, ok := fr.i.findType(rv.Type())
+		t, ok := fr.i.findType(rv.Type(), true)
 		if ok {
 			if f := lookupMethod(fr.i, t, call.Method); f == nil {
 				// Unreachable in well-typed programs.
