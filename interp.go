@@ -94,7 +94,7 @@ type Interp struct {
 	ctx         xtypes.Context
 	types       map[types.Type]reflect.Type
 	caller      *frame
-	inst        Loader
+	loader      Loader
 	record      *TypesRecord
 	typesMutex  sync.RWMutex
 	callerMutex sync.RWMutex
@@ -109,23 +109,6 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 		return i.record.LookupTypes(rt)
 	}
 }
-
-// func (i *Interp) findTypeHelper(t reflect.Type) (types.Type, bool) {
-// 	if rt, ok := i.inst.rcache[t]; ok {
-// 		return rt, true
-// 	}
-// 	for k, v := range i.types {
-// 		if v == t {
-// 			return k, true
-// 		}
-// 	}
-// 	if t.Kind() == reflect.Ptr {
-// 		if typ, ok := i.findTypeHelper(t.Elem()); ok {
-// 			return types.NewPointer(typ), true
-// 		}
-// 	}
-// 	return nil, false
-// }
 
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
@@ -1180,7 +1163,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 // The SSA program must include the "runtime" package.
 //
 
-func NewInterp(inst Loader, mainpkg *ssa.Package, mode Mode) *Interp {
+func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) *Interp {
 	i := &Interp{
 		prog:       mainpkg.Prog,
 		mainpkg:    mainpkg,
@@ -1189,8 +1172,8 @@ func NewInterp(inst Loader, mainpkg *ssa.Package, mode Mode) *Interp {
 		goroutines: 1,
 		types:      make(map[types.Type]reflect.Type),
 	}
-	i.inst = inst
-	i.record = NewTypesRecord(i.inst, i)
+	i.loader = loader
+	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
 	for _, pkg := range i.prog.AllPackages() {
 		// if _, ok := externPackages[pkg.Pkg.Path()]; ok {

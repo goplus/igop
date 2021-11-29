@@ -19,9 +19,6 @@ func NewImporter(loader Loader, importer types.Importer) *Importer {
 }
 
 func (i *Importer) Import(path string) (*types.Package, error) {
-	if path == "unsafe" {
-		return types.Unsafe, nil
-	}
 	if pkg, ok := i.pkgs[path]; ok {
 		return pkg, nil
 	}
