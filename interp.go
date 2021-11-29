@@ -51,7 +51,6 @@ import (
 	"os"
 	"reflect"
 	"runtime"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"unsafe"
@@ -98,6 +97,11 @@ type Interp struct {
 	record      *TypesRecord
 	typesMutex  sync.RWMutex
 	callerMutex sync.RWMutex
+}
+
+func (i *Interp) installed(path string) (pkg *Package, ok bool) {
+	pkg, ok = i.loader.Installed(path)
+	return
 }
 
 func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
@@ -155,7 +159,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			return v.Call(args)
 		}
 	}
-	if pkg, ok := registerPkgs[pkgPath]; ok {
+	if pkg, ok := i.installed(pkgPath); ok {
 		if ext, ok := pkg.Methods[name]; ok {
 			return func(args []reflect.Value) []reflect.Value {
 				return ext.Call(args)
@@ -261,13 +265,6 @@ func (fr *frame) get(key ssa.Value) value {
 			}
 			return ext.Interface()
 		}
-		if paths := strings.Split(path, "."); len(paths) == 2 {
-			if pkg, ok := registerPkgs[paths[0]]; ok {
-				if ext, ok := pkg.Vars[path]; ok {
-					return ext.Interface()
-				}
-			}
-		}
 	}
 	switch key := key.(type) {
 	case *ssa.Function:
@@ -287,6 +284,14 @@ func (fr *frame) get(key ssa.Value) value {
 		SetValue(v, reflect.ValueOf(c))
 		return v.Interface()
 	case *ssa.Global:
+		if key.Pkg != nil {
+			pkgpath := key.Pkg.Pkg.Path()
+			if pkg, ok := fr.i.installed(pkgpath); ok {
+				if ext, ok := pkg.Vars[key.String()]; ok {
+					return ext.Interface()
+				}
+			}
+		}
 		if r, ok := fr.i.globals[key]; ok {
 			return r
 		}
@@ -948,7 +953,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 		}
 		if fn.Pkg != nil {
 			pkgPath := fn.Pkg.Pkg.Path()
-			if pkg, ok := registerPkgs[pkgPath]; ok {
+			if pkg, ok := i.installed(pkgPath); ok {
 				if ext, ok := pkg.Funcs[name]; ok {
 					if i.mode&EnableTracing != 0 {
 						fmt.Fprintln(os.Stderr, "\t(external func)")

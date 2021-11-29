@@ -36,20 +36,20 @@ func init() {
 }
 
 type TypesLoader struct {
-	packages map[string]*types.Package
-	imported map[string]*Package
-	rcache   map[reflect.Type]types.Type
-	tcache   *typeutil.Map
-	curpkg   *Package
+	packages  map[string]*types.Package
+	installed map[string]*Package
+	rcache    map[reflect.Type]types.Type
+	tcache    *typeutil.Map
+	curpkg    *Package
 }
 
 // install package and readonly
 func NewTypesLoader() Loader {
 	r := &TypesLoader{
-		packages: make(map[string]*types.Package),
-		imported: make(map[string]*Package),
-		rcache:   make(map[reflect.Type]types.Type),
-		tcache:   &typeutil.Map{},
+		packages:  make(map[string]*types.Package),
+		installed: make(map[string]*Package),
+		rcache:    make(map[reflect.Type]types.Type),
+		tcache:    &typeutil.Map{},
 	}
 	r.packages["unsafe"] = types.Unsafe
 	r.rcache[tyErrorInterface] = typesError
@@ -57,8 +57,9 @@ func NewTypesLoader() Loader {
 	return r
 }
 
-func (r *TypesLoader) Imported() map[string]*Package {
-	return r.imported
+func (r *TypesLoader) Installed(path string) (pkg *Package, ok bool) {
+	pkg, ok = r.installed[path]
+	return
 }
 
 func (r *TypesLoader) Packages() (pkgs []*types.Package) {
@@ -113,7 +114,7 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.curpkg = nil
 	}()
 	r.curpkg = pkg
-	r.imported[pkg.Name] = pkg
+	r.installed[pkg.Name] = pkg
 	for name, typ := range pkg.Interfaces {
 		r.InsertInterface(name, typ)
 	}
@@ -392,7 +393,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		if kind != reflect.Interface {
 			var filter func(name string, ptr bool) bool
 			pkg := named.Obj().Pkg()
-			if p, ok := r.imported[pkg.Path()]; ok {
+			if p, ok := r.installed[pkg.Path()]; ok {
 				if t, ok := p.NamedTypes[pkg.Path()+"."+named.Obj().Name()]; ok {
 					m := make(map[string]bool)
 					pm := make(map[string]bool)

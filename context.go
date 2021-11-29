@@ -39,7 +39,7 @@ const (
 // types loader interface
 type Loader interface {
 	Import(path string) (*types.Package, error)
-	Imported() map[string]*Package
+	Installed(path string) (*Package, bool)
 	Packages() []*types.Package
 	LookupReflect(typ types.Type) (reflect.Type, bool)
 	LookupTypes(typ reflect.Type) (types.Type, bool)
