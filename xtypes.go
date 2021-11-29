@@ -299,6 +299,20 @@ func (r *TypesRecord) toStructType(t *types.Struct) reflect.Type {
 		flds[i] = r.toStructField(t.Field(i), t.Tag(i))
 	}
 	typ := reflectx.StructOf(flds)
+	methods := IntuitiveMethodSet(t)
+	if numMethods := len(methods); numMethods != 0 {
+		// anonymous structs with methods. struct { T }
+		var mcount, pcount int
+		for i := 0; i < numMethods; i++ {
+			sig := methods[i].Type().(*types.Signature)
+			if !isPointer(sig.Recv().Type()) {
+				mcount++
+			}
+			pcount++
+		}
+		typ = reflectx.NewMethodSet(typ, mcount, pcount)
+		r.setMethods(typ, methods)
+	}
 	return typ
 }
 
