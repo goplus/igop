@@ -57,7 +57,6 @@ import (
 	"unsafe"
 
 	"github.com/goplus/reflectx"
-	"github.com/goplus/xtypes"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -91,7 +90,6 @@ type Interp struct {
 	mode        Mode                // interpreter options
 	sizes       types.Sizes         // the effective type-sizing function
 	goroutines  int32               // atomically updated
-	ctx         xtypes.Context
 	types       map[types.Type]reflect.Type
 	caller      *frame
 	loader      Loader

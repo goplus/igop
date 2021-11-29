@@ -18,13 +18,10 @@ github.com/goplus/gop v1.0.22/go.mod h1:+mj5uQ+JN1omrL7SUU/eiQa1mEEDXfGznFpcIruE
 github.com/goplus/gox v1.7.13/go.mod h1:orZ6Mr9qqB4BVaVCMp/cypMtkn0Fp5XUE7e5uqjZATA=
 github.com/goplus/gox v1.7.16 h1:fD6q4QBukdOpYRMOV0Kp2sXiFpY3xp7rGzQAko8s044=
 github.com/goplus/gox v1.7.16/go.mod h1:orZ6Mr9qqB4BVaVCMp/cypMtkn0Fp5XUE7e5uqjZATA=
-github.com/goplus/reflectx v0.6.0/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
 github.com/goplus/reflectx v0.6.5 h1:NOx5xwjnkyB+Ba7W4DaHevaRF97amjtbwsIeEY4cveE=
 github.com/goplus/reflectx v0.6.5/go.mod h1:XPDe5lYQ/8FN05bhqv6r1hhLxwmYIkZ5UvIkN1GNRYg=
 github.com/goplus/spx v0.9.9 h1:K4lInNA0GRbypvzoAPgF1z9YpdoGQPOEE3bIAwPGZS8=
 github.com/goplus/spx v0.9.9/go.mod h1:vUb5mc88xfz7DVzDfdP7yGBxPfO9Dy4iQ533FlXQv4g=
-github.com/goplus/xtypes v0.2.1 h1:rFYaeGjYojN6OzbIZBPD0wQsgDWtdaZmSw9EKAHSzSM=
-github.com/goplus/xtypes v0.2.1/go.mod h1:gD6/6Cw0i+wj6jQnuSpWRuQ7iY0Z+ZKd25ixXIxBN+k=
 github.com/hajimehoshi/bitmapfont/v2 v2.1.3/go.mod h1:2BnYrkTQGThpr/CY6LorYtt/zEPNzvE/ND69CRTaHMs=
 github.com/hajimehoshi/ebiten/v2 v2.2.0 h1:2mP9HrLLqiH9X3MajElYZEjVZU/CGh22iFkjatxhT4w=
 github.com/hajimehoshi/ebiten/v2 v2.2.0/go.mod h1:olKl/qqhMBBAm2oI7Zy292nCtE+nitlmYKNF3UpbFn0=
