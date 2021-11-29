@@ -34,7 +34,7 @@ func joinList(list []string) string {
 func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte, error) {
 	imports := []string{fmt.Sprintf("%v %q\n", sname, pkg.Path)}
 	imports = append(imports, `"reflect"`)
-	if len(pkg.UntypedConsts) > 0 {
+	if len(pkg.UntypedConsts) > 0 || len(pkg.TypedConsts) > 0 {
 		imports = append(imports, `"go/constant"`)
 		var hasToken bool
 		for _, c := range pkg.UntypedConsts {

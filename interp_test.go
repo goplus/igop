@@ -31,12 +31,21 @@ import (
 
 	"github.com/goplus/gossa"
 	//_ "github.com/goplus/gossa/pkg"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/bytes"
 	_ "github.com/goplus/gossa/cmd/qexp/lib/errors"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/flag"
 	_ "github.com/goplus/gossa/cmd/qexp/lib/fmt"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/io"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/math"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/math/rand"
 	_ "github.com/goplus/gossa/cmd/qexp/lib/os"
 	_ "github.com/goplus/gossa/cmd/qexp/lib/reflect"
 	_ "github.com/goplus/gossa/cmd/qexp/lib/runtime"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/strconv"
 	_ "github.com/goplus/gossa/cmd/qexp/lib/strings"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/sync"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/sync/atomic"
+	_ "github.com/goplus/gossa/cmd/qexp/lib/time"
 )
 
 // Each line contains a space-separated list of $GOROOT/test/
@@ -323,7 +332,7 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func _TestGorootTest(t *testing.T) {
+func TestGorootTest(t *testing.T) {
 	dir, files := getGorootTestRuns(t)
 	var failures []string
 
@@ -333,7 +342,7 @@ func _TestGorootTest(t *testing.T) {
 			fmt.Println("Skip:", input, info)
 			continue
 		}
-		if !runCommand(t, input) {
+		if !runInput(t, input) {
 			failures = append(failures, input)
 		}
 	}

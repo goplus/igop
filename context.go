@@ -57,7 +57,7 @@ func NewContext(mode Mode) *Context {
 		Loader:      NewTypesLoader(),
 		Mode:        mode,
 		ParserMode:  parser.AllErrors,
-		BuilderMode: ssa.SanityCheckFunctions,
+		BuilderMode: 0, //ssa.SanityCheckFunctions,
 	}
 	return ctx
 }
