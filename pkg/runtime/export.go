@@ -3,73 +3,84 @@
 package runtime
 
 import (
-	"runtime"
+	q "runtime"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("runtime", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*runtime.BlockProfileRecord).Stack":        (*runtime.BlockProfileRecord).Stack,
-	"(*runtime.Frames).Next":                     (*runtime.Frames).Next,
-	"(*runtime.Func).Entry":                      (*runtime.Func).Entry,
-	"(*runtime.Func).FileLine":                   (*runtime.Func).FileLine,
-	"(*runtime.Func).Name":                       (*runtime.Func).Name,
-	"(*runtime.MemProfileRecord).InUseBytes":     (*runtime.MemProfileRecord).InUseBytes,
-	"(*runtime.MemProfileRecord).InUseObjects":   (*runtime.MemProfileRecord).InUseObjects,
-	"(*runtime.MemProfileRecord).Stack":          (*runtime.MemProfileRecord).Stack,
-	"(*runtime.StackRecord).Stack":               (*runtime.StackRecord).Stack,
-	"(*runtime.TypeAssertionError).Error":        (*runtime.TypeAssertionError).Error,
-	"(*runtime.TypeAssertionError).RuntimeError": (*runtime.TypeAssertionError).RuntimeError,
-	"(runtime.Error).Error":                      (runtime.Error).Error,
-	"(runtime.Error).RuntimeError":               (runtime.Error).RuntimeError,
-	"runtime.BlockProfile":                       runtime.BlockProfile,
-	"runtime.Breakpoint":                         runtime.Breakpoint,
-	"runtime.CPUProfile":                         runtime.CPUProfile,
-	"runtime.Caller":                             runtime.Caller,
-	"runtime.Callers":                            runtime.Callers,
-	"runtime.CallersFrames":                      runtime.CallersFrames,
-	"runtime.FuncForPC":                          runtime.FuncForPC,
-	"runtime.GC":                                 runtime.GC,
-	"runtime.GOMAXPROCS":                         runtime.GOMAXPROCS,
-	"runtime.GOROOT":                             runtime.GOROOT,
-	"runtime.Goexit":                             runtime.Goexit,
-	"runtime.GoroutineProfile":                   runtime.GoroutineProfile,
-	"runtime.Gosched":                            runtime.Gosched,
-	"runtime.KeepAlive":                          runtime.KeepAlive,
-	"runtime.LockOSThread":                       runtime.LockOSThread,
-	"runtime.MemProfile":                         runtime.MemProfile,
-	"runtime.MemProfileRate":                     &runtime.MemProfileRate,
-	"runtime.MutexProfile":                       runtime.MutexProfile,
-	"runtime.NumCPU":                             runtime.NumCPU,
-	"runtime.NumCgoCall":                         runtime.NumCgoCall,
-	"runtime.NumGoroutine":                       runtime.NumGoroutine,
-	"runtime.ReadMemStats":                       runtime.ReadMemStats,
-	"runtime.ReadTrace":                          runtime.ReadTrace,
-	"runtime.SetBlockProfileRate":                runtime.SetBlockProfileRate,
-	"runtime.SetCPUProfileRate":                  runtime.SetCPUProfileRate,
-	"runtime.SetCgoTraceback":                    runtime.SetCgoTraceback,
-	"runtime.SetFinalizer":                       runtime.SetFinalizer,
-	"runtime.SetMutexProfileFraction":            runtime.SetMutexProfileFraction,
-	"runtime.Stack":                              runtime.Stack,
-	"runtime.StartTrace":                         runtime.StartTrace,
-	"runtime.StopTrace":                          runtime.StopTrace,
-	"runtime.ThreadCreateProfile":                runtime.ThreadCreateProfile,
-	"runtime.UnlockOSThread":                     runtime.UnlockOSThread,
-	"runtime.Version":                            runtime.Version,
-}
-
-var typList = []interface{}{
-	(*runtime.BlockProfileRecord)(nil),
-	(*runtime.Error)(nil),
-	(*runtime.Frame)(nil),
-	(*runtime.Frames)(nil),
-	(*runtime.Func)(nil),
-	(*runtime.MemProfileRecord)(nil),
-	(*runtime.MemStats)(nil),
-	(*runtime.StackRecord)(nil),
-	(*runtime.TypeAssertionError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "runtime",
+		Path: "runtime",
+		Deps: map[string]string{
+			"internal/bytealg":        "bytealg",
+			"internal/cpu":            "cpu",
+			"runtime/internal/atomic": "atomic",
+			"runtime/internal/math":   "math",
+			"runtime/internal/sys":    "sys",
+			"unsafe":                  "unsafe",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Error": reflect.TypeOf((*q.Error)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"BlockProfileRecord": {reflect.TypeOf((*q.BlockProfileRecord)(nil)).Elem(), "", ""},
+			"Frame":              {reflect.TypeOf((*q.Frame)(nil)).Elem(), "", ""},
+			"Frames":             {reflect.TypeOf((*q.Frames)(nil)).Elem(), "", "Next"},
+			"Func":               {reflect.TypeOf((*q.Func)(nil)).Elem(), "", "Entry,FileLine,Name,funcInfo,raw"},
+			"MemProfileRecord":   {reflect.TypeOf((*q.MemProfileRecord)(nil)).Elem(), "", "InUseBytes,InUseObjects,Stack"},
+			"MemStats":           {reflect.TypeOf((*q.MemStats)(nil)).Elem(), "", ""},
+			"StackRecord":        {reflect.TypeOf((*q.StackRecord)(nil)).Elem(), "", "Stack"},
+			"TypeAssertionError": {reflect.TypeOf((*q.TypeAssertionError)(nil)).Elem(), "", "Error,RuntimeError"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"MemProfileRate": reflect.ValueOf(&q.MemProfileRate),
+		},
+		Funcs: map[string]reflect.Value{
+			"BlockProfile":            reflect.ValueOf(q.BlockProfile),
+			"Breakpoint":              reflect.ValueOf(q.Breakpoint),
+			"CPUProfile":              reflect.ValueOf(q.CPUProfile),
+			"Caller":                  reflect.ValueOf(q.Caller),
+			"Callers":                 reflect.ValueOf(q.Callers),
+			"CallersFrames":           reflect.ValueOf(q.CallersFrames),
+			"FuncForPC":               reflect.ValueOf(q.FuncForPC),
+			"GC":                      reflect.ValueOf(q.GC),
+			"GOMAXPROCS":              reflect.ValueOf(q.GOMAXPROCS),
+			"GOROOT":                  reflect.ValueOf(q.GOROOT),
+			"Goexit":                  reflect.ValueOf(q.Goexit),
+			"GoroutineProfile":        reflect.ValueOf(q.GoroutineProfile),
+			"Gosched":                 reflect.ValueOf(q.Gosched),
+			"KeepAlive":               reflect.ValueOf(q.KeepAlive),
+			"LockOSThread":            reflect.ValueOf(q.LockOSThread),
+			"MemProfile":              reflect.ValueOf(q.MemProfile),
+			"MutexProfile":            reflect.ValueOf(q.MutexProfile),
+			"NumCPU":                  reflect.ValueOf(q.NumCPU),
+			"NumCgoCall":              reflect.ValueOf(q.NumCgoCall),
+			"NumGoroutine":            reflect.ValueOf(q.NumGoroutine),
+			"ReadMemStats":            reflect.ValueOf(q.ReadMemStats),
+			"ReadTrace":               reflect.ValueOf(q.ReadTrace),
+			"SetBlockProfileRate":     reflect.ValueOf(q.SetBlockProfileRate),
+			"SetCPUProfileRate":       reflect.ValueOf(q.SetCPUProfileRate),
+			"SetCgoTraceback":         reflect.ValueOf(q.SetCgoTraceback),
+			"SetFinalizer":            reflect.ValueOf(q.SetFinalizer),
+			"SetMutexProfileFraction": reflect.ValueOf(q.SetMutexProfileFraction),
+			"Stack":                   reflect.ValueOf(q.Stack),
+			"StartTrace":              reflect.ValueOf(q.StartTrace),
+			"StopTrace":               reflect.ValueOf(q.StopTrace),
+			"ThreadCreateProfile":     reflect.ValueOf(q.ThreadCreateProfile),
+			"UnlockOSThread":          reflect.ValueOf(q.UnlockOSThread),
+			"Version":                 reflect.ValueOf(q.Version),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"GOARCH": {reflect.TypeOf(q.GOARCH), constant.MakeString("amd64")},
+			"GOOS":   {reflect.TypeOf(q.GOOS), constant.MakeString("darwin")},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"Compiler": {"untyped string", constant.MakeString("gc")},
+		},
+	})
 }

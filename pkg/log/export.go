@@ -3,51 +3,62 @@
 package log
 
 import (
-	"log"
+	q "log"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("log", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*log.Logger).Fatal":     (*log.Logger).Fatal,
-	"(*log.Logger).Fatalf":    (*log.Logger).Fatalf,
-	"(*log.Logger).Fatalln":   (*log.Logger).Fatalln,
-	"(*log.Logger).Flags":     (*log.Logger).Flags,
-	"(*log.Logger).Output":    (*log.Logger).Output,
-	"(*log.Logger).Panic":     (*log.Logger).Panic,
-	"(*log.Logger).Panicf":    (*log.Logger).Panicf,
-	"(*log.Logger).Panicln":   (*log.Logger).Panicln,
-	"(*log.Logger).Prefix":    (*log.Logger).Prefix,
-	"(*log.Logger).Print":     (*log.Logger).Print,
-	"(*log.Logger).Printf":    (*log.Logger).Printf,
-	"(*log.Logger).Println":   (*log.Logger).Println,
-	"(*log.Logger).SetFlags":  (*log.Logger).SetFlags,
-	"(*log.Logger).SetOutput": (*log.Logger).SetOutput,
-	"(*log.Logger).SetPrefix": (*log.Logger).SetPrefix,
-	"(*log.Logger).Writer":    (*log.Logger).Writer,
-	"log.Fatal":               log.Fatal,
-	"log.Fatalf":              log.Fatalf,
-	"log.Fatalln":             log.Fatalln,
-	"log.Flags":               log.Flags,
-	"log.New":                 log.New,
-	"log.Output":              log.Output,
-	"log.Panic":               log.Panic,
-	"log.Panicf":              log.Panicf,
-	"log.Panicln":             log.Panicln,
-	"log.Prefix":              log.Prefix,
-	"log.Print":               log.Print,
-	"log.Printf":              log.Printf,
-	"log.Println":             log.Println,
-	"log.SetFlags":            log.SetFlags,
-	"log.SetOutput":           log.SetOutput,
-	"log.SetPrefix":           log.SetPrefix,
-	"log.Writer":              log.Writer,
-}
-
-var typList = []interface{}{
-	(*log.Logger)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "log",
+		Path: "log",
+		Deps: map[string]string{
+			"fmt":     "fmt",
+			"io":      "io",
+			"os":      "os",
+			"runtime": "runtime",
+			"sync":    "sync",
+			"time":    "time",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Logger": {reflect.TypeOf((*q.Logger)(nil)).Elem(), "", "Fatal,Fatalf,Fatalln,Flags,Output,Panic,Panicf,Panicln,Prefix,Print,Printf,Println,SetFlags,SetOutput,SetPrefix,Writer,formatHeader"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Default":   reflect.ValueOf(q.Default),
+			"Fatal":     reflect.ValueOf(q.Fatal),
+			"Fatalf":    reflect.ValueOf(q.Fatalf),
+			"Fatalln":   reflect.ValueOf(q.Fatalln),
+			"Flags":     reflect.ValueOf(q.Flags),
+			"New":       reflect.ValueOf(q.New),
+			"Output":    reflect.ValueOf(q.Output),
+			"Panic":     reflect.ValueOf(q.Panic),
+			"Panicf":    reflect.ValueOf(q.Panicf),
+			"Panicln":   reflect.ValueOf(q.Panicln),
+			"Prefix":    reflect.ValueOf(q.Prefix),
+			"Print":     reflect.ValueOf(q.Print),
+			"Printf":    reflect.ValueOf(q.Printf),
+			"Println":   reflect.ValueOf(q.Println),
+			"SetFlags":  reflect.ValueOf(q.SetFlags),
+			"SetOutput": reflect.ValueOf(q.SetOutput),
+			"SetPrefix": reflect.ValueOf(q.SetPrefix),
+			"Writer":    reflect.ValueOf(q.Writer),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"LUTC":          {"untyped int", constant.MakeInt64(32)},
+			"Ldate":         {"untyped int", constant.MakeInt64(1)},
+			"Llongfile":     {"untyped int", constant.MakeInt64(8)},
+			"Lmicroseconds": {"untyped int", constant.MakeInt64(4)},
+			"Lmsgprefix":    {"untyped int", constant.MakeInt64(64)},
+			"Lshortfile":    {"untyped int", constant.MakeInt64(16)},
+			"LstdFlags":     {"untyped int", constant.MakeInt64(3)},
+			"Ltime":         {"untyped int", constant.MakeInt64(2)},
+		},
+	})
 }

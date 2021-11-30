@@ -3,32 +3,41 @@
 package base32
 
 import (
-	"encoding/base32"
+	q "encoding/base32"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("encoding/base32", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*encoding/base32.Encoding).Decode":         (*base32.Encoding).Decode,
-	"(*encoding/base32.Encoding).DecodeString":   (*base32.Encoding).DecodeString,
-	"(*encoding/base32.Encoding).DecodedLen":     (*base32.Encoding).DecodedLen,
-	"(*encoding/base32.Encoding).Encode":         (*base32.Encoding).Encode,
-	"(*encoding/base32.Encoding).EncodeToString": (*base32.Encoding).EncodeToString,
-	"(*encoding/base32.Encoding).EncodedLen":     (*base32.Encoding).EncodedLen,
-	"(encoding/base32.CorruptInputError).Error":  (base32.CorruptInputError).Error,
-	"(encoding/base32.Encoding).WithPadding":     (base32.Encoding).WithPadding,
-	"encoding/base32.HexEncoding":                &base32.HexEncoding,
-	"encoding/base32.NewDecoder":                 base32.NewDecoder,
-	"encoding/base32.NewEncoder":                 base32.NewEncoder,
-	"encoding/base32.NewEncoding":                base32.NewEncoding,
-	"encoding/base32.StdEncoding":                &base32.StdEncoding,
-}
-
-var typList = []interface{}{
-	(*base32.CorruptInputError)(nil),
-	(*base32.Encoding)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "base32",
+		Path: "encoding/base32",
+		Deps: map[string]string{
+			"io":      "io",
+			"strconv": "strconv",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"CorruptInputError": {reflect.TypeOf((*q.CorruptInputError)(nil)).Elem(), "Error", ""},
+			"Encoding":          {reflect.TypeOf((*q.Encoding)(nil)).Elem(), "WithPadding", "Decode,DecodeString,DecodedLen,Encode,EncodeToString,EncodedLen,decode"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"HexEncoding": reflect.ValueOf(&q.HexEncoding),
+			"StdEncoding": reflect.ValueOf(&q.StdEncoding),
+		},
+		Funcs: map[string]reflect.Value{
+			"NewDecoder":  reflect.ValueOf(q.NewDecoder),
+			"NewEncoder":  reflect.ValueOf(q.NewEncoder),
+			"NewEncoding": reflect.ValueOf(q.NewEncoding),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"NoPadding":  {reflect.TypeOf(q.NoPadding), constant.MakeInt64(-1)},
+			"StdPadding": {reflect.TypeOf(q.StdPadding), constant.MakeInt64(61)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

@@ -1,6 +1,6 @@
 package pkg
 
-//go:generate go run ../cmd/qexp -api -outdir . std
+//go:generate go run ../cmd/qexp -outdir . std
 
 import (
 	_ "github.com/goplus/gossa/pkg/archive/tar"
@@ -123,7 +123,8 @@ import (
 	_ "github.com/goplus/gossa/pkg/os/user"
 	_ "github.com/goplus/gossa/pkg/path"
 	_ "github.com/goplus/gossa/pkg/path/filepath"
-	_ "github.com/goplus/gossa/pkg/plugin"
+
+	// _ "github.com/goplus/gossa/pkg/plugin"
 	_ "github.com/goplus/gossa/pkg/reflect"
 	_ "github.com/goplus/gossa/pkg/regexp"
 	_ "github.com/goplus/gossa/pkg/regexp/syntax"

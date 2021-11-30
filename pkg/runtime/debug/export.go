@@ -3,31 +3,46 @@
 package debug
 
 import (
-	"runtime/debug"
+	q "runtime/debug"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("runtime/debug", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"runtime/debug.FreeOSMemory":    debug.FreeOSMemory,
-	"runtime/debug.PrintStack":      debug.PrintStack,
-	"runtime/debug.ReadBuildInfo":   debug.ReadBuildInfo,
-	"runtime/debug.ReadGCStats":     debug.ReadGCStats,
-	"runtime/debug.SetGCPercent":    debug.SetGCPercent,
-	"runtime/debug.SetMaxStack":     debug.SetMaxStack,
-	"runtime/debug.SetMaxThreads":   debug.SetMaxThreads,
-	"runtime/debug.SetPanicOnFault": debug.SetPanicOnFault,
-	"runtime/debug.SetTraceback":    debug.SetTraceback,
-	"runtime/debug.Stack":           debug.Stack,
-	"runtime/debug.WriteHeapDump":   debug.WriteHeapDump,
-}
-
-var typList = []interface{}{
-	(*debug.BuildInfo)(nil),
-	(*debug.GCStats)(nil),
-	(*debug.Module)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "debug",
+		Path: "runtime/debug",
+		Deps: map[string]string{
+			"os":      "os",
+			"runtime": "runtime",
+			"sort":    "sort",
+			"strings": "strings",
+			"time":    "time",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"BuildInfo": {reflect.TypeOf((*q.BuildInfo)(nil)).Elem(), "", ""},
+			"GCStats":   {reflect.TypeOf((*q.GCStats)(nil)).Elem(), "", ""},
+			"Module":    {reflect.TypeOf((*q.Module)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"FreeOSMemory":    reflect.ValueOf(q.FreeOSMemory),
+			"PrintStack":      reflect.ValueOf(q.PrintStack),
+			"ReadBuildInfo":   reflect.ValueOf(q.ReadBuildInfo),
+			"ReadGCStats":     reflect.ValueOf(q.ReadGCStats),
+			"SetGCPercent":    reflect.ValueOf(q.SetGCPercent),
+			"SetMaxStack":     reflect.ValueOf(q.SetMaxStack),
+			"SetMaxThreads":   reflect.ValueOf(q.SetMaxThreads),
+			"SetPanicOnFault": reflect.ValueOf(q.SetPanicOnFault),
+			"SetTraceback":    reflect.ValueOf(q.SetTraceback),
+			"Stack":           reflect.ValueOf(q.Stack),
+			"WriteHeapDump":   reflect.ValueOf(q.WriteHeapDump),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

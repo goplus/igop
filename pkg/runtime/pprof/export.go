@@ -3,36 +3,60 @@
 package pprof
 
 import (
-	"runtime/pprof"
+	q "runtime/pprof"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("runtime/pprof", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*runtime/pprof.Profile).Add":     (*pprof.Profile).Add,
-	"(*runtime/pprof.Profile).Count":   (*pprof.Profile).Count,
-	"(*runtime/pprof.Profile).Name":    (*pprof.Profile).Name,
-	"(*runtime/pprof.Profile).Remove":  (*pprof.Profile).Remove,
-	"(*runtime/pprof.Profile).WriteTo": (*pprof.Profile).WriteTo,
-	"runtime/pprof.Do":                 pprof.Do,
-	"runtime/pprof.ForLabels":          pprof.ForLabels,
-	"runtime/pprof.Label":              pprof.Label,
-	"runtime/pprof.Labels":             pprof.Labels,
-	"runtime/pprof.Lookup":             pprof.Lookup,
-	"runtime/pprof.NewProfile":         pprof.NewProfile,
-	"runtime/pprof.Profiles":           pprof.Profiles,
-	"runtime/pprof.SetGoroutineLabels": pprof.SetGoroutineLabels,
-	"runtime/pprof.StartCPUProfile":    pprof.StartCPUProfile,
-	"runtime/pprof.StopCPUProfile":     pprof.StopCPUProfile,
-	"runtime/pprof.WithLabels":         pprof.WithLabels,
-	"runtime/pprof.WriteHeapProfile":   pprof.WriteHeapProfile,
-}
-
-var typList = []interface{}{
-	(*pprof.LabelSet)(nil),
-	(*pprof.Profile)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "pprof",
+		Path: "runtime/pprof",
+		Deps: map[string]string{
+			"bufio":           "bufio",
+			"bytes":           "bytes",
+			"compress/gzip":   "gzip",
+			"context":         "context",
+			"encoding/binary": "binary",
+			"errors":          "errors",
+			"fmt":             "fmt",
+			"io":              "io",
+			"math":            "math",
+			"os":              "os",
+			"runtime":         "runtime",
+			"sort":            "sort",
+			"strconv":         "strconv",
+			"strings":         "strings",
+			"sync":            "sync",
+			"syscall":         "syscall",
+			"text/tabwriter":  "tabwriter",
+			"time":            "time",
+			"unsafe":          "unsafe",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"LabelSet": {reflect.TypeOf((*q.LabelSet)(nil)).Elem(), "", ""},
+			"Profile":  {reflect.TypeOf((*q.Profile)(nil)).Elem(), "", "Add,Count,Name,Remove,WriteTo"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Do":                 reflect.ValueOf(q.Do),
+			"ForLabels":          reflect.ValueOf(q.ForLabels),
+			"Label":              reflect.ValueOf(q.Label),
+			"Labels":             reflect.ValueOf(q.Labels),
+			"Lookup":             reflect.ValueOf(q.Lookup),
+			"NewProfile":         reflect.ValueOf(q.NewProfile),
+			"Profiles":           reflect.ValueOf(q.Profiles),
+			"SetGoroutineLabels": reflect.ValueOf(q.SetGoroutineLabels),
+			"StartCPUProfile":    reflect.ValueOf(q.StartCPUProfile),
+			"StopCPUProfile":     reflect.ValueOf(q.StopCPUProfile),
+			"WithLabels":         reflect.ValueOf(q.WithLabels),
+			"WriteHeapProfile":   reflect.ValueOf(q.WriteHeapProfile),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

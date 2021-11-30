@@ -3,53 +3,77 @@
 package constant
 
 import (
+	q "go/constant"
+
 	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("go/constant", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(go/constant.Value).ExactString": (constant.Value).ExactString,
-	"(go/constant.Value).Kind":        (constant.Value).Kind,
-	"(go/constant.Value).String":      (constant.Value).String,
-	"go/constant.BinaryOp":            constant.BinaryOp,
-	"go/constant.BitLen":              constant.BitLen,
-	"go/constant.BoolVal":             constant.BoolVal,
-	"go/constant.Bytes":               constant.Bytes,
-	"go/constant.Compare":             constant.Compare,
-	"go/constant.Denom":               constant.Denom,
-	"go/constant.Float32Val":          constant.Float32Val,
-	"go/constant.Float64Val":          constant.Float64Val,
-	"go/constant.Imag":                constant.Imag,
-	"go/constant.Int64Val":            constant.Int64Val,
-	"go/constant.Make":                constant.Make,
-	"go/constant.MakeBool":            constant.MakeBool,
-	"go/constant.MakeFloat64":         constant.MakeFloat64,
-	"go/constant.MakeFromBytes":       constant.MakeFromBytes,
-	"go/constant.MakeFromLiteral":     constant.MakeFromLiteral,
-	"go/constant.MakeImag":            constant.MakeImag,
-	"go/constant.MakeInt64":           constant.MakeInt64,
-	"go/constant.MakeString":          constant.MakeString,
-	"go/constant.MakeUint64":          constant.MakeUint64,
-	"go/constant.MakeUnknown":         constant.MakeUnknown,
-	"go/constant.Num":                 constant.Num,
-	"go/constant.Real":                constant.Real,
-	"go/constant.Shift":               constant.Shift,
-	"go/constant.Sign":                constant.Sign,
-	"go/constant.StringVal":           constant.StringVal,
-	"go/constant.ToComplex":           constant.ToComplex,
-	"go/constant.ToFloat":             constant.ToFloat,
-	"go/constant.ToInt":               constant.ToInt,
-	"go/constant.Uint64Val":           constant.Uint64Val,
-	"go/constant.UnaryOp":             constant.UnaryOp,
-	"go/constant.Val":                 constant.Val,
-}
-
-var typList = []interface{}{
-	(*constant.Kind)(nil),
-	(*constant.Value)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "constant",
+		Path: "go/constant",
+		Deps: map[string]string{
+			"fmt":          "fmt",
+			"go/token":     "token",
+			"math":         "math",
+			"math/big":     "big",
+			"strconv":      "strconv",
+			"strings":      "strings",
+			"sync":         "sync",
+			"unicode/utf8": "utf8",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Value": reflect.TypeOf((*q.Value)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Kind": {reflect.TypeOf((*q.Kind)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"BinaryOp":        reflect.ValueOf(q.BinaryOp),
+			"BitLen":          reflect.ValueOf(q.BitLen),
+			"BoolVal":         reflect.ValueOf(q.BoolVal),
+			"Bytes":           reflect.ValueOf(q.Bytes),
+			"Compare":         reflect.ValueOf(q.Compare),
+			"Denom":           reflect.ValueOf(q.Denom),
+			"Float32Val":      reflect.ValueOf(q.Float32Val),
+			"Float64Val":      reflect.ValueOf(q.Float64Val),
+			"Imag":            reflect.ValueOf(q.Imag),
+			"Int64Val":        reflect.ValueOf(q.Int64Val),
+			"Make":            reflect.ValueOf(q.Make),
+			"MakeBool":        reflect.ValueOf(q.MakeBool),
+			"MakeFloat64":     reflect.ValueOf(q.MakeFloat64),
+			"MakeFromBytes":   reflect.ValueOf(q.MakeFromBytes),
+			"MakeFromLiteral": reflect.ValueOf(q.MakeFromLiteral),
+			"MakeImag":        reflect.ValueOf(q.MakeImag),
+			"MakeInt64":       reflect.ValueOf(q.MakeInt64),
+			"MakeString":      reflect.ValueOf(q.MakeString),
+			"MakeUint64":      reflect.ValueOf(q.MakeUint64),
+			"MakeUnknown":     reflect.ValueOf(q.MakeUnknown),
+			"Num":             reflect.ValueOf(q.Num),
+			"Real":            reflect.ValueOf(q.Real),
+			"Shift":           reflect.ValueOf(q.Shift),
+			"Sign":            reflect.ValueOf(q.Sign),
+			"StringVal":       reflect.ValueOf(q.StringVal),
+			"ToComplex":       reflect.ValueOf(q.ToComplex),
+			"ToFloat":         reflect.ValueOf(q.ToFloat),
+			"ToInt":           reflect.ValueOf(q.ToInt),
+			"Uint64Val":       reflect.ValueOf(q.Uint64Val),
+			"UnaryOp":         reflect.ValueOf(q.UnaryOp),
+			"Val":             reflect.ValueOf(q.Val),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"Bool":    {reflect.TypeOf(q.Bool), constant.MakeInt64(1)},
+			"Complex": {reflect.TypeOf(q.Complex), constant.MakeInt64(5)},
+			"Float":   {reflect.TypeOf(q.Float), constant.MakeInt64(4)},
+			"Int":     {reflect.TypeOf(q.Int), constant.MakeInt64(3)},
+			"String":  {reflect.TypeOf(q.String), constant.MakeInt64(2)},
+			"Unknown": {reflect.TypeOf(q.Unknown), constant.MakeInt64(0)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

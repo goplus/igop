@@ -3,57 +3,47 @@
 package url
 
 import (
-	"net/url"
+	q "net/url"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("net/url", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*net/url.Error).Error":           (*url.Error).Error,
-	"(*net/url.Error).Temporary":       (*url.Error).Temporary,
-	"(*net/url.Error).Timeout":         (*url.Error).Timeout,
-	"(*net/url.Error).Unwrap":          (*url.Error).Unwrap,
-	"(*net/url.URL).EscapedPath":       (*url.URL).EscapedPath,
-	"(*net/url.URL).Hostname":          (*url.URL).Hostname,
-	"(*net/url.URL).IsAbs":             (*url.URL).IsAbs,
-	"(*net/url.URL).MarshalBinary":     (*url.URL).MarshalBinary,
-	"(*net/url.URL).Parse":             (*url.URL).Parse,
-	"(*net/url.URL).Port":              (*url.URL).Port,
-	"(*net/url.URL).Query":             (*url.URL).Query,
-	"(*net/url.URL).RequestURI":        (*url.URL).RequestURI,
-	"(*net/url.URL).ResolveReference":  (*url.URL).ResolveReference,
-	"(*net/url.URL).String":            (*url.URL).String,
-	"(*net/url.URL).UnmarshalBinary":   (*url.URL).UnmarshalBinary,
-	"(*net/url.Userinfo).Password":     (*url.Userinfo).Password,
-	"(*net/url.Userinfo).String":       (*url.Userinfo).String,
-	"(*net/url.Userinfo).Username":     (*url.Userinfo).Username,
-	"(net/url.EscapeError).Error":      (url.EscapeError).Error,
-	"(net/url.InvalidHostError).Error": (url.InvalidHostError).Error,
-	"(net/url.Values).Add":             (url.Values).Add,
-	"(net/url.Values).Del":             (url.Values).Del,
-	"(net/url.Values).Encode":          (url.Values).Encode,
-	"(net/url.Values).Get":             (url.Values).Get,
-	"(net/url.Values).Set":             (url.Values).Set,
-	"net/url.Parse":                    url.Parse,
-	"net/url.ParseQuery":               url.ParseQuery,
-	"net/url.ParseRequestURI":          url.ParseRequestURI,
-	"net/url.PathEscape":               url.PathEscape,
-	"net/url.PathUnescape":             url.PathUnescape,
-	"net/url.QueryEscape":              url.QueryEscape,
-	"net/url.QueryUnescape":            url.QueryUnescape,
-	"net/url.User":                     url.User,
-	"net/url.UserPassword":             url.UserPassword,
-}
-
-var typList = []interface{}{
-	(*url.Error)(nil),
-	(*url.EscapeError)(nil),
-	(*url.InvalidHostError)(nil),
-	(*url.URL)(nil),
-	(*url.Userinfo)(nil),
-	(*url.Values)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "url",
+		Path: "net/url",
+		Deps: map[string]string{
+			"errors":  "errors",
+			"fmt":     "fmt",
+			"sort":    "sort",
+			"strconv": "strconv",
+			"strings": "strings",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Error":            {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error,Temporary,Timeout,Unwrap"},
+			"EscapeError":      {reflect.TypeOf((*q.EscapeError)(nil)).Elem(), "Error", ""},
+			"InvalidHostError": {reflect.TypeOf((*q.InvalidHostError)(nil)).Elem(), "Error", ""},
+			"URL":              {reflect.TypeOf((*q.URL)(nil)).Elem(), "", "EscapedFragment,EscapedPath,Hostname,IsAbs,MarshalBinary,Parse,Port,Query,Redacted,RequestURI,ResolveReference,String,UnmarshalBinary,setFragment,setPath"},
+			"Userinfo":         {reflect.TypeOf((*q.Userinfo)(nil)).Elem(), "", "Password,String,Username"},
+			"Values":           {reflect.TypeOf((*q.Values)(nil)).Elem(), "Add,Del,Encode,Get,Set", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Parse":           reflect.ValueOf(q.Parse),
+			"ParseQuery":      reflect.ValueOf(q.ParseQuery),
+			"ParseRequestURI": reflect.ValueOf(q.ParseRequestURI),
+			"PathEscape":      reflect.ValueOf(q.PathEscape),
+			"PathUnescape":    reflect.ValueOf(q.PathUnescape),
+			"QueryEscape":     reflect.ValueOf(q.QueryEscape),
+			"QueryUnescape":   reflect.ValueOf(q.QueryUnescape),
+			"User":            reflect.ValueOf(q.User),
+			"UserPassword":    reflect.ValueOf(q.UserPassword),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

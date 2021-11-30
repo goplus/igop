@@ -3,21 +3,30 @@
 package utf16
 
 import (
-	"unicode/utf16"
+	q "unicode/utf16"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("unicode/utf16", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name:       "utf16",
+		Path:       "unicode/utf16",
+		Deps:       map[string]string{},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Decode":      reflect.ValueOf(q.Decode),
+			"DecodeRune":  reflect.ValueOf(q.DecodeRune),
+			"Encode":      reflect.ValueOf(q.Encode),
+			"EncodeRune":  reflect.ValueOf(q.EncodeRune),
+			"IsSurrogate": reflect.ValueOf(q.IsSurrogate),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"unicode/utf16.Decode":      utf16.Decode,
-	"unicode/utf16.DecodeRune":  utf16.DecodeRune,
-	"unicode/utf16.Encode":      utf16.Encode,
-	"unicode/utf16.EncodeRune":  utf16.EncodeRune,
-	"unicode/utf16.IsSurrogate": utf16.IsSurrogate,
-}
-
-var typList = []interface{}{}

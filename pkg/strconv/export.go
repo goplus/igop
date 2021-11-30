@@ -3,53 +3,72 @@
 package strconv
 
 import (
-	"strconv"
+	q "strconv"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("strconv", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*strconv.NumError).Error":        (*strconv.NumError).Error,
-	"(*strconv.NumError).Unwrap":       (*strconv.NumError).Unwrap,
-	"strconv.AppendBool":               strconv.AppendBool,
-	"strconv.AppendFloat":              strconv.AppendFloat,
-	"strconv.AppendInt":                strconv.AppendInt,
-	"strconv.AppendQuote":              strconv.AppendQuote,
-	"strconv.AppendQuoteRune":          strconv.AppendQuoteRune,
-	"strconv.AppendQuoteRuneToASCII":   strconv.AppendQuoteRuneToASCII,
-	"strconv.AppendQuoteRuneToGraphic": strconv.AppendQuoteRuneToGraphic,
-	"strconv.AppendQuoteToASCII":       strconv.AppendQuoteToASCII,
-	"strconv.AppendQuoteToGraphic":     strconv.AppendQuoteToGraphic,
-	"strconv.AppendUint":               strconv.AppendUint,
-	"strconv.Atoi":                     strconv.Atoi,
-	"strconv.CanBackquote":             strconv.CanBackquote,
-	"strconv.ErrRange":                 &strconv.ErrRange,
-	"strconv.ErrSyntax":                &strconv.ErrSyntax,
-	"strconv.FormatBool":               strconv.FormatBool,
-	"strconv.FormatFloat":              strconv.FormatFloat,
-	"strconv.FormatInt":                strconv.FormatInt,
-	"strconv.FormatUint":               strconv.FormatUint,
-	"strconv.IsGraphic":                strconv.IsGraphic,
-	"strconv.IsPrint":                  strconv.IsPrint,
-	"strconv.Itoa":                     strconv.Itoa,
-	"strconv.ParseBool":                strconv.ParseBool,
-	"strconv.ParseFloat":               strconv.ParseFloat,
-	"strconv.ParseInt":                 strconv.ParseInt,
-	"strconv.ParseUint":                strconv.ParseUint,
-	"strconv.Quote":                    strconv.Quote,
-	"strconv.QuoteRune":                strconv.QuoteRune,
-	"strconv.QuoteRuneToASCII":         strconv.QuoteRuneToASCII,
-	"strconv.QuoteRuneToGraphic":       strconv.QuoteRuneToGraphic,
-	"strconv.QuoteToASCII":             strconv.QuoteToASCII,
-	"strconv.QuoteToGraphic":           strconv.QuoteToGraphic,
-	"strconv.Unquote":                  strconv.Unquote,
-	"strconv.UnquoteChar":              strconv.UnquoteChar,
-}
-
-var typList = []interface{}{
-	(*strconv.NumError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "strconv",
+		Path: "strconv",
+		Deps: map[string]string{
+			"errors":           "errors",
+			"internal/bytealg": "bytealg",
+			"math":             "math",
+			"math/bits":        "bits",
+			"unicode/utf8":     "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"NumError": {reflect.TypeOf((*q.NumError)(nil)).Elem(), "", "Error,Unwrap"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"ErrRange":  reflect.ValueOf(&q.ErrRange),
+			"ErrSyntax": reflect.ValueOf(&q.ErrSyntax),
+		},
+		Funcs: map[string]reflect.Value{
+			"AppendBool":               reflect.ValueOf(q.AppendBool),
+			"AppendFloat":              reflect.ValueOf(q.AppendFloat),
+			"AppendInt":                reflect.ValueOf(q.AppendInt),
+			"AppendQuote":              reflect.ValueOf(q.AppendQuote),
+			"AppendQuoteRune":          reflect.ValueOf(q.AppendQuoteRune),
+			"AppendQuoteRuneToASCII":   reflect.ValueOf(q.AppendQuoteRuneToASCII),
+			"AppendQuoteRuneToGraphic": reflect.ValueOf(q.AppendQuoteRuneToGraphic),
+			"AppendQuoteToASCII":       reflect.ValueOf(q.AppendQuoteToASCII),
+			"AppendQuoteToGraphic":     reflect.ValueOf(q.AppendQuoteToGraphic),
+			"AppendUint":               reflect.ValueOf(q.AppendUint),
+			"Atoi":                     reflect.ValueOf(q.Atoi),
+			"CanBackquote":             reflect.ValueOf(q.CanBackquote),
+			"FormatBool":               reflect.ValueOf(q.FormatBool),
+			"FormatComplex":            reflect.ValueOf(q.FormatComplex),
+			"FormatFloat":              reflect.ValueOf(q.FormatFloat),
+			"FormatInt":                reflect.ValueOf(q.FormatInt),
+			"FormatUint":               reflect.ValueOf(q.FormatUint),
+			"IsGraphic":                reflect.ValueOf(q.IsGraphic),
+			"IsPrint":                  reflect.ValueOf(q.IsPrint),
+			"Itoa":                     reflect.ValueOf(q.Itoa),
+			"ParseBool":                reflect.ValueOf(q.ParseBool),
+			"ParseComplex":             reflect.ValueOf(q.ParseComplex),
+			"ParseFloat":               reflect.ValueOf(q.ParseFloat),
+			"ParseInt":                 reflect.ValueOf(q.ParseInt),
+			"ParseUint":                reflect.ValueOf(q.ParseUint),
+			"Quote":                    reflect.ValueOf(q.Quote),
+			"QuoteRune":                reflect.ValueOf(q.QuoteRune),
+			"QuoteRuneToASCII":         reflect.ValueOf(q.QuoteRuneToASCII),
+			"QuoteRuneToGraphic":       reflect.ValueOf(q.QuoteRuneToGraphic),
+			"QuoteToASCII":             reflect.ValueOf(q.QuoteToASCII),
+			"QuoteToGraphic":           reflect.ValueOf(q.QuoteToGraphic),
+			"Unquote":                  reflect.ValueOf(q.Unquote),
+			"UnquoteChar":              reflect.ValueOf(q.UnquoteChar),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"IntSize": {"untyped int", constant.MakeInt64(64)},
+		},
+	})
 }

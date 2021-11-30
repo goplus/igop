@@ -3,32 +3,51 @@
 package gob
 
 import (
-	"encoding/gob"
+	q "encoding/gob"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("encoding/gob", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*encoding/gob.Decoder).Decode":      (*gob.Decoder).Decode,
-	"(*encoding/gob.Decoder).DecodeValue": (*gob.Decoder).DecodeValue,
-	"(*encoding/gob.Encoder).Encode":      (*gob.Encoder).Encode,
-	"(*encoding/gob.Encoder).EncodeValue": (*gob.Encoder).EncodeValue,
-	"(encoding/gob.GobDecoder).GobDecode": (gob.GobDecoder).GobDecode,
-	"(encoding/gob.GobEncoder).GobEncode": (gob.GobEncoder).GobEncode,
-	"encoding/gob.NewDecoder":             gob.NewDecoder,
-	"encoding/gob.NewEncoder":             gob.NewEncoder,
-	"encoding/gob.Register":               gob.Register,
-	"encoding/gob.RegisterName":           gob.RegisterName,
-}
-
-var typList = []interface{}{
-	(*gob.CommonType)(nil),
-	(*gob.Decoder)(nil),
-	(*gob.Encoder)(nil),
-	(*gob.GobDecoder)(nil),
-	(*gob.GobEncoder)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "gob",
+		Path: "encoding/gob",
+		Deps: map[string]string{
+			"bufio":           "bufio",
+			"encoding":        "encoding",
+			"encoding/binary": "binary",
+			"errors":          "errors",
+			"fmt":             "fmt",
+			"io":              "io",
+			"math":            "math",
+			"math/bits":       "bits",
+			"os":              "os",
+			"reflect":         "reflect",
+			"sync":            "sync",
+			"sync/atomic":     "atomic",
+			"unicode":         "unicode",
+			"unicode/utf8":    "utf8",
+		},
+		Interfaces: map[string]reflect.Type{
+			"GobDecoder": reflect.TypeOf((*q.GobDecoder)(nil)).Elem(),
+			"GobEncoder": reflect.TypeOf((*q.GobEncoder)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"CommonType": {reflect.TypeOf((*q.CommonType)(nil)).Elem(), "", "id,name,safeString,setId,string"},
+			"Decoder":    {reflect.TypeOf((*q.Decoder)(nil)).Elem(), "", "Decode,DecodeValue,compatibleType,compileDec,compileIgnoreSingle,compileSingle,decIgnoreOpFor,decOpFor,decodeArray,decodeArrayHelper,decodeGobDecoder,decodeIgnoredValue,decodeInterface,decodeMap,decodeSingle,decodeSlice,decodeStruct,decodeTypeSequence,decodeValue,freeDecoderState,getDecEnginePtr,getIgnoreEnginePtr,gobDecodeOpFor,ignoreArray,ignoreArrayHelper,ignoreGobDecoder,ignoreInterface,ignoreMap,ignoreSingle,ignoreSlice,ignoreStruct,newDecoderState,nextInt,nextUint,readMessage,recvMessage,recvType,typeString"},
+			"Encoder":    {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode,EncodeValue,encode,encodeArray,encodeGobEncoder,encodeInterface,encodeMap,encodeSingle,encodeStruct,freeEncoderState,newEncoderState,popWriter,pushWriter,sendActualType,sendType,sendTypeDescriptor,sendTypeId,setError,writeMessage,writer"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"NewDecoder":   reflect.ValueOf(q.NewDecoder),
+			"NewEncoder":   reflect.ValueOf(q.NewEncoder),
+			"Register":     reflect.ValueOf(q.Register),
+			"RegisterName": reflect.ValueOf(q.RegisterName),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

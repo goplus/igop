@@ -3,22 +3,49 @@
 package cgi
 
 import (
-	"net/http/cgi"
+	q "net/http/cgi"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("net/http/cgi", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*net/http/cgi.Handler).ServeHTTP": (*cgi.Handler).ServeHTTP,
-	"net/http/cgi.Request":              cgi.Request,
-	"net/http/cgi.RequestFromMap":       cgi.RequestFromMap,
-	"net/http/cgi.Serve":                cgi.Serve,
-}
-
-var typList = []interface{}{
-	(*cgi.Handler)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "cgi",
+		Path: "net/http/cgi",
+		Deps: map[string]string{
+			"bufio":                                 "bufio",
+			"crypto/tls":                            "tls",
+			"errors":                                "errors",
+			"fmt":                                   "fmt",
+			"io":                                    "io",
+			"log":                                   "log",
+			"net":                                   "net",
+			"net/http":                              "http",
+			"net/textproto":                         "textproto",
+			"net/url":                               "url",
+			"os":                                    "os",
+			"os/exec":                               "exec",
+			"path/filepath":                         "filepath",
+			"regexp":                                "regexp",
+			"runtime":                               "runtime",
+			"strconv":                               "strconv",
+			"strings":                               "strings",
+			"vendor/golang.org/x/net/http/httpguts": "httpguts",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Handler": {reflect.TypeOf((*q.Handler)(nil)).Elem(), "", "ServeHTTP,handleInternalRedirect,printf,stderr"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Request":        reflect.ValueOf(q.Request),
+			"RequestFromMap": reflect.ValueOf(q.RequestFromMap),
+			"Serve":          reflect.ValueOf(q.Serve),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

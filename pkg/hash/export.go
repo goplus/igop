@@ -3,37 +3,30 @@
 package hash
 
 import (
-	"hash"
+	q "hash"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("hash", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(hash.Hash).BlockSize":   (hash.Hash).BlockSize,
-	"(hash.Hash).Reset":       (hash.Hash).Reset,
-	"(hash.Hash).Size":        (hash.Hash).Size,
-	"(hash.Hash).Sum":         (hash.Hash).Sum,
-	"(hash.Hash).Write":       (hash.Hash).Write,
-	"(hash.Hash32).BlockSize": (hash.Hash32).BlockSize,
-	"(hash.Hash32).Reset":     (hash.Hash32).Reset,
-	"(hash.Hash32).Size":      (hash.Hash32).Size,
-	"(hash.Hash32).Sum":       (hash.Hash32).Sum,
-	"(hash.Hash32).Sum32":     (hash.Hash32).Sum32,
-	"(hash.Hash32).Write":     (hash.Hash32).Write,
-	"(hash.Hash64).BlockSize": (hash.Hash64).BlockSize,
-	"(hash.Hash64).Reset":     (hash.Hash64).Reset,
-	"(hash.Hash64).Size":      (hash.Hash64).Size,
-	"(hash.Hash64).Sum":       (hash.Hash64).Sum,
-	"(hash.Hash64).Sum64":     (hash.Hash64).Sum64,
-	"(hash.Hash64).Write":     (hash.Hash64).Write,
-}
-
-var typList = []interface{}{
-	(*hash.Hash)(nil),
-	(*hash.Hash32)(nil),
-	(*hash.Hash64)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "hash",
+		Path: "hash",
+		Deps: map[string]string{
+			"io": "io",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Hash":   reflect.TypeOf((*q.Hash)(nil)).Elem(),
+			"Hash32": reflect.TypeOf((*q.Hash32)(nil)).Elem(),
+			"Hash64": reflect.TypeOf((*q.Hash64)(nil)).Elem(),
+		},
+		NamedTypes:    map[string]gossa.NamedType{},
+		AliasTypes:    map[string]reflect.Type{},
+		Vars:          map[string]reflect.Value{},
+		Funcs:         map[string]reflect.Value{},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

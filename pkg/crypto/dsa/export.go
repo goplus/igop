@@ -3,26 +3,47 @@
 package dsa
 
 import (
-	"crypto/dsa"
+	q "crypto/dsa"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/dsa", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"crypto/dsa.ErrInvalidPublicKey": &dsa.ErrInvalidPublicKey,
-	"crypto/dsa.GenerateKey":         dsa.GenerateKey,
-	"crypto/dsa.GenerateParameters":  dsa.GenerateParameters,
-	"crypto/dsa.Sign":                dsa.Sign,
-	"crypto/dsa.Verify":              dsa.Verify,
-}
-
-var typList = []interface{}{
-	(*dsa.ParameterSizes)(nil),
-	(*dsa.Parameters)(nil),
-	(*dsa.PrivateKey)(nil),
-	(*dsa.PublicKey)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "dsa",
+		Path: "crypto/dsa",
+		Deps: map[string]string{
+			"crypto/internal/randutil": "randutil",
+			"errors":                   "errors",
+			"io":                       "io",
+			"math/big":                 "big",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"ParameterSizes": {reflect.TypeOf((*q.ParameterSizes)(nil)).Elem(), "", ""},
+			"Parameters":     {reflect.TypeOf((*q.Parameters)(nil)).Elem(), "", ""},
+			"PrivateKey":     {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "", ""},
+			"PublicKey":      {reflect.TypeOf((*q.PublicKey)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"ErrInvalidPublicKey": reflect.ValueOf(&q.ErrInvalidPublicKey),
+		},
+		Funcs: map[string]reflect.Value{
+			"GenerateKey":        reflect.ValueOf(q.GenerateKey),
+			"GenerateParameters": reflect.ValueOf(q.GenerateParameters),
+			"Sign":               reflect.ValueOf(q.Sign),
+			"Verify":             reflect.ValueOf(q.Verify),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"L1024N160": {reflect.TypeOf(q.L1024N160), constant.MakeInt64(0)},
+			"L2048N224": {reflect.TypeOf(q.L2048N224), constant.MakeInt64(1)},
+			"L2048N256": {reflect.TypeOf(q.L2048N256), constant.MakeInt64(2)},
+			"L3072N256": {reflect.TypeOf(q.L3072N256), constant.MakeInt64(3)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

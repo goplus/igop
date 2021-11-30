@@ -3,20 +3,31 @@
 package errors
 
 import (
-	"errors"
+	q "errors"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("errors", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "errors",
+		Path: "errors",
+		Deps: map[string]string{
+			"internal/reflectlite": "reflectlite",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"As":     reflect.ValueOf(q.As),
+			"Is":     reflect.ValueOf(q.Is),
+			"New":    reflect.ValueOf(q.New),
+			"Unwrap": reflect.ValueOf(q.Unwrap),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"errors.As":     errors.As,
-	"errors.Is":     errors.Is,
-	"errors.New":    errors.New,
-	"errors.Unwrap": errors.Unwrap,
-}
-
-var typList = []interface{}{}

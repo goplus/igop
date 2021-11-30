@@ -3,28 +3,34 @@
 package heap
 
 import (
-	"container/heap"
+	q "container/heap"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("container/heap", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(container/heap.Interface).Len":  (heap.Interface).Len,
-	"(container/heap.Interface).Less": (heap.Interface).Less,
-	"(container/heap.Interface).Pop":  (heap.Interface).Pop,
-	"(container/heap.Interface).Push": (heap.Interface).Push,
-	"(container/heap.Interface).Swap": (heap.Interface).Swap,
-	"container/heap.Fix":              heap.Fix,
-	"container/heap.Init":             heap.Init,
-	"container/heap.Pop":              heap.Pop,
-	"container/heap.Push":             heap.Push,
-	"container/heap.Remove":           heap.Remove,
-}
-
-var typList = []interface{}{
-	(*heap.Interface)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "heap",
+		Path: "container/heap",
+		Deps: map[string]string{
+			"sort": "sort",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Interface": reflect.TypeOf((*q.Interface)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Fix":    reflect.ValueOf(q.Fix),
+			"Init":   reflect.ValueOf(q.Init),
+			"Pop":    reflect.ValueOf(q.Pop),
+			"Push":   reflect.ValueOf(q.Push),
+			"Remove": reflect.ValueOf(q.Remove),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

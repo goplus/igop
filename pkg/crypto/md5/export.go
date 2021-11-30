@@ -3,18 +3,37 @@
 package md5
 
 import (
-	"crypto/md5"
+	q "crypto/md5"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/md5", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "md5",
+		Path: "crypto/md5",
+		Deps: map[string]string{
+			"crypto":          "crypto",
+			"encoding/binary": "binary",
+			"errors":          "errors",
+			"hash":            "hash",
+			"math/bits":       "bits",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"New": reflect.ValueOf(q.New),
+			"Sum": reflect.ValueOf(q.Sum),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"BlockSize": {"untyped int", constant.MakeInt64(64)},
+			"Size":      {"untyped int", constant.MakeInt64(16)},
+		},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"crypto/md5.New": md5.New,
-	"crypto/md5.Sum": md5.Sum,
-}
-
-var typList = []interface{}{}

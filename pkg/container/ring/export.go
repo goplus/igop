@@ -3,26 +3,28 @@
 package ring
 
 import (
-	"container/ring"
+	q "container/ring"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("container/ring", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*container/ring.Ring).Do":     (*ring.Ring).Do,
-	"(*container/ring.Ring).Len":    (*ring.Ring).Len,
-	"(*container/ring.Ring).Link":   (*ring.Ring).Link,
-	"(*container/ring.Ring).Move":   (*ring.Ring).Move,
-	"(*container/ring.Ring).Next":   (*ring.Ring).Next,
-	"(*container/ring.Ring).Prev":   (*ring.Ring).Prev,
-	"(*container/ring.Ring).Unlink": (*ring.Ring).Unlink,
-	"container/ring.New":            ring.New,
-}
-
-var typList = []interface{}{
-	(*ring.Ring)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name:       "ring",
+		Path:       "container/ring",
+		Deps:       map[string]string{},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Ring": {reflect.TypeOf((*q.Ring)(nil)).Elem(), "", "Do,Len,Link,Move,Next,Prev,Unlink,init"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"New": reflect.ValueOf(q.New),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

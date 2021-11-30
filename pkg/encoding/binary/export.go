@@ -3,36 +3,50 @@
 package binary
 
 import (
-	"encoding/binary"
+	q "encoding/binary"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("encoding/binary", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(encoding/binary.ByteOrder).PutUint16": (binary.ByteOrder).PutUint16,
-	"(encoding/binary.ByteOrder).PutUint32": (binary.ByteOrder).PutUint32,
-	"(encoding/binary.ByteOrder).PutUint64": (binary.ByteOrder).PutUint64,
-	"(encoding/binary.ByteOrder).String":    (binary.ByteOrder).String,
-	"(encoding/binary.ByteOrder).Uint16":    (binary.ByteOrder).Uint16,
-	"(encoding/binary.ByteOrder).Uint32":    (binary.ByteOrder).Uint32,
-	"(encoding/binary.ByteOrder).Uint64":    (binary.ByteOrder).Uint64,
-	"encoding/binary.BigEndian":             &binary.BigEndian,
-	"encoding/binary.LittleEndian":          &binary.LittleEndian,
-	"encoding/binary.PutUvarint":            binary.PutUvarint,
-	"encoding/binary.PutVarint":             binary.PutVarint,
-	"encoding/binary.Read":                  binary.Read,
-	"encoding/binary.ReadUvarint":           binary.ReadUvarint,
-	"encoding/binary.ReadVarint":            binary.ReadVarint,
-	"encoding/binary.Size":                  binary.Size,
-	"encoding/binary.Uvarint":               binary.Uvarint,
-	"encoding/binary.Varint":                binary.Varint,
-	"encoding/binary.Write":                 binary.Write,
-}
-
-var typList = []interface{}{
-	(*binary.ByteOrder)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "binary",
+		Path: "encoding/binary",
+		Deps: map[string]string{
+			"errors":  "errors",
+			"io":      "io",
+			"math":    "math",
+			"reflect": "reflect",
+			"sync":    "sync",
+		},
+		Interfaces: map[string]reflect.Type{
+			"ByteOrder": reflect.TypeOf((*q.ByteOrder)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"BigEndian":    reflect.ValueOf(&q.BigEndian),
+			"LittleEndian": reflect.ValueOf(&q.LittleEndian),
+		},
+		Funcs: map[string]reflect.Value{
+			"PutUvarint":  reflect.ValueOf(q.PutUvarint),
+			"PutVarint":   reflect.ValueOf(q.PutVarint),
+			"Read":        reflect.ValueOf(q.Read),
+			"ReadUvarint": reflect.ValueOf(q.ReadUvarint),
+			"ReadVarint":  reflect.ValueOf(q.ReadVarint),
+			"Size":        reflect.ValueOf(q.Size),
+			"Uvarint":     reflect.ValueOf(q.Uvarint),
+			"Varint":      reflect.ValueOf(q.Varint),
+			"Write":       reflect.ValueOf(q.Write),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"MaxVarintLen16": {"untyped int", constant.MakeInt64(3)},
+			"MaxVarintLen32": {"untyped int", constant.MakeInt64(5)},
+			"MaxVarintLen64": {"untyped int", constant.MakeInt64(10)},
+		},
+	})
 }

@@ -3,31 +3,43 @@
 package draw
 
 import (
-	"image/draw"
+	q "image/draw"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("image/draw", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(image/draw.Drawer).Draw":        (draw.Drawer).Draw,
-	"(image/draw.Image).At":           (draw.Image).At,
-	"(image/draw.Image).Bounds":       (draw.Image).Bounds,
-	"(image/draw.Image).ColorModel":   (draw.Image).ColorModel,
-	"(image/draw.Image).Set":          (draw.Image).Set,
-	"(image/draw.Op).Draw":            (draw.Op).Draw,
-	"(image/draw.Quantizer).Quantize": (draw.Quantizer).Quantize,
-	"image/draw.Draw":                 draw.Draw,
-	"image/draw.DrawMask":             draw.DrawMask,
-	"image/draw.FloydSteinberg":       &draw.FloydSteinberg,
-}
-
-var typList = []interface{}{
-	(*draw.Drawer)(nil),
-	(*draw.Image)(nil),
-	(*draw.Op)(nil),
-	(*draw.Quantizer)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "draw",
+		Path: "image/draw",
+		Deps: map[string]string{
+			"image":                    "image",
+			"image/color":              "color",
+			"image/internal/imageutil": "imageutil",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Drawer":    reflect.TypeOf((*q.Drawer)(nil)).Elem(),
+			"Image":     reflect.TypeOf((*q.Image)(nil)).Elem(),
+			"Quantizer": reflect.TypeOf((*q.Quantizer)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Op": {reflect.TypeOf((*q.Op)(nil)).Elem(), "Draw", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"FloydSteinberg": reflect.ValueOf(&q.FloydSteinberg),
+		},
+		Funcs: map[string]reflect.Value{
+			"Draw":     reflect.ValueOf(q.Draw),
+			"DrawMask": reflect.ValueOf(q.DrawMask),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"Over": {reflect.TypeOf(q.Over), constant.MakeInt64(0)},
+			"Src":  {reflect.TypeOf(q.Src), constant.MakeInt64(1)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

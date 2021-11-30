@@ -3,25 +3,48 @@
 package crc32
 
 import (
-	"hash/crc32"
+	q "hash/crc32"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("hash/crc32", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"hash/crc32.Checksum":     crc32.Checksum,
-	"hash/crc32.ChecksumIEEE": crc32.ChecksumIEEE,
-	"hash/crc32.IEEETable":    &crc32.IEEETable,
-	"hash/crc32.MakeTable":    crc32.MakeTable,
-	"hash/crc32.New":          crc32.New,
-	"hash/crc32.NewIEEE":      crc32.NewIEEE,
-	"hash/crc32.Update":       crc32.Update,
-}
-
-var typList = []interface{}{
-	(*crc32.Table)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "crc32",
+		Path: "hash/crc32",
+		Deps: map[string]string{
+			"errors":       "errors",
+			"hash":         "hash",
+			"internal/cpu": "cpu",
+			"sync":         "sync",
+			"sync/atomic":  "atomic",
+			"unsafe":       "unsafe",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Table": {reflect.TypeOf((*q.Table)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"IEEETable": reflect.ValueOf(&q.IEEETable),
+		},
+		Funcs: map[string]reflect.Value{
+			"Checksum":     reflect.ValueOf(q.Checksum),
+			"ChecksumIEEE": reflect.ValueOf(q.ChecksumIEEE),
+			"MakeTable":    reflect.ValueOf(q.MakeTable),
+			"New":          reflect.ValueOf(q.New),
+			"NewIEEE":      reflect.ValueOf(q.NewIEEE),
+			"Update":       reflect.ValueOf(q.Update),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"Castagnoli": {"untyped int", constant.MakeInt64(2197175160)},
+			"IEEE":       {"untyped int", constant.MakeInt64(3988292384)},
+			"Koopman":    {"untyped int", constant.MakeInt64(3945912366)},
+			"Size":       {"untyped int", constant.MakeInt64(4)},
+		},
+	})
 }

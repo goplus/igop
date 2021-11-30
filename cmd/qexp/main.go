@@ -72,6 +72,9 @@ func main() {
 		fmt.Printf("\nimport (\n\t%v\n)\n", strings.Join(imports, "\n\t"))
 	} else {
 		for _, pkg := range args {
+			if pkg == "unsafe" {
+				continue
+			}
 			prog, err := loadProgram(pkg)
 			if err != nil {
 				panic(fmt.Errorf("load pkg %v error: %v", pkg, err))

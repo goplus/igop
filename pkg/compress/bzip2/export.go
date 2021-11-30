@@ -3,20 +3,32 @@
 package bzip2
 
 import (
-	"compress/bzip2"
+	q "compress/bzip2"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("compress/bzip2", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(compress/bzip2.StructuralError).Error": (bzip2.StructuralError).Error,
-	"compress/bzip2.NewReader":               bzip2.NewReader,
-}
-
-var typList = []interface{}{
-	(*bzip2.StructuralError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "bzip2",
+		Path: "compress/bzip2",
+		Deps: map[string]string{
+			"bufio": "bufio",
+			"io":    "io",
+			"sort":  "sort",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"StructuralError": {reflect.TypeOf((*q.StructuralError)(nil)).Elem(), "Error", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"NewReader": reflect.ValueOf(q.NewReader),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

@@ -3,24 +3,35 @@
 package quotedprintable
 
 import (
-	"mime/quotedprintable"
+	q "mime/quotedprintable"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("mime/quotedprintable", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*mime/quotedprintable.Reader).Read":  (*quotedprintable.Reader).Read,
-	"(*mime/quotedprintable.Writer).Close": (*quotedprintable.Writer).Close,
-	"(*mime/quotedprintable.Writer).Write": (*quotedprintable.Writer).Write,
-	"mime/quotedprintable.NewReader":       quotedprintable.NewReader,
-	"mime/quotedprintable.NewWriter":       quotedprintable.NewWriter,
-}
-
-var typList = []interface{}{
-	(*quotedprintable.Reader)(nil),
-	(*quotedprintable.Writer)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "quotedprintable",
+		Path: "mime/quotedprintable",
+		Deps: map[string]string{
+			"bufio": "bufio",
+			"bytes": "bytes",
+			"fmt":   "fmt",
+			"io":    "io",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Read"},
+			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Write,checkLastByte,encode,flush,insertCRLF,insertSoftLineBreak,write"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"NewReader": reflect.ValueOf(q.NewReader),
+			"NewWriter": reflect.ValueOf(q.NewWriter),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

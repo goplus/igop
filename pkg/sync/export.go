@@ -3,49 +3,41 @@
 package sync
 
 import (
-	"sync"
+	q "sync"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("sync", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*sync.Cond).Broadcast":  (*sync.Cond).Broadcast,
-	"(*sync.Cond).Signal":     (*sync.Cond).Signal,
-	"(*sync.Cond).Wait":       (*sync.Cond).Wait,
-	"(*sync.Map).Delete":      (*sync.Map).Delete,
-	"(*sync.Map).Load":        (*sync.Map).Load,
-	"(*sync.Map).LoadOrStore": (*sync.Map).LoadOrStore,
-	"(*sync.Map).Range":       (*sync.Map).Range,
-	"(*sync.Map).Store":       (*sync.Map).Store,
-	"(*sync.Mutex).Lock":      (*sync.Mutex).Lock,
-	"(*sync.Mutex).Unlock":    (*sync.Mutex).Unlock,
-	"(*sync.Once).Do":         (*sync.Once).Do,
-	"(*sync.Pool).Get":        (*sync.Pool).Get,
-	"(*sync.Pool).Put":        (*sync.Pool).Put,
-	"(*sync.RWMutex).Lock":    (*sync.RWMutex).Lock,
-	"(*sync.RWMutex).RLock":   (*sync.RWMutex).RLock,
-	"(*sync.RWMutex).RLocker": (*sync.RWMutex).RLocker,
-	"(*sync.RWMutex).RUnlock": (*sync.RWMutex).RUnlock,
-	"(*sync.RWMutex).Unlock":  (*sync.RWMutex).Unlock,
-	"(*sync.WaitGroup).Add":   (*sync.WaitGroup).Add,
-	"(*sync.WaitGroup).Done":  (*sync.WaitGroup).Done,
-	"(*sync.WaitGroup).Wait":  (*sync.WaitGroup).Wait,
-	"(sync.Locker).Lock":      (sync.Locker).Lock,
-	"(sync.Locker).Unlock":    (sync.Locker).Unlock,
-	"sync.NewCond":            sync.NewCond,
-}
-
-var typList = []interface{}{
-	(*sync.Cond)(nil),
-	(*sync.Locker)(nil),
-	(*sync.Map)(nil),
-	(*sync.Mutex)(nil),
-	(*sync.Once)(nil),
-	(*sync.Pool)(nil),
-	(*sync.RWMutex)(nil),
-	(*sync.WaitGroup)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "sync",
+		Path: "sync",
+		Deps: map[string]string{
+			"internal/race": "race",
+			"runtime":       "runtime",
+			"sync/atomic":   "atomic",
+			"unsafe":        "unsafe",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Locker": reflect.TypeOf((*q.Locker)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Cond":      {reflect.TypeOf((*q.Cond)(nil)).Elem(), "", "Broadcast,Signal,Wait"},
+			"Map":       {reflect.TypeOf((*q.Map)(nil)).Elem(), "", "Delete,Load,LoadAndDelete,LoadOrStore,Range,Store,dirtyLocked,missLocked"},
+			"Mutex":     {reflect.TypeOf((*q.Mutex)(nil)).Elem(), "", "Lock,Unlock,lockSlow,unlockSlow"},
+			"Once":      {reflect.TypeOf((*q.Once)(nil)).Elem(), "", "Do,doSlow"},
+			"Pool":      {reflect.TypeOf((*q.Pool)(nil)).Elem(), "", "Get,Put,getSlow,pin,pinSlow"},
+			"RWMutex":   {reflect.TypeOf((*q.RWMutex)(nil)).Elem(), "", "Lock,RLock,RLocker,RUnlock,Unlock,rUnlockSlow"},
+			"WaitGroup": {reflect.TypeOf((*q.WaitGroup)(nil)).Elem(), "", "Add,Done,Wait,state"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"NewCond": reflect.ValueOf(q.NewCond),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

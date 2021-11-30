@@ -3,20 +3,39 @@
 package aes
 
 import (
-	"crypto/aes"
+	q "crypto/aes"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/aes", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(crypto/aes.KeySizeError).Error": (aes.KeySizeError).Error,
-	"crypto/aes.NewCipher":            aes.NewCipher,
-}
-
-var typList = []interface{}{
-	(*aes.KeySizeError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "aes",
+		Path: "crypto/aes",
+		Deps: map[string]string{
+			"crypto/cipher":          "cipher",
+			"crypto/internal/subtle": "subtle",
+			"crypto/subtle":          "subtle",
+			"encoding/binary":        "binary",
+			"errors":                 "errors",
+			"internal/cpu":           "cpu",
+			"strconv":                "strconv",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"KeySizeError": {reflect.TypeOf((*q.KeySizeError)(nil)).Elem(), "Error", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"NewCipher": reflect.ValueOf(q.NewCipher),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"BlockSize": {"untyped int", constant.MakeInt64(16)},
+		},
+	})
 }

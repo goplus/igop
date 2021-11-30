@@ -3,30 +3,45 @@
 package plan9obj
 
 import (
-	"debug/plan9obj"
+	q "debug/plan9obj"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("debug/plan9obj", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*debug/plan9obj.File).Close":    (*plan9obj.File).Close,
-	"(*debug/plan9obj.File).Section":  (*plan9obj.File).Section,
-	"(*debug/plan9obj.File).Symbols":  (*plan9obj.File).Symbols,
-	"(*debug/plan9obj.Section).Data":  (*plan9obj.Section).Data,
-	"(*debug/plan9obj.Section).Open":  (*plan9obj.Section).Open,
-	"(debug/plan9obj.Section).ReadAt": (plan9obj.Section).ReadAt,
-	"debug/plan9obj.NewFile":          plan9obj.NewFile,
-	"debug/plan9obj.Open":             plan9obj.Open,
-}
-
-var typList = []interface{}{
-	(*plan9obj.File)(nil),
-	(*plan9obj.FileHeader)(nil),
-	(*plan9obj.Section)(nil),
-	(*plan9obj.SectionHeader)(nil),
-	(*plan9obj.Sym)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "plan9obj",
+		Path: "debug/plan9obj",
+		Deps: map[string]string{
+			"encoding/binary": "binary",
+			"errors":          "errors",
+			"fmt":             "fmt",
+			"io":              "io",
+			"os":              "os",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"File":          {reflect.TypeOf((*q.File)(nil)).Elem(), "", "Close,Section,Symbols"},
+			"FileHeader":    {reflect.TypeOf((*q.FileHeader)(nil)).Elem(), "", ""},
+			"Section":       {reflect.TypeOf((*q.Section)(nil)).Elem(), "", "Data,Open"},
+			"SectionHeader": {reflect.TypeOf((*q.SectionHeader)(nil)).Elem(), "", ""},
+			"Sym":           {reflect.TypeOf((*q.Sym)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"NewFile": reflect.ValueOf(q.NewFile),
+			"Open":    reflect.ValueOf(q.Open),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"Magic386":   {"untyped int", constant.MakeInt64(491)},
+			"Magic64":    {"untyped int", constant.MakeInt64(32768)},
+			"MagicAMD64": {"untyped int", constant.MakeInt64(35479)},
+			"MagicARM":   {"untyped int", constant.MakeInt64(1607)},
+		},
+	})
 }

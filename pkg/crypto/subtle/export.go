@@ -3,22 +3,31 @@
 package subtle
 
 import (
-	"crypto/subtle"
+	q "crypto/subtle"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/subtle", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name:       "subtle",
+		Path:       "crypto/subtle",
+		Deps:       map[string]string{},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"ConstantTimeByteEq":   reflect.ValueOf(q.ConstantTimeByteEq),
+			"ConstantTimeCompare":  reflect.ValueOf(q.ConstantTimeCompare),
+			"ConstantTimeCopy":     reflect.ValueOf(q.ConstantTimeCopy),
+			"ConstantTimeEq":       reflect.ValueOf(q.ConstantTimeEq),
+			"ConstantTimeLessOrEq": reflect.ValueOf(q.ConstantTimeLessOrEq),
+			"ConstantTimeSelect":   reflect.ValueOf(q.ConstantTimeSelect),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"crypto/subtle.ConstantTimeByteEq":   subtle.ConstantTimeByteEq,
-	"crypto/subtle.ConstantTimeCompare":  subtle.ConstantTimeCompare,
-	"crypto/subtle.ConstantTimeCopy":     subtle.ConstantTimeCopy,
-	"crypto/subtle.ConstantTimeEq":       subtle.ConstantTimeEq,
-	"crypto/subtle.ConstantTimeLessOrEq": subtle.ConstantTimeLessOrEq,
-	"crypto/subtle.ConstantTimeSelect":   subtle.ConstantTimeSelect,
-}
-
-var typList = []interface{}{}

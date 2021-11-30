@@ -3,51 +3,60 @@
 package template
 
 import (
-	"text/template"
+	q "text/template"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("text/template", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*text/template.Template).AddParseTree":     (*template.Template).AddParseTree,
-	"(*text/template.Template).Clone":            (*template.Template).Clone,
-	"(*text/template.Template).DefinedTemplates": (*template.Template).DefinedTemplates,
-	"(*text/template.Template).Delims":           (*template.Template).Delims,
-	"(*text/template.Template).Execute":          (*template.Template).Execute,
-	"(*text/template.Template).ExecuteTemplate":  (*template.Template).ExecuteTemplate,
-	"(*text/template.Template).Funcs":            (*template.Template).Funcs,
-	"(*text/template.Template).Lookup":           (*template.Template).Lookup,
-	"(*text/template.Template).Name":             (*template.Template).Name,
-	"(*text/template.Template).New":              (*template.Template).New,
-	"(*text/template.Template).Option":           (*template.Template).Option,
-	"(*text/template.Template).Parse":            (*template.Template).Parse,
-	"(*text/template.Template).ParseFiles":       (*template.Template).ParseFiles,
-	"(*text/template.Template).ParseGlob":        (*template.Template).ParseGlob,
-	"(*text/template.Template).Templates":        (*template.Template).Templates,
-	"(text/template.ExecError).Error":            (template.ExecError).Error,
-	"(text/template.ExecError).Unwrap":           (template.ExecError).Unwrap,
-	"(text/template.Template).Copy":              (template.Template).Copy,
-	"(text/template.Template).ErrorContext":      (template.Template).ErrorContext,
-	"text/template.HTMLEscape":                   template.HTMLEscape,
-	"text/template.HTMLEscapeString":             template.HTMLEscapeString,
-	"text/template.HTMLEscaper":                  template.HTMLEscaper,
-	"text/template.IsTrue":                       template.IsTrue,
-	"text/template.JSEscape":                     template.JSEscape,
-	"text/template.JSEscapeString":               template.JSEscapeString,
-	"text/template.JSEscaper":                    template.JSEscaper,
-	"text/template.Must":                         template.Must,
-	"text/template.New":                          template.New,
-	"text/template.ParseFiles":                   template.ParseFiles,
-	"text/template.ParseGlob":                    template.ParseGlob,
-	"text/template.URLQueryEscaper":              template.URLQueryEscaper,
-}
-
-var typList = []interface{}{
-	(*template.ExecError)(nil),
-	(*template.FuncMap)(nil),
-	(*template.Template)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "template",
+		Path: "text/template",
+		Deps: map[string]string{
+			"bytes":               "bytes",
+			"errors":              "errors",
+			"fmt":                 "fmt",
+			"internal/fmtsort":    "fmtsort",
+			"io":                  "io",
+			"io/fs":               "fs",
+			"net/url":             "url",
+			"os":                  "os",
+			"path":                "path",
+			"path/filepath":       "filepath",
+			"reflect":             "reflect",
+			"runtime":             "runtime",
+			"strings":             "strings",
+			"sync":                "sync",
+			"text/template/parse": "parse",
+			"unicode":             "unicode",
+			"unicode/utf8":        "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"ExecError": {reflect.TypeOf((*q.ExecError)(nil)).Elem(), "Error,Unwrap", ""},
+			"FuncMap":   {reflect.TypeOf((*q.FuncMap)(nil)).Elem(), "", ""},
+			"Template":  {reflect.TypeOf((*q.Template)(nil)).Elem(), "", "AddParseTree,Clone,DefinedTemplates,Delims,Execute,ExecuteTemplate,Funcs,Lookup,Name,New,Option,Parse,ParseFS,ParseFiles,ParseGlob,Templates,associate,copy,execute,init,setOption"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"HTMLEscape":       reflect.ValueOf(q.HTMLEscape),
+			"HTMLEscapeString": reflect.ValueOf(q.HTMLEscapeString),
+			"HTMLEscaper":      reflect.ValueOf(q.HTMLEscaper),
+			"IsTrue":           reflect.ValueOf(q.IsTrue),
+			"JSEscape":         reflect.ValueOf(q.JSEscape),
+			"JSEscapeString":   reflect.ValueOf(q.JSEscapeString),
+			"JSEscaper":        reflect.ValueOf(q.JSEscaper),
+			"Must":             reflect.ValueOf(q.Must),
+			"New":              reflect.ValueOf(q.New),
+			"ParseFS":          reflect.ValueOf(q.ParseFS),
+			"ParseFiles":       reflect.ValueOf(q.ParseFiles),
+			"ParseGlob":        reflect.ValueOf(q.ParseGlob),
+			"URLQueryEscaper":  reflect.ValueOf(q.URLQueryEscaper),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

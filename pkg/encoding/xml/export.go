@@ -3,74 +3,75 @@
 package xml
 
 import (
-	"encoding/xml"
+	q "encoding/xml"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("encoding/xml", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*encoding/xml.Decoder).Decode":                  (*xml.Decoder).Decode,
-	"(*encoding/xml.Decoder).DecodeElement":           (*xml.Decoder).DecodeElement,
-	"(*encoding/xml.Decoder).InputOffset":             (*xml.Decoder).InputOffset,
-	"(*encoding/xml.Decoder).RawToken":                (*xml.Decoder).RawToken,
-	"(*encoding/xml.Decoder).Skip":                    (*xml.Decoder).Skip,
-	"(*encoding/xml.Decoder).Token":                   (*xml.Decoder).Token,
-	"(*encoding/xml.Encoder).Encode":                  (*xml.Encoder).Encode,
-	"(*encoding/xml.Encoder).EncodeElement":           (*xml.Encoder).EncodeElement,
-	"(*encoding/xml.Encoder).EncodeToken":             (*xml.Encoder).EncodeToken,
-	"(*encoding/xml.Encoder).Flush":                   (*xml.Encoder).Flush,
-	"(*encoding/xml.Encoder).Indent":                  (*xml.Encoder).Indent,
-	"(*encoding/xml.SyntaxError).Error":               (*xml.SyntaxError).Error,
-	"(*encoding/xml.TagPathError).Error":              (*xml.TagPathError).Error,
-	"(*encoding/xml.UnsupportedTypeError).Error":      (*xml.UnsupportedTypeError).Error,
-	"(encoding/xml.CharData).Copy":                    (xml.CharData).Copy,
-	"(encoding/xml.Comment).Copy":                     (xml.Comment).Copy,
-	"(encoding/xml.Directive).Copy":                   (xml.Directive).Copy,
-	"(encoding/xml.Marshaler).MarshalXML":             (xml.Marshaler).MarshalXML,
-	"(encoding/xml.MarshalerAttr).MarshalXMLAttr":     (xml.MarshalerAttr).MarshalXMLAttr,
-	"(encoding/xml.ProcInst).Copy":                    (xml.ProcInst).Copy,
-	"(encoding/xml.StartElement).Copy":                (xml.StartElement).Copy,
-	"(encoding/xml.StartElement).End":                 (xml.StartElement).End,
-	"(encoding/xml.TokenReader).Token":                (xml.TokenReader).Token,
-	"(encoding/xml.UnmarshalError).Error":             (xml.UnmarshalError).Error,
-	"(encoding/xml.Unmarshaler).UnmarshalXML":         (xml.Unmarshaler).UnmarshalXML,
-	"(encoding/xml.UnmarshalerAttr).UnmarshalXMLAttr": (xml.UnmarshalerAttr).UnmarshalXMLAttr,
-	"encoding/xml.CopyToken":                          xml.CopyToken,
-	"encoding/xml.Escape":                             xml.Escape,
-	"encoding/xml.EscapeText":                         xml.EscapeText,
-	"encoding/xml.HTMLAutoClose":                      &xml.HTMLAutoClose,
-	"encoding/xml.HTMLEntity":                         &xml.HTMLEntity,
-	"encoding/xml.Marshal":                            xml.Marshal,
-	"encoding/xml.MarshalIndent":                      xml.MarshalIndent,
-	"encoding/xml.NewDecoder":                         xml.NewDecoder,
-	"encoding/xml.NewEncoder":                         xml.NewEncoder,
-	"encoding/xml.NewTokenDecoder":                    xml.NewTokenDecoder,
-	"encoding/xml.Unmarshal":                          xml.Unmarshal,
-}
-
-var typList = []interface{}{
-	(*xml.Attr)(nil),
-	(*xml.CharData)(nil),
-	(*xml.Comment)(nil),
-	(*xml.Decoder)(nil),
-	(*xml.Directive)(nil),
-	(*xml.Encoder)(nil),
-	(*xml.EndElement)(nil),
-	(*xml.Marshaler)(nil),
-	(*xml.MarshalerAttr)(nil),
-	(*xml.Name)(nil),
-	(*xml.ProcInst)(nil),
-	(*xml.StartElement)(nil),
-	(*xml.SyntaxError)(nil),
-	(*xml.TagPathError)(nil),
-	(*xml.Token)(nil),
-	(*xml.TokenReader)(nil),
-	(*xml.UnmarshalError)(nil),
-	(*xml.Unmarshaler)(nil),
-	(*xml.UnmarshalerAttr)(nil),
-	(*xml.UnsupportedTypeError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "xml",
+		Path: "encoding/xml",
+		Deps: map[string]string{
+			"bufio":        "bufio",
+			"bytes":        "bytes",
+			"encoding":     "encoding",
+			"errors":       "errors",
+			"fmt":          "fmt",
+			"io":           "io",
+			"reflect":      "reflect",
+			"strconv":      "strconv",
+			"strings":      "strings",
+			"sync":         "sync",
+			"unicode":      "unicode",
+			"unicode/utf8": "utf8",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Marshaler":       reflect.TypeOf((*q.Marshaler)(nil)).Elem(),
+			"MarshalerAttr":   reflect.TypeOf((*q.MarshalerAttr)(nil)).Elem(),
+			"Token":           reflect.TypeOf((*q.Token)(nil)).Elem(),
+			"TokenReader":     reflect.TypeOf((*q.TokenReader)(nil)).Elem(),
+			"Unmarshaler":     reflect.TypeOf((*q.Unmarshaler)(nil)).Elem(),
+			"UnmarshalerAttr": reflect.TypeOf((*q.UnmarshalerAttr)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Attr":                 {reflect.TypeOf((*q.Attr)(nil)).Elem(), "", ""},
+			"CharData":             {reflect.TypeOf((*q.CharData)(nil)).Elem(), "Copy", ""},
+			"Comment":              {reflect.TypeOf((*q.Comment)(nil)).Elem(), "Copy", ""},
+			"Decoder":              {reflect.TypeOf((*q.Decoder)(nil)).Elem(), "", "Decode,DecodeElement,InputOffset,RawToken,Skip,Token,attrval,autoClose,getc,mustgetc,name,nsname,pop,popEOF,popElement,push,pushEOF,pushElement,pushNs,rawToken,readName,savedOffset,space,switchToReader,syntaxError,text,translate,ungetc,unmarshal,unmarshalAttr,unmarshalInterface,unmarshalPath,unmarshalTextInterface"},
+			"Directive":            {reflect.TypeOf((*q.Directive)(nil)).Elem(), "Copy", ""},
+			"Encoder":              {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode,EncodeElement,EncodeToken,Flush,Indent"},
+			"EndElement":           {reflect.TypeOf((*q.EndElement)(nil)).Elem(), "", ""},
+			"Name":                 {reflect.TypeOf((*q.Name)(nil)).Elem(), "", ""},
+			"ProcInst":             {reflect.TypeOf((*q.ProcInst)(nil)).Elem(), "Copy", ""},
+			"StartElement":         {reflect.TypeOf((*q.StartElement)(nil)).Elem(), "Copy,End", ""},
+			"SyntaxError":          {reflect.TypeOf((*q.SyntaxError)(nil)).Elem(), "", "Error"},
+			"TagPathError":         {reflect.TypeOf((*q.TagPathError)(nil)).Elem(), "", "Error"},
+			"UnmarshalError":       {reflect.TypeOf((*q.UnmarshalError)(nil)).Elem(), "Error", ""},
+			"UnsupportedTypeError": {reflect.TypeOf((*q.UnsupportedTypeError)(nil)).Elem(), "", "Error"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"HTMLAutoClose": reflect.ValueOf(&q.HTMLAutoClose),
+			"HTMLEntity":    reflect.ValueOf(&q.HTMLEntity),
+		},
+		Funcs: map[string]reflect.Value{
+			"CopyToken":       reflect.ValueOf(q.CopyToken),
+			"Escape":          reflect.ValueOf(q.Escape),
+			"EscapeText":      reflect.ValueOf(q.EscapeText),
+			"Marshal":         reflect.ValueOf(q.Marshal),
+			"MarshalIndent":   reflect.ValueOf(q.MarshalIndent),
+			"NewDecoder":      reflect.ValueOf(q.NewDecoder),
+			"NewEncoder":      reflect.ValueOf(q.NewEncoder),
+			"NewTokenDecoder": reflect.ValueOf(q.NewTokenDecoder),
+			"Unmarshal":       reflect.ValueOf(q.Unmarshal),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"Header": {"untyped string", constant.MakeString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")},
+		},
+	})
 }

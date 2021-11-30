@@ -3,22 +3,49 @@
 package printer
 
 import (
-	"go/printer"
+	q "go/printer"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("go/printer", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*go/printer.Config).Fprint": (*printer.Config).Fprint,
-	"go/printer.Fprint":           printer.Fprint,
-}
-
-var typList = []interface{}{
-	(*printer.CommentedNode)(nil),
-	(*printer.Config)(nil),
-	(*printer.Mode)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "printer",
+		Path: "go/printer",
+		Deps: map[string]string{
+			"bytes":          "bytes",
+			"fmt":            "fmt",
+			"go/ast":         "ast",
+			"go/token":       "token",
+			"io":             "io",
+			"math":           "math",
+			"os":             "os",
+			"strconv":        "strconv",
+			"strings":        "strings",
+			"text/tabwriter": "tabwriter",
+			"unicode":        "unicode",
+			"unicode/utf8":   "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"CommentedNode": {reflect.TypeOf((*q.CommentedNode)(nil)).Elem(), "", ""},
+			"Config":        {reflect.TypeOf((*q.Config)(nil)).Elem(), "", "Fprint,fprint"},
+			"Mode":          {reflect.TypeOf((*q.Mode)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Fprint": reflect.ValueOf(q.Fprint),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"RawFormat": {reflect.TypeOf(q.RawFormat), constant.MakeInt64(1)},
+			"SourcePos": {reflect.TypeOf(q.SourcePos), constant.MakeInt64(8)},
+			"TabIndent": {reflect.TypeOf(q.TabIndent), constant.MakeInt64(2)},
+			"UseSpaces": {reflect.TypeOf(q.UseSpaces), constant.MakeInt64(4)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

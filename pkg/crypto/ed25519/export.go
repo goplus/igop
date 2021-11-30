@@ -3,26 +3,47 @@
 package ed25519
 
 import (
-	"crypto/ed25519"
+	q "crypto/ed25519"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/ed25519", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(crypto/ed25519.PrivateKey).Public": (ed25519.PrivateKey).Public,
-	"(crypto/ed25519.PrivateKey).Seed":   (ed25519.PrivateKey).Seed,
-	"(crypto/ed25519.PrivateKey).Sign":   (ed25519.PrivateKey).Sign,
-	"crypto/ed25519.GenerateKey":         ed25519.GenerateKey,
-	"crypto/ed25519.NewKeyFromSeed":      ed25519.NewKeyFromSeed,
-	"crypto/ed25519.Sign":                ed25519.Sign,
-	"crypto/ed25519.Verify":              ed25519.Verify,
-}
-
-var typList = []interface{}{
-	(*ed25519.PrivateKey)(nil),
-	(*ed25519.PublicKey)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "ed25519",
+		Path: "crypto/ed25519",
+		Deps: map[string]string{
+			"bytes":                                "bytes",
+			"crypto":                               "crypto",
+			"crypto/ed25519/internal/edwards25519": "edwards25519",
+			"crypto/rand":                          "rand",
+			"crypto/sha512":                        "sha512",
+			"errors":                               "errors",
+			"io":                                   "io",
+			"strconv":                              "strconv",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"PrivateKey": {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "Equal,Public,Seed,Sign", ""},
+			"PublicKey":  {reflect.TypeOf((*q.PublicKey)(nil)).Elem(), "Equal", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"GenerateKey":    reflect.ValueOf(q.GenerateKey),
+			"NewKeyFromSeed": reflect.ValueOf(q.NewKeyFromSeed),
+			"Sign":           reflect.ValueOf(q.Sign),
+			"Verify":         reflect.ValueOf(q.Verify),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"PrivateKeySize": {"untyped int", constant.MakeInt64(64)},
+			"PublicKeySize":  {"untyped int", constant.MakeInt64(32)},
+			"SeedSize":       {"untyped int", constant.MakeInt64(32)},
+			"SignatureSize":  {"untyped int", constant.MakeInt64(64)},
+		},
+	})
 }

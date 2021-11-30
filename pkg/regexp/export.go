@@ -3,62 +3,45 @@
 package regexp
 
 import (
-	"regexp"
+	q "regexp"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("regexp", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*regexp.Regexp).Copy":                       (*regexp.Regexp).Copy,
-	"(*regexp.Regexp).Expand":                     (*regexp.Regexp).Expand,
-	"(*regexp.Regexp).ExpandString":               (*regexp.Regexp).ExpandString,
-	"(*regexp.Regexp).Find":                       (*regexp.Regexp).Find,
-	"(*regexp.Regexp).FindAll":                    (*regexp.Regexp).FindAll,
-	"(*regexp.Regexp).FindAllIndex":               (*regexp.Regexp).FindAllIndex,
-	"(*regexp.Regexp).FindAllString":              (*regexp.Regexp).FindAllString,
-	"(*regexp.Regexp).FindAllStringIndex":         (*regexp.Regexp).FindAllStringIndex,
-	"(*regexp.Regexp).FindAllStringSubmatch":      (*regexp.Regexp).FindAllStringSubmatch,
-	"(*regexp.Regexp).FindAllStringSubmatchIndex": (*regexp.Regexp).FindAllStringSubmatchIndex,
-	"(*regexp.Regexp).FindAllSubmatch":            (*regexp.Regexp).FindAllSubmatch,
-	"(*regexp.Regexp).FindAllSubmatchIndex":       (*regexp.Regexp).FindAllSubmatchIndex,
-	"(*regexp.Regexp).FindIndex":                  (*regexp.Regexp).FindIndex,
-	"(*regexp.Regexp).FindReaderIndex":            (*regexp.Regexp).FindReaderIndex,
-	"(*regexp.Regexp).FindReaderSubmatchIndex":    (*regexp.Regexp).FindReaderSubmatchIndex,
-	"(*regexp.Regexp).FindString":                 (*regexp.Regexp).FindString,
-	"(*regexp.Regexp).FindStringIndex":            (*regexp.Regexp).FindStringIndex,
-	"(*regexp.Regexp).FindStringSubmatch":         (*regexp.Regexp).FindStringSubmatch,
-	"(*regexp.Regexp).FindStringSubmatchIndex":    (*regexp.Regexp).FindStringSubmatchIndex,
-	"(*regexp.Regexp).FindSubmatch":               (*regexp.Regexp).FindSubmatch,
-	"(*regexp.Regexp).FindSubmatchIndex":          (*regexp.Regexp).FindSubmatchIndex,
-	"(*regexp.Regexp).LiteralPrefix":              (*regexp.Regexp).LiteralPrefix,
-	"(*regexp.Regexp).Longest":                    (*regexp.Regexp).Longest,
-	"(*regexp.Regexp).Match":                      (*regexp.Regexp).Match,
-	"(*regexp.Regexp).MatchReader":                (*regexp.Regexp).MatchReader,
-	"(*regexp.Regexp).MatchString":                (*regexp.Regexp).MatchString,
-	"(*regexp.Regexp).NumSubexp":                  (*regexp.Regexp).NumSubexp,
-	"(*regexp.Regexp).ReplaceAll":                 (*regexp.Regexp).ReplaceAll,
-	"(*regexp.Regexp).ReplaceAllFunc":             (*regexp.Regexp).ReplaceAllFunc,
-	"(*regexp.Regexp).ReplaceAllLiteral":          (*regexp.Regexp).ReplaceAllLiteral,
-	"(*regexp.Regexp).ReplaceAllLiteralString":    (*regexp.Regexp).ReplaceAllLiteralString,
-	"(*regexp.Regexp).ReplaceAllString":           (*regexp.Regexp).ReplaceAllString,
-	"(*regexp.Regexp).ReplaceAllStringFunc":       (*regexp.Regexp).ReplaceAllStringFunc,
-	"(*regexp.Regexp).Split":                      (*regexp.Regexp).Split,
-	"(*regexp.Regexp).String":                     (*regexp.Regexp).String,
-	"(*regexp.Regexp).SubexpNames":                (*regexp.Regexp).SubexpNames,
-	"regexp.Compile":                              regexp.Compile,
-	"regexp.CompilePOSIX":                         regexp.CompilePOSIX,
-	"regexp.Match":                                regexp.Match,
-	"regexp.MatchReader":                          regexp.MatchReader,
-	"regexp.MatchString":                          regexp.MatchString,
-	"regexp.MustCompile":                          regexp.MustCompile,
-	"regexp.MustCompilePOSIX":                     regexp.MustCompilePOSIX,
-	"regexp.QuoteMeta":                            regexp.QuoteMeta,
-}
-
-var typList = []interface{}{
-	(*regexp.Regexp)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "regexp",
+		Path: "regexp",
+		Deps: map[string]string{
+			"bytes":         "bytes",
+			"io":            "io",
+			"regexp/syntax": "syntax",
+			"sort":          "sort",
+			"strconv":       "strconv",
+			"strings":       "strings",
+			"sync":          "sync",
+			"unicode":       "unicode",
+			"unicode/utf8":  "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Regexp": {reflect.TypeOf((*q.Regexp)(nil)).Elem(), "", "Copy,Expand,ExpandString,Find,FindAll,FindAllIndex,FindAllString,FindAllStringIndex,FindAllStringSubmatch,FindAllStringSubmatchIndex,FindAllSubmatch,FindAllSubmatchIndex,FindIndex,FindReaderIndex,FindReaderSubmatchIndex,FindString,FindStringIndex,FindStringSubmatch,FindStringSubmatchIndex,FindSubmatch,FindSubmatchIndex,LiteralPrefix,Longest,Match,MatchReader,MatchString,NumSubexp,ReplaceAll,ReplaceAllFunc,ReplaceAllLiteral,ReplaceAllLiteralString,ReplaceAllString,ReplaceAllStringFunc,Split,String,SubexpIndex,SubexpNames,allMatches,backtrack,doExecute,doMatch,doOnePass,expand,get,pad,put,replaceAll,tryBacktrack"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Compile":          reflect.ValueOf(q.Compile),
+			"CompilePOSIX":     reflect.ValueOf(q.CompilePOSIX),
+			"Match":            reflect.ValueOf(q.Match),
+			"MatchReader":      reflect.ValueOf(q.MatchReader),
+			"MatchString":      reflect.ValueOf(q.MatchString),
+			"MustCompile":      reflect.ValueOf(q.MustCompile),
+			"MustCompilePOSIX": reflect.ValueOf(q.MustCompilePOSIX),
+			"QuoteMeta":        reflect.ValueOf(q.QuoteMeta),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
