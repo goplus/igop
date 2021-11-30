@@ -130,16 +130,16 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.InsertAlias(name, typ)
 	}
 	for name, fn := range pkg.Funcs {
-		r.InsertFuncEx(p, name, fn)
+		r.InsertFunc(p, name, fn)
 	}
 	for name, v := range pkg.Vars {
-		r.InsertVarEx(p, name, v.Elem())
+		r.InsertVar(p, name, v.Elem())
 	}
 	for name, c := range pkg.TypedConsts {
-		r.InsertTypedConst(name, c)
+		r.InsertTypedConst(p, name, c)
 	}
 	for name, c := range pkg.UntypedConsts {
-		r.InsertUntypedConst(name, c)
+		r.InsertUntypedConst(p, name, c)
 	}
 	return
 }
@@ -158,30 +158,17 @@ func (r *TypesLoader) InsertAlias(path string, rt reflect.Type) {
 	p.Scope().Insert(types.NewTypeName(token.NoPos, p, name, typ))
 }
 
-func (r *TypesLoader) InsertFunc(path string, v reflect.Value) {
-	p, name := r.parserNamed(path)
+func (r *TypesLoader) InsertFunc(p *types.Package, name string, v reflect.Value) {
 	typ := r.ToType(v.Type())
 	p.Scope().Insert(types.NewFunc(token.NoPos, p, name, typ.(*types.Signature)))
 }
 
-func (r *TypesLoader) InsertFuncEx(p *types.Package, name string, v reflect.Value) {
-	typ := r.ToType(v.Type())
-	p.Scope().Insert(types.NewFunc(token.NoPos, p, name, typ.(*types.Signature)))
-}
-
-func (r *TypesLoader) InsertVar(path string, v reflect.Value) {
-	p, name := r.parserNamed(path)
+func (r *TypesLoader) InsertVar(p *types.Package, name string, v reflect.Value) {
 	typ := r.ToType(v.Type())
 	p.Scope().Insert(types.NewVar(token.NoPos, p, name, typ))
 }
 
-func (r *TypesLoader) InsertVarEx(p *types.Package, name string, v reflect.Value) {
-	typ := r.ToType(v.Type())
-	p.Scope().Insert(types.NewVar(token.NoPos, p, name, typ))
-}
-
-func (r *TypesLoader) InsertConstEx(path string, typ types.Type, c constant.Value) {
-	p, name := r.parserNamed(path)
+func (r *TypesLoader) InsertConst(p *types.Package, name string, typ types.Type, c constant.Value) {
 	p.Scope().Insert(types.NewConst(token.NoPos, p, name, typ, c))
 }
 
@@ -210,19 +197,19 @@ func (r *TypesLoader) LookupType(typ string) types.Type {
 	return p.Scope().Lookup(name).Type()
 }
 
-func (r *TypesLoader) InsertTypedConst(path string, v TypedConst) {
+func (r *TypesLoader) InsertTypedConst(p *types.Package, name string, v TypedConst) {
 	typ := r.ToType(v.Typ)
-	r.InsertConstEx(path, typ, v.Value)
+	r.InsertConst(p, name, typ, v.Value)
 }
 
-func (r *TypesLoader) InsertUntypedConst(path string, v UntypedConst) {
+func (r *TypesLoader) InsertUntypedConst(p *types.Package, name string, v UntypedConst) {
 	var typ types.Type
 	if t, ok := basicTypeNames[v.Typ]; ok {
 		typ = t
 	} else {
 		typ = r.LookupType(v.Typ)
 	}
-	r.InsertConstEx(path, typ, v.Value)
+	r.InsertConst(p, name, typ, v.Value)
 }
 
 func (r *TypesLoader) GetPackage(pkg string) *types.Package {

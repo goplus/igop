@@ -149,9 +149,9 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 			switch t := v.(type) {
 			case *ssa.NamedConst:
 				if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
-					e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: {%q, %v}", pkgPath+"."+t.Name(), t.Type().String(), p.constToLit(t.Value.Value)))
+					e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: {%q, %v}", t.Name(), t.Type().String(), p.constToLit(t.Value.Value)))
 				} else {
-					e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", pkgPath+"."+t.Name(), pkgName+"."+t.Name(), p.constToLit(t.Value.Value)))
+					e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", t.Name(), pkgName+"."+t.Name(), p.constToLit(t.Value.Value)))
 				}
 			case *ssa.Global:
 				e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", t.Name(), pkgName+"."+t.Name()))
