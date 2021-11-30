@@ -186,7 +186,7 @@ func IsDir(target string) (bool, error) {
 func goRun(target string, args []string) {
 	dir, file := filepath.Split(target)
 	os.Chdir(dir)
-	err := gossa.Run(0, file, args)
+	err := gossa.Run(file, args, 0)
 	if err != nil {
 		os.Exit(2)
 	}
@@ -232,24 +232,6 @@ func runGoPkg(src string, args []string, doRun bool) {
 
 func runGoFile(src string, args []string) {
 	goRun(src, args)
-	// targetDir, file := filepath.Split(src)
-	// if hasMultiFiles(targetDir, ".go") {
-	// 	targetDir = filepath.Join(targetDir, ".gop", strings.TrimSuffix(file, ".go"))
-	// 	gofile := filepath.Join(targetDir, "gop_autogen.go")
-	// 	b, err := ioutil.ReadFile(src)
-	// 	if err != nil {
-	// 		log.Fatalln("ReadFile failed:", err)
-	// 	}
-	// 	os.MkdirAll(targetDir, 0777)
-	// 	err = ioutil.WriteFile(gofile, b, 0666)
-	// 	if err != nil {
-	// 		log.Fatalln("WriteFile failed:", err)
-	// 	}
-	// 	runGoPkg(targetDir, args, false)
-	// 	goRun(src, args)
-	// } else {
-	// 	runGoPkg(targetDir, args, true)
-	// }
 }
 
 func hasMultiFiles(srcDir string, ext string) bool {

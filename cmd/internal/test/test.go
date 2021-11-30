@@ -86,8 +86,8 @@ func runCmd(cmd *base.Command, args []string) {
 		}
 	})
 	for _, pkg := range pkgs {
-		if err := gossa.RunTest(0, pkg, testArgs); err != nil {
-			log.Println("interpret test failed:", pkg, err)
+		if err := gossa.RunTest(pkg, testArgs, 0); err != nil {
+			log.Println("gossa test failed:", pkg, err)
 		}
 	}
 }

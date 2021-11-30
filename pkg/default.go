@@ -93,7 +93,6 @@ import (
 	_ "github.com/goplus/gossa/pkg/io/fs"
 	_ "github.com/goplus/gossa/pkg/io/ioutil"
 	_ "github.com/goplus/gossa/pkg/log"
-	_ "github.com/goplus/gossa/pkg/log/syslog"
 	_ "github.com/goplus/gossa/pkg/math"
 	_ "github.com/goplus/gossa/pkg/math/big"
 	_ "github.com/goplus/gossa/pkg/math/bits"
@@ -123,8 +122,7 @@ import (
 	_ "github.com/goplus/gossa/pkg/os/user"
 	_ "github.com/goplus/gossa/pkg/path"
 	_ "github.com/goplus/gossa/pkg/path/filepath"
-
-	// _ "github.com/goplus/gossa/pkg/plugin"
+	_ "github.com/goplus/gossa/pkg/plugin"
 	_ "github.com/goplus/gossa/pkg/reflect"
 	_ "github.com/goplus/gossa/pkg/regexp"
 	_ "github.com/goplus/gossa/pkg/regexp/syntax"
