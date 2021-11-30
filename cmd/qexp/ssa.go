@@ -154,9 +154,9 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 					e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", pkgPath+"."+t.Name(), pkgName+"."+t.Name(), p.constToLit(t.Value.Value)))
 				}
 			case *ssa.Global:
-				e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
+				e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Function:
-				e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
+				e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", t.Name(), pkgName+"."+t.Name()))
 			case *ssa.Type:
 				typ := t.Type()
 				if obj, ok := t.Object().(*types.TypeName); ok && obj.IsAlias() {

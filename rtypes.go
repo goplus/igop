@@ -115,6 +115,11 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 	}()
 	r.curpkg = pkg
 	r.installed[pkg.Path] = pkg
+	p, ok := r.packages[pkg.Path]
+	if !ok {
+		p = types.NewPackage(pkg.Path, pkg.Name)
+		r.packages[pkg.Path] = p
+	}
 	for name, typ := range pkg.Interfaces {
 		r.InsertInterface(name, typ)
 	}
@@ -125,10 +130,10 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.InsertAlias(name, typ)
 	}
 	for name, fn := range pkg.Funcs {
-		r.InsertFunc(name, fn)
+		r.InsertFuncEx(p, name, fn)
 	}
 	for name, v := range pkg.Vars {
-		r.InsertVar(name, v.Elem())
+		r.InsertVarEx(p, name, v.Elem())
 	}
 	for name, c := range pkg.TypedConsts {
 		r.InsertTypedConst(name, c)
@@ -159,8 +164,18 @@ func (r *TypesLoader) InsertFunc(path string, v reflect.Value) {
 	p.Scope().Insert(types.NewFunc(token.NoPos, p, name, typ.(*types.Signature)))
 }
 
+func (r *TypesLoader) InsertFuncEx(p *types.Package, name string, v reflect.Value) {
+	typ := r.ToType(v.Type())
+	p.Scope().Insert(types.NewFunc(token.NoPos, p, name, typ.(*types.Signature)))
+}
+
 func (r *TypesLoader) InsertVar(path string, v reflect.Value) {
 	p, name := r.parserNamed(path)
+	typ := r.ToType(v.Type())
+	p.Scope().Insert(types.NewVar(token.NoPos, p, name, typ))
+}
+
+func (r *TypesLoader) InsertVarEx(p *types.Package, name string, v reflect.Value) {
 	typ := r.ToType(v.Type())
 	p.Scope().Insert(types.NewVar(token.NoPos, p, name, typ))
 }

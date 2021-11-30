@@ -286,7 +286,7 @@ func (fr *frame) get(key ssa.Value) value {
 		if key.Pkg != nil {
 			pkgpath := key.Pkg.Pkg.Path()
 			if pkg, ok := fr.i.installed(pkgpath); ok {
-				if ext, ok := pkg.Vars[key.String()]; ok {
+				if ext, ok := pkg.Vars[key.Name()]; ok {
 					return ext.Interface()
 				}
 			}
@@ -943,8 +943,9 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 		fn:     fn,
 	}
 	if fn.Parent() == nil {
-		name := fn.String()
-		if ext := externValues[name]; ext.Kind() == reflect.Func {
+		fullName := fn.String()
+		name := fn.Name()
+		if ext := externValues[fullName]; ext.Kind() == reflect.Func {
 			if i.mode&EnableTracing != 0 {
 				log.Println("\t(external)")
 			}
@@ -959,7 +960,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 					}
 					return callReflect(i, caller, callpos, ext, args, nil)
 				}
-				if ext, ok := pkg.Methods[name]; ok {
+				if ext, ok := pkg.Methods[fullName]; ok {
 					if i.mode&EnableTracing != 0 {
 						log.Println("\t(external method)")
 					}
@@ -978,7 +979,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 			if fn.Name() == "init" && fn.Type().String() == "func()" {
 				return true
 			}
-			panic("no code for function: " + name)
+			panic("no code for function: " + fullName)
 		}
 	}
 	fr.env = make(map[ssa.Value]value)
