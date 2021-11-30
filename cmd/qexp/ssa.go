@@ -163,9 +163,9 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 					name := obj.Name()
 					switch typ := obj.Type().(type) {
 					case *types.Named:
-						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", pkgPath+"."+name, sname, name))
+						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
 					case *types.Basic:
-						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", pkgPath+"."+name, typ.Name()))
+						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", name, typ.Name()))
 					default:
 						log.Panicln("error parser", typ)
 					}
@@ -201,9 +201,9 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 					}
 				}
 				if types.IsInterface(typ) {
-					e.Interfaces = append(e.Interfaces, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", pkgPath+"."+typeName, pkgName, typeName))
+					e.Interfaces = append(e.Interfaces, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
 				} else {
-					e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : {reflect.TypeOf((*%v.%v)(nil)).Elem(),\"%v\",\"%v\"}", pkgPath+"."+typeName, pkgName, typeName,
+					e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : {reflect.TypeOf((*%v.%v)(nil)).Elem(),\"%v\",\"%v\"}", typeName, pkgName, typeName,
 						strings.Join(ms, ","), strings.Join(pms, ",")))
 				}
 			default:

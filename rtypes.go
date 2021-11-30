@@ -121,13 +121,13 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.packages[pkg.Path] = p
 	}
 	for name, typ := range pkg.Interfaces {
-		r.InsertInterface(name, typ)
+		r.InsertInterface(p, name, typ)
 	}
 	for name, typ := range pkg.NamedTypes {
-		r.InsertNamedType(name, typ)
+		r.InsertNamedType(p, name, typ)
 	}
 	for name, typ := range pkg.AliasTypes {
-		r.InsertAlias(name, typ)
+		r.InsertAlias(p, name, typ)
 	}
 	for name, fn := range pkg.Funcs {
 		r.InsertFunc(p, name, fn)
@@ -144,16 +144,15 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 	return
 }
 
-func (r *TypesLoader) InsertInterface(path string, rt reflect.Type) {
+func (r *TypesLoader) InsertInterface(p *types.Package, name string, rt reflect.Type) {
 	r.ToType(rt)
 }
 
-func (r *TypesLoader) InsertNamedType(name string, t NamedType) {
+func (r *TypesLoader) InsertNamedType(p *types.Package, name string, t NamedType) {
 	r.ToType(t.Typ)
 }
 
-func (r *TypesLoader) InsertAlias(path string, rt reflect.Type) {
-	p, name := r.parserNamed(path)
+func (r *TypesLoader) InsertAlias(p *types.Package, name string, rt reflect.Type) {
 	typ := r.ToType(rt)
 	p.Scope().Insert(types.NewTypeName(token.NoPos, p, name, typ))
 }
