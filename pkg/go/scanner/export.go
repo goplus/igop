@@ -3,35 +3,45 @@
 package scanner
 
 import (
-	"go/scanner"
+	q "go/scanner"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("go/scanner", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*go/scanner.ErrorList).Add":             (*scanner.ErrorList).Add,
-	"(*go/scanner.ErrorList).RemoveMultiples": (*scanner.ErrorList).RemoveMultiples,
-	"(*go/scanner.ErrorList).Reset":           (*scanner.ErrorList).Reset,
-	"(*go/scanner.Scanner).Init":              (*scanner.Scanner).Init,
-	"(*go/scanner.Scanner).Scan":              (*scanner.Scanner).Scan,
-	"(go/scanner.Error).Error":                (scanner.Error).Error,
-	"(go/scanner.ErrorList).Err":              (scanner.ErrorList).Err,
-	"(go/scanner.ErrorList).Error":            (scanner.ErrorList).Error,
-	"(go/scanner.ErrorList).Len":              (scanner.ErrorList).Len,
-	"(go/scanner.ErrorList).Less":             (scanner.ErrorList).Less,
-	"(go/scanner.ErrorList).Sort":             (scanner.ErrorList).Sort,
-	"(go/scanner.ErrorList).Swap":             (scanner.ErrorList).Swap,
-	"go/scanner.PrintError":                   scanner.PrintError,
-}
-
-var typList = []interface{}{
-	(*scanner.Error)(nil),
-	(*scanner.ErrorHandler)(nil),
-	(*scanner.ErrorList)(nil),
-	(*scanner.Mode)(nil),
-	(*scanner.Scanner)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "scanner",
+		Path: "go/scanner",
+		Deps: map[string]string{
+			"bytes":         "bytes",
+			"fmt":           "fmt",
+			"go/token":      "token",
+			"io":            "io",
+			"path/filepath": "filepath",
+			"sort":          "sort",
+			"strconv":       "strconv",
+			"unicode":       "unicode",
+			"unicode/utf8":  "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Error":        {reflect.TypeOf((*q.Error)(nil)).Elem(), "Error", ""},
+			"ErrorHandler": {reflect.TypeOf((*q.ErrorHandler)(nil)).Elem(), "", ""},
+			"ErrorList":    {reflect.TypeOf((*q.ErrorList)(nil)).Elem(), "Err,Error,Len,Less,Sort,Swap", "Add,RemoveMultiples,Reset"},
+			"Mode":         {reflect.TypeOf((*q.Mode)(nil)).Elem(), "", ""},
+			"Scanner":      {reflect.TypeOf((*q.Scanner)(nil)).Elem(), "", "Init,Scan,digits,error,errorf,findLineEnd,next,peek,scanComment,scanEscape,scanIdentifier,scanNumber,scanRawString,scanRune,scanString,skipWhitespace,switch2,switch3,switch4,updateLineInfo"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"PrintError": reflect.ValueOf(q.PrintError),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"ScanComments": {reflect.TypeOf(q.ScanComments), constant.MakeInt64(1)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

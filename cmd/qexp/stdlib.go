@@ -11,7 +11,10 @@ var (
 func init() {
 	list := strings.Split(stdlib, "\n")
 	for _, v := range list {
-		if v == "" || strings.Index(v, "internal") != -1 {
+		if v == "" {
+			continue
+		}
+		if strings.Contains(v, "internal/") || strings.Contains(v, "vendor/") {
 			continue
 		}
 		stdList = append(stdList, v)

@@ -3,31 +3,53 @@
 package png
 
 import (
-	"image/png"
+	q "image/png"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("image/png", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*image/png.Encoder).Encode":        (*png.Encoder).Encode,
-	"(image/png.EncoderBufferPool).Get":  (png.EncoderBufferPool).Get,
-	"(image/png.EncoderBufferPool).Put":  (png.EncoderBufferPool).Put,
-	"(image/png.FormatError).Error":      (png.FormatError).Error,
-	"(image/png.UnsupportedError).Error": (png.UnsupportedError).Error,
-	"image/png.Decode":                   png.Decode,
-	"image/png.DecodeConfig":             png.DecodeConfig,
-	"image/png.Encode":                   png.Encode,
-}
-
-var typList = []interface{}{
-	(*png.CompressionLevel)(nil),
-	(*png.Encoder)(nil),
-	(*png.EncoderBuffer)(nil),
-	(*png.EncoderBufferPool)(nil),
-	(*png.FormatError)(nil),
-	(*png.UnsupportedError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "png",
+		Path: "image/png",
+		Deps: map[string]string{
+			"bufio":           "bufio",
+			"compress/zlib":   "zlib",
+			"encoding/binary": "binary",
+			"fmt":             "fmt",
+			"hash":            "hash",
+			"hash/crc32":      "crc32",
+			"image":           "image",
+			"image/color":     "color",
+			"io":              "io",
+			"strconv":         "strconv",
+		},
+		Interfaces: map[string]reflect.Type{
+			"EncoderBufferPool": reflect.TypeOf((*q.EncoderBufferPool)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"CompressionLevel": {reflect.TypeOf((*q.CompressionLevel)(nil)).Elem(), "", ""},
+			"Encoder":          {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode"},
+			"EncoderBuffer":    {reflect.TypeOf((*q.EncoderBuffer)(nil)).Elem(), "", ""},
+			"FormatError":      {reflect.TypeOf((*q.FormatError)(nil)).Elem(), "Error", ""},
+			"UnsupportedError": {reflect.TypeOf((*q.UnsupportedError)(nil)).Elem(), "Error", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Decode":       reflect.ValueOf(q.Decode),
+			"DecodeConfig": reflect.ValueOf(q.DecodeConfig),
+			"Encode":       reflect.ValueOf(q.Encode),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"BestCompression":    {reflect.TypeOf(q.BestCompression), constant.MakeInt64(-3)},
+			"BestSpeed":          {reflect.TypeOf(q.BestSpeed), constant.MakeInt64(-2)},
+			"DefaultCompression": {reflect.TypeOf(q.DefaultCompression), constant.MakeInt64(0)},
+			"NoCompression":      {reflect.TypeOf(q.NoCompression), constant.MakeInt64(-1)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

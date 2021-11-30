@@ -3,38 +3,42 @@
 package elliptic
 
 import (
-	"crypto/elliptic"
+	q "crypto/elliptic"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/elliptic", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*crypto/elliptic.CurveParams).Add":            (*elliptic.CurveParams).Add,
-	"(*crypto/elliptic.CurveParams).Double":         (*elliptic.CurveParams).Double,
-	"(*crypto/elliptic.CurveParams).IsOnCurve":      (*elliptic.CurveParams).IsOnCurve,
-	"(*crypto/elliptic.CurveParams).Params":         (*elliptic.CurveParams).Params,
-	"(*crypto/elliptic.CurveParams).ScalarBaseMult": (*elliptic.CurveParams).ScalarBaseMult,
-	"(*crypto/elliptic.CurveParams).ScalarMult":     (*elliptic.CurveParams).ScalarMult,
-	"(crypto/elliptic.Curve).Add":                   (elliptic.Curve).Add,
-	"(crypto/elliptic.Curve).Double":                (elliptic.Curve).Double,
-	"(crypto/elliptic.Curve).IsOnCurve":             (elliptic.Curve).IsOnCurve,
-	"(crypto/elliptic.Curve).Params":                (elliptic.Curve).Params,
-	"(crypto/elliptic.Curve).ScalarBaseMult":        (elliptic.Curve).ScalarBaseMult,
-	"(crypto/elliptic.Curve).ScalarMult":            (elliptic.Curve).ScalarMult,
-	"crypto/elliptic.GenerateKey":                   elliptic.GenerateKey,
-	"crypto/elliptic.Marshal":                       elliptic.Marshal,
-	"crypto/elliptic.P224":                          elliptic.P224,
-	"crypto/elliptic.P256":                          elliptic.P256,
-	"crypto/elliptic.P384":                          elliptic.P384,
-	"crypto/elliptic.P521":                          elliptic.P521,
-	"crypto/elliptic.Unmarshal":                     elliptic.Unmarshal,
-}
-
-var typList = []interface{}{
-	(*elliptic.Curve)(nil),
-	(*elliptic.CurveParams)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "elliptic",
+		Path: "crypto/elliptic",
+		Deps: map[string]string{
+			"io":       "io",
+			"math/big": "big",
+			"sync":     "sync",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Curve": reflect.TypeOf((*q.Curve)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"CurveParams": {reflect.TypeOf((*q.CurveParams)(nil)).Elem(), "", "Add,Double,IsOnCurve,Params,ScalarBaseMult,ScalarMult,addJacobian,affineFromJacobian,doubleJacobian,polynomial"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"GenerateKey":         reflect.ValueOf(q.GenerateKey),
+			"Marshal":             reflect.ValueOf(q.Marshal),
+			"MarshalCompressed":   reflect.ValueOf(q.MarshalCompressed),
+			"P224":                reflect.ValueOf(q.P224),
+			"P256":                reflect.ValueOf(q.P256),
+			"P384":                reflect.ValueOf(q.P384),
+			"P521":                reflect.ValueOf(q.P521),
+			"Unmarshal":           reflect.ValueOf(q.Unmarshal),
+			"UnmarshalCompressed": reflect.ValueOf(q.UnmarshalCompressed),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

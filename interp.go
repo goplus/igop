@@ -48,6 +48,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -56,7 +57,6 @@ import (
 	"unsafe"
 
 	"github.com/goplus/reflectx"
-	"github.com/goplus/xtypes"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -66,15 +66,6 @@ const (
 	kNext continuation = iota
 	kReturn
 	kJump
-)
-
-// Mode is a bitmask of options affecting the interpreter.
-type Mode uint
-
-const (
-	DisableRecover  Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	EnableTracing                    // Print a trace of all instructions as they are interpreted.
-	EnableDumpInstr                  //Print instr type & value
 )
 
 type plainError string
@@ -92,37 +83,90 @@ func (e runtimeError) Error() string {
 }
 
 // State shared between all interpreted goroutines.
-type interpreter struct {
+type Interp struct {
 	prog        *ssa.Program        // the SSA program
+	mainpkg     *ssa.Package        // the SSA main package
 	globals     map[ssa.Value]value // addresses of global variables (immutable)
 	mode        Mode                // interpreter options
 	sizes       types.Sizes         // the effective type-sizing function
 	goroutines  int32               // atomically updated
-	ctx         xtypes.Context
 	types       map[types.Type]reflect.Type
 	caller      *frame
+	loader      Loader
+	record      *TypesRecord
 	typesMutex  sync.RWMutex
 	callerMutex sync.RWMutex
 }
 
-func (i *interpreter) findType(t reflect.Type) (types.Type, bool) {
-	i.typesMutex.RLock()
-	defer i.typesMutex.RUnlock()
-	return i.findTypeHelper(t)
+func (i *Interp) installed(path string) (pkg *Package, ok bool) {
+	pkg, ok = i.loader.Installed(path)
+	return
 }
 
-func (i *interpreter) findTypeHelper(t reflect.Type) (types.Type, bool) {
-	for k, v := range i.types {
-		if v == t {
-			return k, true
+func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
+	i.typesMutex.Lock()
+	defer i.typesMutex.Unlock()
+	if local {
+		return i.record.LookupLocalTypes(rt)
+	} else {
+		return i.record.LookupTypes(rt)
+	}
+}
+
+func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
+	typ := fn.Type().(*types.Signature).Recv().Type()
+	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
+		return func(args []reflect.Value) []reflect.Value {
+			iargs := make([]value, len(args))
+			for i := 0; i < len(args); i++ {
+				iargs[i] = args[i].Interface()
+			}
+			i.callerMutex.RLock()
+			caller := i.caller
+			i.callerMutex.RUnlock()
+			r := call(i, caller, token.NoPos, f, iargs, nil)
+			switch mtyp.NumOut() {
+			case 0:
+				return nil
+			case 1:
+				if r == nil {
+					return []reflect.Value{reflect.New(mtyp.Out(0)).Elem()}
+				} else {
+					return []reflect.Value{reflect.ValueOf(r)}
+				}
+			default:
+				v, ok := r.(tuple)
+				if !ok {
+					panic(fmt.Errorf("result type must tuple: %T", v))
+				}
+				res := make([]reflect.Value, len(v))
+				for j := 0; j < len(v); j++ {
+					if v[j] == nil {
+						res[j] = reflect.New(mtyp.Out(j)).Elem()
+					} else {
+						res[j] = reflect.ValueOf(v[j])
+					}
+				}
+				return res
+			}
 		}
 	}
-	if t.Kind() == reflect.Ptr {
-		if typ, ok := i.findTypeHelper(t.Elem()); ok {
-			return types.NewPointer(typ), true
+	name := fn.FullName()
+	//	pkgPath := fn.Pkg().Path()
+	if v, ok := externValues[name]; ok && v.Kind() == reflect.Func {
+		return func(args []reflect.Value) []reflect.Value {
+			return v.Call(args)
 		}
 	}
-	return nil, false
+	// if pkg, ok := i.installed(pkgPath); ok {
+	// 	if ext, ok := pkg.Methods[name]; ok {
+	// 		return func(args []reflect.Value) []reflect.Value {
+	// 			return ext.Call(args)
+	// 		}
+	// 	}
+	// }
+	panic(fmt.Sprintf("Not found func %v", fn))
+	return nil
 }
 
 func ptrCount(s string) (string, int) {
@@ -139,24 +183,10 @@ func isUntyped(typ types.Type) bool {
 	return ok && t.Info()&types.IsUntyped != 0
 }
 
-func (i *interpreter) toType(typ types.Type) reflect.Type {
-	i.typesMutex.RLock()
-	tt, ok := i.types[typ]
-	i.typesMutex.RUnlock()
-	if ok {
-		return tt
-	}
+func (i *Interp) toType(typ types.Type) reflect.Type {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	if isUntyped(typ) {
-		typ = types.Default(typ)
-	}
-	t, err := xtypes.ToType(typ, i.ctx)
-	if err != nil {
-		panic(fmt.Sprintf("toType %v error: %v", typ, err))
-	}
-	i.types[typ] = t
-	return t
+	return i.record.ToType(typ)
 }
 
 func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
@@ -196,7 +226,7 @@ type deferred struct {
 }
 
 type frame struct {
-	i                *interpreter
+	i                *Interp
 	caller           *frame
 	fn               *ssa.Function
 	block, prevBlock *ssa.BasicBlock
@@ -227,9 +257,10 @@ func (fr *frame) get(key ssa.Value) value {
 	// 	return v.Interface()
 	// }
 	if key.Parent() == nil {
-		if ext, ok := externValues[key.String()]; ok {
+		path := key.String()
+		if ext, ok := externValues[path]; ok {
 			if fr.i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
+				log.Println("\t(external)")
 			}
 			return ext.Interface()
 		}
@@ -252,6 +283,14 @@ func (fr *frame) get(key ssa.Value) value {
 		SetValue(v, reflect.ValueOf(c))
 		return v.Interface()
 	case *ssa.Global:
+		if key.Pkg != nil {
+			pkgpath := key.Pkg.Pkg.Path()
+			if pkg, ok := fr.i.installed(pkgpath); ok {
+				if ext, ok := pkg.Vars[key.Name()]; ok {
+					return ext.Interface()
+				}
+			}
+		}
 		if r, ok := fr.i.globals[key]; ok {
 			return r
 		}
@@ -267,7 +306,7 @@ func (fr *frame) get(key ssa.Value) value {
 //
 func (fr *frame) runDefer(d *deferred) {
 	if fr.i.mode&EnableTracing != 0 {
-		fmt.Fprintf(os.Stderr, "%s: invoking deferred function call\n",
+		log.Printf("%s: invoking deferred function call\n",
 			fr.i.prog.Fset.Position(d.instr.Pos()))
 	}
 	var ok bool
@@ -307,7 +346,7 @@ func (fr *frame) runDefers() {
 
 // lookupMethod returns the method set for type typ, which may be one
 // of the interpreter's fake types.
-func lookupMethod(i *interpreter, typ types.Type, meth *types.Func) *ssa.Function {
+func lookupMethod(i *Interp, typ types.Type, meth *types.Func) *ssa.Function {
 	return i.prog.LookupMethod(typ, meth.Pkg(), meth.Name())
 }
 
@@ -364,7 +403,7 @@ func hasUnderscore(st *types.Struct) bool {
 // read the next instruction from.
 func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	if fr.i.mode&EnableDumpInstr != 0 {
-		fmt.Fprintf(os.Stderr, "Instr %T %+v\n", instr, instr)
+		log.Printf("Instr %T %+v\n", instr, instr)
 	}
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
@@ -541,7 +580,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		//fr.env[instr] = make(chan value, asInt(fr.get(instr.Size)))
 
 	case *ssa.Alloc:
-		typ := fr.i.toType(deref(instr.Type()))
+		typ := fr.i.toType(instr.Type()).Elem() //deref(instr.Type()))
 		//var addr *value
 		if instr.Heap {
 			// new
@@ -599,7 +638,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		// v := reflect.ValueOf(fr.get(instr.X)).Elem()
 		// fr.env[instr] = reflectx.Field(v, instr.Field).Addr().Interface()
 		//fr.env[instr] = &(*fr.get(instr.X).(*value)).(structure)[instr.Field]
-		v, err := xtypes.FieldAddr(fr.get(instr.X), instr.Field)
+		v, err := FieldAddr(fr.get(instr.X), instr.Field)
 		if err != nil {
 			panic(runtimeError(err.Error()))
 		}
@@ -611,7 +650,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		// }
 		//fr.env[instr] = reflectx.Field(v, instr.Field).Interface()
 		//fr.env[instr] = fr.get(instr.X).(structure)[instr.Field]
-		v, err := xtypes.Field(fr.get(instr.X), instr.Field)
+		v, err := Field(fr.get(instr.X), instr.Field)
 		if err != nil {
 			panic(runtimeError(err.Error()))
 		}
@@ -809,7 +848,7 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		//vt, ok := call.Value.(*ssa.MakeInterface)
 		// recv := v.(iface)
 		rv := reflect.ValueOf(v)
-		t, ok := fr.i.findType(rv.Type())
+		t, ok := fr.i.findType(rv.Type(), true)
 		if ok {
 			if f := lookupMethod(fr.i, t, call.Method); f == nil {
 				// Unreachable in well-typed programs.
@@ -851,7 +890,7 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
 //
-func call(i *interpreter, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
+func call(i *Interp, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
 	i.callerMutex.Lock()
 	i.caller = caller
 	i.callerMutex.Unlock()
@@ -887,16 +926,16 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 // and lexical environment env, returning its result.
 // callpos is the position of the callsite.
 //
-func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
 	if i.mode&EnableTracing != 0 {
 		fset := fn.Prog.Fset
 		// TODO(adonovan): fix: loc() lies for external functions.
-		fmt.Fprintf(os.Stderr, "Entering %s%s.\n", fn, loc(fset, fn.Pos()))
+		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
 		suffix := ""
 		if caller != nil {
 			suffix = ", resuming " + caller.fn.String() + loc(fset, callpos)
 		}
-		defer fmt.Fprintf(os.Stderr, "Leaving %s%s.\n", fn, suffix)
+		defer log.Printf("Leaving %s%s.\n", fn, suffix)
 	}
 	fr := &frame{
 		i:      i,
@@ -904,13 +943,40 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 		fn:     fn,
 	}
 	if fn.Parent() == nil {
-		name := fn.String()
-		if ext := externValues[name]; ext.Kind() == reflect.Func {
+		fullName := fn.String()
+		name := fn.Name()
+		if ext := externValues[fullName]; ext.Kind() == reflect.Func {
 			if i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "\t(external)")
+				log.Println("\t(external)")
 			}
 			return callReflect(i, caller, callpos, ext, args, nil)
-			//			return ext(fr, args)
+		}
+		if fn.Pkg != nil {
+			pkgPath := fn.Pkg.Pkg.Path()
+			if pkg, ok := i.installed(pkgPath); ok {
+				if recv := fn.Signature.Recv(); recv == nil {
+					if ext, ok := pkg.Funcs[name]; ok {
+						if i.mode&EnableTracing != 0 {
+							log.Println("\t(external func)")
+						}
+						return callReflect(i, caller, callpos, ext, args, nil)
+					}
+				} else if typ, ok := i.loader.LookupReflect(recv.Type()); ok {
+					//TODO maybe make full name for search
+					if m, ok := typ.MethodByName(fn.Name()); ok {
+						if i.mode&EnableTracing != 0 {
+							log.Println("\t(external reflect method)")
+						}
+						return callReflect(i, caller, callpos, m.Func, args, nil)
+					}
+					// if ext, ok := pkg.Methods[fullName]; ok {
+					// 	if i.mode&EnableTracing != 0 {
+					// 		log.Println("\t(external method)")
+					// 	}
+					// 	return callReflect(i, caller, callpos, ext, args, nil)
+					// }
+				}
+			}
 		}
 		if fn.Blocks == nil {
 			// check unexport method
@@ -920,7 +986,10 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 					return callReflect(i, caller, callpos, f.Func, args, nil)
 				}
 			}
-			panic("no code for function: " + name)
+			if fn.Name() == "init" && fn.Type().String() == "func()" {
+				return true
+			}
+			panic("no code for function: " + fullName)
 		}
 	}
 	fr.env = make(map[ssa.Value]value)
@@ -948,24 +1017,19 @@ func callSSA(i *interpreter, caller *frame, callpos token.Pos, fn *ssa.Function,
 	return fr.result
 }
 
-func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+func callReflect(i *Interp, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
 	var ins []reflect.Value
 	typ := fn.Type()
-	if fn.Type().IsVariadic() {
-		for i := 0; i < len(args); i++ {
-			if i == len(args)-1 {
-				v := reflect.ValueOf(args[len(args)-1])
-				for j := 0; j < v.Len(); j++ {
-					ins = append(ins, v.Index(j))
-				}
+	isVariadic := fn.Type().IsVariadic()
+	if isVariadic {
+		for i := 0; i < len(args)-1; i++ {
+			if args[i] == nil {
+				ins = append(ins, reflect.New(typ.In(i)).Elem())
 			} else {
-				if args[i] == nil {
-					ins = append(ins, reflect.New(typ.In(i)).Elem())
-				} else {
-					ins = append(ins, reflect.ValueOf(args[i]))
-				}
+				ins = append(ins, reflect.ValueOf(args[i]))
 			}
 		}
+		ins = append(ins, reflect.ValueOf(args[len(args)-1]))
 	} else {
 		ins = make([]reflect.Value, len(args), len(args))
 		for i := 0; i < len(args); i++ {
@@ -977,7 +1041,11 @@ func callReflect(i *interpreter, caller *frame, callpos token.Pos, fn reflect.Va
 		}
 	}
 	var results []reflect.Value
-	results = fn.Call(ins)
+	if isVariadic {
+		results = fn.CallSlice(ins)
+	} else {
+		results = fn.Call(ins)
+	}
 	switch len(results) {
 	case 0:
 		return nil
@@ -1019,7 +1087,7 @@ func runFrame(fr *frame) {
 		fr.panicking = true
 		fr.panic = recover()
 		if fr.i.mode&EnableTracing != 0 {
-			fmt.Fprintf(os.Stderr, "Panicking: %T %v.\n", fr.panic, fr.panic)
+			log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
 		}
 		fr.runDefers()
 		fr.block = fr.fn.Recover
@@ -1027,15 +1095,15 @@ func runFrame(fr *frame) {
 
 	for {
 		if fr.i.mode&EnableTracing != 0 {
-			fmt.Fprintf(os.Stderr, ".%s:\n", fr.block)
+			log.Printf(".%s:\n", fr.block)
 		}
 	block:
 		for _, instr := range fr.block.Instrs {
 			if fr.i.mode&EnableTracing != 0 {
 				if v, ok := instr.(ssa.Value); ok {
-					fmt.Fprintln(os.Stderr, "\t", v.Name(), "=", instr)
+					log.Println("\t", v.Name(), "=", instr)
 				} else {
-					fmt.Fprintln(os.Stderr, "\t", instr)
+					log.Println("\t", instr)
 				}
 			}
 			fn, cond := visitInstr(fr, instr)
@@ -1091,7 +1159,7 @@ func doRecover(caller *frame) value {
 }
 
 // setGlobal sets the value of a system-initialized global variable.
-func setGlobal(i *interpreter, pkg *ssa.Package, name string, v value) {
+func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 	// if g, ok := i.globals[pkg.Var(name)]; ok {
 	// 	*g = v
 	// 	return
@@ -1109,86 +1177,20 @@ func setGlobal(i *interpreter, pkg *ssa.Package, name string, v value) {
 //
 // The SSA program must include the "runtime" package.
 //
-func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
-	i := &interpreter{
+
+func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) *Interp {
+	i := &Interp{
 		prog:       mainpkg.Prog,
+		mainpkg:    mainpkg,
 		globals:    make(map[ssa.Value]value),
 		mode:       mode,
 		goroutines: 1,
 		types:      make(map[types.Type]reflect.Type),
 	}
-	i.ctx = xtypes.NewContext(func(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
-		typ := fn.Type().(*types.Signature).Recv().Type()
-		if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
-			return func(args []reflect.Value) []reflect.Value {
-				iargs := make([]value, len(args))
-				for i := 0; i < len(args); i++ {
-					iargs[i] = args[i].Interface()
-				}
-				i.callerMutex.RLock()
-				caller := i.caller
-				i.callerMutex.RUnlock()
-				r := call(i, caller, token.NoPos, f, iargs, nil)
-				switch mtyp.NumOut() {
-				case 0:
-					return nil
-				case 1:
-					if r == nil {
-						return []reflect.Value{reflect.New(mtyp.Out(0)).Elem()}
-					} else {
-						return []reflect.Value{reflect.ValueOf(r)}
-					}
-				default:
-					v, ok := r.(tuple)
-					if !ok {
-						panic(fmt.Errorf("result type must tuple: %T", v))
-					}
-					res := make([]reflect.Value, len(v))
-					for j := 0; j < len(v); j++ {
-						if v[j] == nil {
-							res[j] = reflect.New(mtyp.Out(j)).Elem()
-						} else {
-							res[j] = reflect.ValueOf(v[j])
-						}
-					}
-					return res
-				}
-			}
-		}
-		if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
-			return func(args []reflect.Value) []reflect.Value {
-				return v.Call(args)
-			}
-		}
-		panic(fmt.Sprintf("Not found func %v", fn))
-		return nil
-	}, func(name *types.TypeName) (reflect.Type, bool) {
-		if typ, ok := externTypes[name.Type().String()]; ok {
-			return typ, true
-		}
-		return nil, false
-	}, func(typ types.Type) (reflect.Type, bool) {
-		if t, ok := i.types[typ]; ok {
-			return t, true
-		}
-		for k, v := range i.types {
-			if types.Identical(k, typ) {
-				return v, true
-			}
-		}
-		return nil, false
-	})
-
+	i.loader = loader
+	i.record = NewTypesRecord(i.loader, i)
+	i.record.Load(mainpkg)
 	for _, pkg := range i.prog.AllPackages() {
-		if _, ok := externPackages[pkg.Pkg.Path()]; ok {
-			if i.mode&EnableTracing != 0 {
-				fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
-			}
-			continue
-		}
-		if i.mode&EnableTracing != 0 {
-			fmt.Fprintln(os.Stderr, "initialize", pkg)
-		}
 		// Initialize global storage.
 		for _, m := range pkg.Members {
 			switch v := m.(type) {
@@ -1198,7 +1200,10 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 			}
 		}
 	}
+	return i
+}
 
+func (i *Interp) Run(entry string) (r value, exitCode int) {
 	// Top-level error handler.
 	exitCode = 2
 	defer func() {
@@ -1220,24 +1225,154 @@ func Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
 		default:
 			fmt.Fprintf(os.Stderr, "panic: unexpected type: %T: %v\n", p, p)
 		}
-
-		// TODO(adonovan): dump panicking interpreter goroutine?
-		// buf := make([]byte, 0x10000)
-		// runtime.Stack(buf, false)
-		// fmt.Fprintln(os.Stderr, string(buf))
-		// (Or dump panicking target goroutine?)
 	}()
-
-	// Run!
-	call(i, nil, token.NoPos, mainpkg.Func("init"), nil, nil)
-	if mainFn := mainpkg.Func(entry); mainFn != nil {
-		call(i, nil, token.NoPos, mainFn, nil, nil)
+	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
+		r = call(i, nil, token.NoPos, mainFn, nil, nil)
 		exitCode = 0
 	} else {
-		fmt.Fprintln(os.Stderr, "No main function.")
+		fmt.Fprintln(os.Stderr, "No function.", entry)
 		exitCode = 1
 	}
 	return
+}
+
+// remove
+func _Interpret(mainpkg *ssa.Package, mode Mode, entry string) (exitCode int) {
+	return
+	// i := &Interp{
+	// 	prog:       mainpkg.Prog,
+	// 	globals:    make(map[ssa.Value]value),
+	// 	mode:       mode,
+	// 	goroutines: 1,
+	// 	types:      make(map[types.Type]reflect.Type),
+	// }
+	// i.ctx = xtypes.NewContext(func(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
+	// 	typ := fn.Type().(*types.Signature).Recv().Type()
+	// 	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
+	// 		return func(args []reflect.Value) []reflect.Value {
+	// 			iargs := make([]value, len(args))
+	// 			for i := 0; i < len(args); i++ {
+	// 				iargs[i] = args[i].Interface()
+	// 			}
+	// 			i.callerMutex.RLock()
+	// 			caller := i.caller
+	// 			i.callerMutex.RUnlock()
+	// 			r := call(i, caller, token.NoPos, f, iargs, nil)
+	// 			switch mtyp.NumOut() {
+	// 			case 0:
+	// 				return nil
+	// 			case 1:
+	// 				if r == nil {
+	// 					return []reflect.Value{reflect.New(mtyp.Out(0)).Elem()}
+	// 				} else {
+	// 					return []reflect.Value{reflect.ValueOf(r)}
+	// 				}
+	// 			default:
+	// 				v, ok := r.(tuple)
+	// 				if !ok {
+	// 					panic(fmt.Errorf("result type must tuple: %T", v))
+	// 				}
+	// 				res := make([]reflect.Value, len(v))
+	// 				for j := 0; j < len(v); j++ {
+	// 					if v[j] == nil {
+	// 						res[j] = reflect.New(mtyp.Out(j)).Elem()
+	// 					} else {
+	// 						res[j] = reflect.ValueOf(v[j])
+	// 					}
+	// 				}
+	// 				return res
+	// 			}
+	// 		}
+	// 	}
+	// 	if v, ok := externValues[fn.FullName()]; ok && v.Kind() == reflect.Func {
+	// 		return func(args []reflect.Value) []reflect.Value {
+	// 			return v.Call(args)
+	// 		}
+	// 	}
+	// 	panic(fmt.Sprintf("Not found func %v", fn))
+	// 	return nil
+	// }, func(name *types.TypeName) (reflect.Type, bool) {
+	// 	if t := i.inst.tcache.At(name.Type()); t != nil {
+	// 		return t.(reflect.Type), true
+	// 	}
+	// 	if typ, ok := externTypes[name.Type().String()]; ok {
+	// 		return typ, true
+	// 	}
+	// 	return nil, false
+	// }, func(typ types.Type) (reflect.Type, bool) {
+	// 	if t := i.inst.tcache.At(typ); t != nil {
+	// 		return t.(reflect.Type), true
+	// 	}
+	// 	if t, ok := i.types[typ]; ok {
+	// 		return t, true
+	// 	}
+	// 	for k, v := range i.types {
+	// 		if types.Identical(k, typ) {
+	// 			return v, true
+	// 		}
+	// 	}
+	// 	return nil, false
+	// })
+
+	// for _, pkg := range i.prog.AllPackages() {
+	// 	if _, ok := externPackages[pkg.Pkg.Path()]; ok {
+	// 		if i.mode&EnableDumpPackage != 0 {
+	// 			fmt.Fprintln(os.Stderr, "initialize", pkg, "(extern)")
+	// 		}
+	// 		continue
+	// 	}
+	// 	if i.mode&EnableDumpPackage != 0 {
+	// 		fmt.Fprintln(os.Stderr, "initialize", pkg)
+	// 	}
+	// 	// Initialize global storage.
+	// 	for _, m := range pkg.Members {
+	// 		switch v := m.(type) {
+	// 		case *ssa.Global:
+	// 			typ := i.toType(deref(v.Type()))
+	// 			i.globals[v] = reflect.New(typ).Interface()
+	// 		}
+	// 	}
+	// }
+
+	// // Top-level error handler.
+	// exitCode = 2
+	// defer func() {
+	// 	if exitCode != 2 || i.mode&DisableRecover != 0 {
+	// 		return
+	// 	}
+	// 	switch p := recover().(type) {
+	// 	case exitPanic:
+	// 		exitCode = int(p)
+	// 		return
+	// 	case targetPanic:
+	// 		fmt.Fprintln(os.Stderr, "panic:", toString(p.v))
+	// 	case runtime.Error:
+	// 		fmt.Fprintln(os.Stderr, "panic:", p.Error())
+	// 	case string:
+	// 		fmt.Fprintln(os.Stderr, "panic:", p)
+	// 	case plainError:
+	// 		fmt.Fprintln(os.Stderr, "panic:", p.Error())
+	// 	default:
+	// 		fmt.Fprintf(os.Stderr, "panic: unexpected type: %T: %v\n", p, p)
+	// 	}
+
+	// 	// TODO(adonovan): dump panicking interpreter goroutine?
+	// 	// buf := make([]byte, 0x10000)
+	// 	// runtime.Stack(buf, false)
+	// 	// fmt.Fprintln(os.Stderr, string(buf))
+	// 	// (Or dump panicking target goroutine?)
+	// }()
+
+	// // Run!
+	// call(i, nil, token.NoPos, mainpkg.Func("init"), nil, nil)
+	// if mainFn := mainpkg.Func(entry); mainFn != nil {
+	// 	call(i, nil, token.NoPos, mainFn, nil, nil)
+	// 	exitCode = 0
+	// } else {
+	// 	fmt.Fprintln(os.Stderr, "No main function.")
+	// 	exitCode = 1
+	// }
+	// return
 }
 
 // deref returns a pointer's element type; otherwise it returns typ.

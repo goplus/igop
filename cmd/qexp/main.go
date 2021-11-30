@@ -48,7 +48,7 @@ func main() {
 				fmt.Println("warning skip empty export pkg", pkg)
 				continue
 			}
-			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/gossa/pkg/%v"`, pkg))
+			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/interp/pkg/%v"`, pkg))
 			if _, ok := fileMap[""]; !ok {
 				fileMap[""] = &File{}
 			}
@@ -72,16 +72,16 @@ func main() {
 		fmt.Printf("\nimport (\n\t%v\n)\n", strings.Join(imports, "\n\t"))
 	} else {
 		for _, pkg := range args {
+			if pkg == "unsafe" {
+				continue
+			}
 			prog, err := loadProgram(pkg)
 			if err != nil {
 				panic(fmt.Errorf("load pkg %v error: %v", pkg, err))
 			}
-			extList, typList := prog.Export(pkg)
-			if len(extList) == 0 && len(typList) == 0 {
-				fmt.Println("skip empty export", pkg)
-				continue
-			}
-			data, err := exportSource(pkg, "", nil, extList, typList)
+			fmt.Println("process", pkg)
+			e := prog.ExportPkg(pkg, "q")
+			data, err := exportPkg(e, "q", "", nil)
 			if err != nil {
 				panic(err)
 			}

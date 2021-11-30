@@ -3,34 +3,45 @@
 package csv
 
 import (
-	"encoding/csv"
+	q "encoding/csv"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("encoding/csv", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*encoding/csv.ParseError).Error":  (*csv.ParseError).Error,
-	"(*encoding/csv.ParseError).Unwrap": (*csv.ParseError).Unwrap,
-	"(*encoding/csv.Reader).Read":       (*csv.Reader).Read,
-	"(*encoding/csv.Reader).ReadAll":    (*csv.Reader).ReadAll,
-	"(*encoding/csv.Writer).Error":      (*csv.Writer).Error,
-	"(*encoding/csv.Writer).Flush":      (*csv.Writer).Flush,
-	"(*encoding/csv.Writer).Write":      (*csv.Writer).Write,
-	"(*encoding/csv.Writer).WriteAll":   (*csv.Writer).WriteAll,
-	"encoding/csv.ErrBareQuote":         &csv.ErrBareQuote,
-	"encoding/csv.ErrFieldCount":        &csv.ErrFieldCount,
-	"encoding/csv.ErrQuote":             &csv.ErrQuote,
-	"encoding/csv.ErrTrailingComma":     &csv.ErrTrailingComma,
-	"encoding/csv.NewReader":            csv.NewReader,
-	"encoding/csv.NewWriter":            csv.NewWriter,
-}
-
-var typList = []interface{}{
-	(*csv.ParseError)(nil),
-	(*csv.Reader)(nil),
-	(*csv.Writer)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "csv",
+		Path: "encoding/csv",
+		Deps: map[string]string{
+			"bufio":        "bufio",
+			"bytes":        "bytes",
+			"errors":       "errors",
+			"fmt":          "fmt",
+			"io":           "io",
+			"strings":      "strings",
+			"unicode":      "unicode",
+			"unicode/utf8": "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"ParseError": {reflect.TypeOf((*q.ParseError)(nil)).Elem(), "", "Error,Unwrap"},
+			"Reader":     {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Read,ReadAll,readLine,readRecord"},
+			"Writer":     {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Error,Flush,Write,WriteAll,fieldNeedsQuotes"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"ErrBareQuote":     reflect.ValueOf(&q.ErrBareQuote),
+			"ErrFieldCount":    reflect.ValueOf(&q.ErrFieldCount),
+			"ErrQuote":         reflect.ValueOf(&q.ErrQuote),
+			"ErrTrailingComma": reflect.ValueOf(&q.ErrTrailingComma),
+		},
+		Funcs: map[string]reflect.Value{
+			"NewReader": reflect.ValueOf(q.NewReader),
+			"NewWriter": reflect.ValueOf(q.NewWriter),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

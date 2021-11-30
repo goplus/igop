@@ -3,47 +3,51 @@
 package multipart
 
 import (
-	"mime/multipart"
+	q "mime/multipart"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("mime/multipart", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*mime/multipart.FileHeader).Open":            (*multipart.FileHeader).Open,
-	"(*mime/multipart.Form).RemoveAll":             (*multipart.Form).RemoveAll,
-	"(*mime/multipart.Part).Close":                 (*multipart.Part).Close,
-	"(*mime/multipart.Part).FileName":              (*multipart.Part).FileName,
-	"(*mime/multipart.Part).FormName":              (*multipart.Part).FormName,
-	"(*mime/multipart.Part).Read":                  (*multipart.Part).Read,
-	"(*mime/multipart.Reader).NextPart":            (*multipart.Reader).NextPart,
-	"(*mime/multipart.Reader).NextRawPart":         (*multipart.Reader).NextRawPart,
-	"(*mime/multipart.Reader).ReadForm":            (*multipart.Reader).ReadForm,
-	"(*mime/multipart.Writer).Boundary":            (*multipart.Writer).Boundary,
-	"(*mime/multipart.Writer).Close":               (*multipart.Writer).Close,
-	"(*mime/multipart.Writer).CreateFormField":     (*multipart.Writer).CreateFormField,
-	"(*mime/multipart.Writer).CreateFormFile":      (*multipart.Writer).CreateFormFile,
-	"(*mime/multipart.Writer).CreatePart":          (*multipart.Writer).CreatePart,
-	"(*mime/multipart.Writer).FormDataContentType": (*multipart.Writer).FormDataContentType,
-	"(*mime/multipart.Writer).SetBoundary":         (*multipart.Writer).SetBoundary,
-	"(*mime/multipart.Writer).WriteField":          (*multipart.Writer).WriteField,
-	"(mime/multipart.File).Close":                  (multipart.File).Close,
-	"(mime/multipart.File).Read":                   (multipart.File).Read,
-	"(mime/multipart.File).ReadAt":                 (multipart.File).ReadAt,
-	"(mime/multipart.File).Seek":                   (multipart.File).Seek,
-	"mime/multipart.ErrMessageTooLarge":            &multipart.ErrMessageTooLarge,
-	"mime/multipart.NewReader":                     multipart.NewReader,
-	"mime/multipart.NewWriter":                     multipart.NewWriter,
-}
-
-var typList = []interface{}{
-	(*multipart.File)(nil),
-	(*multipart.FileHeader)(nil),
-	(*multipart.Form)(nil),
-	(*multipart.Part)(nil),
-	(*multipart.Reader)(nil),
-	(*multipart.Writer)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "multipart",
+		Path: "mime/multipart",
+		Deps: map[string]string{
+			"bufio":                "bufio",
+			"bytes":                "bytes",
+			"crypto/rand":          "rand",
+			"errors":               "errors",
+			"fmt":                  "fmt",
+			"io":                   "io",
+			"math":                 "math",
+			"mime":                 "mime",
+			"mime/quotedprintable": "quotedprintable",
+			"net/textproto":        "textproto",
+			"os":                   "os",
+			"sort":                 "sort",
+			"strings":              "strings",
+		},
+		Interfaces: map[string]reflect.Type{
+			"File": reflect.TypeOf((*q.File)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"FileHeader": {reflect.TypeOf((*q.FileHeader)(nil)).Elem(), "", "Open"},
+			"Form":       {reflect.TypeOf((*q.Form)(nil)).Elem(), "", "RemoveAll"},
+			"Part":       {reflect.TypeOf((*q.Part)(nil)).Elem(), "", "Close,FileName,FormName,Read,parseContentDisposition,populateHeaders"},
+			"Reader":     {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "NextPart,NextRawPart,ReadForm,isBoundaryDelimiterLine,isFinalBoundary,nextPart,readForm"},
+			"Writer":     {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Boundary,Close,CreateFormField,CreateFormFile,CreatePart,FormDataContentType,SetBoundary,WriteField"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"ErrMessageTooLarge": reflect.ValueOf(&q.ErrMessageTooLarge),
+		},
+		Funcs: map[string]reflect.Value{
+			"NewReader": reflect.ValueOf(q.NewReader),
+			"NewWriter": reflect.ValueOf(q.NewWriter),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

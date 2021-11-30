@@ -3,62 +3,53 @@
 package rand
 
 import (
-	"math/rand"
+	q "math/rand"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("math/rand", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*math/rand.Rand).ExpFloat64":  (*rand.Rand).ExpFloat64,
-	"(*math/rand.Rand).Float32":     (*rand.Rand).Float32,
-	"(*math/rand.Rand).Float64":     (*rand.Rand).Float64,
-	"(*math/rand.Rand).Int":         (*rand.Rand).Int,
-	"(*math/rand.Rand).Int31":       (*rand.Rand).Int31,
-	"(*math/rand.Rand).Int31n":      (*rand.Rand).Int31n,
-	"(*math/rand.Rand).Int63":       (*rand.Rand).Int63,
-	"(*math/rand.Rand).Int63n":      (*rand.Rand).Int63n,
-	"(*math/rand.Rand).Intn":        (*rand.Rand).Intn,
-	"(*math/rand.Rand).NormFloat64": (*rand.Rand).NormFloat64,
-	"(*math/rand.Rand).Perm":        (*rand.Rand).Perm,
-	"(*math/rand.Rand).Read":        (*rand.Rand).Read,
-	"(*math/rand.Rand).Seed":        (*rand.Rand).Seed,
-	"(*math/rand.Rand).Shuffle":     (*rand.Rand).Shuffle,
-	"(*math/rand.Rand).Uint32":      (*rand.Rand).Uint32,
-	"(*math/rand.Rand).Uint64":      (*rand.Rand).Uint64,
-	"(*math/rand.Zipf).Uint64":      (*rand.Zipf).Uint64,
-	"(math/rand.Source).Int63":      (rand.Source).Int63,
-	"(math/rand.Source).Seed":       (rand.Source).Seed,
-	"(math/rand.Source64).Int63":    (rand.Source64).Int63,
-	"(math/rand.Source64).Seed":     (rand.Source64).Seed,
-	"(math/rand.Source64).Uint64":   (rand.Source64).Uint64,
-	"math/rand.ExpFloat64":          rand.ExpFloat64,
-	"math/rand.Float32":             rand.Float32,
-	"math/rand.Float64":             rand.Float64,
-	"math/rand.Int":                 rand.Int,
-	"math/rand.Int31":               rand.Int31,
-	"math/rand.Int31n":              rand.Int31n,
-	"math/rand.Int63":               rand.Int63,
-	"math/rand.Int63n":              rand.Int63n,
-	"math/rand.Intn":                rand.Intn,
-	"math/rand.New":                 rand.New,
-	"math/rand.NewSource":           rand.NewSource,
-	"math/rand.NewZipf":             rand.NewZipf,
-	"math/rand.NormFloat64":         rand.NormFloat64,
-	"math/rand.Perm":                rand.Perm,
-	"math/rand.Read":                rand.Read,
-	"math/rand.Seed":                rand.Seed,
-	"math/rand.Shuffle":             rand.Shuffle,
-	"math/rand.Uint32":              rand.Uint32,
-	"math/rand.Uint64":              rand.Uint64,
-}
-
-var typList = []interface{}{
-	(*rand.Rand)(nil),
-	(*rand.Source)(nil),
-	(*rand.Source64)(nil),
-	(*rand.Zipf)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "rand",
+		Path: "math/rand",
+		Deps: map[string]string{
+			"math": "math",
+			"sync": "sync",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Source":   reflect.TypeOf((*q.Source)(nil)).Elem(),
+			"Source64": reflect.TypeOf((*q.Source64)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Rand": {reflect.TypeOf((*q.Rand)(nil)).Elem(), "", "ExpFloat64,Float32,Float64,Int,Int31,Int31n,Int63,Int63n,Intn,NormFloat64,Perm,Read,Seed,Shuffle,Uint32,Uint64,int31n"},
+			"Zipf": {reflect.TypeOf((*q.Zipf)(nil)).Elem(), "", "Uint64,h,hinv"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"ExpFloat64":  reflect.ValueOf(q.ExpFloat64),
+			"Float32":     reflect.ValueOf(q.Float32),
+			"Float64":     reflect.ValueOf(q.Float64),
+			"Int":         reflect.ValueOf(q.Int),
+			"Int31":       reflect.ValueOf(q.Int31),
+			"Int31n":      reflect.ValueOf(q.Int31n),
+			"Int63":       reflect.ValueOf(q.Int63),
+			"Int63n":      reflect.ValueOf(q.Int63n),
+			"Intn":        reflect.ValueOf(q.Intn),
+			"New":         reflect.ValueOf(q.New),
+			"NewSource":   reflect.ValueOf(q.NewSource),
+			"NewZipf":     reflect.ValueOf(q.NewZipf),
+			"NormFloat64": reflect.ValueOf(q.NormFloat64),
+			"Perm":        reflect.ValueOf(q.Perm),
+			"Read":        reflect.ValueOf(q.Read),
+			"Seed":        reflect.ValueOf(q.Seed),
+			"Shuffle":     reflect.ValueOf(q.Shuffle),
+			"Uint32":      reflect.ValueOf(q.Uint32),
+			"Uint64":      reflect.ValueOf(q.Uint64),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

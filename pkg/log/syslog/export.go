@@ -3,9 +3,70 @@
 package syslog
 
 import (
+	q "log/syslog"
+
+	"go/constant"
+	"reflect"
+
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("log/syslog", nil, nil)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "syslog",
+		Path: "log/syslog",
+		Deps: map[string]string{
+			"errors":  "errors",
+			"fmt":     "fmt",
+			"log":     "log",
+			"net":     "net",
+			"os":      "os",
+			"strings": "strings",
+			"sync":    "sync",
+			"time":    "time",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Priority": {reflect.TypeOf((*q.Priority)(nil)).Elem(), "", ""},
+			"Writer":   {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Alert,Close,Crit,Debug,Emerg,Err,Info,Notice,Warning,Write,connect,write,writeAndRetry"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Dial":      reflect.ValueOf(q.Dial),
+			"New":       reflect.ValueOf(q.New),
+			"NewLogger": reflect.ValueOf(q.NewLogger),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"LOG_ALERT":    {reflect.TypeOf(q.LOG_ALERT), constant.MakeInt64(1)},
+			"LOG_AUTH":     {reflect.TypeOf(q.LOG_AUTH), constant.MakeInt64(32)},
+			"LOG_AUTHPRIV": {reflect.TypeOf(q.LOG_AUTHPRIV), constant.MakeInt64(80)},
+			"LOG_CRIT":     {reflect.TypeOf(q.LOG_CRIT), constant.MakeInt64(2)},
+			"LOG_CRON":     {reflect.TypeOf(q.LOG_CRON), constant.MakeInt64(72)},
+			"LOG_DAEMON":   {reflect.TypeOf(q.LOG_DAEMON), constant.MakeInt64(24)},
+			"LOG_DEBUG":    {reflect.TypeOf(q.LOG_DEBUG), constant.MakeInt64(7)},
+			"LOG_EMERG":    {reflect.TypeOf(q.LOG_EMERG), constant.MakeInt64(0)},
+			"LOG_ERR":      {reflect.TypeOf(q.LOG_ERR), constant.MakeInt64(3)},
+			"LOG_FTP":      {reflect.TypeOf(q.LOG_FTP), constant.MakeInt64(88)},
+			"LOG_INFO":     {reflect.TypeOf(q.LOG_INFO), constant.MakeInt64(6)},
+			"LOG_KERN":     {reflect.TypeOf(q.LOG_KERN), constant.MakeInt64(0)},
+			"LOG_LOCAL0":   {reflect.TypeOf(q.LOG_LOCAL0), constant.MakeInt64(128)},
+			"LOG_LOCAL1":   {reflect.TypeOf(q.LOG_LOCAL1), constant.MakeInt64(136)},
+			"LOG_LOCAL2":   {reflect.TypeOf(q.LOG_LOCAL2), constant.MakeInt64(144)},
+			"LOG_LOCAL3":   {reflect.TypeOf(q.LOG_LOCAL3), constant.MakeInt64(152)},
+			"LOG_LOCAL4":   {reflect.TypeOf(q.LOG_LOCAL4), constant.MakeInt64(160)},
+			"LOG_LOCAL5":   {reflect.TypeOf(q.LOG_LOCAL5), constant.MakeInt64(168)},
+			"LOG_LOCAL6":   {reflect.TypeOf(q.LOG_LOCAL6), constant.MakeInt64(176)},
+			"LOG_LOCAL7":   {reflect.TypeOf(q.LOG_LOCAL7), constant.MakeInt64(184)},
+			"LOG_LPR":      {reflect.TypeOf(q.LOG_LPR), constant.MakeInt64(48)},
+			"LOG_MAIL":     {reflect.TypeOf(q.LOG_MAIL), constant.MakeInt64(16)},
+			"LOG_NEWS":     {reflect.TypeOf(q.LOG_NEWS), constant.MakeInt64(56)},
+			"LOG_NOTICE":   {reflect.TypeOf(q.LOG_NOTICE), constant.MakeInt64(5)},
+			"LOG_SYSLOG":   {reflect.TypeOf(q.LOG_SYSLOG), constant.MakeInt64(40)},
+			"LOG_USER":     {reflect.TypeOf(q.LOG_USER), constant.MakeInt64(8)},
+			"LOG_UUCP":     {reflect.TypeOf(q.LOG_UUCP), constant.MakeInt64(64)},
+			"LOG_WARNING":  {reflect.TypeOf(q.LOG_WARNING), constant.MakeInt64(4)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

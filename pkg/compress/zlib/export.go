@@ -3,32 +3,54 @@
 package zlib
 
 import (
-	"compress/zlib"
+	q "compress/zlib"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("compress/zlib", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*compress/zlib.Writer).Close":    (*zlib.Writer).Close,
-	"(*compress/zlib.Writer).Flush":    (*zlib.Writer).Flush,
-	"(*compress/zlib.Writer).Reset":    (*zlib.Writer).Reset,
-	"(*compress/zlib.Writer).Write":    (*zlib.Writer).Write,
-	"(compress/zlib.Resetter).Reset":   (zlib.Resetter).Reset,
-	"compress/zlib.ErrChecksum":        &zlib.ErrChecksum,
-	"compress/zlib.ErrDictionary":      &zlib.ErrDictionary,
-	"compress/zlib.ErrHeader":          &zlib.ErrHeader,
-	"compress/zlib.NewReader":          zlib.NewReader,
-	"compress/zlib.NewReaderDict":      zlib.NewReaderDict,
-	"compress/zlib.NewWriter":          zlib.NewWriter,
-	"compress/zlib.NewWriterLevel":     zlib.NewWriterLevel,
-	"compress/zlib.NewWriterLevelDict": zlib.NewWriterLevelDict,
-}
-
-var typList = []interface{}{
-	(*zlib.Resetter)(nil),
-	(*zlib.Writer)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "zlib",
+		Path: "compress/zlib",
+		Deps: map[string]string{
+			"bufio":           "bufio",
+			"compress/flate":  "flate",
+			"encoding/binary": "binary",
+			"errors":          "errors",
+			"fmt":             "fmt",
+			"hash":            "hash",
+			"hash/adler32":    "adler32",
+			"io":              "io",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Resetter": reflect.TypeOf((*q.Resetter)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Flush,Reset,Write,writeHeader"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"ErrChecksum":   reflect.ValueOf(&q.ErrChecksum),
+			"ErrDictionary": reflect.ValueOf(&q.ErrDictionary),
+			"ErrHeader":     reflect.ValueOf(&q.ErrHeader),
+		},
+		Funcs: map[string]reflect.Value{
+			"NewReader":          reflect.ValueOf(q.NewReader),
+			"NewReaderDict":      reflect.ValueOf(q.NewReaderDict),
+			"NewWriter":          reflect.ValueOf(q.NewWriter),
+			"NewWriterLevel":     reflect.ValueOf(q.NewWriterLevel),
+			"NewWriterLevelDict": reflect.ValueOf(q.NewWriterLevelDict),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"BestCompression":    {"untyped int", constant.MakeInt64(9)},
+			"BestSpeed":          {"untyped int", constant.MakeInt64(1)},
+			"DefaultCompression": {"untyped int", constant.MakeInt64(-1)},
+			"HuffmanOnly":        {"untyped int", constant.MakeInt64(-2)},
+			"NoCompression":      {"untyped int", constant.MakeInt64(0)},
+		},
+	})
 }

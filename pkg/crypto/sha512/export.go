@@ -3,24 +3,47 @@
 package sha512
 
 import (
-	"crypto/sha512"
+	q "crypto/sha512"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/sha512", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "sha512",
+		Path: "crypto/sha512",
+		Deps: map[string]string{
+			"crypto":          "crypto",
+			"encoding/binary": "binary",
+			"errors":          "errors",
+			"hash":            "hash",
+			"internal/cpu":    "cpu",
+			"math/bits":       "bits",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"New":        reflect.ValueOf(q.New),
+			"New384":     reflect.ValueOf(q.New384),
+			"New512_224": reflect.ValueOf(q.New512_224),
+			"New512_256": reflect.ValueOf(q.New512_256),
+			"Sum384":     reflect.ValueOf(q.Sum384),
+			"Sum512":     reflect.ValueOf(q.Sum512),
+			"Sum512_224": reflect.ValueOf(q.Sum512_224),
+			"Sum512_256": reflect.ValueOf(q.Sum512_256),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"BlockSize": {"untyped int", constant.MakeInt64(128)},
+			"Size":      {"untyped int", constant.MakeInt64(64)},
+			"Size224":   {"untyped int", constant.MakeInt64(28)},
+			"Size256":   {"untyped int", constant.MakeInt64(32)},
+			"Size384":   {"untyped int", constant.MakeInt64(48)},
+		},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"crypto/sha512.New":        sha512.New,
-	"crypto/sha512.New384":     sha512.New384,
-	"crypto/sha512.New512_224": sha512.New512_224,
-	"crypto/sha512.New512_256": sha512.New512_256,
-	"crypto/sha512.Sum384":     sha512.Sum384,
-	"crypto/sha512.Sum512":     sha512.Sum512,
-	"crypto/sha512.Sum512_224": sha512.Sum512_224,
-	"crypto/sha512.Sum512_256": sha512.Sum512_256,
-}
-
-var typList = []interface{}{}

@@ -3,33 +3,45 @@
 package user
 
 import (
-	"os/user"
+	q "os/user"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("os/user", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*os/user.User).GroupIds":            (*user.User).GroupIds,
-	"(os/user.UnknownGroupError).Error":   (user.UnknownGroupError).Error,
-	"(os/user.UnknownGroupIdError).Error": (user.UnknownGroupIdError).Error,
-	"(os/user.UnknownUserError).Error":    (user.UnknownUserError).Error,
-	"(os/user.UnknownUserIdError).Error":  (user.UnknownUserIdError).Error,
-	"os/user.Current":                     user.Current,
-	"os/user.Lookup":                      user.Lookup,
-	"os/user.LookupGroup":                 user.LookupGroup,
-	"os/user.LookupGroupId":               user.LookupGroupId,
-	"os/user.LookupId":                    user.LookupId,
-}
-
-var typList = []interface{}{
-	(*user.Group)(nil),
-	(*user.UnknownGroupError)(nil),
-	(*user.UnknownGroupIdError)(nil),
-	(*user.UnknownUserError)(nil),
-	(*user.UnknownUserIdError)(nil),
-	(*user.User)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "user",
+		Path: "os/user",
+		Deps: map[string]string{
+			"fmt":         "fmt",
+			"runtime/cgo": "cgo",
+			"strconv":     "strconv",
+			"strings":     "strings",
+			"sync":        "sync",
+			"syscall":     "syscall",
+			"unsafe":      "unsafe",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Group":               {reflect.TypeOf((*q.Group)(nil)).Elem(), "", ""},
+			"UnknownGroupError":   {reflect.TypeOf((*q.UnknownGroupError)(nil)).Elem(), "Error", ""},
+			"UnknownGroupIdError": {reflect.TypeOf((*q.UnknownGroupIdError)(nil)).Elem(), "Error", ""},
+			"UnknownUserError":    {reflect.TypeOf((*q.UnknownUserError)(nil)).Elem(), "Error", ""},
+			"UnknownUserIdError":  {reflect.TypeOf((*q.UnknownUserIdError)(nil)).Elem(), "Error", ""},
+			"User":                {reflect.TypeOf((*q.User)(nil)).Elem(), "", "GroupIds"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Current":       reflect.ValueOf(q.Current),
+			"Lookup":        reflect.ValueOf(q.Lookup),
+			"LookupGroup":   reflect.ValueOf(q.LookupGroup),
+			"LookupGroupId": reflect.ValueOf(q.LookupGroupId),
+			"LookupId":      reflect.ValueOf(q.LookupId),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

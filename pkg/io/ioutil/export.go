@@ -3,24 +3,45 @@
 package ioutil
 
 import (
-	"io/ioutil"
+	q "io/ioutil"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("io/ioutil", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "ioutil",
+		Path: "io/ioutil",
+		Deps: map[string]string{
+			"errors":        "errors",
+			"io":            "io",
+			"io/fs":         "fs",
+			"os":            "os",
+			"path/filepath": "filepath",
+			"sort":          "sort",
+			"strconv":       "strconv",
+			"strings":       "strings",
+			"sync":          "sync",
+			"time":          "time",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"Discard": reflect.ValueOf(&q.Discard),
+		},
+		Funcs: map[string]reflect.Value{
+			"NopCloser": reflect.ValueOf(q.NopCloser),
+			"ReadAll":   reflect.ValueOf(q.ReadAll),
+			"ReadDir":   reflect.ValueOf(q.ReadDir),
+			"ReadFile":  reflect.ValueOf(q.ReadFile),
+			"TempDir":   reflect.ValueOf(q.TempDir),
+			"TempFile":  reflect.ValueOf(q.TempFile),
+			"WriteFile": reflect.ValueOf(q.WriteFile),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"io/ioutil.Discard":   &ioutil.Discard,
-	"io/ioutil.NopCloser": ioutil.NopCloser,
-	"io/ioutil.ReadAll":   ioutil.ReadAll,
-	"io/ioutil.ReadDir":   ioutil.ReadDir,
-	"io/ioutil.ReadFile":  ioutil.ReadFile,
-	"io/ioutil.TempDir":   ioutil.TempDir,
-	"io/ioutil.TempFile":  ioutil.TempFile,
-	"io/ioutil.WriteFile": ioutil.WriteFile,
-}
-
-var typList = []interface{}{}

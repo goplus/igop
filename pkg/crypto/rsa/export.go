@@ -3,46 +3,63 @@
 package rsa
 
 import (
-	"crypto/rsa"
+	q "crypto/rsa"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/rsa", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*crypto/rsa.PSSOptions).HashFunc":    (*rsa.PSSOptions).HashFunc,
-	"(*crypto/rsa.PrivateKey).Decrypt":     (*rsa.PrivateKey).Decrypt,
-	"(*crypto/rsa.PrivateKey).Precompute":  (*rsa.PrivateKey).Precompute,
-	"(*crypto/rsa.PrivateKey).Public":      (*rsa.PrivateKey).Public,
-	"(*crypto/rsa.PrivateKey).Sign":        (*rsa.PrivateKey).Sign,
-	"(*crypto/rsa.PrivateKey).Size":        (*rsa.PrivateKey).Size,
-	"(*crypto/rsa.PrivateKey).Validate":    (*rsa.PrivateKey).Validate,
-	"(*crypto/rsa.PublicKey).Size":         (*rsa.PublicKey).Size,
-	"crypto/rsa.DecryptOAEP":               rsa.DecryptOAEP,
-	"crypto/rsa.DecryptPKCS1v15":           rsa.DecryptPKCS1v15,
-	"crypto/rsa.DecryptPKCS1v15SessionKey": rsa.DecryptPKCS1v15SessionKey,
-	"crypto/rsa.EncryptOAEP":               rsa.EncryptOAEP,
-	"crypto/rsa.EncryptPKCS1v15":           rsa.EncryptPKCS1v15,
-	"crypto/rsa.ErrDecryption":             &rsa.ErrDecryption,
-	"crypto/rsa.ErrMessageTooLong":         &rsa.ErrMessageTooLong,
-	"crypto/rsa.ErrVerification":           &rsa.ErrVerification,
-	"crypto/rsa.GenerateKey":               rsa.GenerateKey,
-	"crypto/rsa.GenerateMultiPrimeKey":     rsa.GenerateMultiPrimeKey,
-	"crypto/rsa.SignPKCS1v15":              rsa.SignPKCS1v15,
-	"crypto/rsa.SignPSS":                   rsa.SignPSS,
-	"crypto/rsa.VerifyPKCS1v15":            rsa.VerifyPKCS1v15,
-	"crypto/rsa.VerifyPSS":                 rsa.VerifyPSS,
-}
-
-var typList = []interface{}{
-	(*rsa.CRTValue)(nil),
-	(*rsa.OAEPOptions)(nil),
-	(*rsa.PKCS1v15DecryptOptions)(nil),
-	(*rsa.PSSOptions)(nil),
-	(*rsa.PrecomputedValues)(nil),
-	(*rsa.PrivateKey)(nil),
-	(*rsa.PublicKey)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "rsa",
+		Path: "crypto/rsa",
+		Deps: map[string]string{
+			"bytes":                    "bytes",
+			"crypto":                   "crypto",
+			"crypto/internal/randutil": "randutil",
+			"crypto/rand":              "rand",
+			"crypto/subtle":            "subtle",
+			"errors":                   "errors",
+			"hash":                     "hash",
+			"io":                       "io",
+			"math":                     "math",
+			"math/big":                 "big",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"CRTValue":               {reflect.TypeOf((*q.CRTValue)(nil)).Elem(), "", ""},
+			"OAEPOptions":            {reflect.TypeOf((*q.OAEPOptions)(nil)).Elem(), "", ""},
+			"PKCS1v15DecryptOptions": {reflect.TypeOf((*q.PKCS1v15DecryptOptions)(nil)).Elem(), "", ""},
+			"PSSOptions":             {reflect.TypeOf((*q.PSSOptions)(nil)).Elem(), "", "HashFunc,saltLength"},
+			"PrecomputedValues":      {reflect.TypeOf((*q.PrecomputedValues)(nil)).Elem(), "", ""},
+			"PrivateKey":             {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "", "Decrypt,Equal,Precompute,Public,Sign,Validate"},
+			"PublicKey":              {reflect.TypeOf((*q.PublicKey)(nil)).Elem(), "", "Equal,Size"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"ErrDecryption":     reflect.ValueOf(&q.ErrDecryption),
+			"ErrMessageTooLong": reflect.ValueOf(&q.ErrMessageTooLong),
+			"ErrVerification":   reflect.ValueOf(&q.ErrVerification),
+		},
+		Funcs: map[string]reflect.Value{
+			"DecryptOAEP":               reflect.ValueOf(q.DecryptOAEP),
+			"DecryptPKCS1v15":           reflect.ValueOf(q.DecryptPKCS1v15),
+			"DecryptPKCS1v15SessionKey": reflect.ValueOf(q.DecryptPKCS1v15SessionKey),
+			"EncryptOAEP":               reflect.ValueOf(q.EncryptOAEP),
+			"EncryptPKCS1v15":           reflect.ValueOf(q.EncryptPKCS1v15),
+			"GenerateKey":               reflect.ValueOf(q.GenerateKey),
+			"GenerateMultiPrimeKey":     reflect.ValueOf(q.GenerateMultiPrimeKey),
+			"SignPKCS1v15":              reflect.ValueOf(q.SignPKCS1v15),
+			"SignPSS":                   reflect.ValueOf(q.SignPSS),
+			"VerifyPKCS1v15":            reflect.ValueOf(q.VerifyPKCS1v15),
+			"VerifyPSS":                 reflect.ValueOf(q.VerifyPSS),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"PSSSaltLengthAuto":       {"untyped int", constant.MakeInt64(0)},
+			"PSSSaltLengthEqualsHash": {"untyped int", constant.MakeInt64(-1)},
+		},
+	})
 }

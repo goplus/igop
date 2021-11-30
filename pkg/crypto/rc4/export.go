@@ -3,23 +3,32 @@
 package rc4
 
 import (
-	"crypto/rc4"
+	q "crypto/rc4"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/rc4", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*crypto/rc4.Cipher).Reset":        (*rc4.Cipher).Reset,
-	"(*crypto/rc4.Cipher).XORKeyStream": (*rc4.Cipher).XORKeyStream,
-	"(crypto/rc4.KeySizeError).Error":   (rc4.KeySizeError).Error,
-	"crypto/rc4.NewCipher":              rc4.NewCipher,
-}
-
-var typList = []interface{}{
-	(*rc4.Cipher)(nil),
-	(*rc4.KeySizeError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "rc4",
+		Path: "crypto/rc4",
+		Deps: map[string]string{
+			"crypto/internal/subtle": "subtle",
+			"strconv":                "strconv",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Cipher":       {reflect.TypeOf((*q.Cipher)(nil)).Elem(), "", "Reset,XORKeyStream"},
+			"KeySizeError": {reflect.TypeOf((*q.KeySizeError)(nil)).Elem(), "Error", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"NewCipher": reflect.ValueOf(q.NewCipher),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

@@ -3,32 +3,41 @@
 package pkix
 
 import (
-	"crypto/x509/pkix"
+	q "crypto/x509/pkix"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/x509/pkix", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*crypto/x509/pkix.CertificateList).HasExpired": (*pkix.CertificateList).HasExpired,
-	"(*crypto/x509/pkix.Name).FillFromRDNSequence":   (*pkix.Name).FillFromRDNSequence,
-	"(crypto/x509/pkix.Name).String":                 (pkix.Name).String,
-	"(crypto/x509/pkix.Name).ToRDNSequence":          (pkix.Name).ToRDNSequence,
-	"(crypto/x509/pkix.RDNSequence).String":          (pkix.RDNSequence).String,
-}
-
-var typList = []interface{}{
-	(*pkix.AlgorithmIdentifier)(nil),
-	(*pkix.AttributeTypeAndValue)(nil),
-	(*pkix.AttributeTypeAndValueSET)(nil),
-	(*pkix.CertificateList)(nil),
-	(*pkix.Extension)(nil),
-	(*pkix.Name)(nil),
-	(*pkix.RDNSequence)(nil),
-	(*pkix.RelativeDistinguishedNameSET)(nil),
-	(*pkix.RevokedCertificate)(nil),
-	(*pkix.TBSCertificateList)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "pkix",
+		Path: "crypto/x509/pkix",
+		Deps: map[string]string{
+			"encoding/asn1": "asn1",
+			"encoding/hex":  "hex",
+			"fmt":           "fmt",
+			"math/big":      "big",
+			"time":          "time",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"AlgorithmIdentifier":          {reflect.TypeOf((*q.AlgorithmIdentifier)(nil)).Elem(), "", ""},
+			"AttributeTypeAndValue":        {reflect.TypeOf((*q.AttributeTypeAndValue)(nil)).Elem(), "", ""},
+			"AttributeTypeAndValueSET":     {reflect.TypeOf((*q.AttributeTypeAndValueSET)(nil)).Elem(), "", ""},
+			"CertificateList":              {reflect.TypeOf((*q.CertificateList)(nil)).Elem(), "", "HasExpired"},
+			"Extension":                    {reflect.TypeOf((*q.Extension)(nil)).Elem(), "", ""},
+			"Name":                         {reflect.TypeOf((*q.Name)(nil)).Elem(), "String,ToRDNSequence,appendRDNs", "FillFromRDNSequence"},
+			"RDNSequence":                  {reflect.TypeOf((*q.RDNSequence)(nil)).Elem(), "String", ""},
+			"RelativeDistinguishedNameSET": {reflect.TypeOf((*q.RelativeDistinguishedNameSET)(nil)).Elem(), "", ""},
+			"RevokedCertificate":           {reflect.TypeOf((*q.RevokedCertificate)(nil)).Elem(), "", ""},
+			"TBSCertificateList":           {reflect.TypeOf((*q.TBSCertificateList)(nil)).Elem(), "", ""},
+		},
+		AliasTypes:    map[string]reflect.Type{},
+		Vars:          map[string]reflect.Value{},
+		Funcs:         map[string]reflect.Value{},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

@@ -3,36 +3,45 @@
 package ecdsa
 
 import (
-	"crypto/ecdsa"
+	q "crypto/ecdsa"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/ecdsa", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*crypto/ecdsa.PrivateKey).Public":        (*ecdsa.PrivateKey).Public,
-	"(*crypto/ecdsa.PrivateKey).Sign":          (*ecdsa.PrivateKey).Sign,
-	"(crypto/ecdsa.PrivateKey).Add":            (ecdsa.PrivateKey).Add,
-	"(crypto/ecdsa.PrivateKey).Double":         (ecdsa.PrivateKey).Double,
-	"(crypto/ecdsa.PrivateKey).IsOnCurve":      (ecdsa.PrivateKey).IsOnCurve,
-	"(crypto/ecdsa.PrivateKey).Params":         (ecdsa.PrivateKey).Params,
-	"(crypto/ecdsa.PrivateKey).ScalarBaseMult": (ecdsa.PrivateKey).ScalarBaseMult,
-	"(crypto/ecdsa.PrivateKey).ScalarMult":     (ecdsa.PrivateKey).ScalarMult,
-	"(crypto/ecdsa.PublicKey).Add":             (ecdsa.PublicKey).Add,
-	"(crypto/ecdsa.PublicKey).Double":          (ecdsa.PublicKey).Double,
-	"(crypto/ecdsa.PublicKey).IsOnCurve":       (ecdsa.PublicKey).IsOnCurve,
-	"(crypto/ecdsa.PublicKey).Params":          (ecdsa.PublicKey).Params,
-	"(crypto/ecdsa.PublicKey).ScalarBaseMult":  (ecdsa.PublicKey).ScalarBaseMult,
-	"(crypto/ecdsa.PublicKey).ScalarMult":      (ecdsa.PublicKey).ScalarMult,
-	"crypto/ecdsa.GenerateKey":                 ecdsa.GenerateKey,
-	"crypto/ecdsa.Sign":                        ecdsa.Sign,
-	"crypto/ecdsa.Verify":                      ecdsa.Verify,
-}
-
-var typList = []interface{}{
-	(*ecdsa.PrivateKey)(nil),
-	(*ecdsa.PublicKey)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "ecdsa",
+		Path: "crypto/ecdsa",
+		Deps: map[string]string{
+			"crypto":                                "crypto",
+			"crypto/aes":                            "aes",
+			"crypto/cipher":                         "cipher",
+			"crypto/elliptic":                       "elliptic",
+			"crypto/internal/randutil":              "randutil",
+			"crypto/sha512":                         "sha512",
+			"errors":                                "errors",
+			"io":                                    "io",
+			"math/big":                              "big",
+			"vendor/golang.org/x/crypto/cryptobyte": "cryptobyte",
+			"vendor/golang.org/x/crypto/cryptobyte/asn1": "asn1",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"PrivateKey": {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "", "Equal,Public,Sign"},
+			"PublicKey":  {reflect.TypeOf((*q.PublicKey)(nil)).Elem(), "", "Equal"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"GenerateKey": reflect.ValueOf(q.GenerateKey),
+			"Sign":        reflect.ValueOf(q.Sign),
+			"SignASN1":    reflect.ValueOf(q.SignASN1),
+			"Verify":      reflect.ValueOf(q.Verify),
+			"VerifyASN1":  reflect.ValueOf(q.VerifyASN1),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

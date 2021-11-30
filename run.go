@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package gossa
 
 import (
@@ -68,7 +71,20 @@ var (
 // 	return mainPkg, nil
 // }
 
-func loadFile(input string, src interface{}) (*ssa.Package, error) {
+// func LoadAst(pkg *ast.Package) (*ssa.Package, error) {
+// 	pkg := types.NewPackage(f.Name.Name, "")
+// 	var chkerr error
+// 	ssapkg, _, err := BuildPackage(DefaultLoader, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
+// 	if chkerr != nil {
+// 		return nil, chkerr
+// 	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	ssapkg.Build()
+// }
+
+func LoadFile(input string, src interface{}) (*ssa.Package, error) {
 	if !filepath.IsAbs(input) {
 		wd, _ := os.Getwd()
 		input = filepath.Join(wd, input)
@@ -79,9 +95,9 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
-	if f.Name.Name != "main" {
-		return nil, ErrNotFoundMain
-	}
+	// if f.Name.Name != "main" {
+	// 	return nil, ErrNotFoundMain
+	// }
 	var hasOtherPkgs bool
 	for _, im := range f.Imports {
 		v, _ := strconv.Unquote(im.Path.Value)
@@ -91,15 +107,9 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 		}
 	}
 	if !hasOtherPkgs {
-		pkg := types.NewPackage("main", "")
+		pkg := types.NewPackage(f.Name.Name, "")
 		var chkerr error
-		ssapkg, _, err := ssautil.BuildPackage(&types.Config{
-			Importer: importer.Default(),
-			Error: func(err error) {
-				fmt.Fprintln(os.Stderr, err)
-				chkerr = ErrPackage
-			},
-		}, fset, pkg, []*ast.File{f}, 0) //ssa.SanityCheckFunctions)
+		ssapkg, _, err := BuildPackage(DefaultLoader, fset, pkg, []*ast.File{f}, ssa.SanityCheckFunctions) // ssa.NaiveForm) //ssa.SanityCheckFunctions)
 		if chkerr != nil {
 			return nil, chkerr
 		}
@@ -133,8 +143,8 @@ func loadFile(input string, src interface{}) (*ssa.Package, error) {
 	list[0].PkgPath = "main"
 	// hack fix types.Types.Path() command-line-arguments
 	v := reflect.ValueOf(list[0].Types).Elem()
-	reflectx.Field(v, 0).SetString("main")
-	prog, pkgs := ssautil.AllPackages(list, ssa.SanityCheckFunctions)
+	reflectx.FieldX(v, 0).SetString("main")
+	prog, pkgs := ssautil.AllPackages(list, ssa.NaiveForm)
 	prog.Build()
 	mainPkgs := ssautil.MainPackages(pkgs)
 	if len(mainPkgs) == 0 {
@@ -260,7 +270,7 @@ func RunFile(mode Mode, filename string, src interface{}, args []string) error {
 		}
 		src = data
 	}
-	pkg, err := loadFile(filename, src)
+	pkg, err := LoadFile(filename, src)
 	if err != nil {
 		return err
 	}
@@ -329,7 +339,7 @@ func RunTestPkg(pkgs []*ssa.Package, mode Mode, input string, args []string) {
 	}
 	for _, pkg := range testPkgs {
 		flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-		if code := Interpret(pkg, mode, "main"); code != 0 {
+		if code := _Interpret(pkg, mode, "main"); code != 0 {
 			failed = true
 		}
 	}
@@ -343,7 +353,9 @@ func RunPkg(mainPkg *ssa.Package, mode Mode, input string, entry string, args []
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	exitCode := Interpret(mainPkg, mode, entry)
+	interp := NewInterp(DefaultLoader, mainPkg, mode)
+	interp.Run("init")
+	_, exitCode := interp.Run(entry)
 	if exitCode != 0 {
 		return fmt.Errorf("interpreting %v: exit code was %d", input, exitCode)
 	}

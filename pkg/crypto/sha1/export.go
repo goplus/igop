@@ -3,18 +3,38 @@
 package sha1
 
 import (
-	"crypto/sha1"
+	q "crypto/sha1"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/sha1", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "sha1",
+		Path: "crypto/sha1",
+		Deps: map[string]string{
+			"crypto":          "crypto",
+			"encoding/binary": "binary",
+			"errors":          "errors",
+			"hash":            "hash",
+			"internal/cpu":    "cpu",
+			"math/bits":       "bits",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"New": reflect.ValueOf(q.New),
+			"Sum": reflect.ValueOf(q.Sum),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"BlockSize": {"untyped int", constant.MakeInt64(64)},
+			"Size":      {"untyped int", constant.MakeInt64(20)},
+		},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"crypto/sha1.New": sha1.New,
-	"crypto/sha1.Sum": sha1.Sum,
-}
-
-var typList = []interface{}{}

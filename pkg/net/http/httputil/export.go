@@ -3,48 +3,62 @@
 package httputil
 
 import (
-	"net/http/httputil"
+	q "net/http/httputil"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("net/http/httputil", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*net/http/httputil.ClientConn).Close":       (*httputil.ClientConn).Close,
-	"(*net/http/httputil.ClientConn).Do":          (*httputil.ClientConn).Do,
-	"(*net/http/httputil.ClientConn).Hijack":      (*httputil.ClientConn).Hijack,
-	"(*net/http/httputil.ClientConn).Pending":     (*httputil.ClientConn).Pending,
-	"(*net/http/httputil.ClientConn).Read":        (*httputil.ClientConn).Read,
-	"(*net/http/httputil.ClientConn).Write":       (*httputil.ClientConn).Write,
-	"(*net/http/httputil.ReverseProxy).ServeHTTP": (*httputil.ReverseProxy).ServeHTTP,
-	"(*net/http/httputil.ServerConn).Close":       (*httputil.ServerConn).Close,
-	"(*net/http/httputil.ServerConn).Hijack":      (*httputil.ServerConn).Hijack,
-	"(*net/http/httputil.ServerConn).Pending":     (*httputil.ServerConn).Pending,
-	"(*net/http/httputil.ServerConn).Read":        (*httputil.ServerConn).Read,
-	"(*net/http/httputil.ServerConn).Write":       (*httputil.ServerConn).Write,
-	"(net/http/httputil.BufferPool).Get":          (httputil.BufferPool).Get,
-	"(net/http/httputil.BufferPool).Put":          (httputil.BufferPool).Put,
-	"net/http/httputil.DumpRequest":               httputil.DumpRequest,
-	"net/http/httputil.DumpRequestOut":            httputil.DumpRequestOut,
-	"net/http/httputil.DumpResponse":              httputil.DumpResponse,
-	"net/http/httputil.ErrClosed":                 &httputil.ErrClosed,
-	"net/http/httputil.ErrLineTooLong":            &httputil.ErrLineTooLong,
-	"net/http/httputil.ErrPersistEOF":             &httputil.ErrPersistEOF,
-	"net/http/httputil.ErrPipeline":               &httputil.ErrPipeline,
-	"net/http/httputil.NewChunkedReader":          httputil.NewChunkedReader,
-	"net/http/httputil.NewChunkedWriter":          httputil.NewChunkedWriter,
-	"net/http/httputil.NewClientConn":             httputil.NewClientConn,
-	"net/http/httputil.NewProxyClientConn":        httputil.NewProxyClientConn,
-	"net/http/httputil.NewServerConn":             httputil.NewServerConn,
-	"net/http/httputil.NewSingleHostReverseProxy": httputil.NewSingleHostReverseProxy,
-}
-
-var typList = []interface{}{
-	(*httputil.BufferPool)(nil),
-	(*httputil.ClientConn)(nil),
-	(*httputil.ReverseProxy)(nil),
-	(*httputil.ServerConn)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "httputil",
+		Path: "net/http/httputil",
+		Deps: map[string]string{
+			"bufio":                                 "bufio",
+			"bytes":                                 "bytes",
+			"context":                               "context",
+			"errors":                                "errors",
+			"fmt":                                   "fmt",
+			"io":                                    "io",
+			"log":                                   "log",
+			"net":                                   "net",
+			"net/http":                              "http",
+			"net/http/internal":                     "internal",
+			"net/textproto":                         "textproto",
+			"net/url":                               "url",
+			"strings":                               "strings",
+			"sync":                                  "sync",
+			"time":                                  "time",
+			"vendor/golang.org/x/net/http/httpguts": "httpguts",
+		},
+		Interfaces: map[string]reflect.Type{
+			"BufferPool": reflect.TypeOf((*q.BufferPool)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"ClientConn":   {reflect.TypeOf((*q.ClientConn)(nil)).Elem(), "", "Close,Do,Hijack,Pending,Read,Write"},
+			"ReverseProxy": {reflect.TypeOf((*q.ReverseProxy)(nil)).Elem(), "", "ServeHTTP,copyBuffer,copyResponse,defaultErrorHandler,flushInterval,getErrorHandler,handleUpgradeResponse,logf,modifyResponse"},
+			"ServerConn":   {reflect.TypeOf((*q.ServerConn)(nil)).Elem(), "", "Close,Hijack,Pending,Read,Write"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"ErrClosed":      reflect.ValueOf(&q.ErrClosed),
+			"ErrLineTooLong": reflect.ValueOf(&q.ErrLineTooLong),
+			"ErrPersistEOF":  reflect.ValueOf(&q.ErrPersistEOF),
+			"ErrPipeline":    reflect.ValueOf(&q.ErrPipeline),
+		},
+		Funcs: map[string]reflect.Value{
+			"DumpRequest":               reflect.ValueOf(q.DumpRequest),
+			"DumpRequestOut":            reflect.ValueOf(q.DumpRequestOut),
+			"DumpResponse":              reflect.ValueOf(q.DumpResponse),
+			"NewChunkedReader":          reflect.ValueOf(q.NewChunkedReader),
+			"NewChunkedWriter":          reflect.ValueOf(q.NewChunkedWriter),
+			"NewClientConn":             reflect.ValueOf(q.NewClientConn),
+			"NewProxyClientConn":        reflect.ValueOf(q.NewProxyClientConn),
+			"NewServerConn":             reflect.ValueOf(q.NewServerConn),
+			"NewSingleHostReverseProxy": reflect.ValueOf(q.NewSingleHostReverseProxy),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

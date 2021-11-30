@@ -3,40 +3,46 @@
 package smtp
 
 import (
-	"net/smtp"
+	q "net/smtp"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("net/smtp", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*net/smtp.Client).Auth":               (*smtp.Client).Auth,
-	"(*net/smtp.Client).Close":              (*smtp.Client).Close,
-	"(*net/smtp.Client).Data":               (*smtp.Client).Data,
-	"(*net/smtp.Client).Extension":          (*smtp.Client).Extension,
-	"(*net/smtp.Client).Hello":              (*smtp.Client).Hello,
-	"(*net/smtp.Client).Mail":               (*smtp.Client).Mail,
-	"(*net/smtp.Client).Noop":               (*smtp.Client).Noop,
-	"(*net/smtp.Client).Quit":               (*smtp.Client).Quit,
-	"(*net/smtp.Client).Rcpt":               (*smtp.Client).Rcpt,
-	"(*net/smtp.Client).Reset":              (*smtp.Client).Reset,
-	"(*net/smtp.Client).StartTLS":           (*smtp.Client).StartTLS,
-	"(*net/smtp.Client).TLSConnectionState": (*smtp.Client).TLSConnectionState,
-	"(*net/smtp.Client).Verify":             (*smtp.Client).Verify,
-	"(net/smtp.Auth).Next":                  (smtp.Auth).Next,
-	"(net/smtp.Auth).Start":                 (smtp.Auth).Start,
-	"net/smtp.CRAMMD5Auth":                  smtp.CRAMMD5Auth,
-	"net/smtp.Dial":                         smtp.Dial,
-	"net/smtp.NewClient":                    smtp.NewClient,
-	"net/smtp.PlainAuth":                    smtp.PlainAuth,
-	"net/smtp.SendMail":                     smtp.SendMail,
-}
-
-var typList = []interface{}{
-	(*smtp.Auth)(nil),
-	(*smtp.Client)(nil),
-	(*smtp.ServerInfo)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "smtp",
+		Path: "net/smtp",
+		Deps: map[string]string{
+			"crypto/hmac":     "hmac",
+			"crypto/md5":      "md5",
+			"crypto/tls":      "tls",
+			"encoding/base64": "base64",
+			"errors":          "errors",
+			"fmt":             "fmt",
+			"io":              "io",
+			"net":             "net",
+			"net/textproto":   "textproto",
+			"strings":         "strings",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Auth": reflect.TypeOf((*q.Auth)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Client":     {reflect.TypeOf((*q.Client)(nil)).Elem(), "", "Auth,Close,Data,Extension,Hello,Mail,Noop,Quit,Rcpt,Reset,StartTLS,TLSConnectionState,Verify,cmd,ehlo,hello,helo"},
+			"ServerInfo": {reflect.TypeOf((*q.ServerInfo)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"CRAMMD5Auth": reflect.ValueOf(q.CRAMMD5Auth),
+			"Dial":        reflect.ValueOf(q.Dial),
+			"NewClient":   reflect.ValueOf(q.NewClient),
+			"PlainAuth":   reflect.ValueOf(q.PlainAuth),
+			"SendMail":    reflect.ValueOf(q.SendMail),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

@@ -3,18 +3,30 @@
 package hmac
 
 import (
-	"crypto/hmac"
+	q "crypto/hmac"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("crypto/hmac", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "hmac",
+		Path: "crypto/hmac",
+		Deps: map[string]string{
+			"crypto/subtle": "subtle",
+			"hash":          "hash",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Equal": reflect.ValueOf(q.Equal),
+			"New":   reflect.ValueOf(q.New),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"crypto/hmac.Equal": hmac.Equal,
-	"crypto/hmac.New":   hmac.New,
-}
-
-var typList = []interface{}{}

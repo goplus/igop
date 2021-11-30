@@ -1,12 +1,11 @@
 module github.com/goplus/gossa
 
-go 1.14
+go 1.16
 
 require (
-	github.com/goplus/gop v1.0.13
-	github.com/goplus/gox v1.7.10
-	github.com/goplus/reflectx v0.6.1
-	github.com/goplus/xtypes v0.2.1
+	github.com/goplus/gop v1.0.28
+	github.com/goplus/gox v1.8.0
+	github.com/goplus/reflectx v0.6.5
 	github.com/qiniu/x v1.11.5
 	golang.org/x/tools v0.1.7
 )

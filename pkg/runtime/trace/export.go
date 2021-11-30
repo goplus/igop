@@ -3,29 +3,44 @@
 package trace
 
 import (
-	"runtime/trace"
+	q "runtime/trace"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("runtime/trace", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*runtime/trace.Region).End": (*trace.Region).End,
-	"(*runtime/trace.Task).End":   (*trace.Task).End,
-	"runtime/trace.IsEnabled":     trace.IsEnabled,
-	"runtime/trace.Log":           trace.Log,
-	"runtime/trace.Logf":          trace.Logf,
-	"runtime/trace.NewTask":       trace.NewTask,
-	"runtime/trace.Start":         trace.Start,
-	"runtime/trace.StartRegion":   trace.StartRegion,
-	"runtime/trace.Stop":          trace.Stop,
-	"runtime/trace.WithRegion":    trace.WithRegion,
-}
-
-var typList = []interface{}{
-	(*trace.Region)(nil),
-	(*trace.Task)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "trace",
+		Path: "runtime/trace",
+		Deps: map[string]string{
+			"context":     "context",
+			"fmt":         "fmt",
+			"io":          "io",
+			"runtime":     "runtime",
+			"sync":        "sync",
+			"sync/atomic": "atomic",
+			"unsafe":      "unsafe",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Region": {reflect.TypeOf((*q.Region)(nil)).Elem(), "", "End"},
+			"Task":   {reflect.TypeOf((*q.Task)(nil)).Elem(), "", "End"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"IsEnabled":   reflect.ValueOf(q.IsEnabled),
+			"Log":         reflect.ValueOf(q.Log),
+			"Logf":        reflect.ValueOf(q.Logf),
+			"NewTask":     reflect.ValueOf(q.NewTask),
+			"Start":       reflect.ValueOf(q.Start),
+			"StartRegion": reflect.ValueOf(q.StartRegion),
+			"Stop":        reflect.ValueOf(q.Stop),
+			"WithRegion":  reflect.ValueOf(q.WithRegion),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

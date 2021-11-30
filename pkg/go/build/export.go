@@ -3,35 +3,68 @@
 package build
 
 import (
-	"go/build"
+	q "go/build"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("go/build", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*go/build.Context).Import":             (*build.Context).Import,
-	"(*go/build.Context).ImportDir":          (*build.Context).ImportDir,
-	"(*go/build.Context).MatchFile":          (*build.Context).MatchFile,
-	"(*go/build.Context).SrcDirs":            (*build.Context).SrcDirs,
-	"(*go/build.MultiplePackageError).Error": (*build.MultiplePackageError).Error,
-	"(*go/build.NoGoError).Error":            (*build.NoGoError).Error,
-	"(*go/build.Package).IsCommand":          (*build.Package).IsCommand,
-	"go/build.ArchChar":                      build.ArchChar,
-	"go/build.Default":                       &build.Default,
-	"go/build.Import":                        build.Import,
-	"go/build.ImportDir":                     build.ImportDir,
-	"go/build.IsLocalImport":                 build.IsLocalImport,
-	"go/build.ToolDir":                       &build.ToolDir,
-}
-
-var typList = []interface{}{
-	(*build.Context)(nil),
-	(*build.ImportMode)(nil),
-	(*build.MultiplePackageError)(nil),
-	(*build.NoGoError)(nil),
-	(*build.Package)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "build",
+		Path: "go/build",
+		Deps: map[string]string{
+			"bufio":              "bufio",
+			"bytes":              "bytes",
+			"errors":             "errors",
+			"fmt":                "fmt",
+			"go/ast":             "ast",
+			"go/doc":             "doc",
+			"go/parser":          "parser",
+			"go/token":           "token",
+			"internal/execabs":   "execabs",
+			"internal/goroot":    "goroot",
+			"internal/goversion": "goversion",
+			"io":                 "io",
+			"io/fs":              "fs",
+			"io/ioutil":          "ioutil",
+			"os":                 "os",
+			"path":               "path",
+			"path/filepath":      "filepath",
+			"runtime":            "runtime",
+			"sort":               "sort",
+			"strconv":            "strconv",
+			"strings":            "strings",
+			"unicode":            "unicode",
+			"unicode/utf8":       "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Context":              {reflect.TypeOf((*q.Context)(nil)).Elem(), "", "Import,ImportDir,MatchFile,SrcDirs,goodOSArchFile,gopath,hasSubdir,importGo,isAbsPath,isDir,isFile,joinPath,makePathsAbsolute,match,matchFile,openFile,readDir,saveCgo,shouldBuild,splitPathList"},
+			"ImportMode":           {reflect.TypeOf((*q.ImportMode)(nil)).Elem(), "", ""},
+			"MultiplePackageError": {reflect.TypeOf((*q.MultiplePackageError)(nil)).Elem(), "", "Error"},
+			"NoGoError":            {reflect.TypeOf((*q.NoGoError)(nil)).Elem(), "", "Error"},
+			"Package":              {reflect.TypeOf((*q.Package)(nil)).Elem(), "", "IsCommand"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars: map[string]reflect.Value{
+			"Default": reflect.ValueOf(&q.Default),
+			"ToolDir": reflect.ValueOf(&q.ToolDir),
+		},
+		Funcs: map[string]reflect.Value{
+			"ArchChar":      reflect.ValueOf(q.ArchChar),
+			"Import":        reflect.ValueOf(q.Import),
+			"ImportDir":     reflect.ValueOf(q.ImportDir),
+			"IsLocalImport": reflect.ValueOf(q.IsLocalImport),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"AllowBinary":   {reflect.TypeOf(q.AllowBinary), constant.MakeInt64(2)},
+			"FindOnly":      {reflect.TypeOf(q.FindOnly), constant.MakeInt64(1)},
+			"IgnoreVendor":  {reflect.TypeOf(q.IgnoreVendor), constant.MakeInt64(8)},
+			"ImportComment": {reflect.TypeOf(q.ImportComment), constant.MakeInt64(4)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

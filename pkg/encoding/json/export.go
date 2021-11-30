@@ -3,69 +3,68 @@
 package json
 
 import (
-	"encoding/json"
+	q "encoding/json"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("encoding/json", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*encoding/json.Decoder).Buffered":              (*json.Decoder).Buffered,
-	"(*encoding/json.Decoder).Decode":                (*json.Decoder).Decode,
-	"(*encoding/json.Decoder).DisallowUnknownFields": (*json.Decoder).DisallowUnknownFields,
-	"(*encoding/json.Decoder).InputOffset":           (*json.Decoder).InputOffset,
-	"(*encoding/json.Decoder).More":                  (*json.Decoder).More,
-	"(*encoding/json.Decoder).Token":                 (*json.Decoder).Token,
-	"(*encoding/json.Decoder).UseNumber":             (*json.Decoder).UseNumber,
-	"(*encoding/json.Encoder).Encode":                (*json.Encoder).Encode,
-	"(*encoding/json.Encoder).SetEscapeHTML":         (*json.Encoder).SetEscapeHTML,
-	"(*encoding/json.Encoder).SetIndent":             (*json.Encoder).SetIndent,
-	"(*encoding/json.InvalidUTF8Error).Error":        (*json.InvalidUTF8Error).Error,
-	"(*encoding/json.InvalidUnmarshalError).Error":   (*json.InvalidUnmarshalError).Error,
-	"(*encoding/json.MarshalerError).Error":          (*json.MarshalerError).Error,
-	"(*encoding/json.MarshalerError).Unwrap":         (*json.MarshalerError).Unwrap,
-	"(*encoding/json.RawMessage).MarshalJSON":        (*json.RawMessage).MarshalJSON,
-	"(*encoding/json.RawMessage).UnmarshalJSON":      (*json.RawMessage).UnmarshalJSON,
-	"(*encoding/json.SyntaxError).Error":             (*json.SyntaxError).Error,
-	"(*encoding/json.UnmarshalFieldError).Error":     (*json.UnmarshalFieldError).Error,
-	"(*encoding/json.UnmarshalTypeError).Error":      (*json.UnmarshalTypeError).Error,
-	"(*encoding/json.UnsupportedTypeError).Error":    (*json.UnsupportedTypeError).Error,
-	"(*encoding/json.UnsupportedValueError).Error":   (*json.UnsupportedValueError).Error,
-	"(encoding/json.Delim).String":                   (json.Delim).String,
-	"(encoding/json.Marshaler).MarshalJSON":          (json.Marshaler).MarshalJSON,
-	"(encoding/json.Number).Float64":                 (json.Number).Float64,
-	"(encoding/json.Number).Int64":                   (json.Number).Int64,
-	"(encoding/json.Number).String":                  (json.Number).String,
-	"(encoding/json.Unmarshaler).UnmarshalJSON":      (json.Unmarshaler).UnmarshalJSON,
-	"encoding/json.Compact":                          json.Compact,
-	"encoding/json.HTMLEscape":                       json.HTMLEscape,
-	"encoding/json.Indent":                           json.Indent,
-	"encoding/json.Marshal":                          json.Marshal,
-	"encoding/json.MarshalIndent":                    json.MarshalIndent,
-	"encoding/json.NewDecoder":                       json.NewDecoder,
-	"encoding/json.NewEncoder":                       json.NewEncoder,
-	"encoding/json.Unmarshal":                        json.Unmarshal,
-	"encoding/json.Valid":                            json.Valid,
-}
-
-var typList = []interface{}{
-	(*json.Decoder)(nil),
-	(*json.Delim)(nil),
-	(*json.Encoder)(nil),
-	(*json.InvalidUTF8Error)(nil),
-	(*json.InvalidUnmarshalError)(nil),
-	(*json.Marshaler)(nil),
-	(*json.MarshalerError)(nil),
-	(*json.Number)(nil),
-	(*json.RawMessage)(nil),
-	(*json.SyntaxError)(nil),
-	(*json.Token)(nil),
-	(*json.UnmarshalFieldError)(nil),
-	(*json.UnmarshalTypeError)(nil),
-	(*json.Unmarshaler)(nil),
-	(*json.UnsupportedTypeError)(nil),
-	(*json.UnsupportedValueError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "json",
+		Path: "encoding/json",
+		Deps: map[string]string{
+			"bytes":           "bytes",
+			"encoding":        "encoding",
+			"encoding/base64": "base64",
+			"errors":          "errors",
+			"fmt":             "fmt",
+			"io":              "io",
+			"math":            "math",
+			"reflect":         "reflect",
+			"sort":            "sort",
+			"strconv":         "strconv",
+			"strings":         "strings",
+			"sync":            "sync",
+			"unicode":         "unicode",
+			"unicode/utf16":   "utf16",
+			"unicode/utf8":    "utf8",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Marshaler":   reflect.TypeOf((*q.Marshaler)(nil)).Elem(),
+			"Token":       reflect.TypeOf((*q.Token)(nil)).Elem(),
+			"Unmarshaler": reflect.TypeOf((*q.Unmarshaler)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"Decoder":               {reflect.TypeOf((*q.Decoder)(nil)).Elem(), "", "Buffered,Decode,DisallowUnknownFields,InputOffset,More,Token,UseNumber,peek,readValue,refill,tokenError,tokenPrepareForDecode,tokenValueAllowed,tokenValueEnd"},
+			"Delim":                 {reflect.TypeOf((*q.Delim)(nil)).Elem(), "String", ""},
+			"Encoder":               {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode,SetEscapeHTML,SetIndent"},
+			"InvalidUTF8Error":      {reflect.TypeOf((*q.InvalidUTF8Error)(nil)).Elem(), "", "Error"},
+			"InvalidUnmarshalError": {reflect.TypeOf((*q.InvalidUnmarshalError)(nil)).Elem(), "", "Error"},
+			"MarshalerError":        {reflect.TypeOf((*q.MarshalerError)(nil)).Elem(), "", "Error,Unwrap"},
+			"Number":                {reflect.TypeOf((*q.Number)(nil)).Elem(), "Float64,Int64,String", ""},
+			"RawMessage":            {reflect.TypeOf((*q.RawMessage)(nil)).Elem(), "MarshalJSON", "UnmarshalJSON"},
+			"SyntaxError":           {reflect.TypeOf((*q.SyntaxError)(nil)).Elem(), "", "Error"},
+			"UnmarshalFieldError":   {reflect.TypeOf((*q.UnmarshalFieldError)(nil)).Elem(), "", "Error"},
+			"UnmarshalTypeError":    {reflect.TypeOf((*q.UnmarshalTypeError)(nil)).Elem(), "", "Error"},
+			"UnsupportedTypeError":  {reflect.TypeOf((*q.UnsupportedTypeError)(nil)).Elem(), "", "Error"},
+			"UnsupportedValueError": {reflect.TypeOf((*q.UnsupportedValueError)(nil)).Elem(), "", "Error"},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Compact":       reflect.ValueOf(q.Compact),
+			"HTMLEscape":    reflect.ValueOf(q.HTMLEscape),
+			"Indent":        reflect.ValueOf(q.Indent),
+			"Marshal":       reflect.ValueOf(q.Marshal),
+			"MarshalIndent": reflect.ValueOf(q.MarshalIndent),
+			"NewDecoder":    reflect.ValueOf(q.NewDecoder),
+			"NewEncoder":    reflect.ValueOf(q.NewEncoder),
+			"Unmarshal":     reflect.ValueOf(q.Unmarshal),
+			"Valid":         reflect.ValueOf(q.Valid),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

@@ -25,7 +25,7 @@ import (
 //
 // Deprecated: Use golang.org/x/tools/go/packages to access synthetic
 // testmain packages.
-func CreateTestMainPackage(pkg *ssa.Package) *ssa.Package {
+func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	prog := pkg.Prog
 
 	// Template data
@@ -41,7 +41,7 @@ func CreateTestMainPackage(pkg *ssa.Package) *ssa.Package {
 	data.Tests, data.Benchmarks, data.Examples, data.Main = ssa.FindTests(pkg)
 	if data.Main == nil &&
 		data.Tests == nil && data.Benchmarks == nil && data.Examples == nil {
-		return nil
+		return nil, nil
 	}
 	sort.Slice(data.Tests, func(i, j int) bool {
 		return data.Tests[i].Pos() < data.Tests[j].Pos()
@@ -82,7 +82,7 @@ func CreateTestMainPackage(pkg *ssa.Package) *ssa.Package {
 	// Parse and type-check the testmain package.
 	f, err := parser.ParseFile(prog.Fset, path+".go", &buf, parser.Mode(0))
 	if err != nil {
-		log.Fatalf("internal error parsing %s: %v", path, err)
+		return nil, err
 	}
 	conf := types.Config{
 		DisableUnusedImportCheck: true,
@@ -99,7 +99,8 @@ func CreateTestMainPackage(pkg *ssa.Package) *ssa.Package {
 	}
 	testmainPkg, err := conf.Check(path, prog.Fset, files, info)
 	if err != nil {
-		log.Fatalf("internal error type-checking %s: %v", path, err)
+		log.Println("------", err)
+		return nil, err
 	}
 
 	// Create and build SSA code.
@@ -108,7 +109,7 @@ func CreateTestMainPackage(pkg *ssa.Package) *ssa.Package {
 	testmain.Build()
 	testmain.Func("main").Synthetic = "test main function"
 	testmain.Func("init").Synthetic = "package initializer"
-	return testmain
+	return testmain, nil
 }
 
 // An implementation of types.Importer for an already loaded SSA program.
@@ -123,7 +124,7 @@ func (imp testImporter) Import(path string) (*types.Package, error) {
 	if path == imp.pkg.Pkg.Path() {
 		return imp.pkg.Pkg, nil
 	}
-	return nil, fmt.Errorf("not found") // can't happen
+	return nil, ErrNotFoundPackage
 }
 
 var testmainTmpl = template.Must(template.New("testmain").Parse(`

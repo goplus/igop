@@ -3,22 +3,40 @@
 package crc64
 
 import (
-	"hash/crc64"
+	q "hash/crc64"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("hash/crc64", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"hash/crc64.Checksum":  crc64.Checksum,
-	"hash/crc64.MakeTable": crc64.MakeTable,
-	"hash/crc64.New":       crc64.New,
-	"hash/crc64.Update":    crc64.Update,
-}
-
-var typList = []interface{}{
-	(*crc64.Table)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "crc64",
+		Path: "hash/crc64",
+		Deps: map[string]string{
+			"errors": "errors",
+			"hash":   "hash",
+			"sync":   "sync",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Table": {reflect.TypeOf((*q.Table)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Checksum":  reflect.ValueOf(q.Checksum),
+			"MakeTable": reflect.ValueOf(q.MakeTable),
+			"New":       reflect.ValueOf(q.New),
+			"Update":    reflect.ValueOf(q.Update),
+		},
+		TypedConsts: map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{
+			"ECMA": {"untyped int", constant.MakeUint64(14514072000185962306)},
+			"ISO":  {"untyped int", constant.MakeUint64(15564440312192434176)},
+			"Size": {"untyped int", constant.MakeInt64(8)},
+		},
+	})
 }

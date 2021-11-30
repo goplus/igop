@@ -3,21 +3,38 @@
 package jsonrpc
 
 import (
-	"net/rpc/jsonrpc"
+	q "net/rpc/jsonrpc"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("net/rpc/jsonrpc", extMap, typList)
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "jsonrpc",
+		Path: "net/rpc/jsonrpc",
+		Deps: map[string]string{
+			"encoding/json": "json",
+			"errors":        "errors",
+			"fmt":           "fmt",
+			"io":            "io",
+			"net":           "net",
+			"net/rpc":       "rpc",
+			"sync":          "sync",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Dial":           reflect.ValueOf(q.Dial),
+			"NewClient":      reflect.ValueOf(q.NewClient),
+			"NewClientCodec": reflect.ValueOf(q.NewClientCodec),
+			"NewServerCodec": reflect.ValueOf(q.NewServerCodec),
+			"ServeConn":      reflect.ValueOf(q.ServeConn),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
-
-var extMap = map[string]interface{}{
-	"net/rpc/jsonrpc.Dial":           jsonrpc.Dial,
-	"net/rpc/jsonrpc.NewClient":      jsonrpc.NewClient,
-	"net/rpc/jsonrpc.NewClientCodec": jsonrpc.NewClientCodec,
-	"net/rpc/jsonrpc.NewServerCodec": jsonrpc.NewServerCodec,
-	"net/rpc/jsonrpc.ServeConn":      jsonrpc.ServeConn,
-}
-
-var typList = []interface{}{}

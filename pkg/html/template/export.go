@@ -3,56 +3,82 @@
 package template
 
 import (
-	"html/template"
+	q "html/template"
+
+	"go/constant"
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("html/template", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*html/template.Error).Error":               (*template.Error).Error,
-	"(*html/template.Template).AddParseTree":     (*template.Template).AddParseTree,
-	"(*html/template.Template).Clone":            (*template.Template).Clone,
-	"(*html/template.Template).DefinedTemplates": (*template.Template).DefinedTemplates,
-	"(*html/template.Template).Delims":           (*template.Template).Delims,
-	"(*html/template.Template).Execute":          (*template.Template).Execute,
-	"(*html/template.Template).ExecuteTemplate":  (*template.Template).ExecuteTemplate,
-	"(*html/template.Template).Funcs":            (*template.Template).Funcs,
-	"(*html/template.Template).Lookup":           (*template.Template).Lookup,
-	"(*html/template.Template).Name":             (*template.Template).Name,
-	"(*html/template.Template).New":              (*template.Template).New,
-	"(*html/template.Template).Option":           (*template.Template).Option,
-	"(*html/template.Template).Parse":            (*template.Template).Parse,
-	"(*html/template.Template).ParseFiles":       (*template.Template).ParseFiles,
-	"(*html/template.Template).ParseGlob":        (*template.Template).ParseGlob,
-	"(*html/template.Template).Templates":        (*template.Template).Templates,
-	"html/template.HTMLEscape":                   template.HTMLEscape,
-	"html/template.HTMLEscapeString":             template.HTMLEscapeString,
-	"html/template.HTMLEscaper":                  template.HTMLEscaper,
-	"html/template.IsTrue":                       template.IsTrue,
-	"html/template.JSEscape":                     template.JSEscape,
-	"html/template.JSEscapeString":               template.JSEscapeString,
-	"html/template.JSEscaper":                    template.JSEscaper,
-	"html/template.Must":                         template.Must,
-	"html/template.New":                          template.New,
-	"html/template.ParseFiles":                   template.ParseFiles,
-	"html/template.ParseGlob":                    template.ParseGlob,
-	"html/template.URLQueryEscaper":              template.URLQueryEscaper,
-}
-
-var typList = []interface{}{
-	(*template.CSS)(nil),
-	(*template.Error)(nil),
-	(*template.ErrorCode)(nil),
-	(*template.FuncMap)(nil),
-	(*template.HTML)(nil),
-	(*template.HTMLAttr)(nil),
-	(*template.JS)(nil),
-	(*template.JSStr)(nil),
-	(*template.Srcset)(nil),
-	(*template.Template)(nil),
-	(*template.URL)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "template",
+		Path: "html/template",
+		Deps: map[string]string{
+			"bytes":               "bytes",
+			"encoding/json":       "json",
+			"fmt":                 "fmt",
+			"html":                "html",
+			"io":                  "io",
+			"io/fs":               "fs",
+			"os":                  "os",
+			"path":                "path",
+			"path/filepath":       "filepath",
+			"reflect":             "reflect",
+			"strconv":             "strconv",
+			"strings":             "strings",
+			"sync":                "sync",
+			"text/template":       "template",
+			"text/template/parse": "parse",
+			"unicode":             "unicode",
+			"unicode/utf8":        "utf8",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"CSS":       {reflect.TypeOf((*q.CSS)(nil)).Elem(), "", ""},
+			"Error":     {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error"},
+			"ErrorCode": {reflect.TypeOf((*q.ErrorCode)(nil)).Elem(), "", ""},
+			"FuncMap":   {reflect.TypeOf((*q.FuncMap)(nil)).Elem(), "", ""},
+			"HTML":      {reflect.TypeOf((*q.HTML)(nil)).Elem(), "", ""},
+			"HTMLAttr":  {reflect.TypeOf((*q.HTMLAttr)(nil)).Elem(), "", ""},
+			"JS":        {reflect.TypeOf((*q.JS)(nil)).Elem(), "", ""},
+			"JSStr":     {reflect.TypeOf((*q.JSStr)(nil)).Elem(), "", ""},
+			"Srcset":    {reflect.TypeOf((*q.Srcset)(nil)).Elem(), "", ""},
+			"Template":  {reflect.TypeOf((*q.Template)(nil)).Elem(), "", "AddParseTree,Clone,DefinedTemplates,Delims,Execute,ExecuteTemplate,Funcs,Lookup,Name,New,Option,Parse,ParseFS,ParseFiles,ParseGlob,Templates,checkCanParse,escape,lookupAndEscapeTemplate,new"},
+			"URL":       {reflect.TypeOf((*q.URL)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"HTMLEscape":       reflect.ValueOf(q.HTMLEscape),
+			"HTMLEscapeString": reflect.ValueOf(q.HTMLEscapeString),
+			"HTMLEscaper":      reflect.ValueOf(q.HTMLEscaper),
+			"IsTrue":           reflect.ValueOf(q.IsTrue),
+			"JSEscape":         reflect.ValueOf(q.JSEscape),
+			"JSEscapeString":   reflect.ValueOf(q.JSEscapeString),
+			"JSEscaper":        reflect.ValueOf(q.JSEscaper),
+			"Must":             reflect.ValueOf(q.Must),
+			"New":              reflect.ValueOf(q.New),
+			"ParseFS":          reflect.ValueOf(q.ParseFS),
+			"ParseFiles":       reflect.ValueOf(q.ParseFiles),
+			"ParseGlob":        reflect.ValueOf(q.ParseGlob),
+			"URLQueryEscaper":  reflect.ValueOf(q.URLQueryEscaper),
+		},
+		TypedConsts: map[string]gossa.TypedConst{
+			"ErrAmbigContext":      {reflect.TypeOf(q.ErrAmbigContext), constant.MakeInt64(1)},
+			"ErrBadHTML":           {reflect.TypeOf(q.ErrBadHTML), constant.MakeInt64(2)},
+			"ErrBranchEnd":         {reflect.TypeOf(q.ErrBranchEnd), constant.MakeInt64(3)},
+			"ErrEndContext":        {reflect.TypeOf(q.ErrEndContext), constant.MakeInt64(4)},
+			"ErrNoSuchTemplate":    {reflect.TypeOf(q.ErrNoSuchTemplate), constant.MakeInt64(5)},
+			"ErrOutputContext":     {reflect.TypeOf(q.ErrOutputContext), constant.MakeInt64(6)},
+			"ErrPartialCharset":    {reflect.TypeOf(q.ErrPartialCharset), constant.MakeInt64(7)},
+			"ErrPartialEscape":     {reflect.TypeOf(q.ErrPartialEscape), constant.MakeInt64(8)},
+			"ErrPredefinedEscaper": {reflect.TypeOf(q.ErrPredefinedEscaper), constant.MakeInt64(11)},
+			"ErrRangeLoopReentry":  {reflect.TypeOf(q.ErrRangeLoopReentry), constant.MakeInt64(9)},
+			"ErrSlashAmbig":        {reflect.TypeOf(q.ErrSlashAmbig), constant.MakeInt64(10)},
+			"OK":                   {reflect.TypeOf(q.OK), constant.MakeInt64(0)},
+		},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

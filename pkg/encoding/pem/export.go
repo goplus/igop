@@ -3,21 +3,37 @@
 package pem
 
 import (
-	"encoding/pem"
+	q "encoding/pem"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("encoding/pem", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"encoding/pem.Decode":         pem.Decode,
-	"encoding/pem.Encode":         pem.Encode,
-	"encoding/pem.EncodeToMemory": pem.EncodeToMemory,
-}
-
-var typList = []interface{}{
-	(*pem.Block)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "pem",
+		Path: "encoding/pem",
+		Deps: map[string]string{
+			"bytes":           "bytes",
+			"encoding/base64": "base64",
+			"errors":          "errors",
+			"io":              "io",
+			"sort":            "sort",
+			"strings":         "strings",
+		},
+		Interfaces: map[string]reflect.Type{},
+		NamedTypes: map[string]gossa.NamedType{
+			"Block": {reflect.TypeOf((*q.Block)(nil)).Elem(), "", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Decode":         reflect.ValueOf(q.Decode),
+			"Encode":         reflect.ValueOf(q.Encode),
+			"EncodeToMemory": reflect.ValueOf(q.EncodeToMemory),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }

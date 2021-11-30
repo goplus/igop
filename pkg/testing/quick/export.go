@@ -3,29 +3,43 @@
 package quick
 
 import (
-	"testing/quick"
+	q "testing/quick"
+
+	"reflect"
 
 	"github.com/goplus/gossa"
 )
 
 func init() {
-	gossa.RegisterPackage("testing/quick", extMap, typList)
-}
-
-var extMap = map[string]interface{}{
-	"(*testing/quick.CheckEqualError).Error": (*quick.CheckEqualError).Error,
-	"(*testing/quick.CheckError).Error":      (*quick.CheckError).Error,
-	"(testing/quick.Generator).Generate":     (quick.Generator).Generate,
-	"(testing/quick.SetupError).Error":       (quick.SetupError).Error,
-	"testing/quick.Check":                    quick.Check,
-	"testing/quick.CheckEqual":               quick.CheckEqual,
-	"testing/quick.Value":                    quick.Value,
-}
-
-var typList = []interface{}{
-	(*quick.CheckEqualError)(nil),
-	(*quick.CheckError)(nil),
-	(*quick.Config)(nil),
-	(*quick.Generator)(nil),
-	(*quick.SetupError)(nil),
+	gossa.RegisterPackage(&gossa.Package{
+		Name: "quick",
+		Path: "testing/quick",
+		Deps: map[string]string{
+			"flag":      "flag",
+			"fmt":       "fmt",
+			"math":      "math",
+			"math/rand": "rand",
+			"reflect":   "reflect",
+			"strings":   "strings",
+			"time":      "time",
+		},
+		Interfaces: map[string]reflect.Type{
+			"Generator": reflect.TypeOf((*q.Generator)(nil)).Elem(),
+		},
+		NamedTypes: map[string]gossa.NamedType{
+			"CheckEqualError": {reflect.TypeOf((*q.CheckEqualError)(nil)).Elem(), "", "Error"},
+			"CheckError":      {reflect.TypeOf((*q.CheckError)(nil)).Elem(), "", "Error"},
+			"Config":          {reflect.TypeOf((*q.Config)(nil)).Elem(), "", "getMaxCount,getRand"},
+			"SetupError":      {reflect.TypeOf((*q.SetupError)(nil)).Elem(), "Error", ""},
+		},
+		AliasTypes: map[string]reflect.Type{},
+		Vars:       map[string]reflect.Value{},
+		Funcs: map[string]reflect.Value{
+			"Check":      reflect.ValueOf(q.Check),
+			"CheckEqual": reflect.ValueOf(q.CheckEqual),
+			"Value":      reflect.ValueOf(q.Value),
+		},
+		TypedConsts:   map[string]gossa.TypedConst{},
+		UntypedConsts: map[string]gossa.UntypedConst{},
+	})
 }
