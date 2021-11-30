@@ -341,7 +341,7 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func TestGorootTest(t *testing.T) {
+func _TestGorootTest(t *testing.T) {
 	dir, files := getGorootTestRuns(t)
 	var failures []string
 

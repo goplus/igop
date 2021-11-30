@@ -395,7 +395,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			var filter func(name string, ptr bool) bool
 			pkg := named.Obj().Pkg()
 			if p, ok := r.installed[pkg.Path()]; ok {
-				if t, ok := p.NamedTypes[pkg.Path()+"."+named.Obj().Name()]; ok {
+				if t, ok := p.NamedTypes[named.Obj().Name()]; ok {
 					m := make(map[string]bool)
 					pm := make(map[string]bool)
 					for _, v := range strings.Split(t.Methods, ",") {

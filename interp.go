@@ -152,19 +152,19 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 		}
 	}
 	name := fn.FullName()
-	pkgPath := fn.Pkg().Path()
+	//	pkgPath := fn.Pkg().Path()
 	if v, ok := externValues[name]; ok && v.Kind() == reflect.Func {
 		return func(args []reflect.Value) []reflect.Value {
 			return v.Call(args)
 		}
 	}
-	if pkg, ok := i.installed(pkgPath); ok {
-		if ext, ok := pkg.Methods[name]; ok {
-			return func(args []reflect.Value) []reflect.Value {
-				return ext.Call(args)
-			}
-		}
-	}
+	// if pkg, ok := i.installed(pkgPath); ok {
+	// 	if ext, ok := pkg.Methods[name]; ok {
+	// 		return func(args []reflect.Value) []reflect.Value {
+	// 			return ext.Call(args)
+	// 		}
+	// 	}
+	// }
 	panic(fmt.Sprintf("Not found func %v", fn))
 	return nil
 }
@@ -954,17 +954,27 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 		if fn.Pkg != nil {
 			pkgPath := fn.Pkg.Pkg.Path()
 			if pkg, ok := i.installed(pkgPath); ok {
-				if ext, ok := pkg.Funcs[name]; ok {
-					if i.mode&EnableTracing != 0 {
-						log.Println("\t(external func)")
+				if recv := fn.Signature.Recv(); recv == nil {
+					if ext, ok := pkg.Funcs[name]; ok {
+						if i.mode&EnableTracing != 0 {
+							log.Println("\t(external func)")
+						}
+						return callReflect(i, caller, callpos, ext, args, nil)
 					}
-					return callReflect(i, caller, callpos, ext, args, nil)
-				}
-				if ext, ok := pkg.Methods[fullName]; ok {
-					if i.mode&EnableTracing != 0 {
-						log.Println("\t(external method)")
+				} else if typ, ok := i.loader.LookupReflect(recv.Type()); ok {
+					//TODO maybe make full name for search
+					if m, ok := typ.MethodByName(fn.Name()); ok {
+						if i.mode&EnableTracing != 0 {
+							log.Println("\t(external reflect method)")
+						}
+						return callReflect(i, caller, callpos, m.Func, args, nil)
 					}
-					return callReflect(i, caller, callpos, ext, args, nil)
+					// if ext, ok := pkg.Methods[fullName]; ok {
+					// 	if i.mode&EnableTracing != 0 {
+					// 		log.Println("\t(external method)")
+					// 	}
+					// 	return callReflect(i, caller, callpos, ext, args, nil)
+					// }
 				}
 			}
 		}

@@ -204,7 +204,6 @@ func init() {
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
-		Methods: map[string]reflect.Value{$METHODS},
 		TypedConsts: map[string]gossa.TypedConst{$TYPEDCONSTS},
 		UntypedConsts: map[string]gossa.UntypedConst{$UNTYPEDCONSTS},
 	})
