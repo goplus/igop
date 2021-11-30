@@ -16,7 +16,7 @@ func LookupPackage(name string) (pkg *Package, ok bool) {
 }
 
 // register pkg
-func InstallPackage(pkg *Package) {
+func RegisterPackage(pkg *Package) {
 	if p, ok := registerPkgs[pkg.Path]; ok {
 		for k, v := range pkg.Interfaces {
 			p.Interfaces[k] = v
@@ -29,9 +29,6 @@ func InstallPackage(pkg *Package) {
 		}
 		for k, v := range pkg.Funcs {
 			p.Funcs[k] = v
-		}
-		for k, v := range pkg.Methods {
-			p.Methods[k] = v
 		}
 		for k, v := range pkg.UntypedConsts {
 			p.UntypedConsts[k] = v
@@ -66,10 +63,10 @@ type Package struct {
 	AliasTypes    map[string]reflect.Type
 	Vars          map[string]reflect.Value
 	Funcs         map[string]reflect.Value
-	Methods       map[string]reflect.Value
 	TypedConsts   map[string]TypedConst
 	UntypedConsts map[string]UntypedConst
 	Deps          map[string]string
+	methods       map[string]reflect.Value // methods cached
 }
 
 var (

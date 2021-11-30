@@ -195,7 +195,7 @@ import (
 )
 
 func init() {
-	gossa.InstallPackage(&gossa.Package {
+	gossa.RegisterPackage(&gossa.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Deps: map[string]string{$DEPS},
