@@ -341,7 +341,7 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 }
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
-func _TestGorootTest(t *testing.T) {
+func TestGorootTest(t *testing.T) {
 	dir, files := getGorootTestRuns(t)
 	var failures []string
 
@@ -351,7 +351,7 @@ func _TestGorootTest(t *testing.T) {
 			fmt.Println("Skip:", input, info)
 			continue
 		}
-		if !runInput(t, input) {
+		if !runCommand(t, input) {
 			failures = append(failures, input)
 		}
 	}
