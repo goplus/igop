@@ -211,6 +211,7 @@ func init() {
 	gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
+	gorootTestSkips["fixedbugs/bug295.go"] = "skip, gossa not import testing"
 
 	ver := runtime.Version()
 	if strings.HasPrefix(ver, "go1.15.") {
