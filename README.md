@@ -41,7 +41,7 @@ func main() {
 `
 
 func main() {
-	err := gossa.RunFile(0,"main.go", source, nil)
+	err := gossa.RunFile("main.go", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}
