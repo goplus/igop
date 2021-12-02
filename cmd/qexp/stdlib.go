@@ -17,6 +17,10 @@ func init() {
 		if strings.Contains(v, "internal/") || strings.Contains(v, "vendor/") {
 			continue
 		}
+		// skip syscall
+		if v == "syscall" {
+			continue
+		}
 		stdList = append(stdList, v)
 	}
 }

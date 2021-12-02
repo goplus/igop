@@ -1,6 +1,12 @@
 package pkg
 
-//go:generate go run ../cmd/qexp -outdir . std
+////go:generate go run ../cmd/qexp -outdir . std
+//go:generate go run ../cmd/qexp -outdir . -contexts "darwin_amd64 darwin_arm64" syscall
+//go:generate go run ../cmd/qexp -outdir . -contexts "windows_amd64 windows_386" syscall
+//go:generate go run ../cmd/qexp -outdir . -contexts "linux_amd64 linux_arm64 linux_386" syscall
+//go:generate go run ../cmd/qexp -outdir . -contexts "freebsd_amd64 freebsd_arm64 freebsd_386" syscall
+//go:generate go run ../cmd/qexp -outdir . -contexts "openbsd_amd64 openbsd_arm64 openbsd_386" syscall
+//go:generate go run ../cmd/qexp -outdir . -contexts "freebsd_amd64 freebsd_arm64 freebsd_386" syscall
 
 import (
 	_ "github.com/goplus/gossa/pkg/archive/tar"
@@ -122,7 +128,6 @@ import (
 	_ "github.com/goplus/gossa/pkg/os/user"
 	_ "github.com/goplus/gossa/pkg/path"
 	_ "github.com/goplus/gossa/pkg/path/filepath"
-	_ "github.com/goplus/gossa/pkg/plugin"
 	_ "github.com/goplus/gossa/pkg/reflect"
 	_ "github.com/goplus/gossa/pkg/regexp"
 	_ "github.com/goplus/gossa/pkg/regexp/syntax"

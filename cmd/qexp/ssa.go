@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go/build"
 	"go/constant"
 	"go/token"
 	"go/types"
@@ -17,8 +18,9 @@ type Program struct {
 	prog *ssa.Program
 }
 
-func loadProgram(path string) (*Program, error) {
+func loadProgram(path string, ctx *build.Context) (*Program, error) {
 	var cfg loader.Config
+	cfg.Build = ctx
 	cfg.Import(path)
 
 	iprog, err := cfg.Load()
