@@ -60,6 +60,21 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+var (
+	maxMemLen int
+)
+
+const intSize = 32 << (^uint(0) >> 63)
+
+func init() {
+	if intSize == 32 {
+		maxMemLen = 1<<31 - 1
+	} else {
+		v := int64(1) << 59
+		maxMemLen = int(v)
+	}
+}
+
 type continuation int
 
 const (
@@ -373,21 +388,6 @@ func SetValue(v reflect.Value, x reflect.Value) {
 	}
 }
 
-// 0 = 32bit, 1 = 64bit
-const ptrSizeIndex = (^uintptr(0) >> 63)
-
-var (
-	maxMem int
-)
-
-func init() {
-	if ptrSizeIndex == 0 {
-		maxMem = 1<<31 - 1
-	} else {
-		maxMem = 1 << 59
-	}
-}
-
 func hasUnderscore(st *types.Struct) bool {
 	n := st.NumFields()
 	for i := 0; i < n; i++ {
@@ -600,11 +600,11 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.MakeSlice:
 		typ := fr.i.toType(instr.Type())
 		Len := asInt(fr.get(instr.Len))
-		if Len < 0 || Len >= maxMem {
+		if Len < 0 || Len >= maxMemLen {
 			panic(runtimeError("makeslice: len out of range"))
 		}
 		Cap := asInt(fr.get(instr.Cap))
-		if Cap < 0 || Cap >= maxMem {
+		if Cap < 0 || Cap >= maxMemLen {
 			panic(runtimeError("makeslice: cap out of range"))
 		}
 		fr.env[instr] = reflect.MakeSlice(typ, Len, Cap).Interface()
