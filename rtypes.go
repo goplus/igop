@@ -41,15 +41,17 @@ type TypesLoader struct {
 	rcache    map[reflect.Type]types.Type
 	tcache    *typeutil.Map
 	curpkg    *Package
+	mode      Mode
 }
 
 // install package and readonly
-func NewTypesLoader() Loader {
+func NewTypesLoader(mode Mode) Loader {
 	r := &TypesLoader{
 		packages:  make(map[string]*types.Package),
 		installed: make(map[string]*Package),
 		rcache:    make(map[reflect.Type]types.Type),
 		tcache:    &typeutil.Map{},
+		mode:      mode,
 	}
 	r.packages["unsafe"] = types.Unsafe
 	r.rcache[tyErrorInterface] = typesError
@@ -412,12 +414,13 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 					}
 				}
 			}
+
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
 
 			skip := make(map[string]bool)
-			for _, im := range AllMethod(prt) {
+			for _, im := range AllMethod(prt, r.mode&DisableUnexportMethods == 0) {
 				if filter != nil && !filter(im.Name, true) {
 					continue
 				}
@@ -431,7 +434,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
-			for _, im := range AllMethod(rt) {
+			for _, im := range AllMethod(rt, r.mode&DisableUnexportMethods == 0) {
 				if skip[im.Name] {
 					continue
 				}

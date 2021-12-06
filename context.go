@@ -29,10 +29,11 @@ func init() {
 type Mode uint
 
 const (
-	DisableRecover    Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	EnableTracing                      // Print a trace of all instructions as they are interpreted.
-	EnableDumpPackage                  // Print package
-	EnableDumpInstr                    // Print instr type & value
+	DisableRecover         Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	DisableUnexportMethods                  // Disable unexport methods
+	EnableTracing                           // Print a trace of all instructions as they are interpreted.
+	EnableDumpPackage                       // Print package
+	EnableDumpInstr                         // Print instr type & value
 )
 
 // types loader interface
@@ -54,7 +55,7 @@ type Context struct {
 
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
-		Loader:      NewTypesLoader(),
+		Loader:      NewTypesLoader(mode),
 		Mode:        mode,
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
