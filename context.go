@@ -51,6 +51,7 @@ type Context struct {
 	ParserMode  parser.Mode     // parser mode
 	BuilderMode ssa.BuilderMode // ssa builder mode
 	External    types.Importer  // external import
+	Sizes       types.Sizes
 }
 
 func NewContext(mode Mode) *Context {
@@ -227,6 +228,7 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 
 	tc := &types.Config{
 		Importer: NewImporter(ctx.Loader, ctx.External),
+		Sizes:    ctx.Sizes,
 	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		return nil, nil, err
