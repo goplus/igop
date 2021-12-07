@@ -35,10 +35,10 @@ func init() {
 			"Read": reflect.ValueOf(q.Read),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"KindBad":              {reflect.TypeOf(q.KindBad), constant.MakeInt64(0)},
-			"KindFloat64":          {reflect.TypeOf(q.KindFloat64), constant.MakeInt64(2)},
-			"KindFloat64Histogram": {reflect.TypeOf(q.KindFloat64Histogram), constant.MakeInt64(3)},
-			"KindUint64":           {reflect.TypeOf(q.KindUint64), constant.MakeInt64(1)},
+			"KindBad":              {reflect.TypeOf(q.KindBad), constant.MakeInt64(int64(q.KindBad))},
+			"KindFloat64":          {reflect.TypeOf(q.KindFloat64), constant.MakeInt64(int64(q.KindFloat64))},
+			"KindFloat64Histogram": {reflect.TypeOf(q.KindFloat64Histogram), constant.MakeInt64(int64(q.KindFloat64Histogram))},
+			"KindUint64":           {reflect.TypeOf(q.KindUint64), constant.MakeInt64(int64(q.KindUint64))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

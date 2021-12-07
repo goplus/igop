@@ -67,12 +67,12 @@ func init() {
 			"Val":             reflect.ValueOf(q.Val),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"Bool":    {reflect.TypeOf(q.Bool), constant.MakeInt64(1)},
-			"Complex": {reflect.TypeOf(q.Complex), constant.MakeInt64(5)},
-			"Float":   {reflect.TypeOf(q.Float), constant.MakeInt64(4)},
-			"Int":     {reflect.TypeOf(q.Int), constant.MakeInt64(3)},
-			"String":  {reflect.TypeOf(q.String), constant.MakeInt64(2)},
-			"Unknown": {reflect.TypeOf(q.Unknown), constant.MakeInt64(0)},
+			"Bool":    {reflect.TypeOf(q.Bool), constant.MakeInt64(int64(q.Bool))},
+			"Complex": {reflect.TypeOf(q.Complex), constant.MakeInt64(int64(q.Complex))},
+			"Float":   {reflect.TypeOf(q.Float), constant.MakeInt64(int64(q.Float))},
+			"Int":     {reflect.TypeOf(q.Int), constant.MakeInt64(int64(q.Int))},
+			"String":  {reflect.TypeOf(q.String), constant.MakeInt64(int64(q.String))},
+			"Unknown": {reflect.TypeOf(q.Unknown), constant.MakeInt64(int64(q.Unknown))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

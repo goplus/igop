@@ -43,9 +43,9 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"DisposalBackground": {"untyped int", constant.MakeInt64(2)},
-			"DisposalNone":       {"untyped int", constant.MakeInt64(1)},
-			"DisposalPrevious":   {"untyped int", constant.MakeInt64(3)},
+			"DisposalBackground": {"untyped int", constant.MakeInt64(int64(q.DisposalBackground))},
+			"DisposalNone":       {"untyped int", constant.MakeInt64(int64(q.DisposalNone))},
+			"DisposalPrevious":   {"untyped int", constant.MakeInt64(int64(q.DisposalPrevious))},
 		},
 	})
 }

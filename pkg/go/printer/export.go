@@ -41,10 +41,10 @@ func init() {
 			"Fprint": reflect.ValueOf(q.Fprint),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"RawFormat": {reflect.TypeOf(q.RawFormat), constant.MakeInt64(1)},
-			"SourcePos": {reflect.TypeOf(q.SourcePos), constant.MakeInt64(8)},
-			"TabIndent": {reflect.TypeOf(q.TabIndent), constant.MakeInt64(2)},
-			"UseSpaces": {reflect.TypeOf(q.UseSpaces), constant.MakeInt64(4)},
+			"RawFormat": {reflect.TypeOf(q.RawFormat), constant.MakeInt64(int64(q.RawFormat))},
+			"SourcePos": {reflect.TypeOf(q.SourcePos), constant.MakeInt64(int64(q.SourcePos))},
+			"TabIndent": {reflect.TypeOf(q.TabIndent), constant.MakeInt64(int64(q.TabIndent))},
+			"UseSpaces": {reflect.TypeOf(q.UseSpaces), constant.MakeInt64(int64(q.UseSpaces))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

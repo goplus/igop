@@ -39,10 +39,10 @@ func init() {
 			"Verify":             reflect.ValueOf(q.Verify),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"L1024N160": {reflect.TypeOf(q.L1024N160), constant.MakeInt64(0)},
-			"L2048N224": {reflect.TypeOf(q.L2048N224), constant.MakeInt64(1)},
-			"L2048N256": {reflect.TypeOf(q.L2048N256), constant.MakeInt64(2)},
-			"L3072N256": {reflect.TypeOf(q.L3072N256), constant.MakeInt64(3)},
+			"L1024N160": {reflect.TypeOf(q.L1024N160), constant.MakeInt64(int64(q.L1024N160))},
+			"L2048N224": {reflect.TypeOf(q.L2048N224), constant.MakeInt64(int64(q.L2048N224))},
+			"L2048N256": {reflect.TypeOf(q.L2048N256), constant.MakeInt64(int64(q.L2048N256))},
+			"L3072N256": {reflect.TypeOf(q.L3072N256), constant.MakeInt64(int64(q.L3072N256))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

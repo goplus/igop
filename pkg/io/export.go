@@ -77,9 +77,9 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"SeekCurrent": {"untyped int", constant.MakeInt64(1)},
-			"SeekEnd":     {"untyped int", constant.MakeInt64(2)},
-			"SeekStart":   {"untyped int", constant.MakeInt64(0)},
+			"SeekCurrent": {"untyped int", constant.MakeInt64(int64(q.SeekCurrent))},
+			"SeekEnd":     {"untyped int", constant.MakeInt64(int64(q.SeekEnd))},
+			"SeekStart":   {"untyped int", constant.MakeInt64(int64(q.SeekStart))},
 		},
 	})
 }

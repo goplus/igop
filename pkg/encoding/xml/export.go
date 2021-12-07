@@ -71,7 +71,7 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"Header": {"untyped string", constant.MakeString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")},
+			"Header": {"untyped string", constant.MakeString(string(q.Header))},
 		},
 	})
 }

@@ -58,8 +58,8 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"PSSSaltLengthAuto":       {"untyped int", constant.MakeInt64(0)},
-			"PSSSaltLengthEqualsHash": {"untyped int", constant.MakeInt64(-1)},
+			"PSSSaltLengthAuto":       {"untyped int", constant.MakeInt64(int64(q.PSSSaltLengthAuto))},
+			"PSSSaltLengthEqualsHash": {"untyped int", constant.MakeInt64(int64(q.PSSSaltLengthEqualsHash))},
 		},
 	})
 }

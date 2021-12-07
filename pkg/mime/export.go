@@ -46,8 +46,8 @@ func init() {
 			"TypeByExtension":  reflect.ValueOf(q.TypeByExtension),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"BEncoding": {reflect.TypeOf(q.BEncoding), constant.MakeInt64(98)},
-			"QEncoding": {reflect.TypeOf(q.QEncoding), constant.MakeInt64(113)},
+			"BEncoding": {reflect.TypeOf(q.BEncoding), constant.MakeInt64(int64(q.BEncoding))},
+			"QEncoding": {reflect.TypeOf(q.QEncoding), constant.MakeInt64(int64(q.QEncoding))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

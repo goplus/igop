@@ -32,8 +32,8 @@ func init() {
 			"NewWriter": reflect.ValueOf(q.NewWriter),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"LSB": {reflect.TypeOf(q.LSB), constant.MakeInt64(0)},
-			"MSB": {reflect.TypeOf(q.MSB), constant.MakeInt64(1)},
+			"LSB": {reflect.TypeOf(q.LSB), constant.MakeInt64(int64(q.LSB))},
+			"MSB": {reflect.TypeOf(q.MSB), constant.MakeInt64(int64(q.MSB))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

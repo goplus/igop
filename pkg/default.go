@@ -1,6 +1,6 @@
 package pkg
 
-////go:generate go run ../cmd/qexp -outdir . std
+//go:generate go run ../cmd/qexp -outdir . std
 //go:generate go run ../cmd/qexp -outdir . -contexts "darwin_amd64 darwin_arm64" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "windows_amd64 windows_386" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "linux_amd64 linux_arm64 linux_386" syscall

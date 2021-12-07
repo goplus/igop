@@ -41,10 +41,10 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"Castagnoli": {"untyped int", constant.MakeInt64(2197175160)},
-			"IEEE":       {"untyped int", constant.MakeInt64(3988292384)},
-			"Koopman":    {"untyped int", constant.MakeInt64(3945912366)},
-			"Size":       {"untyped int", constant.MakeInt64(4)},
+			"Castagnoli": {"untyped int", constant.MakeInt64(int64(q.Castagnoli))},
+			"IEEE":       {"untyped int", constant.MakeInt64(int64(q.IEEE))},
+			"Koopman":    {"untyped int", constant.MakeInt64(int64(q.Koopman))},
+			"Size":       {"untyped int", constant.MakeInt64(int64(q.Size))},
 		},
 	})
 }

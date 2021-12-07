@@ -55,9 +55,9 @@ func init() {
 			"ToText":        reflect.ValueOf(q.ToText),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"AllDecls":    {reflect.TypeOf(q.AllDecls), constant.MakeInt64(1)},
-			"AllMethods":  {reflect.TypeOf(q.AllMethods), constant.MakeInt64(2)},
-			"PreserveAST": {reflect.TypeOf(q.PreserveAST), constant.MakeInt64(4)},
+			"AllDecls":    {reflect.TypeOf(q.AllDecls), constant.MakeInt64(int64(q.AllDecls))},
+			"AllMethods":  {reflect.TypeOf(q.AllMethods), constant.MakeInt64(int64(q.AllMethods))},
+			"PreserveAST": {reflect.TypeOf(q.PreserveAST), constant.MakeInt64(int64(q.PreserveAST))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

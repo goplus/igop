@@ -79,12 +79,12 @@ func init() {
 			"RegisterFormat": reflect.ValueOf(q.RegisterFormat),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"YCbCrSubsampleRatio410": {reflect.TypeOf(q.YCbCrSubsampleRatio410), constant.MakeInt64(5)},
-			"YCbCrSubsampleRatio411": {reflect.TypeOf(q.YCbCrSubsampleRatio411), constant.MakeInt64(4)},
-			"YCbCrSubsampleRatio420": {reflect.TypeOf(q.YCbCrSubsampleRatio420), constant.MakeInt64(2)},
-			"YCbCrSubsampleRatio422": {reflect.TypeOf(q.YCbCrSubsampleRatio422), constant.MakeInt64(1)},
-			"YCbCrSubsampleRatio440": {reflect.TypeOf(q.YCbCrSubsampleRatio440), constant.MakeInt64(3)},
-			"YCbCrSubsampleRatio444": {reflect.TypeOf(q.YCbCrSubsampleRatio444), constant.MakeInt64(0)},
+			"YCbCrSubsampleRatio410": {reflect.TypeOf(q.YCbCrSubsampleRatio410), constant.MakeInt64(int64(q.YCbCrSubsampleRatio410))},
+			"YCbCrSubsampleRatio411": {reflect.TypeOf(q.YCbCrSubsampleRatio411), constant.MakeInt64(int64(q.YCbCrSubsampleRatio411))},
+			"YCbCrSubsampleRatio420": {reflect.TypeOf(q.YCbCrSubsampleRatio420), constant.MakeInt64(int64(q.YCbCrSubsampleRatio420))},
+			"YCbCrSubsampleRatio422": {reflect.TypeOf(q.YCbCrSubsampleRatio422), constant.MakeInt64(int64(q.YCbCrSubsampleRatio422))},
+			"YCbCrSubsampleRatio440": {reflect.TypeOf(q.YCbCrSubsampleRatio440), constant.MakeInt64(int64(q.YCbCrSubsampleRatio440))},
+			"YCbCrSubsampleRatio444": {reflect.TypeOf(q.YCbCrSubsampleRatio444), constant.MakeInt64(int64(q.YCbCrSubsampleRatio444))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})
