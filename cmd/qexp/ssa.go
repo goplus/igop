@@ -130,11 +130,37 @@ func (p *Program) constToLit(named string, c constant.Value) string {
 	case constant.Float:
 		s := c.ExactString()
 		if pos := strings.IndexByte(s, '/'); pos >= 0 {
-			x := fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", s[:pos])
-			y := fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", s[pos+1:])
+			sx := s[:pos]
+			sy := s[pos+1:]
+			// simplify 314/100 => 3.14
+			// 80901699437494742410229341718281905886015458990288143106772431
+			// 50000000000000000000000000000000000000000000000000000000000000
+			if strings.HasPrefix(sy, "1") && strings.Count(sy, "0") == len(sy)-1 {
+				if len(sx) == len(sy) {
+					return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%v\", token.FLOAT, 0)", sx[:1], sx[1:])
+				} else if len(sx) == len(sy)-1 {
+					return fmt.Sprintf("constant.MakeFromLiteral(\"0.%v\", token.FLOAT, 0)", sx)
+				} else if len(sx) < len(sy) {
+					return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%ve-%v\", token.FLOAT, 0)", sx[:1], sx[1:], len(sy)-len(sx))
+				}
+			} else if strings.HasPrefix(sy, "5") && strings.Count(sy, "0") == len(sy)-1 {
+				if len(sx) == len(sy) {
+					c := constant.BinaryOp(constant.MakeFromLiteral(sx, token.INT, 0), token.MUL, constant.MakeInt64(2))
+					sx = c.ExactString()
+					return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%v\", token.FLOAT, 0)", sx[:1], sx[1:])
+				}
+			} else if strings.HasPrefix(sx, "1") && strings.Count(sx, "0") == len(sx)-1 {
+				// skip
+			}
+			x := fmt.Sprintf("constant.MakeFromLiteral(%q, token.INT, 0)", sx)
+			y := fmt.Sprintf("constant.MakeFromLiteral(%q, token.INT, 0)", sy)
 			return fmt.Sprintf("constant.BinaryOp(%v, token.QUO, %v)", x, y)
 		}
-		return fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", c.ExactString())
+		if pos := strings.LastIndexAny(s, "123456789"); pos != -1 {
+			sx := s[:pos+1]
+			return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%ve+%v\", token.FLOAT, 0)", sx[:1], sx[1:], len(s)-1)
+		}
+		return fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", s)
 	case constant.Complex:
 		re := p.constToLit("", constant.Real(c))
 		im := p.constToLit("", constant.Imag(c))
