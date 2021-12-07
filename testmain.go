@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strings"
 	"text/template"
 
 	"golang.org/x/tools/go/ssa"
@@ -38,7 +39,7 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	data.Pkg = pkg
 
 	// Enumerate tests.
-	data.Tests, data.Benchmarks, data.Examples, data.Main = ssa.FindTests(pkg)
+	data.Tests, data.Benchmarks, data.Examples, data.Main = FindTests(pkg)
 	if data.Main == nil &&
 		data.Tests == nil && data.Benchmarks == nil && data.Examples == nil {
 		return nil, nil
@@ -190,3 +191,84 @@ func main() {
 {{end}}
 }
 `))
+
+// FindTests returns the Test, Benchmark, and Example functions
+// (as defined by "go test") defined in the specified package,
+// and its TestMain function, if any.
+//
+// Deprecated: Use golang.org/x/tools/go/packages to access synthetic
+// testmain packages.
+func FindTests(pkg *ssa.Package) (tests, benchmarks, examples []*ssa.Function, main *ssa.Function) {
+	prog := pkg.Prog
+
+	// The first two of these may be nil: if the program doesn't import "testing",
+	// it can't contain any tests, but it may yet contain Examples.
+	var testSig *types.Signature                              // func(*testing.T)
+	var benchmarkSig *types.Signature                         // func(*testing.B)
+	var exampleSig = types.NewSignature(nil, nil, nil, false) // func()
+
+	// Obtain the types from the parameters of testing.MainStart.
+	if testingPkg := prog.ImportedPackage("testing"); testingPkg != nil {
+		mainStart := testingPkg.Func("MainStart")
+		params := mainStart.Signature.Params()
+		testSig = funcField(params.At(1).Type())
+		benchmarkSig = funcField(params.At(2).Type())
+
+		// Does the package define this function?
+		//   func TestMain(*testing.M)
+		if f := pkg.Func("TestMain"); f != nil {
+			sig := f.Type().(*types.Signature)
+			starM := mainStart.Signature.Results().At(0).Type() // *testing.M
+			if sig.Results().Len() == 0 &&
+				sig.Params().Len() == 1 &&
+				types.Identical(sig.Params().At(0).Type(), starM) {
+				main = f
+			}
+		}
+	}
+
+	// TODO(adonovan): use a stable order, e.g. lexical.
+	for _, mem := range pkg.Members {
+		if f, ok := mem.(*ssa.Function); ok &&
+			ast.IsExported(f.Name()) &&
+			strings.HasSuffix(prog.Fset.Position(f.Pos()).Filename, "_test.go") {
+
+			switch {
+			case testSig != nil && isTestSig(f, "Test", testSig):
+				tests = append(tests, f)
+			case benchmarkSig != nil && isTestSig(f, "Benchmark", benchmarkSig):
+				benchmarks = append(benchmarks, f)
+			case isTestSig(f, "Example", exampleSig):
+				examples = append(examples, f)
+			default:
+				continue
+			}
+		}
+	}
+	return
+}
+
+// Like isTest, but checks the signature too.
+func isTestSig(f *ssa.Function, prefix string, sig *types.Signature) bool {
+	return isTest(f.Name(), prefix) && types.Identical(f.Signature, sig)
+}
+
+// Given the type of one of the three slice parameters of testing.Main,
+// returns the function type.
+func funcField(slice types.Type) *types.Signature {
+	return slice.(*types.Slice).Elem().Underlying().(*types.Struct).Field(1).Type().(*types.Signature)
+}
+
+// isTest tells whether name looks like a test (or benchmark, according to prefix).
+// It is a Test (say) if there is a character after Test that is not a lower-case letter.
+// We don't want TesticularCancer.
+// Plundered from $GOROOT/src/cmd/go/test.go
+func isTest(name, prefix string) bool {
+	if !strings.HasPrefix(name, prefix) {
+		return false
+	}
+	if len(name) == len(prefix) { // "Test" is ok
+		return true
+	}
+	return ast.IsExported(name[len(prefix):])
+}
