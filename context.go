@@ -63,8 +63,7 @@ func NewContext(mode Mode) *Context {
 	return ctx
 }
 
-func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
-	fset := token.NewFileSet()
+func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package, first error) {
 	apkgs, err := parser.ParseDir(fset, path, nil, c.ParserMode)
 	if err != nil {
 		return nil, err
@@ -79,8 +78,7 @@ func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
 	return
 }
 
-func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
-	fset := token.NewFileSet()
+func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}) (*ssa.Package, error) {
 	file, err := parser.ParseFile(fset, filename, src, c.ParserMode)
 	if err != nil {
 		return nil, err
@@ -168,7 +166,8 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 }
 
 func (c *Context) RunFile(filename string, src interface{}, args []string) error {
-	pkg, err := c.LoadFile(filename, src)
+	fset := token.NewFileSet()
+	pkg, err := c.LoadFile(fset, filename, src)
 	if err != nil {
 		return err
 	}
@@ -183,7 +182,8 @@ func (c *Context) Run(path string, args []string, mode Mode) error {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
-	pkgs, err := c.LoadDir(path)
+	fset := token.NewFileSet()
+	pkgs, err := c.LoadDir(fset, path)
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,8 @@ func (c *Context) Run(path string, args []string, mode Mode) error {
 }
 
 func (c *Context) RunTest(path string, args []string) error {
-	pkgs, err := c.LoadDir(path)
+	fset := token.NewFileSet()
+	pkgs, err := c.LoadDir(fset, path)
 	if err != nil {
 		return err
 	}
