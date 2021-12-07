@@ -106,23 +106,23 @@ func (p *Program) constToLit(named string, c constant.Value) string {
 	switch c.Kind() {
 	case constant.Bool:
 		if named != "" {
-			return fmt.Sprintf("constant.MakeBool(%v)", named)
+			return fmt.Sprintf("constant.MakeBool(bool(%v))", named)
 		}
 		return fmt.Sprintf("constant.MakeBool(%v)", constant.BoolVal(c))
 	case constant.String:
 		if named != "" {
-			return fmt.Sprintf("constant.MakeString(%v)", named)
+			return fmt.Sprintf("constant.MakeString(string(%v))", named)
 		}
 		return fmt.Sprintf("constant.MakeString(%q)", constant.StringVal(c))
 	case constant.Int:
 		if v, ok := constant.Int64Val(c); ok {
 			if named != "" {
-				return fmt.Sprintf("constant.MakeInt64(%v)", named)
+				return fmt.Sprintf("constant.MakeInt64(int64(%v))", named)
 			}
 			return fmt.Sprintf("constant.MakeInt64(%v)", v)
 		} else if v, ok := constant.Uint64Val(c); ok {
 			if named != "" {
-				return fmt.Sprintf("constant.MakeUint64(%v)", named)
+				return fmt.Sprintf("constant.MakeUint64(uint64(%v))", named)
 			}
 			return fmt.Sprintf("constant.MakeUint64(%v)", v)
 		}
