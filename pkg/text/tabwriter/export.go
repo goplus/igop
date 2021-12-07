@@ -29,15 +29,15 @@ func init() {
 			"NewWriter": reflect.ValueOf(q.NewWriter),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"AlignRight":          {reflect.TypeOf(q.AlignRight), constant.MakeInt64(4)},
-			"Debug":               {reflect.TypeOf(q.Debug), constant.MakeInt64(32)},
-			"DiscardEmptyColumns": {reflect.TypeOf(q.DiscardEmptyColumns), constant.MakeInt64(8)},
-			"FilterHTML":          {reflect.TypeOf(q.FilterHTML), constant.MakeInt64(1)},
-			"StripEscape":         {reflect.TypeOf(q.StripEscape), constant.MakeInt64(2)},
-			"TabIndent":           {reflect.TypeOf(q.TabIndent), constant.MakeInt64(16)},
+			"AlignRight":          {reflect.TypeOf(q.AlignRight), constant.MakeInt64(int64(q.AlignRight))},
+			"Debug":               {reflect.TypeOf(q.Debug), constant.MakeInt64(int64(q.Debug))},
+			"DiscardEmptyColumns": {reflect.TypeOf(q.DiscardEmptyColumns), constant.MakeInt64(int64(q.DiscardEmptyColumns))},
+			"FilterHTML":          {reflect.TypeOf(q.FilterHTML), constant.MakeInt64(int64(q.FilterHTML))},
+			"StripEscape":         {reflect.TypeOf(q.StripEscape), constant.MakeInt64(int64(q.StripEscape))},
+			"TabIndent":           {reflect.TypeOf(q.TabIndent), constant.MakeInt64(int64(q.TabIndent))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"Escape": {"untyped rune", constant.MakeInt64(255)},
+			"Escape": {"untyped rune", constant.MakeInt64(int64(q.Escape))},
 		},
 	})
 }

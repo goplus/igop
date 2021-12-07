@@ -56,7 +56,7 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"MaxScanTokenSize": {"untyped int", constant.MakeInt64(65536)},
+			"MaxScanTokenSize": {"untyped int", constant.MakeInt64(int64(q.MaxScanTokenSize))},
 		},
 	})
 }

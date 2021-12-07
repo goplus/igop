@@ -60,10 +60,10 @@ func init() {
 			"IsLocalImport": reflect.ValueOf(q.IsLocalImport),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"AllowBinary":   {reflect.TypeOf(q.AllowBinary), constant.MakeInt64(2)},
-			"FindOnly":      {reflect.TypeOf(q.FindOnly), constant.MakeInt64(1)},
-			"IgnoreVendor":  {reflect.TypeOf(q.IgnoreVendor), constant.MakeInt64(8)},
-			"ImportComment": {reflect.TypeOf(q.ImportComment), constant.MakeInt64(4)},
+			"AllowBinary":   {reflect.TypeOf(q.AllowBinary), constant.MakeInt64(int64(q.AllowBinary))},
+			"FindOnly":      {reflect.TypeOf(q.FindOnly), constant.MakeInt64(int64(q.FindOnly))},
+			"IgnoreVendor":  {reflect.TypeOf(q.IgnoreVendor), constant.MakeInt64(int64(q.IgnoreVendor))},
+			"ImportComment": {reflect.TypeOf(q.ImportComment), constant.MakeInt64(int64(q.ImportComment))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

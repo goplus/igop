@@ -38,10 +38,10 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"MaxRune":   {"untyped rune", constant.MakeInt64(1114111)},
-			"RuneError": {"untyped rune", constant.MakeInt64(65533)},
-			"RuneSelf":  {"untyped int", constant.MakeInt64(128)},
-			"UTFMax":    {"untyped int", constant.MakeInt64(4)},
+			"MaxRune":   {"untyped rune", constant.MakeInt64(int64(q.MaxRune))},
+			"RuneError": {"untyped rune", constant.MakeInt64(int64(q.RuneError))},
+			"RuneSelf":  {"untyped int", constant.MakeInt64(int64(q.RuneSelf))},
+			"UTFMax":    {"untyped int", constant.MakeInt64(int64(q.UTFMax))},
 		},
 	})
 }

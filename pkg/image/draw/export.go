@@ -37,8 +37,8 @@ func init() {
 			"DrawMask": reflect.ValueOf(q.DrawMask),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"Over": {reflect.TypeOf(q.Over), constant.MakeInt64(0)},
-			"Src":  {reflect.TypeOf(q.Src), constant.MakeInt64(1)},
+			"Over": {reflect.TypeOf(q.Over), constant.MakeInt64(int64(q.Over))},
+			"Src":  {reflect.TypeOf(q.Src), constant.MakeInt64(int64(q.Src))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

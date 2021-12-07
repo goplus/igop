@@ -34,9 +34,9 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"ECMA": {"untyped int", constant.MakeUint64(14514072000185962306)},
-			"ISO":  {"untyped int", constant.MakeUint64(15564440312192434176)},
-			"Size": {"untyped int", constant.MakeInt64(8)},
+			"ECMA": {"untyped int", constant.MakeUint64(uint64(q.ECMA))},
+			"ISO":  {"untyped int", constant.MakeUint64(uint64(q.ISO))},
+			"Size": {"untyped int", constant.MakeInt64(int64(q.Size))},
 		},
 	})
 }

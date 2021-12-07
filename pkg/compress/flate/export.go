@@ -46,11 +46,11 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"BestCompression":    {"untyped int", constant.MakeInt64(9)},
-			"BestSpeed":          {"untyped int", constant.MakeInt64(1)},
-			"DefaultCompression": {"untyped int", constant.MakeInt64(-1)},
-			"HuffmanOnly":        {"untyped int", constant.MakeInt64(-2)},
-			"NoCompression":      {"untyped int", constant.MakeInt64(0)},
+			"BestCompression":    {"untyped int", constant.MakeInt64(int64(q.BestCompression))},
+			"BestSpeed":          {"untyped int", constant.MakeInt64(int64(q.BestSpeed))},
+			"DefaultCompression": {"untyped int", constant.MakeInt64(int64(q.DefaultCompression))},
+			"HuffmanOnly":        {"untyped int", constant.MakeInt64(int64(q.HuffmanOnly))},
+			"NoCompression":      {"untyped int", constant.MakeInt64(int64(q.NoCompression))},
 		},
 	})
 }

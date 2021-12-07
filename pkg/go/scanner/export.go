@@ -40,7 +40,7 @@ func init() {
 			"PrintError": reflect.ValueOf(q.PrintError),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"ScanComments": {reflect.TypeOf(q.ScanComments), constant.MakeInt64(1)},
+			"ScanComments": {reflect.TypeOf(q.ScanComments), constant.MakeInt64(int64(q.ScanComments))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

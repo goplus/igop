@@ -102,30 +102,68 @@ func unmarshalFloat(str string) constant.Value {
 }
 */
 
-func (p *Program) constToLit(c constant.Value) string {
+func (p *Program) constToLit(named string, c constant.Value) string {
 	switch c.Kind() {
 	case constant.Bool:
+		if named != "" {
+			return fmt.Sprintf("constant.MakeBool(bool(%v))", named)
+		}
 		return fmt.Sprintf("constant.MakeBool(%v)", constant.BoolVal(c))
 	case constant.String:
+		if named != "" {
+			return fmt.Sprintf("constant.MakeString(string(%v))", named)
+		}
 		return fmt.Sprintf("constant.MakeString(%q)", constant.StringVal(c))
 	case constant.Int:
 		if v, ok := constant.Int64Val(c); ok {
+			if named != "" {
+				return fmt.Sprintf("constant.MakeInt64(int64(%v))", named)
+			}
 			return fmt.Sprintf("constant.MakeInt64(%v)", v)
 		} else if v, ok := constant.Uint64Val(c); ok {
+			if named != "" {
+				return fmt.Sprintf("constant.MakeUint64(uint64(%v))", named)
+			}
 			return fmt.Sprintf("constant.MakeUint64(%v)", v)
 		}
 		return fmt.Sprintf("constant.MakeFromLiteral(%q, token.INT, 0)", c.ExactString())
 	case constant.Float:
 		s := c.ExactString()
 		if pos := strings.IndexByte(s, '/'); pos >= 0 {
-			x := fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", s[:pos])
-			y := fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", s[pos+1:])
+			sx := s[:pos]
+			sy := s[pos+1:]
+			// simplify 314/100 => 3.14
+			// 80901699437494742410229341718281905886015458990288143106772431
+			// 50000000000000000000000000000000000000000000000000000000000000
+			if strings.HasPrefix(sy, "1") && strings.Count(sy, "0") == len(sy)-1 {
+				if len(sx) == len(sy) {
+					return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%v\", token.FLOAT, 0)", sx[:1], sx[1:])
+				} else if len(sx) == len(sy)-1 {
+					return fmt.Sprintf("constant.MakeFromLiteral(\"0.%v\", token.FLOAT, 0)", sx)
+				} else if len(sx) < len(sy) {
+					return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%ve-%v\", token.FLOAT, 0)", sx[:1], sx[1:], len(sy)-len(sx))
+				}
+			} else if strings.HasPrefix(sy, "5") && strings.Count(sy, "0") == len(sy)-1 {
+				if len(sx) == len(sy) {
+					c := constant.BinaryOp(constant.MakeFromLiteral(sx, token.INT, 0), token.MUL, constant.MakeInt64(2))
+					sx = c.ExactString()
+					return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%v\", token.FLOAT, 0)", sx[:1], sx[1:])
+				}
+			} else if strings.HasPrefix(sx, "1") && strings.Count(sx, "0") == len(sx)-1 {
+				// skip
+			}
+			x := fmt.Sprintf("constant.MakeFromLiteral(%q, token.INT, 0)", sx)
+			y := fmt.Sprintf("constant.MakeFromLiteral(%q, token.INT, 0)", sy)
 			return fmt.Sprintf("constant.BinaryOp(%v, token.QUO, %v)", x, y)
 		}
-		return fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", c.ExactString())
+		if pos := strings.LastIndexAny(s, "123456789"); pos != -1 {
+			sx := s[:pos+1]
+			return fmt.Sprintf("constant.MakeFromLiteral(\"%v.%ve+%v\", token.FLOAT, 0)", sx[:1], sx[1:], len(s)-1)
+		}
+		return fmt.Sprintf("constant.MakeFromLiteral(%q, token.FLOAT, 0)", s)
 	case constant.Complex:
-		re := p.constToLit(constant.Real(c))
-		im := p.constToLit(constant.Imag(c))
+		re := p.constToLit("", constant.Real(c))
+		im := p.constToLit("", constant.Imag(c))
 		return fmt.Sprintf("constant.BinaryOp(%v, token.ADD, constan.MakeImag(%v))", re, im)
 	default:
 		panic("unreachable")
@@ -150,10 +188,11 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 			checked[v] = true
 			switch t := v.(type) {
 			case *ssa.NamedConst:
+				named := pkgName + "." + t.Name()
 				if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
-					e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: {%q, %v}", t.Name(), t.Type().String(), p.constToLit(t.Value.Value)))
+					e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: {%q, %v}", t.Name(), t.Type().String(), p.constToLit(named, t.Value.Value)))
 				} else {
-					e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", t.Name(), pkgName+"."+t.Name(), p.constToLit(t.Value.Value)))
+					e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", t.Name(), pkgName+"."+t.Name(), p.constToLit(named, t.Value.Value)))
 				}
 			case *ssa.Global:
 				e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", t.Name(), pkgName+"."+t.Name()))

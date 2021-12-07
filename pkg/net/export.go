@@ -136,15 +136,15 @@ func init() {
 			"SplitHostPort":      reflect.ValueOf(q.SplitHostPort),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"FlagBroadcast":    {reflect.TypeOf(q.FlagBroadcast), constant.MakeInt64(2)},
-			"FlagLoopback":     {reflect.TypeOf(q.FlagLoopback), constant.MakeInt64(4)},
-			"FlagMulticast":    {reflect.TypeOf(q.FlagMulticast), constant.MakeInt64(16)},
-			"FlagPointToPoint": {reflect.TypeOf(q.FlagPointToPoint), constant.MakeInt64(8)},
-			"FlagUp":           {reflect.TypeOf(q.FlagUp), constant.MakeInt64(1)},
+			"FlagBroadcast":    {reflect.TypeOf(q.FlagBroadcast), constant.MakeInt64(int64(q.FlagBroadcast))},
+			"FlagLoopback":     {reflect.TypeOf(q.FlagLoopback), constant.MakeInt64(int64(q.FlagLoopback))},
+			"FlagMulticast":    {reflect.TypeOf(q.FlagMulticast), constant.MakeInt64(int64(q.FlagMulticast))},
+			"FlagPointToPoint": {reflect.TypeOf(q.FlagPointToPoint), constant.MakeInt64(int64(q.FlagPointToPoint))},
+			"FlagUp":           {reflect.TypeOf(q.FlagUp), constant.MakeInt64(int64(q.FlagUp))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"IPv4len": {"untyped int", constant.MakeInt64(4)},
-			"IPv6len": {"untyped int", constant.MakeInt64(16)},
+			"IPv4len": {"untyped int", constant.MakeInt64(int64(q.IPv4len))},
+			"IPv6len": {"untyped int", constant.MakeInt64(int64(q.IPv6len))},
 		},
 	})
 }

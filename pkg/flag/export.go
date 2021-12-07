@@ -75,9 +75,9 @@ func init() {
 			"VisitAll":      reflect.ValueOf(q.VisitAll),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"ContinueOnError": {reflect.TypeOf(q.ContinueOnError), constant.MakeInt64(0)},
-			"ExitOnError":     {reflect.TypeOf(q.ExitOnError), constant.MakeInt64(1)},
-			"PanicOnError":    {reflect.TypeOf(q.PanicOnError), constant.MakeInt64(2)},
+			"ContinueOnError": {reflect.TypeOf(q.ContinueOnError), constant.MakeInt64(int64(q.ContinueOnError))},
+			"ExitOnError":     {reflect.TypeOf(q.ExitOnError), constant.MakeInt64(int64(q.ExitOnError))},
+			"PanicOnError":    {reflect.TypeOf(q.PanicOnError), constant.MakeInt64(int64(q.PanicOnError))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

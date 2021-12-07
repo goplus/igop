@@ -45,10 +45,10 @@ func init() {
 			"Encode":       reflect.ValueOf(q.Encode),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"BestCompression":    {reflect.TypeOf(q.BestCompression), constant.MakeInt64(-3)},
-			"BestSpeed":          {reflect.TypeOf(q.BestSpeed), constant.MakeInt64(-2)},
-			"DefaultCompression": {reflect.TypeOf(q.DefaultCompression), constant.MakeInt64(0)},
-			"NoCompression":      {reflect.TypeOf(q.NoCompression), constant.MakeInt64(-1)},
+			"BestCompression":    {reflect.TypeOf(q.BestCompression), constant.MakeInt64(int64(q.BestCompression))},
+			"BestSpeed":          {reflect.TypeOf(q.BestSpeed), constant.MakeInt64(int64(q.BestSpeed))},
+			"DefaultCompression": {reflect.TypeOf(q.DefaultCompression), constant.MakeInt64(int64(q.DefaultCompression))},
+			"NoCompression":      {reflect.TypeOf(q.NoCompression), constant.MakeInt64(int64(q.NoCompression))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

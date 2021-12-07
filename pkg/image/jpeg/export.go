@@ -40,7 +40,7 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"DefaultQuality": {"untyped int", constant.MakeInt64(75)},
+			"DefaultQuality": {"untyped int", constant.MakeInt64(int64(q.DefaultQuality))},
 		},
 	})
 }

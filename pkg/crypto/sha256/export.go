@@ -35,9 +35,9 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"BlockSize": {"untyped int", constant.MakeInt64(64)},
-			"Size":      {"untyped int", constant.MakeInt64(32)},
-			"Size224":   {"untyped int", constant.MakeInt64(28)},
+			"BlockSize": {"untyped int", constant.MakeInt64(int64(q.BlockSize))},
+			"Size":      {"untyped int", constant.MakeInt64(int64(q.Size))},
+			"Size224":   {"untyped int", constant.MakeInt64(int64(q.Size224))},
 		},
 	})
 }

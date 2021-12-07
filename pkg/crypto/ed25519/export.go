@@ -40,10 +40,10 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"PrivateKeySize": {"untyped int", constant.MakeInt64(64)},
-			"PublicKeySize":  {"untyped int", constant.MakeInt64(32)},
-			"SeedSize":       {"untyped int", constant.MakeInt64(32)},
-			"SignatureSize":  {"untyped int", constant.MakeInt64(64)},
+			"PrivateKeySize": {"untyped int", constant.MakeInt64(int64(q.PrivateKeySize))},
+			"PublicKeySize":  {"untyped int", constant.MakeInt64(int64(q.PublicKeySize))},
+			"SeedSize":       {"untyped int", constant.MakeInt64(int64(q.SeedSize))},
+			"SignatureSize":  {"untyped int", constant.MakeInt64(int64(q.SignatureSize))},
 		},
 	})
 }

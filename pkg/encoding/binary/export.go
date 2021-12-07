@@ -44,9 +44,9 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"MaxVarintLen16": {"untyped int", constant.MakeInt64(3)},
-			"MaxVarintLen32": {"untyped int", constant.MakeInt64(5)},
-			"MaxVarintLen64": {"untyped int", constant.MakeInt64(10)},
+			"MaxVarintLen16": {"untyped int", constant.MakeInt64(int64(q.MaxVarintLen16))},
+			"MaxVarintLen32": {"untyped int", constant.MakeInt64(int64(q.MaxVarintLen32))},
+			"MaxVarintLen64": {"untyped int", constant.MakeInt64(int64(q.MaxVarintLen64))},
 		},
 	})
 }

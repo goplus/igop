@@ -38,10 +38,10 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"Magic386":   {"untyped int", constant.MakeInt64(491)},
-			"Magic64":    {"untyped int", constant.MakeInt64(32768)},
-			"MagicAMD64": {"untyped int", constant.MakeInt64(35479)},
-			"MagicARM":   {"untyped int", constant.MakeInt64(1607)},
+			"Magic386":   {"untyped int", constant.MakeInt64(int64(q.Magic386))},
+			"Magic64":    {"untyped int", constant.MakeInt64(int64(q.Magic64))},
+			"MagicAMD64": {"untyped int", constant.MakeInt64(int64(q.MagicAMD64))},
+			"MagicARM":   {"untyped int", constant.MakeInt64(int64(q.MagicARM))},
 		},
 	})
 }

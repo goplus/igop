@@ -57,8 +57,8 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"ListSeparator": {"untyped rune", constant.MakeInt64(58)},
-			"Separator":     {"untyped rune", constant.MakeInt64(47)},
+			"ListSeparator": {"untyped rune", constant.MakeInt64(int64(q.ListSeparator))},
+			"Separator":     {"untyped rune", constant.MakeInt64(int64(q.Separator))},
 		},
 	})
 }

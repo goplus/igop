@@ -38,8 +38,8 @@ func init() {
 			"NewEncoding": reflect.ValueOf(q.NewEncoding),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"NoPadding":  {reflect.TypeOf(q.NoPadding), constant.MakeInt64(-1)},
-			"StdPadding": {reflect.TypeOf(q.StdPadding), constant.MakeInt64(61)},
+			"NoPadding":  {reflect.TypeOf(q.NoPadding), constant.MakeInt64(int64(q.NoPadding))},
+			"StdPadding": {reflect.TypeOf(q.StdPadding), constant.MakeInt64(int64(q.StdPadding))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

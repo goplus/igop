@@ -76,11 +76,11 @@ func init() {
 			"Version":                 reflect.ValueOf(q.Version),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"GOARCH": {reflect.TypeOf(q.GOARCH), constant.MakeString("amd64")},
-			"GOOS":   {reflect.TypeOf(q.GOOS), constant.MakeString("darwin")},
+			"GOARCH": {reflect.TypeOf(q.GOARCH), constant.MakeString(string(q.GOARCH))},
+			"GOOS":   {reflect.TypeOf(q.GOOS), constant.MakeString(string(q.GOOS))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"Compiler": {"untyped string", constant.MakeString("gc")},
+			"Compiler": {"untyped string", constant.MakeString(string(q.Compiler))},
 		},
 	})
 }

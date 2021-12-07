@@ -51,7 +51,7 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"DefaultRemoteAddr": {"untyped string", constant.MakeString("1.2.3.4")},
+			"DefaultRemoteAddr": {"untyped string", constant.MakeString(string(q.DefaultRemoteAddr))},
 		},
 	})
 }

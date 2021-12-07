@@ -51,14 +51,14 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"LUTC":          {"untyped int", constant.MakeInt64(32)},
-			"Ldate":         {"untyped int", constant.MakeInt64(1)},
-			"Llongfile":     {"untyped int", constant.MakeInt64(8)},
-			"Lmicroseconds": {"untyped int", constant.MakeInt64(4)},
-			"Lmsgprefix":    {"untyped int", constant.MakeInt64(64)},
-			"Lshortfile":    {"untyped int", constant.MakeInt64(16)},
-			"LstdFlags":     {"untyped int", constant.MakeInt64(3)},
-			"Ltime":         {"untyped int", constant.MakeInt64(2)},
+			"LUTC":          {"untyped int", constant.MakeInt64(int64(q.LUTC))},
+			"Ldate":         {"untyped int", constant.MakeInt64(int64(q.Ldate))},
+			"Llongfile":     {"untyped int", constant.MakeInt64(int64(q.Llongfile))},
+			"Lmicroseconds": {"untyped int", constant.MakeInt64(int64(q.Lmicroseconds))},
+			"Lmsgprefix":    {"untyped int", constant.MakeInt64(int64(q.Lmsgprefix))},
+			"Lshortfile":    {"untyped int", constant.MakeInt64(int64(q.Lshortfile))},
+			"LstdFlags":     {"untyped int", constant.MakeInt64(int64(q.LstdFlags))},
+			"Ltime":         {"untyped int", constant.MakeInt64(int64(q.Ltime))},
 		},
 	})
 }

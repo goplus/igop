@@ -57,8 +57,8 @@ func init() {
 			"RegisterDecompressor": reflect.ValueOf(q.RegisterDecompressor),
 		},
 		TypedConsts: map[string]gossa.TypedConst{
-			"Deflate": {reflect.TypeOf(q.Deflate), constant.MakeInt64(8)},
-			"Store":   {reflect.TypeOf(q.Store), constant.MakeInt64(0)},
+			"Deflate": {reflect.TypeOf(q.Deflate), constant.MakeInt64(int64(q.Deflate))},
+			"Store":   {reflect.TypeOf(q.Store), constant.MakeInt64(int64(q.Store))},
 		},
 		UntypedConsts: map[string]gossa.UntypedConst{},
 	})

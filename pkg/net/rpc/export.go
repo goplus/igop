@@ -65,8 +65,8 @@ func init() {
 		},
 		TypedConsts: map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{
-			"DefaultDebugPath": {"untyped string", constant.MakeString("/debug/rpc")},
-			"DefaultRPCPath":   {"untyped string", constant.MakeString("/_goRPC_")},
+			"DefaultDebugPath": {"untyped string", constant.MakeString(string(q.DefaultDebugPath))},
+			"DefaultRPCPath":   {"untyped string", constant.MakeString(string(q.DefaultRPCPath))},
 		},
 	})
 }
