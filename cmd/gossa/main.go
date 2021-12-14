@@ -16,6 +16,8 @@
 
 package main
 
+//go:generate icall_gen -o icall.go -pkg main -size 20000
+
 import (
 	"flag"
 	"fmt"
