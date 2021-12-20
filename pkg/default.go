@@ -7,6 +7,7 @@ package pkg
 //go:generate go run ../cmd/qexp -outdir . -contexts "freebsd_amd64 freebsd_arm64 freebsd_386" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "openbsd_amd64 openbsd_arm64 openbsd_386" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "freebsd_amd64 freebsd_arm64 freebsd_386" syscall
+//go:generate go run ../cmd/qexp -outdir . github.com/goplus/gop/builtin
 
 import (
 	_ "github.com/goplus/gossa/pkg/archive/tar"
