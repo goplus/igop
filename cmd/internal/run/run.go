@@ -68,18 +68,7 @@ func runCmd(cmd *base.Command, args []string) {
 		}
 		runDir(ctx, path, args)
 	} else {
-		switch filepath.Ext(path) {
-		case ".go":
-			runFile(ctx, path, nil, args)
-		case ".gop":
-			data, err := gopbuild.BuildFile(ctx, path, nil)
-			if err != nil {
-				log.Panicln(err)
-			}
-			runFile(ctx, path, data, args)
-		default:
-			log.Println("unsupport file", path)
-		}
+		runFile(ctx, path, args)
 	}
 }
 
@@ -92,10 +81,10 @@ func IsDir(target string) (bool, error) {
 	return fi.IsDir(), nil
 }
 
-func runFile(ctx *gossa.Context, target string, src interface{}, args []string) {
+func runFile(ctx *gossa.Context, target string, args []string) {
 	dir, file := filepath.Split(target)
 	os.Chdir(dir)
-	exitCode, err := ctx.RunFile(file, src, args)
+	exitCode, err := ctx.RunFile(file, nil, args)
 	if err != nil {
 		log.Println(err)
 	}

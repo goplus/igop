@@ -9,6 +9,7 @@ import (
 	"go/types"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -179,7 +180,26 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	return nil
 }
 
+func RegisterFileProcess(ext string, fn SourceProcessFunc) {
+	sourceProcesser[ext] = fn
+}
+
+type SourceProcessFunc func(ctx *Context, filename string, src interface{}) ([]byte, error)
+
+var (
+	sourceProcesser = make(map[string]SourceProcessFunc)
+)
+
 func (c *Context) RunFile(filename string, src interface{}, args []string) (exitCode int, err error) {
+	if ext := filepath.Ext(filename); ext != "" {
+		if fn, ok := sourceProcesser[ext]; ok {
+			data, err := fn(c, filename, src)
+			if err != nil {
+				return 2, err
+			}
+			src = data
+		}
+	}
 	fset := token.NewFileSet()
 	pkg, err := c.LoadFile(fset, filename, src)
 	if err != nil {

@@ -24,6 +24,14 @@ import (
 
 func RegisterClassFileType(extGmx, extSpx string, pkgPaths ...string) {
 	cl.RegisterClassFileType(extGmx, extSpx, pkgPaths...)
+	gossa.RegisterFileProcess(extGmx, BuildFile)
+	if extSpx != "" {
+		gossa.RegisterFileProcess(extSpx, BuildFile)
+	}
+}
+
+func init() {
+	gossa.RegisterFileProcess(".gop", BuildFile)
 }
 
 func BuildFile(ctx *gossa.Context, filename string, src interface{}) (data []byte, err error) {
