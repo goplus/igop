@@ -41,10 +41,37 @@ func main() {
 `
 
 func main() {
-	err := gossa.RunFile("main.go", source, nil, 0)
+	_, err := gossa.RunFile("main.go", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}
 }
 
+```
+
+**run gop source**
+```
+package main
+
+import (
+	"github.com/goplus/gossa"
+	"github.com/goplus/gossa/gopbuild"
+	_ "github.com/goplus/gossa/pkg"
+)
+
+var source = `
+println "Hello, Go+"
+`
+
+func main() {
+	ctx := gossa.NewContext(0)
+	data, err := gopbuild.BuildFile(ctx, "main.gop", source)
+	if err != nil {
+		panic(err)
+	}
+	_, err = gossa.RunFile("main.go", data, nil, 0)
+	if err != nil {
+		panic(err)
+	}
+}
 ```
