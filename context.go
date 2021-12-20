@@ -111,7 +111,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	return ssapkg, nil
 }
 
-func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args []string) (ret interface{}, exitCode int) {
+func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exitCode int, err error) {
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
@@ -119,9 +119,23 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, entry string, args 
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	interp := NewInterp(c.Loader, mainPkg, c.Mode)
-	interp.Run("init")
-	return interp.Run(entry)
+	interp, err := NewInterp(c.Loader, mainPkg, c.Mode)
+	if err != nil {
+		return 2, err
+	}
+	return interp.Run("main")
+}
+
+func (c *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (ret Value, err error) {
+	interp, err := NewInterp(c.Loader, mainPkg, c.Mode)
+	if err != nil {
+		return nil, err
+	}
+	return interp.RunFunc(fnname, args...)
+}
+
+func (c *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
+	return NewInterp(c.Loader, mainPkg, c.Mode)
 }
 
 func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) error {
@@ -153,9 +167,8 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 		fmt.Println("testing: warning: no tests to run")
 	}
 	for _, pkg := range testPkgs {
-		interp := NewInterp(c.Loader, pkg, c.Mode)
-		interp.Run("init")
-		_, exitCode := interp.Run("main")
+		interp, _ := NewInterp(c.Loader, pkg, c.Mode)
+		exitCode, _ := interp.Run("main")
 		if exitCode != 0 {
 			failed = true
 		}
@@ -166,38 +179,29 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	return nil
 }
 
-func (c *Context) RunFile(filename string, src interface{}, args []string) error {
+func (c *Context) RunFile(filename string, src interface{}, args []string) (exitCode int, err error) {
 	fset := token.NewFileSet()
 	pkg, err := c.LoadFile(fset, filename, src)
 	if err != nil {
-		return err
+		return 2, err
 	}
-	_, exitCode := c.RunPkg(pkg, filename, "main", args)
-	if exitCode == 0 {
-		return nil
-	}
-	return fmt.Errorf("interpreting %v: exit code was %d", filename, exitCode)
+	return c.RunPkg(pkg, filename, args)
 }
 
-func (c *Context) Run(path string, args []string, mode Mode) error {
+func (c *Context) Run(path string, args []string, mode Mode) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
 	fset := token.NewFileSet()
 	pkgs, err := c.LoadDir(fset, path)
 	if err != nil {
-		return err
+		return 2, err
 	}
 	mainPkgs := ssautil.MainPackages(pkgs)
 	if len(mainPkgs) == 0 {
-		return ErrNotFoundMain
+		return 2, ErrNotFoundMain
 	}
-	_, exitCode := c.RunPkg(mainPkgs[0], path, "main", args)
-	if exitCode == 0 {
-		return nil
-	}
-	return fmt.Errorf("interpreting %v: exit code was %d", path, exitCode)
-
+	return c.RunPkg(mainPkgs[0], path, args)
 }
 
 func (c *Context) RunTest(path string, args []string) error {
@@ -269,13 +273,13 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 	return ssapkg, info, nil
 }
 
-func RunFile(filename string, src interface{}, args []string, mode Mode) error {
+func RunFile(filename string, src interface{}, args []string, mode Mode) (exitCode int, err error) {
 	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.RunFile(filename, src, args)
 }
 
-func Run(path string, args []string, mode Mode) error {
+func Run(path string, args []string, mode Mode) (exitCode int, err error) {
 	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.Run(path, args, mode)

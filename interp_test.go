@@ -248,7 +248,7 @@ func init() {
 func runInput(t *testing.T, input string) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
-	err := gossa.Run(input, nil, 0)
+	_, err := gossa.Run(input, nil, 0)
 	sec := time.Since(start).Seconds()
 	if err != nil {
 		t.Error(err)

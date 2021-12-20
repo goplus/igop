@@ -25,7 +25,7 @@ type targetPanic struct {
 	v value
 }
 
-func (p targetPanic) String() string {
+func (p targetPanic) Error() string {
 	return toString(p.v)
 }
 

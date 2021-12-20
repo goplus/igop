@@ -45,6 +45,9 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+type Value = value
+type Tuple = tuple
+
 type value interface{}
 
 type tuple []value

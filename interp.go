@@ -49,7 +49,6 @@ import (
 	"go/token"
 	"go/types"
 	"log"
-	"os"
 	"reflect"
 	"runtime"
 	"sync"
@@ -205,12 +204,16 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 }
 
 func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
+	return fr.i.toFunc(fr, typ, fn)
+}
+
+func (i *Interp) toFunc(fr *frame, typ reflect.Type, fn value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		iargs := make([]value, len(args))
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := call(fr.i, fr, token.NoPos, fn, iargs, nil)
+		r := call(i, fr, token.NoPos, fn, iargs, nil)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -466,6 +469,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		switch x.(type) {
 		case *ssa.Function:
 			vx = fr.toFunc(xtyp, x)
+		case nil:
+			vx = reflect.New(xtyp).Elem()
 		default:
 			vx = reflect.ValueOf(x)
 			if xtyp != vx.Type() {
@@ -1178,7 +1183,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 // The SSA program must include the "runtime" package.
 //
 
-func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) *Interp {
+func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) {
 	i := &Interp{
 		prog:       mainpkg.Prog,
 		mainpkg:    mainpkg,
@@ -1200,10 +1205,44 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) *Interp {
 			}
 		}
 	}
-	return i
+	_, err := i.Run("init")
+	if err != nil {
+		err = fmt.Errorf("init error: %w", err)
+	}
+	return i, err
 }
 
-func (i *Interp) Run(entry string) (r value, exitCode int) {
+func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
+	defer func() {
+		if i.mode&DisableRecover != 0 {
+			return
+		}
+		switch p := recover().(type) {
+		case nil:
+			// nothing
+		case exitPanic:
+			// nothing
+		case targetPanic:
+			err = p
+		case runtime.Error:
+			err = p
+		case string:
+			err = plainError(p)
+		case plainError:
+			err = p
+		default:
+			err = fmt.Errorf("unexpected type: %T: %v", p, p)
+		}
+	}()
+	if fn := i.mainpkg.Func(name); fn != nil {
+		r = call(i, nil, token.NoPos, fn, args, nil)
+	} else {
+		err = fmt.Errorf("no function %v", name)
+	}
+	return
+}
+
+func (i *Interp) Run(entry string) (exitCode int, err error) {
 	// Top-level error handler.
 	exitCode = 2
 	defer func() {
@@ -1211,26 +1250,27 @@ func (i *Interp) Run(entry string) (r value, exitCode int) {
 			return
 		}
 		switch p := recover().(type) {
+		case nil:
+			// nothing
 		case exitPanic:
 			exitCode = int(p)
-			return
 		case targetPanic:
-			fmt.Fprintln(os.Stderr, "panic:", toString(p.v))
+			err = p
 		case runtime.Error:
-			fmt.Fprintln(os.Stderr, "panic:", p.Error())
+			err = p
 		case string:
-			fmt.Fprintln(os.Stderr, "panic:", p)
+			err = plainError(p)
 		case plainError:
-			fmt.Fprintln(os.Stderr, "panic:", p.Error())
+			err = p
 		default:
-			fmt.Fprintf(os.Stderr, "panic: unexpected type: %T: %v\n", p, p)
+			err = fmt.Errorf("unexpected type: %T: %v", p, p)
 		}
 	}()
 	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
-		r = call(i, nil, token.NoPos, mainFn, nil, nil)
+		call(i, nil, token.NoPos, mainFn, nil, nil)
 		exitCode = 0
 	} else {
-		fmt.Fprintln(os.Stderr, "No function.", entry)
+		err = fmt.Errorf("no function %v", entry)
 		exitCode = 1
 	}
 	return
