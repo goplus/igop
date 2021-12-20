@@ -26,7 +26,7 @@ func RegisterClassFileType(extGmx, extSpx string, pkgPaths ...string) {
 	cl.RegisterClassFileType(extGmx, extSpx, pkgPaths...)
 }
 
-func BuildFile(ctx *gossa.Context, fset *token.FileSet, filename string, src interface{}) (data []byte, err error) {
+func BuildFile(ctx *gossa.Context, filename string, src interface{}) (data []byte, err error) {
 	defer func() {
 		r := recover()
 		if r != nil {
@@ -34,6 +34,7 @@ func BuildFile(ctx *gossa.Context, fset *token.FileSet, filename string, src int
 		}
 	}()
 	c := NewContext(ctx)
+	fset := token.NewFileSet()
 	pkg, err := c.ParseFile(fset, filename, src)
 	if err != nil {
 		return nil, err
@@ -41,7 +42,7 @@ func BuildFile(ctx *gossa.Context, fset *token.FileSet, filename string, src int
 	return pkg.ToSource()
 }
 
-func BuildDir(ctx *gossa.Context, fset *token.FileSet, dir string) (data []byte, err error) {
+func BuildDir(ctx *gossa.Context, dir string) (data []byte, err error) {
 	defer func() {
 		r := recover()
 		if r != nil {
@@ -49,6 +50,7 @@ func BuildDir(ctx *gossa.Context, fset *token.FileSet, dir string) (data []byte,
 		}
 	}()
 	c := NewContext(ctx)
+	fset := token.NewFileSet()
 	pkg, err := c.ParseDir(fset, dir)
 	if err != nil {
 		return nil, err

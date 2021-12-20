@@ -18,75 +18,29 @@
 package run
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/goplus/gop/ast"
-	"github.com/goplus/gop/cl"
-	"github.com/goplus/gop/cmd/gengo"
-	"github.com/goplus/gop/parser"
-	"github.com/goplus/gop/scanner"
-	"github.com/goplus/gop/token"
 	"github.com/goplus/gossa"
 	"github.com/goplus/gossa/cmd/internal/base"
-	"github.com/goplus/gox"
-	"github.com/qiniu/x/log"
-	"golang.org/x/tools/go/packages"
+	"github.com/goplus/gossa/gopbuild"
 )
 
 // -----------------------------------------------------------------------------
 
 // Cmd - gop run
 var Cmd = &base.Command{
-	UsageLine: "gossa run [-asm -quiet -debug -prof] <gopSrcDir|gopSrcFile>",
+	UsageLine: "gossa run <gopSrcDir|gopSrcFile> [arguments]",
 	Short:     "Run a Go+ program",
 }
 
 var (
-	flag        = &Cmd.Flag
-	flagAsm     = flag.Bool("asm", false, "generates `asm` code of Go+ bytecode backend")
-	flagVerbose = flag.Bool("v", false, "print verbose information")
-	flagQuiet   = flag.Bool("quiet", false, "don't generate any compiling stage log")
-	flagDebug   = flag.Bool("debug", false, "set log level to debug")
-	flagProf    = flag.Bool("prof", false, "do profile and generate profile report")
+	flag = &Cmd.Flag
 )
 
 func init() {
 	Cmd.Run = runCmd
-}
-
-func saveGoFile(gofile string, pkg *gox.Package) error {
-	dir := filepath.Dir(gofile)
-	err := os.MkdirAll(dir, 0777)
-	if err != nil {
-		return err
-	}
-	return gox.WriteFile(gofile, pkg, false)
-}
-
-func findGoModFile(dir string) (modfile string, noCacheFile bool, err error) {
-	modfile, err = cl.FindGoModFile(dir)
-	if err != nil {
-		home := os.Getenv("HOME")
-		modfile = home + "/gop/go.mod"
-		if fi, e := os.Lstat(modfile); e == nil && !fi.IsDir() {
-			return modfile, true, nil
-		}
-		modfile = home + "/goplus/go.mod"
-		if fi, e := os.Lstat(modfile); e == nil && !fi.IsDir() {
-			return modfile, true, nil
-		}
-	}
-	return
-}
-
-func findGoModDir(dir string) (string, bool) {
-	modfile, nocachefile, err := findGoModFile(dir)
-	if err != nil {
-		log.Fatalln("findGoModFile:", err)
-	}
-	return filepath.Dir(modfile), nocachefile
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -95,82 +49,37 @@ func runCmd(cmd *base.Command, args []string) {
 		cmd.Usage(os.Stderr)
 	}
 	args = flag.Args()[1:]
-
-	if *flagQuiet {
-		log.SetOutputLevel(0x7000)
-	} else if *flagDebug {
-		log.SetOutputLevel(log.Ldebug)
-		gox.SetDebug(gox.DbgFlagAll)
-		cl.SetDebug(cl.DbgFlagAll)
-	}
-	if *flagVerbose {
-		gox.SetDebug(gox.DbgFlagAll &^ gox.DbgFlagComments)
-		cl.SetDebug(cl.DbgFlagAll)
-		cl.SetDisableRecover(true)
-	} else if *flagAsm {
-		gox.SetDebug(gox.DbgFlagInstruction)
-	}
-	if *flagProf {
-		panic("TODO: profile not impl")
-	}
-
-	fset := token.NewFileSet()
-	src, _ := filepath.Abs(flag.Arg(0))
-	isDir, err := IsDir(src)
+	path, _ := filepath.Abs(flag.Arg(0))
+	isDir, err := IsDir(path)
 	if err != nil {
 		log.Fatalln("input arg check failed:", err)
 	}
-	if !isDir && filepath.Ext(src) == ".go" { // not a Go+ file
-		runGoFile(src, args)
-		return
-	}
-
-	var srcDir, file, gofile string
-	var pkgs map[string]*ast.Package
+	ctx := gossa.NewContext(0)
 	if isDir {
-		srcDir = src
-		gofile = src + "/gop_autogen.go"
-		pkgs, err = parser.ParseDir(fset, src, nil, 0)
+		if containsExt(path, ".gop") {
+			data, err := gopbuild.BuildDir(ctx, path)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			err = os.WriteFile(filepath.Join(path, "gop_autogen.go"), data, 0666)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}
+		runDir(ctx, path, args)
 	} else {
-		srcDir, file = filepath.Split(src)
-		if hasMultiFiles(srcDir, ".gop") {
-			gofile = filepath.Join(srcDir, "gop_autogen_"+file+".go")
-		} else {
-			gofile = srcDir + "/gop_autogen.go"
+		switch filepath.Ext(path) {
+		case ".go":
+			runFile(ctx, path, nil, args)
+		case ".gop":
+			data, err := gopbuild.BuildFile(ctx, path, nil)
+			if err != nil {
+				log.Panicln(err)
+			}
+			runFile(ctx, path, data, args)
+		default:
+			log.Println("unsupport file", path)
 		}
-		pkgs, err = parser.Parse(fset, src, nil, 0)
-	}
-	if err != nil {
-		scanner.PrintError(os.Stderr, err)
-		os.Exit(10)
-	}
-
-	mainPkg, ok := pkgs["main"]
-	if !ok {
-		if len(pkgs) == 0 { // not a Go+ package, try runGoPkg
-			runGoPkg(src, args, true)
-			return
-		}
-		fmt.Fprintln(os.Stderr, "TODO: not a main package")
-		os.Exit(12)
-	}
-
-	modDir, noCacheFile := findGoModDir(srcDir)
-	conf := &cl.Config{
-		Dir: modDir, TargetDir: srcDir, Fset: fset, CacheLoadPkgs: true, PersistLoadPkgs: !noCacheFile}
-	out, err := cl.NewPackage("", mainPkg, conf)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(11)
-	}
-	err = saveGoFile(gofile, out)
-	if err != nil {
-		log.Fatalln("saveGoFile failed:", err)
-	}
-	conf.PkgsLoader.Save()
-	goRun(gofile, args)
-	if *flagProf {
-		panic("TODO: profile not impl")
 	}
 }
 
@@ -183,68 +92,32 @@ func IsDir(target string) (bool, error) {
 	return fi.IsDir(), nil
 }
 
-func goRun(target string, args []string) {
+func runFile(ctx *gossa.Context, target string, src interface{}, args []string) {
 	dir, file := filepath.Split(target)
 	os.Chdir(dir)
-	err := gossa.Run(file, args, 0)
+	exitCode, err := ctx.RunFile(file, src, args)
 	if err != nil {
-		os.Exit(2)
+		log.Println(err)
 	}
+	os.Exit(exitCode)
 }
 
-func runGoPkg(src string, args []string, doRun bool) {
-	modfile, noCacheFile, err := findGoModFile(src)
+func runDir(ctx *gossa.Context, dir string, args []string) {
+	os.Chdir(dir)
+	exitCode, err := ctx.Run(dir, args)
 	if err != nil {
-		log.Fatalln("findGoModFile:", err)
+		log.Println(err)
 	}
-	base := filepath.Dir(modfile)
-	rel, _ := filepath.Rel(base, src)
-	modPath, err := cl.GetModulePath(modfile)
-	if err != nil {
-		log.Fatalln("GetModulePath:", err)
-	}
-	pkgPath := filepath.Join(modPath, rel)
-	const (
-		loadTypes = packages.NeedImports | packages.NeedDeps | packages.NeedTypes
-		loadModes = loadTypes | packages.NeedName | packages.NeedModule
-	)
-	baseConf := &cl.Config{
-		Fset:            token.NewFileSet(),
-		GenGoPkg:        new(gengo.Runner).GenGoPkg,
-		CacheLoadPkgs:   true,
-		PersistLoadPkgs: !noCacheFile,
-		NoFileLine:      true,
-	}
-	loadConf := &packages.Config{Mode: loadModes, Fset: baseConf.Fset}
-	pkgs, err := baseConf.Ensure().PkgsLoader.Load(loadConf, pkgPath)
-	if err != nil || len(pkgs) == 0 {
-		log.Fatalln("PkgsLoader.Load failed:", err)
-	}
-	if pkgs[0].Name != "main" {
-		fmt.Fprintln(os.Stderr, "TODO: not a main package")
-		os.Exit(12)
-	}
-	baseConf.PkgsLoader.Save()
-	if doRun {
-		goRun(src+"/.", args)
-	}
+	os.Exit(exitCode)
 }
 
-func runGoFile(src string, args []string) {
-	goRun(src, args)
-}
-
-func hasMultiFiles(srcDir string, ext string) bool {
-	var has bool
+func containsExt(srcDir string, ext string) bool {
 	if f, err := os.Open(srcDir); err == nil {
 		defer f.Close()
 		fis, _ := f.Readdir(-1)
 		for _, fi := range fis {
 			if !fi.IsDir() && filepath.Ext(fi.Name()) == ext {
-				if has {
-					return true
-				}
-				has = true
+				return true
 			}
 		}
 	}

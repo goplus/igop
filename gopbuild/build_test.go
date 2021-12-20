@@ -2,7 +2,6 @@ package gopbuild
 
 import (
 	"fmt"
-	"go/token"
 	"testing"
 
 	"github.com/goplus/gossa"
@@ -21,8 +20,7 @@ func main() {
 
 func TestGop(t *testing.T) {
 	ctx := gossa.NewContext(0)
-	fset := token.NewFileSet()
-	data, err := BuildFile(ctx, fset, "main.gop", test_gop)
+	data, err := BuildFile(ctx, "main.gop", test_gop)
 	if err != nil {
 		t.Fatalf("build gop error: %v", err)
 	}
@@ -54,8 +52,7 @@ func main() {
 
 func TestBig(t *testing.T) {
 	ctx := gossa.NewContext(0)
-	fset := token.NewFileSet()
-	data, err := BuildFile(ctx, fset, "main.gop", test_big)
+	data, err := BuildFile(ctx, "main.gop", test_big)
 	if err != nil {
 		t.Fatalf("build gop error: %v", err)
 	}

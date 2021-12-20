@@ -188,7 +188,7 @@ func (c *Context) RunFile(filename string, src interface{}, args []string) (exit
 	return c.RunPkg(pkg, filename, args)
 }
 
-func (c *Context) Run(path string, args []string, mode Mode) (exitCode int, err error) {
+func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
@@ -282,7 +282,7 @@ func RunFile(filename string, src interface{}, args []string, mode Mode) (exitCo
 func Run(path string, args []string, mode Mode) (exitCode int, err error) {
 	reflectx.Reset()
 	ctx := NewContext(mode)
-	return ctx.Run(path, args, mode)
+	return ctx.Run(path, args)
 }
 
 func RunTest(path string, args []string, mode Mode) error {

@@ -59,13 +59,11 @@ var Gossa = &Command{
 // LongName returns the command's long name: all the words in the usage line between "gop" and a flag or argument,
 func (c *Command) LongName() string {
 	name := c.UsageLine
-	if i := strings.Index(name, " ["); i >= 0 {
+	name = strings.TrimPrefix(name, "gossa ")
+	if i := strings.Index(name, " "); i >= 0 {
 		name = name[:i]
 	}
-	if name == "gossa" {
-		return ""
-	}
-	return strings.TrimPrefix(name, "gossa ")
+	return name
 }
 
 // Name returns the command's short name: the last word in the usage line before a flag or argument.
