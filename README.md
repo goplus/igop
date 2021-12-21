@@ -27,7 +27,7 @@ package main
 
 import (
 	"github.com/goplus/gossa"
-	_ "github.com/goplus/gossa/pkg"
+	_ "github.com/goplus/gossa/pkg/fmt"
 )
 
 var source = `
@@ -56,7 +56,7 @@ package main
 import (
 	"github.com/goplus/gossa"
 	_ "github.com/goplus/gossa/gopbuild"
-	_ "github.com/goplus/gossa/pkg"
+	_ "github.com/goplus/gossa/pkg/fmt"
 )
 
 var source = `
