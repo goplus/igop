@@ -46,6 +46,7 @@ package gossa
 
 import (
 	"fmt"
+	"go/constant"
 	"go/token"
 	"go/types"
 	"log"
@@ -1274,6 +1275,55 @@ func (i *Interp) Run(entry string) (exitCode int, err error) {
 		exitCode = 1
 	}
 	return
+}
+
+func (i *Interp) GetFunc(key string) (interface{}, bool) {
+	m, ok := i.mainpkg.Members[key]
+	if !ok {
+		return nil, false
+	}
+	fn, ok := m.(*ssa.Function)
+	if !ok {
+		return nil, false
+	}
+	return i.toFunc(nil, i.toType(fn.Type()), fn).Interface(), true
+}
+
+func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
+	m, ok := i.mainpkg.Members[key]
+	if !ok {
+		return nil, false
+	}
+	v, ok := m.(*ssa.Global)
+	if !ok {
+		return nil, false
+	}
+	p, ok := i.globals[v]
+	return p, ok
+}
+
+func (i *Interp) GetConst(key string) (constant.Value, bool) {
+	m, ok := i.mainpkg.Members[key]
+	if !ok {
+		return nil, false
+	}
+	v, ok := m.(*ssa.NamedConst)
+	if !ok {
+		return nil, false
+	}
+	return v.Value.Value, true
+}
+
+func (i *Interp) GetType(key string) (reflect.Type, bool) {
+	m, ok := i.mainpkg.Members[key]
+	if !ok {
+		return nil, false
+	}
+	t, ok := m.(*ssa.Type)
+	if !ok {
+		return nil, false
+	}
+	return i.toType(t.Type()), true
 }
 
 // deref returns a pointer's element type; otherwise it returns typ.
