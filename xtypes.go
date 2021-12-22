@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"log"
 	"reflect"
 	"strconv"
 	"unsafe"
@@ -353,7 +354,7 @@ func isPointer(typ types.Type) bool {
 	return ok
 }
 
-func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) error {
+func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) {
 	numMethods := len(methods)
 	var ms []reflectx.Method
 	for i := 0; i < numMethods; i++ {
@@ -387,7 +388,10 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) e
 		}
 		ms = append(ms, reflectx.MakeMethod(fn.Name(), pkgpath, pointer, mtyp, mfn))
 	}
-	return reflectx.SetMethodSet(typ, ms, false)
+	err := reflectx.SetMethodSet(typ, ms, false)
+	if err != nil {
+		log.Fatalf("SetMethodSet %v err, %v\n", typ, err)
+	}
 }
 
 func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
