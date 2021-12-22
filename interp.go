@@ -184,20 +184,6 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	return nil
 }
 
-func ptrCount(s string) (string, int) {
-	for i, v := range s {
-		if v != '*' {
-			return s[i:], i
-		}
-	}
-	panic("failed ptrCount " + s)
-}
-
-func isUntyped(typ types.Type) bool {
-	t, ok := typ.Underlying().(*types.Basic)
-	return ok && t.Info()&types.IsUntyped != 0
-}
-
 func (i *Interp) toType(typ types.Type) reflect.Type {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
@@ -405,8 +391,8 @@ func hasUnderscore(st *types.Struct) bool {
 // visitInstr interprets a single ssa.Instruction within the activation
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
-func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
-	if fr.i.mode&EnableDumpInstr != 0 {
+func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
+	if i.mode&EnableDumpInstr != 0 {
 		log.Printf("Instr %T %+v\n", instr, instr)
 	}
 	switch instr := instr.(type) {
@@ -431,20 +417,20 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 
 	case *ssa.Call:
 		return func() {
-			fn, args := prepareCall(fr, &instr.Call)
-			fr.env[instr] = call(fr.i, fr, instr.Pos(), fn, args, instr.Call.Args)
+			fn, args := i.prepareCall(fr, &instr.Call)
+			fr.env[instr] = call(i, fr, instr.Pos(), fn, args, instr.Call.Args)
 		}, kNext
 
 	case *ssa.ChangeInterface:
 		fr.env[instr] = fr.get(instr.X)
 
 	case *ssa.ChangeType:
-		typ := fr.i.toType(instr.Type())
+		typ := i.toType(instr.Type())
 		x := fr.get(instr.X)
 		var v reflect.Value
 		switch f := x.(type) {
 		case *ssa.Function:
-			v = fr.toFunc(fr.i.toType(f.Type()), f)
+			v = fr.toFunc(i.toType(f.Type()), f)
 		default:
 			v = reflect.ValueOf(x)
 		}
@@ -456,15 +442,15 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		//fr.env[instr] = fr.get(instr.X)
 
 	case *ssa.Convert:
-		typ := fr.i.toType(instr.Type())
+		typ := i.toType(instr.Type())
 		x := fr.get(instr.X)
 		fr.env[instr] = convert(x, typ)
-		//fr.env[instr] = conv(fr.i, instr.Type(), instr.X.Type(), fr.get(instr.X))
+		//fr.env[instr] = conv(i, instr.Type(), instr.X.Type(), fr.get(instr.X))
 
 	case *ssa.MakeInterface:
-		typ := fr.i.toType(instr.Type())
-		i := reflect.New(typ).Elem()
-		xtyp := fr.i.toType(instr.X.Type())
+		typ := i.toType(instr.Type())
+		v := reflect.New(typ).Elem()
+		xtyp := i.toType(instr.X.Type())
 		x := fr.get(instr.X)
 		var vx reflect.Value
 		switch x.(type) {
@@ -478,8 +464,8 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 				vx = reflect.ValueOf(convert(x, xtyp))
 			}
 		}
-		SetValue(i, vx)
-		fr.env[instr] = i.Interface()
+		SetValue(v, vx)
+		fr.env[instr] = v.Interface()
 		//fr.env[instr] = iface{t: instr.X.Type(), v: fr.get(instr.X)}
 
 	case *ssa.Extract:
@@ -533,7 +519,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		val := fr.get(instr.Val)
 		switch fn := val.(type) {
 		case *ssa.Function:
-			f := fr.toFunc(fr.i.toType(fn.Type()), fn)
+			f := fr.toFunc(i.toType(fn.Type()), fn)
 			SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
@@ -558,7 +544,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		return nil, kJump
 
 	case *ssa.Defer:
-		fn, args := prepareCall(fr, &instr.Call)
+		fn, args := i.prepareCall(fr, &instr.Call)
 		fr.defers = &deferred{
 			fn:      fn,
 			args:    args,
@@ -568,15 +554,15 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		}
 
 	case *ssa.Go:
-		fn, args := prepareCall(fr, &instr.Call)
-		atomic.AddInt32(&fr.i.goroutines, 1)
+		fn, args := i.prepareCall(fr, &instr.Call)
+		atomic.AddInt32(&i.goroutines, 1)
 		go func() {
-			call(fr.i, nil, instr.Pos(), fn, args, instr.Call.Args)
-			atomic.AddInt32(&fr.i.goroutines, -1)
+			call(i, nil, instr.Pos(), fn, args, instr.Call.Args)
+			atomic.AddInt32(&i.goroutines, -1)
 		}()
 
 	case *ssa.MakeChan:
-		typ := fr.i.toType(instr.Type())
+		typ := i.toType(instr.Type())
 		size := fr.get(instr.Size)
 		buffer := asInt(size)
 		if buffer < 0 {
@@ -586,7 +572,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		//fr.env[instr] = make(chan value, asInt(fr.get(instr.Size)))
 
 	case *ssa.Alloc:
-		typ := fr.i.toType(instr.Type()).Elem() //deref(instr.Type()))
+		typ := i.toType(instr.Type()).Elem() //deref(instr.Type()))
 		//var addr *value
 		if instr.Heap {
 			// new
@@ -604,7 +590,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		//*addr = zero(deref(instr.Type()))
 
 	case *ssa.MakeSlice:
-		typ := fr.i.toType(instr.Type())
+		typ := i.toType(instr.Type())
 		Len := asInt(fr.get(instr.Len))
 		if Len < 0 || Len >= maxMemLen {
 			panic(runtimeError("makeslice: len out of range"))
@@ -631,7 +617,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		if st, ok := key.Underlying().(*types.Struct); ok && hasUnderscore(st) {
 			fr.mapUnderscoreKey[typ] = true
 		}
-		fr.env[instr] = reflect.MakeMapWithSize(fr.i.toType(typ), reserve).Interface()
+		fr.env[instr] = reflect.MakeMapWithSize(i.toType(typ), reserve).Interface()
 		//fr.env[instr] = makeMap(instr.Type().Underlying().(*types.Map).Key(), reserve)
 
 	case *ssa.Range:
@@ -730,7 +716,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		vk := reflect.ValueOf(fr.get(instr.Key))
 		v := fr.get(instr.Value)
 		if fn, ok := v.(*ssa.Function); ok {
-			typ := fr.i.toType(fn.Type())
+			typ := i.toType(fn.Type())
 			v = fr.toFunc(typ, fn).Interface()
 		}
 		if fr.mapUnderscoreKey[instr.Map.Type()] {
@@ -746,10 +732,10 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 	case *ssa.TypeAssert:
 		v := fr.get(instr.X)
 		if fn, ok := v.(*ssa.Function); ok {
-			typ := fr.i.toType(fn.Type())
+			typ := i.toType(fn.Type())
 			v = fr.toFunc(typ, fn).Interface()
 		}
-		fr.env[instr] = typeAssert(fr.i, instr, v)
+		fr.env[instr] = typeAssert(i, instr, v)
 
 	case *ssa.MakeClosure:
 		var bindings []value
@@ -758,7 +744,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		}
 		//fr.env[instr] = &closure{instr.Fn.(*ssa.Function), bindings}
 		c := &closure{instr.Fn.(*ssa.Function), bindings}
-		typ := fr.i.toType(c.Fn.Type())
+		typ := i.toType(c.Fn.Type())
 		fr.env[instr] = fr.toFunc(typ, c).Interface()
 
 	case *ssa.Phi:
@@ -804,14 +790,14 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 			chosen-- // default case should have index -1.
 		}
 		r := tuple{chosen, recvOk}
-		for i, st := range instr.States {
+		for n, st := range instr.States {
 			if st.Dir == types.RecvOnly {
 				var v value
-				if i == chosen && recvOk {
+				if n == chosen && recvOk {
 					// No need to copy since send makes an unaliased copy.
 					v = recv.Interface()
 				} else {
-					typ := fr.i.toType(st.Chan.Type())
+					typ := i.toType(st.Chan.Type())
 					v = reflect.New(typ.Elem()).Elem().Interface()
 					//v = zero(st.Chan.Type().Underlying().(*types.Chan).Elem())
 				}
@@ -820,7 +806,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 		}
 		fr.env[instr] = r
 	case *ssa.SliceToArrayPointer:
-		typ := fr.i.toType(instr.Type())
+		typ := i.toType(instr.Type())
 		x := fr.get(instr.X)
 		v := reflect.ValueOf(x)
 		vLen := v.Len()
@@ -844,7 +830,7 @@ func visitInstr(fr *frame, instr ssa.Instruction) (func(), continuation) {
 // function call in a Call, Go or Defer instruction, performing
 // interface method lookup if needed.
 //
-func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
+func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 	v := fr.get(call.Value)
 	if call.Method == nil {
 		// Function call.
@@ -854,9 +840,9 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 		//vt, ok := call.Value.(*ssa.MakeInterface)
 		// recv := v.(iface)
 		rv := reflect.ValueOf(v)
-		t, ok := fr.i.findType(rv.Type(), true)
+		t, ok := i.findType(rv.Type(), true)
 		if ok {
-			if f := lookupMethod(fr.i, t, call.Method); f == nil {
+			if f := lookupMethod(i, t, call.Method); f == nil {
 				// Unreachable in well-typed programs.
 				panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
 			} else {
@@ -885,7 +871,7 @@ func prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
 	for _, arg := range call.Args {
 		v := fr.get(arg)
 		if fn, ok := v.(*ssa.Function); ok {
-			v = fr.toFunc(fr.i.toType(fn.Type()), fn).Interface()
+			v = fr.toFunc(i.toType(fn.Type()), fn).Interface()
 		}
 		args = append(args, v)
 	}
@@ -1003,7 +989,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 	fr.locals = make(map[ssa.Value]reflect.Value)
 	fr.mapUnderscoreKey = make(map[types.Type]bool)
 	for _, l := range fn.Locals {
-		typ := fr.i.toType(deref(l.Type()))
+		typ := i.toType(deref(l.Type()))
 		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
 		fr.env[l] = reflect.New(typ).Interface() //&fr.locals[i]
 	}
@@ -1014,7 +1000,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 		fr.env[fv] = env[i]
 	}
 	for fr.block != nil {
-		runFrame(fr)
+		i.runFrame(fr)
 	}
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
@@ -1082,17 +1068,17 @@ func callReflect(i *Interp, caller *frame, callpos token.Pos, fn reflect.Value, 
 // undefined and fr.block contains the block at which to resume
 // control.
 //
-func runFrame(fr *frame) {
+func (i *Interp) runFrame(fr *frame) {
 	defer func() {
 		if fr.block == nil {
 			return // normal return
 		}
-		if fr.i.mode&DisableRecover != 0 {
+		if i.mode&DisableRecover != 0 {
 			return // let interpreter crash
 		}
 		fr.panicking = true
 		fr.panic = recover()
-		if fr.i.mode&EnableTracing != 0 {
+		if i.mode&EnableTracing != 0 {
 			log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
 		}
 		fr.runDefers()
@@ -1100,19 +1086,19 @@ func runFrame(fr *frame) {
 	}()
 
 	for {
-		if fr.i.mode&EnableTracing != 0 {
+		if i.mode&EnableTracing != 0 {
 			log.Printf(".%s:\n", fr.block)
 		}
 	block:
 		for _, instr := range fr.block.Instrs {
-			if fr.i.mode&EnableTracing != 0 {
+			if i.mode&EnableTracing != 0 {
 				if v, ok := instr.(ssa.Value); ok {
 					log.Println("\t", v.Name(), "=", instr)
 				} else {
 					log.Println("\t", instr)
 				}
 			}
-			fn, cond := visitInstr(fr, instr)
+			fn, cond := i.visitInstr(fr, instr)
 			if fn != nil {
 				fn()
 			}
