@@ -190,10 +190,6 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 	return i.record.ToType(typ)
 }
 
-func (fr *frame) toFunc(typ reflect.Type, fn value) reflect.Value {
-	return fr.i.toFunc(fr, typ, fn)
-}
-
 func (i *Interp) toFunc(fr *frame, typ reflect.Type, fn value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		iargs := make([]value, len(args))
@@ -430,7 +426,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		var v reflect.Value
 		switch f := x.(type) {
 		case *ssa.Function:
-			v = fr.toFunc(i.toType(f.Type()), f)
+			v = i.toFunc(fr, i.toType(f.Type()), f)
 		default:
 			v = reflect.ValueOf(x)
 		}
@@ -455,7 +451,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		var vx reflect.Value
 		switch x.(type) {
 		case *ssa.Function:
-			vx = fr.toFunc(xtyp, x)
+			vx = i.toFunc(fr, xtyp, x)
 		case nil:
 			vx = reflect.New(xtyp).Elem()
 		default:
@@ -519,7 +515,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		val := fr.get(instr.Val)
 		switch fn := val.(type) {
 		case *ssa.Function:
-			f := fr.toFunc(i.toType(fn.Type()), fn)
+			f := i.toFunc(fr, i.toType(fn.Type()), fn)
 			SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
@@ -717,7 +713,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		v := fr.get(instr.Value)
 		if fn, ok := v.(*ssa.Function); ok {
 			typ := i.toType(fn.Type())
-			v = fr.toFunc(typ, fn).Interface()
+			v = i.toFunc(fr, typ, fn).Interface()
 		}
 		if fr.mapUnderscoreKey[instr.Map.Type()] {
 			for _, vv := range vm.MapKeys() {
@@ -733,7 +729,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		v := fr.get(instr.X)
 		if fn, ok := v.(*ssa.Function); ok {
 			typ := i.toType(fn.Type())
-			v = fr.toFunc(typ, fn).Interface()
+			v = i.toFunc(fr, typ, fn).Interface()
 		}
 		fr.env[instr] = typeAssert(i, instr, v)
 
@@ -745,7 +741,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		//fr.env[instr] = &closure{instr.Fn.(*ssa.Function), bindings}
 		c := &closure{instr.Fn.(*ssa.Function), bindings}
 		typ := i.toType(c.Fn.Type())
-		fr.env[instr] = fr.toFunc(typ, c).Interface()
+		fr.env[instr] = i.toFunc(fr, typ, c).Interface()
 
 	case *ssa.Phi:
 		for i, pred := range instr.Block().Preds {
@@ -871,7 +867,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 	for _, arg := range call.Args {
 		v := fr.get(arg)
 		if fn, ok := v.(*ssa.Function); ok {
-			v = fr.toFunc(i.toType(fn.Type()), fn).Interface()
+			v = i.toFunc(fr, i.toType(fn.Type()), fn).Interface()
 		}
 		args = append(args, v)
 	}
