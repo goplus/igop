@@ -99,6 +99,7 @@ func (e runtimeError) Error() string {
 
 // State shared between all interpreted goroutines.
 type Interp struct {
+	fset        *token.FileSet
 	prog        *ssa.Program        // the SSA program
 	mainpkg     *ssa.Package        // the SSA main package
 	globals     map[ssa.Value]value // addresses of global variables (immutable)
@@ -111,6 +112,11 @@ type Interp struct {
 	record      *TypesRecord
 	typesMutex  sync.RWMutex
 	callerMutex sync.RWMutex
+	fnDebug     func(*DebugInfo)
+}
+
+func (i *Interp) setDebug(fn func(*DebugInfo)) {
+	i.fnDebug = fn
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -384,6 +390,25 @@ func hasUnderscore(st *types.Struct) bool {
 	return false
 }
 
+type DebugInfo struct {
+	*ssa.DebugRef
+	fset    *token.FileSet
+	toValue func() (*types.Var, interface{}, bool) // var object value
+}
+
+func (i *DebugInfo) Position() token.Position {
+	return i.fset.Position(i.Pos())
+}
+
+func (i *DebugInfo) AsVar() (*types.Var, interface{}, bool) {
+	return i.toValue()
+}
+
+func (i *DebugInfo) AsFunc() (*types.Func, bool) {
+	v, ok := i.Object().(*types.Func)
+	return v, ok
+}
+
 // visitInstr interprets a single ssa.Instruction within the activation
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
@@ -394,6 +419,16 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 	switch instr := instr.(type) {
 	case *ssa.DebugRef:
 		// no-op
+		if i.fnDebug != nil {
+			ref := &DebugInfo{DebugRef: instr, fset: i.fset}
+			ref.toValue = func() (*types.Var, interface{}, bool) {
+				if v, ok := instr.Object().(*types.Var); ok {
+					return v, fr.get(instr.X), true
+				}
+				return nil, nil, false
+			}
+			i.fnDebug(ref)
+		}
 	case *ssa.UnOp:
 		fr.env[instr] = unop(instr, fr.get(instr.X))
 
@@ -1168,6 +1203,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 
 func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) {
 	i := &Interp{
+		fset:       mainpkg.Prog.Fset,
 		prog:       mainpkg.Prog,
 		mainpkg:    mainpkg,
 		globals:    make(map[ssa.Value]value),
