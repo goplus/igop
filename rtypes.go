@@ -98,12 +98,17 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	}
 	p := types.NewPackage(pkg.Path, pkg.Name)
 	r.packages[path] = p
+	var list []*types.Package
 	for dep, _ := range pkg.Deps {
-		r.Import(dep)
+		p, err := r.Import(dep)
+		if err == nil {
+			list = append(list, p)
+		}
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
 	}
+	p.SetImports(list)
 	p.MarkComplete()
 	return p, nil
 }
