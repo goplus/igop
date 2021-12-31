@@ -53,6 +53,7 @@ type Context struct {
 	BuilderMode ssa.BuilderMode // ssa builder mode
 	External    types.Importer  // external import
 	Sizes       types.Sizes
+	DebugFunc   func(*DebugInfo)
 }
 
 func NewContext(mode Mode) *Context {
@@ -63,6 +64,11 @@ func NewContext(mode Mode) *Context {
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 	}
 	return ctx
+}
+
+func (c *Context) SetDebug(fn func(*DebugInfo)) {
+	c.BuilderMode |= ssa.GlobalDebug
+	c.DebugFunc = fn
 }
 
 func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package, first error) {
@@ -139,7 +145,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exi
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	interp, err := NewInterp(c.Loader, mainPkg, c.Mode)
+	interp, err := c.NewInterp(mainPkg)
 	if err != nil {
 		return 2, err
 	}
@@ -147,7 +153,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exi
 }
 
 func (c *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (ret Value, err error) {
-	interp, err := NewInterp(c.Loader, mainPkg, c.Mode)
+	interp, err := c.NewInterp(mainPkg)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +161,9 @@ func (c *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (r
 }
 
 func (c *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
-	return NewInterp(c.Loader, mainPkg, c.Mode)
+	r, err := NewInterp(c.Loader, mainPkg, c.Mode)
+	r.setDebug(c.DebugFunc)
+	return r, err
 }
 
 func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) error {
