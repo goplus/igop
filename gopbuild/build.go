@@ -22,8 +22,18 @@ import (
 	_ "github.com/goplus/gossa/pkg/strings"
 )
 
+var (
+	classfile = make(map[string]*cl.Class)
+)
+
 func RegisterClassFileType(extGmx, extSpx string, pkgPaths ...string) {
-	cl.RegisterClassFileType(extGmx, extSpx, pkgPaths...)
+	//cl.RegisterClassFileType(extGmx, extSpx, pkgPaths...)
+	cls := &cl.Class{
+		ProjExt:  extGmx,
+		WorkExt:  extSpx,
+		PkgPaths: pkgPaths,
+	}
+	classfile[extGmx] = cls
 }
 
 func init() {
@@ -80,15 +90,23 @@ func (p *Package) ToAst() *goast.File {
 }
 
 type Context struct {
-	ctx *gossa.Context
+	ctx  *gossa.Context
+	conf *parser.Config
 }
 
 func NewContext(ctx *gossa.Context) *Context {
-	return &Context{ctx}
+	return &Context{ctx: ctx, conf: &parser.Config{
+		IsClass: func(ext string) (isProj bool, ok bool) {
+			if cls, ok := classfile[ext]; ok {
+				return ext == cls.ProjExt, true
+			}
+			return
+		},
+	}}
 }
 
 func (c *Context) ParseDir(fset *token.FileSet, dir string) (*Package, error) {
-	pkgs, err := parser.ParseDir(fset, dir, nil, 0)
+	pkgs, err := parser.ParseDirEx(fset, dir, *c.conf)
 	if err != nil {
 		return nil, err
 	}
@@ -125,43 +143,13 @@ func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[strin
 		return nil, fmt.Errorf("not a main package")
 	}
 	conf := &cl.Config{
-		Dir: srcDir, TargetDir: srcDir, Fset: fset, CacheLoadPkgs: false, PersistLoadPkgs: false}
-	var loaderror error
-	conf.PkgsLoader = &cl.PkgsLoader{}
-	loaded := make(map[string]bool)
-	var load func(at *gox.Package, imports map[string]*gox.PkgRef, pkg *packages.Package)
-	load = func(at *gox.Package, imports map[string]*gox.PkgRef, pkg *packages.Package) {
-		if loaded[pkg.PkgPath] {
-			return
-		}
-		for _, dep := range pkg.Imports {
-			load(at, imports, dep)
-		}
-		if !pkg.Types.Complete() {
-			//return
-		}
-		loaded[pkg.PkgPath] = true
-		gox.LoadGoPkg(at, imports, pkg)
-	}
-	conf.PkgsLoader.LoadPkgs = func(at *gox.Package, imports map[string]*gox.PkgRef, pkgPaths ...string) int {
-		var pkgs []*packages.Package
-		for _, path := range pkgPaths {
-			p, err := c.ctx.Loader.Import(path)
-			if err != nil {
-				loaderror = err
-				continue
-			}
-			pkgs = append(pkgs, typesToPackage(p))
-		}
-		for _, pkg := range pkgs {
-			load(at, imports, pkg)
-		}
-		return 0
+		WorkingDir: srcDir, TargetDir: srcDir, Fset: fset}
+	conf.Importer = c.ctx.Loader
+	conf.LookupClass = func(ext string) (c *cl.Class, ok bool) {
+		c, ok = classfile[ext]
+		return
 	}
 	out, err := cl.NewPackage("", mainPkg, conf)
-	if loaderror != nil {
-		return nil, loaderror
-	}
 	if err != nil {
 		return nil, err
 	}

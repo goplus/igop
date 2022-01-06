@@ -3,8 +3,8 @@ module github.com/goplus/gossa
 go 1.16
 
 require (
-	github.com/goplus/gop v1.0.38
-	github.com/goplus/gox v1.8.7
+	github.com/goplus/gop v1.1.0-alpha2
+	github.com/goplus/gox v1.9.4
 	github.com/goplus/reflectx v0.7.3
 	golang.org/x/tools v0.1.8
 )
