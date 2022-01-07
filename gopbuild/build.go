@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	goast "go/ast"
-	"go/types"
 	"path/filepath"
 
 	"github.com/goplus/gop/ast"
@@ -13,7 +12,6 @@ import (
 	"github.com/goplus/gop/token"
 	"github.com/goplus/gossa"
 	"github.com/goplus/gox"
-	"golang.org/x/tools/go/packages"
 
 	_ "github.com/goplus/gossa/pkg/fmt"
 	_ "github.com/goplus/gossa/pkg/github.com/goplus/gop/builtin"
@@ -27,7 +25,6 @@ var (
 )
 
 func RegisterClassFileType(extGmx, extSpx string, pkgPaths ...string) {
-	//cl.RegisterClassFileType(extGmx, extSpx, pkgPaths...)
 	cls := &cl.Class{
 		ProjExt:  extGmx,
 		WorkExt:  extSpx,
@@ -90,23 +87,24 @@ func (p *Package) ToAst() *goast.File {
 }
 
 type Context struct {
-	ctx  *gossa.Context
-	conf *parser.Config
+	ctx *gossa.Context
+}
+
+func IsClass(ext string) (isProj bool, ok bool) {
+	if cls, ok := classfile[ext]; ok {
+		return ext == cls.ProjExt, true
+	}
+	return
 }
 
 func NewContext(ctx *gossa.Context) *Context {
-	return &Context{ctx: ctx, conf: &parser.Config{
-		IsClass: func(ext string) (isProj bool, ok bool) {
-			if cls, ok := classfile[ext]; ok {
-				return ext == cls.ProjExt, true
-			}
-			return
-		},
-	}}
+	return &Context{ctx: ctx}
 }
 
 func (c *Context) ParseDir(fset *token.FileSet, dir string) (*Package, error) {
-	pkgs, err := parser.ParseDirEx(fset, dir, *c.conf)
+	pkgs, err := parser.ParseDirEx(fset, dir, parser.Config{
+		IsClass: IsClass,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -115,26 +113,21 @@ func (c *Context) ParseDir(fset *token.FileSet, dir string) (*Package, error) {
 
 func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{}) (*Package, error) {
 	srcDir, _ := filepath.Split(filename)
-	pkgs, err := parser.Parse(fset, filename, src, 0)
+	f, err := parser.ParseFile(fset, filename, src, 0)
 	if err != nil {
 		return nil, err
 	}
+	f.IsProj, f.IsClass = IsClass(filepath.Ext(filename))
+	name := f.Name.Name
+	pkgs := map[string]*ast.Package{
+		name: &ast.Package{
+			Name: name,
+			Files: map[string]*ast.File{
+				filename: f,
+			},
+		},
+	}
 	return c.loadPackage(srcDir, fset, pkgs)
-}
-
-func typesToPackage(p *types.Package) *packages.Package {
-	imports := make(map[string]*packages.Package)
-	for _, dep := range p.Imports() {
-		imports[dep.Path()] = typesToPackage(dep)
-	}
-	pkg := &packages.Package{
-		ID:      p.Path(),
-		Name:    p.Name(),
-		PkgPath: p.Path(),
-		Types:   p,
-		Imports: imports,
-	}
-	return pkg
 }
 
 func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[string]*ast.Package) (*Package, error) {
