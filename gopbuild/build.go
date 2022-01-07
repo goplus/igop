@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	goast "go/ast"
+	"go/types"
 	"path/filepath"
 
 	"github.com/goplus/gop/ast"
@@ -91,6 +92,7 @@ func (p *Package) ToAst() *goast.File {
 
 type Context struct {
 	ctx *gossa.Context
+	gop *gossa.Context
 }
 
 func IsClass(ext string) (isProj bool, ok bool) {
@@ -101,7 +103,21 @@ func IsClass(ext string) (isProj bool, ok bool) {
 }
 
 func NewContext(ctx *gossa.Context) *Context {
-	return &Context{ctx: ctx}
+	return &Context{ctx: ctx, gop: gossa.NewContext(0)}
+}
+
+func (c *Context) Import(path string) (*types.Package, error) {
+	if c.ctx == nil {
+		return c.gop.Loader.Import(path)
+	}
+	for _, cls := range classfile {
+		for _, pkg := range cls.PkgPaths {
+			if pkg == path {
+				return c.gop.Loader.Import(path)
+			}
+		}
+	}
+	return c.ctx.Loader.Import(path)
 }
 
 func (c *Context) ParseDir(fset *token.FileSet, dir string) (*Package, error) {
@@ -140,7 +156,7 @@ func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[strin
 	}
 	conf := &cl.Config{
 		WorkingDir: srcDir, TargetDir: srcDir, Fset: fset}
-	conf.Importer = c.ctx.Loader
+	conf.Importer = c
 	conf.LookupClass = func(ext string) (c *cl.Class, ok bool) {
 		c, ok = classfile[ext]
 		return
