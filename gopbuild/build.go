@@ -24,13 +24,16 @@ var (
 	classfile = make(map[string]*cl.Class)
 )
 
-func RegisterClassFileType(extGmx, extSpx string, pkgPaths ...string) {
+func RegisterClassFileType(projExt, workExt string, pkgPaths ...string) {
 	cls := &cl.Class{
-		ProjExt:  extGmx,
-		WorkExt:  extSpx,
+		ProjExt:  projExt,
+		WorkExt:  workExt,
 		PkgPaths: pkgPaths,
 	}
-	classfile[extGmx] = cls
+	classfile[projExt] = cls
+	if workExt != "" {
+		classfile[workExt] = cls
+	}
 }
 
 func init() {
