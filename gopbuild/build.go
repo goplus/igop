@@ -39,6 +39,7 @@ func RegisterClassFileType(projExt, workExt string, pkgPaths ...string) {
 
 func init() {
 	gossa.RegisterFileProcess(".gop", BuildFile)
+	RegisterClassFileType(".gmx", ".spx", "github.com/goplus/spx", "math")
 }
 
 func BuildFile(ctx *gossa.Context, filename string, src interface{}) (data []byte, err error) {
@@ -92,7 +93,7 @@ func (p *Package) ToAst() *goast.File {
 
 type Context struct {
 	ctx *gossa.Context
-	gop *gossa.Context
+	gop gossa.Loader
 }
 
 func IsClass(ext string) (isProj bool, ok bool) {
@@ -103,19 +104,21 @@ func IsClass(ext string) (isProj bool, ok bool) {
 }
 
 func NewContext(ctx *gossa.Context) *Context {
-	return &Context{ctx: ctx, gop: gossa.NewContext(0)}
+	return &Context{ctx: ctx, gop: gossa.NewTypesLoader(0)}
+}
+
+func isGopPackage(path string) bool {
+	if pkg, ok := gossa.LookupPackage(path); ok {
+		if _, ok := pkg.UntypedConsts["GopPackage"]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Context) Import(path string) (*types.Package, error) {
-	if c.ctx == nil {
-		return c.gop.Loader.Import(path)
-	}
-	for _, cls := range classfile {
-		for _, pkg := range cls.PkgPaths {
-			if pkg == path {
-				return c.gop.Loader.Import(path)
-			}
-		}
+	if isGopPackage(path) {
+		return c.gop.Import(path)
 	}
 	return c.ctx.Loader.Import(path)
 }
