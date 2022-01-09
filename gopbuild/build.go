@@ -58,6 +58,22 @@ func BuildFile(ctx *gossa.Context, filename string, src interface{}) (data []byt
 	return pkg.ToSource()
 }
 
+func BuildFSDir(ctx *gossa.Context, fs parser.FileSystem, dir string) (data []byte, err error) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			err = fmt.Errorf("compile %v failed. %v", dir, err)
+		}
+	}()
+	c := NewContext(ctx)
+	fset := token.NewFileSet()
+	pkg, err := c.ParseFSDir(fset, fs, dir)
+	if err != nil {
+		return nil, err
+	}
+	return pkg.ToSource()
+}
+
 func BuildDir(ctx *gossa.Context, dir string) (data []byte, err error) {
 	defer func() {
 		r := recover()
@@ -125,6 +141,16 @@ func (c *Context) Import(path string) (*types.Package, error) {
 
 func (c *Context) ParseDir(fset *token.FileSet, dir string) (*Package, error) {
 	pkgs, err := parser.ParseDirEx(fset, dir, parser.Config{
+		IsClass: IsClass,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return c.loadPackage(dir, fset, pkgs)
+}
+
+func (c *Context) ParseFSDir(fset *token.FileSet, fs parser.FileSystem, dir string) (*Package, error) {
+	pkgs, err := parser.ParseFSDir(fset, fs, dir, parser.Config{
 		IsClass: IsClass,
 	})
 	if err != nil {
