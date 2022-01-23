@@ -191,6 +191,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	if args != nil {
 		os.Args = append(os.Args, args...)
 	}
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	if len(testPkgs) == 0 {
 		fmt.Println("testing: warning: no tests to run")
 	}

@@ -26,6 +26,7 @@ import (
 
 	"github.com/goplus/gossa"
 	"github.com/goplus/gossa/cmd/internal/base"
+	_ "github.com/goplus/gossa/pkg/testing"
 )
 
 // Cmd - gossa test
