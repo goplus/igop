@@ -34,7 +34,6 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 		Pkg                         *ssa.Package
 		Tests, Benchmarks, Examples []*ssa.Function
 		Main                        *ssa.Function
-		Go18                        bool
 	}
 	data.Pkg = pkg
 
@@ -59,7 +58,7 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	tmpl := testmainTmpl
 	if testingPkg := prog.ImportedPackage("testing"); testingPkg != nil {
 		// In Go 1.8, testing.MainStart's first argument is an interface, not a func.
-		data.Go18 = types.IsInterface(testingPkg.Func("MainStart").Signature.Params().At(0).Type())
+		// data.Go18 = types.IsInterface(testingPkg.Func("MainStart").Signature.Params().At(0).Type())
 	} else {
 		// The program does not import "testing", but FindTests
 		// returned non-nil, which must mean there were Examples
@@ -76,6 +75,7 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	if err := tmpl.Execute(&buf, data); err != nil {
 		log.Fatalf("internal error expanding template for %s: %v", path, err)
 	}
+
 	if false { // debugging
 		fmt.Fprintln(os.Stderr, buf.String())
 	}
@@ -100,7 +100,6 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	}
 	testmainPkg, err := conf.Check(path, prog.Fset, files, info)
 	if err != nil {
-		log.Println("------", err)
 		return nil, err
 	}
 
@@ -131,16 +130,17 @@ func (imp testImporter) Import(path string) (*types.Package, error) {
 var testmainTmpl = template.Must(template.New("testmain").Parse(`
 package main
 
-import "io"
-import "os"
-import "testing"
-import p {{printf "%q" .Pkg.Pkg.Path}}
+import (
+	"io"
+	"os"
+	"regexp"
+	"testing"
+	_test {{printf "%q" .Pkg.Pkg.Path}}
+)
 
-{{if .Go18}}
 type deps struct{}
 
 func (deps) ImportPath() string { return "" }
-func (deps) MatchString(pat, str string) (bool, error) { return true, nil }
 func (deps) SetPanicOnExit0(bool) {}
 func (deps) StartCPUProfile(io.Writer) error { return nil }
 func (deps) StartTestLog(io.Writer) {}
@@ -149,30 +149,42 @@ func (deps) StopTestLog() error { return nil }
 func (deps) WriteHeapProfile(io.Writer) error { return nil }
 func (deps) WriteProfileTo(string, io.Writer, int) error { return nil }
 
-var match deps
-{{else}}
-func match(_, _ string) (bool, error) { return true, nil }
+var matchPat string
+var matchRe *regexp.Regexp
+
+func (deps) MatchString(pat, str string) (result bool, err error) {
+	if matchRe == nil || matchPat != pat {
+		matchPat = pat
+		matchRe, err = regexp.Compile(matchPat)
+		if err != nil {
+			return
+		}
+	}
+	return matchRe.MatchString(str), nil
+}
+
+var tests = []testing.InternalTest{
+{{range .Tests}}
+	{ {{printf "%q" .Name}}, _test.{{.Name}} },
 {{end}}
+}
+
+var benchmarks = []testing.InternalBenchmark{
+{{range .Benchmarks}}
+	{ {{printf "%q" .Name}}, _test.{{.Name}} },
+{{end}}
+}
+
+var examples = []testing.InternalExample{
+{{range .Examples}}
+	{Name: {{printf "%q" .Name}}, F: _test.{{.Name}}},
+{{end}}
+}
 
 func main() {
-	tests := []testing.InternalTest{
-{{range .Tests}}
-		{ {{printf "%q" .Name}}, p.{{.Name}} },
-{{end}}
-	}
-	benchmarks := []testing.InternalBenchmark{
-{{range .Benchmarks}}
-		{ {{printf "%q" .Name}}, p.{{.Name}} },
-{{end}}
-	}
-	examples := []testing.InternalExample{
-{{range .Examples}}
-		{Name: {{printf "%q" .Name}}, F: p.{{.Name}}},
-{{end}}
-	}
-	m := testing.MainStart(match, tests, benchmarks, examples)
+	m := testing.MainStart(deps{}, tests, benchmarks, examples)
 {{with .Main}}
-	p.{{.Name}}(m)
+	_test.{{.Name}}(m)
 {{else}}
 	os.Exit(m.Run())
 {{end}}

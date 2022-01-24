@@ -187,14 +187,14 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 			fmt.Printf("ok\t%s %0.3fs\n", input, sec)
 		}
 	}()
+	if len(testPkgs) == 0 {
+		fmt.Println("testing: warning: no tests to run")
+	}
 	os.Args = []string{input}
 	if args != nil {
 		os.Args = append(os.Args, args...)
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	if len(testPkgs) == 0 {
-		fmt.Println("testing: warning: no tests to run")
-	}
 	for _, pkg := range testPkgs {
 		interp, _ := NewInterp(c.Loader, pkg, c.Mode)
 		exitCode, _ := interp.Run("main")
@@ -235,6 +235,8 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 
 func (c *Context) RunTest(path string, args []string) error {
 	fset := token.NewFileSet()
+	// preload regexp for create testing
+	c.Loader.Import("regexp")
 	pkgs, err := c.LoadDir(fset, path)
 	if err != nil {
 		return err
