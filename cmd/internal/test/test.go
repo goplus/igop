@@ -79,7 +79,7 @@ func runCmd(cmd *base.Command, args []string) {
 			if typ, ok := passFlagToTest[f.Name[5:]]; ok {
 				switch typ {
 				case String:
-					testArgs = append(testArgs, fmt.Sprintf("-%v=%q", f.Name, f.Value))
+					testArgs = append(testArgs, fmt.Sprintf("-%v=%v", f.Name, f.Value))
 				default:
 					testArgs = append(testArgs, fmt.Sprintf("-%v=%v", f.Name, f.Value))
 				}
