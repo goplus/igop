@@ -1,5 +1,4 @@
-//go:build (!js || (js && wasm)) && (!go1.17 || (go1.17 && !goexperiment.regabireflect))
-// +build !js js,wasm
+//go:build !go1.17 || (go1.17 && !goexperiment.regabireflect)
 // +build !go1.17 go1.17,!goexperiment.regabireflect
 
 package main
@@ -70,16 +69,21 @@ func i_x(index int, ptr unsafe.Pointer, p unsafe.Pointer) {
 		} else {
 			inArgs = reflect.NewAt(info.InTyp, unsafe.Pointer(&buf[0])).Elem()
 		}
-		for i := 1; i < inCount; i++ {
-			in = append(in, inArgs.Field(i-1))
+		if info.Variadic {
+			for i := 1; i < inCount-1; i++ {
+				in = append(in, inArgs.Field(i-1))
+			}
+			slice := inArgs.Field(inCount - 2)
+			for i := 0; i < slice.Len(); i++ {
+				in = append(in, slice.Index(i))
+			}
+		} else {
+			for i := 1; i < inCount; i++ {
+				in = append(in, inArgs.Field(i-1))
+			}
 		}
 	}
-	var r []reflect.Value
-	if info.Variadic {
-		r = info.Func.CallSlice(in)
-	} else {
-		r = info.Func.Call(in)
-	}
+	r := info.Func.Call(in)
 	if info.OutTyp.NumField() > 0 {
 		out := reflect.New(info.OutTyp).Elem()
 		for i, v := range r {
