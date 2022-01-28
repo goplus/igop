@@ -2,11 +2,10 @@
 
 [![Go1.16](https://github.com/goplus/gossa/workflows/Go1.16/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.16)
 
-**Go1.17**
+### RegAbi ( Go1.17 / Go1.18)
 
-set env
-
-`GOEXPERIMENT=noregabi`
+* amd64 support regabi
+* arm64 set env `GOEXPERIMENT=noregabi` on Go1.18
 
 ### gossa command line
 ```
