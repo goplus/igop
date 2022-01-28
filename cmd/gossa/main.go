@@ -16,8 +16,6 @@
 
 package main
 
-//go:generate icall_gen -o icall.go -pkg main -size 20000
-
 import (
 	"flag"
 	"fmt"
@@ -30,6 +28,7 @@ import (
 	"github.com/goplus/gossa/cmd/internal/test"
 
 	_ "github.com/goplus/gossa/pkg"
+	_ "github.com/goplus/reflectx/icall/icall8192"
 )
 
 func mainUsage() {
