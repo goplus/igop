@@ -215,7 +215,14 @@ func init() {
 	gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
 
 	ver := runtime.Version()
-	if strings.HasPrefix(ver, "go1.15.") {
+	if strings.HasPrefix(ver, "go1.17.") {
+		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
+		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
+		gorootTestSkips["abi/fibish.go"] = "very slow"
+		gorootTestSkips["abi/fibish_closure.go"] = "very slow"
+		gorootTestSkips["abi/uglyfib.go"] = "very slow"
+		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
+	} else if strings.HasPrefix(ver, "go1.15.") {
 		gorootTestSkips["fixedbugs/issue15039.go"] = "BUG, uint64 -> string"
 		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
 	} else if strings.HasPrefix(ver, "go1.14.") {
@@ -313,8 +320,6 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 			}
 			_, n := filepath.Split(path)
 			switch n {
-			case "abi":
-				return filepath.SkipDir
 			case "bench", "dwarf", "codegen":
 				return filepath.SkipDir
 			default:
@@ -323,7 +328,6 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 				}
 			}
 			return nil
-			return filepath.SkipDir
 		}
 		data, err := ioutil.ReadFile(path)
 		if err != nil {
