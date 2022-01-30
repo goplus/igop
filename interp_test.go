@@ -238,6 +238,8 @@ func init() {
 			skips[filepath.FromSlash(k)] = v
 		}
 		gorootTestSkips = skips
+	} else if runtime.GOOS == "darwin" {
+		gorootTestSkips["locklinear.go"] = "skip github"
 	}
 }
 
