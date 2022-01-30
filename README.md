@@ -1,6 +1,7 @@
 # gossa - Golang SSA interpreter
 
 [![Go1.16](https://github.com/goplus/gossa/workflows/Go1.16/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.16)
+[![Go1.17](https://github.com/goplus/gossa/workflows/Go1.17/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.17)
 
 ### RegAbi ( Go1.17 / Go1.18)
 
