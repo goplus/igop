@@ -213,25 +213,27 @@ func init() {
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
 	gorootTestSkips["fixedbugs/bug295.go"] = "skip, gossa not import testing"
 	gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
+	gorootTestSkips["atomicload.go"] = "slow"
 
 	ver := runtime.Version()
-	if strings.HasPrefix(ver, "go1.17.") {
+	if strings.HasPrefix(ver, "go1.17") || strings.HasPrefix(ver, "go1.18") {
 		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "very slow"
 		gorootTestSkips["abi/fibish_closure.go"] = "very slow"
 		gorootTestSkips["abi/uglyfib.go"] = "very slow"
 		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
-	} else if strings.HasPrefix(ver, "go1.15.") {
+	} else if strings.HasPrefix(ver, "go1.15") {
 		gorootTestSkips["fixedbugs/issue15039.go"] = "BUG, uint64 -> string"
 		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
-	} else if strings.HasPrefix(ver, "go1.14.") {
+	} else if strings.HasPrefix(ver, "go1.14") {
 		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
 	}
 
 	if runtime.GOOS == "windows" {
 		gorootTestSkips["env.go"] = "skip GOARCH"
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
+		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 
 		skips := make(map[string]string)
 		for k, v := range gorootTestSkips {
