@@ -213,7 +213,7 @@ func init() {
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
 	gorootTestSkips["fixedbugs/bug295.go"] = "skip, gossa not import testing"
 	gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
-	gorootTestSkips["atomicload"] = "slow"
+	gorootTestSkips["atomicload.go"] = "slow"
 
 	ver := runtime.Version()
 	if strings.HasPrefix(ver, "go1.17") || strings.HasPrefix(ver, "go1.18") {
