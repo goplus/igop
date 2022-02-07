@@ -6,7 +6,8 @@
 ### RegAbi ( Go1.17 / Go1.18)
 
 * amd64 support regabi
-* arm64 set env `GOEXPERIMENT=noregabi` on Go1.18
+* arm64 support regabi
+* ppc64 set env `GOEXPERIMENT=noregabi` on Go1.18
 
 ### gossa command line
 ```
