@@ -233,6 +233,7 @@ func init() {
 	if runtime.GOOS == "windows" {
 		gorootTestSkips["env.go"] = "skip GOARCH"
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
+		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 
 		skips := make(map[string]string)
 		for k, v := range gorootTestSkips {
