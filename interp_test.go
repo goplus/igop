@@ -216,17 +216,17 @@ func init() {
 	gorootTestSkips["atomicload"] = "slow"
 
 	ver := runtime.Version()
-	if strings.HasPrefix(ver, "go1.17.") || strings.HasPrefix(ver, "go1.18.") {
+	if strings.HasPrefix(ver, "go1.17") || strings.HasPrefix(ver, "go1.18") {
 		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "very slow"
 		gorootTestSkips["abi/fibish_closure.go"] = "very slow"
 		gorootTestSkips["abi/uglyfib.go"] = "very slow"
 		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
-	} else if strings.HasPrefix(ver, "go1.15.") {
+	} else if strings.HasPrefix(ver, "go1.15") {
 		gorootTestSkips["fixedbugs/issue15039.go"] = "BUG, uint64 -> string"
 		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
-	} else if strings.HasPrefix(ver, "go1.14.") {
+	} else if strings.HasPrefix(ver, "go1.14") {
 		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
 	}
 
