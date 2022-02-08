@@ -3,7 +3,7 @@ package pkg
 //go:generate go run ../cmd/qexp -outdir . std
 //go:generate go run ../cmd/qexp -outdir . -contexts "darwin_amd64 darwin_arm64" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "windows_amd64 windows_386" syscall
-//go:generate go run ../cmd/qexp -outdir . -contexts "linux_amd64 linux_arm64 linux_386" syscall
+//go:generate go run ../cmd/qexp -outdir . -contexts "linux_amd64 linux_arm64 linux_386 linux_ppc64le linux_ppc64" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "freebsd_amd64 freebsd_arm64 freebsd_386" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "openbsd_amd64 openbsd_arm64 openbsd_386" syscall
 //go:generate go run ../cmd/qexp -outdir . -contexts "freebsd_amd64 freebsd_arm64 freebsd_386" syscall
