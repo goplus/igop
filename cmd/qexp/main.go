@@ -10,15 +10,19 @@ import (
 )
 
 var (
-	flagExportDir    string
-	flagUseGoApi     bool
-	flagBuildContext string
+	flagExportDir      string
+	flagUseGoApi       bool
+	flagBuildContext   string
+	flagCustomTags     string
+	flagExportFileName string
 )
 
 func init() {
 	flag.StringVar(&flagExportDir, "outdir", "", "set export pkg path")
-	flag.BoolVar(&flagUseGoApi, "api", false, "export by $GOROOT/api")
+	//flag.BoolVar(&flagUseGoApi, "api", false, "export by $GOROOT/api")
 	flag.StringVar(&flagBuildContext, "contexts", "", "set custome build contexts goos_goarch list. eg \"drawin_amd64 darwin_arm64\"")
+	flag.StringVar(&flagCustomTags, "addtags", "", "add custom tags, split by ;")
+	flag.StringVar(&flagExportFileName, "filename", "export", "set export file name")
 }
 
 func main() {
@@ -29,6 +33,9 @@ func main() {
 	}
 	if len(args) == 1 && args[0] == "std" {
 		args = stdList
+	}
+	if flagExportFileName == "" {
+		flagExportFileName = "export"
 	}
 	ctxList := parserContextList(flagBuildContext)
 	//flagUseGoApi = false
@@ -112,7 +119,11 @@ func ExportPkg(pkg string, ctx *build.Context) (string, error) {
 		return "", fmt.Errorf("load pkg %v error: %v", pkg, err)
 	}
 	e := prog.ExportPkg(pkg, "q")
-	data, err := exportPkg(e, "q", "", nil)
+	var tags []string
+	if flagCustomTags != "" {
+		tags = strings.Split(flagCustomTags, ";")
+	}
+	data, err := exportPkg(e, "q", "", tags)
 	if err != nil {
 		panic(err)
 	}
@@ -123,9 +134,9 @@ func ExportPkg(pkg string, ctx *build.Context) (string, error) {
 	fpath := filepath.Join(flagExportDir, pkg)
 	var fname string
 	if ctx != nil {
-		fname = "export_" + ctx.GOOS + "_" + ctx.GOARCH + ".go"
+		fname = flagExportFileName + "_" + ctx.GOOS + "_" + ctx.GOARCH + ".go"
 	} else {
-		fname = "export.go"
+		fname = flagExportFileName + ".go"
 	}
 	err = writeFile(fpath, fname, data)
 	return filepath.Join(fpath, fname), err
