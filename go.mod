@@ -1,6 +1,6 @@
 module github.com/goplus/gossa
 
-go 1.16
+go 1.14
 
 require (
 	github.com/goplus/gop v1.1.0-beta2

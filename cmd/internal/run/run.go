@@ -18,6 +18,7 @@
 package run
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -61,7 +62,7 @@ func runCmd(cmd *base.Command, args []string) {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			err = os.WriteFile(filepath.Join(path, "gop_autogen.go"), data, 0666)
+			err = ioutil.WriteFile(filepath.Join(path, "gop_autogen.go"), data, 0666)
 			if err != nil {
 				log.Fatalln(err)
 			}
