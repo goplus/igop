@@ -93,9 +93,9 @@ func makepkg(fname string, tags []string, std []string) error {
 	return ioutil.WriteFile(fname, []byte(data), 0644)
 }
 
-var tmpl = `package pkg
+var tmpl = `$TAGS
 
-$TAGS
+package pkg
 
 import (
 	$PKGS
