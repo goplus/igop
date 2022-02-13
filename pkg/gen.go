@@ -21,19 +21,19 @@ func main() {
 	var fname string
 	switch ver {
 	case "go1.17":
-		tags = "//+build go1.17"
+		tags = "//go:build go1.17\n// +build go1.17"
 		name = "go117_export"
 		fname = "go117_pkgs.go"
 	case "go1.16":
-		tags = "//+build go1.16,!go1.17"
+		tags = "//go:build go1.16 && !go1.17\n// +build go1.16,!go1.17"
 		name = "go116_export"
 		fname = "go116_pkgs.go"
 	case "go1.15":
-		tags = "//+build go1.15,!go1.16"
+		tags = "//go:build go1.15 && !go1.16\n// +build go1.15,!go1.16"
 		name = "go115_export"
 		fname = "go115_pkgs.go"
 	case "go1.14":
-		tags = "//+build go1.14,!go1.15"
+		tags = "//go:build go1.14 && !go1.15\n// +build go1.14,!go1.15"
 		name = "go114_export"
 		fname = "go114_pkgs.go"
 	}
@@ -65,6 +65,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	err = makepkg("./"+fname, []string{tags}, pkgs)
 	if err != nil {
 		panic(err)
