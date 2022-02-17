@@ -145,7 +145,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			i.callerMutex.RLock()
 			caller := i.caller
 			i.callerMutex.RUnlock()
-			r := call(i, caller, token.NoPos, f, iargs, nil)
+			r := i.call(caller, token.NoPos, f, iargs, nil)
 			switch mtyp.NumOut() {
 			case 0:
 				return nil
@@ -202,7 +202,7 @@ func (i *Interp) toFunc(fr *frame, typ reflect.Type, fn value) reflect.Value {
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := call(i, fr, token.NoPos, fn, iargs, nil)
+		r := i.call(fr, token.NoPos, fn, iargs, nil)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -324,7 +324,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panic = recover()
 		}
 	}()
-	call(fr.i, fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
+	fr.i.call(fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -449,7 +449,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 	case *ssa.Call:
 		return func() {
 			fn, args := i.prepareCall(fr, &instr.Call)
-			fr.env[instr] = call(i, fr, instr.Pos(), fn, args, instr.Call.Args)
+			fr.env[instr] = i.call(fr, instr.Pos(), fn, args, instr.Call.Args)
 		}, kNext
 
 	case *ssa.ChangeInterface:
@@ -588,7 +588,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		fn, args := i.prepareCall(fr, &instr.Call)
 		atomic.AddInt32(&i.goroutines, 1)
 		go func() {
-			call(i, nil, instr.Pos(), fn, args, instr.Call.Args)
+			i.call(nil, instr.Pos(), fn, args, instr.Call.Args)
 			atomic.AddInt32(&i.goroutines, -1)
 		}()
 
@@ -913,7 +913,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
 //
-func call(i *Interp, caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
+func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
 	i.callerMutex.Lock()
 	i.caller = caller
 	i.callerMutex.Unlock()
@@ -922,17 +922,17 @@ func call(i *Interp, caller *frame, callpos token.Pos, fn value, args []value, s
 		if fn == nil {
 			panic("call of nil function") // nil of func type
 		}
-		return callSSA(i, caller, callpos, fn, args, nil)
+		return i.callSSA(caller, callpos, fn, args, nil)
 	case *closure:
 		if fn.Fn == nil {
 			panic("call of nil closure function") // nil of func type
 		}
-		return callSSA(i, caller, callpos, fn.Fn, args, fn.Env)
+		return i.callSSA(caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
-		return callBuiltin(i, caller, callpos, fn, args, ssaArgs)
+		return i.callBuiltin(caller, callpos, fn, args, ssaArgs)
 	default:
 		if f := reflect.ValueOf(fn); f.Kind() == reflect.Func {
-			return callReflect(i, caller, callpos, f, args, nil)
+			return i.callReflect(caller, callpos, f, args, nil)
 		}
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
@@ -949,7 +949,7 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 // and lexical environment env, returning its result.
 // callpos is the position of the callsite.
 //
-func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
 	if i.mode&EnableTracing != 0 {
 		fset := fn.Prog.Fset
 		// TODO(adonovan): fix: loc() lies for external functions.
@@ -972,7 +972,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 			if i.mode&EnableTracing != 0 {
 				log.Println("\t(external)")
 			}
-			return callReflect(i, caller, callpos, ext, args, nil)
+			return i.callReflect(caller, callpos, ext, args, nil)
 		}
 		if fn.Pkg != nil {
 			pkgPath := fn.Pkg.Pkg.Path()
@@ -982,7 +982,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 						if i.mode&EnableTracing != 0 {
 							log.Println("\t(external func)")
 						}
-						return callReflect(i, caller, callpos, ext, args, nil)
+						return i.callReflect(caller, callpos, ext, args, nil)
 					}
 				} else if typ, ok := i.loader.LookupReflect(recv.Type()); ok {
 					//TODO maybe make full name for search
@@ -990,13 +990,13 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 						if i.mode&EnableTracing != 0 {
 							log.Println("\t(external reflect method)")
 						}
-						return callReflect(i, caller, callpos, m.Func, args, nil)
+						return i.callReflect(caller, callpos, m.Func, args, nil)
 					}
 					// if ext, ok := pkg.Methods[fullName]; ok {
 					// 	if i.mode&EnableTracing != 0 {
 					// 		log.Println("\t(external method)")
 					// 	}
-					// 	return callReflect(i, caller, callpos, ext, args, nil)
+					// 	return i.callReflect(caller, callpos, ext, args, nil)
 					// }
 				}
 			}
@@ -1006,7 +1006,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 			if fn.Signature.Recv() != nil {
 				v := reflect.ValueOf(args[0])
 				if f, ok := v.Type().MethodByName(fn.Name()); ok {
-					return callReflect(i, caller, callpos, f.Func, args, nil)
+					return i.callReflect(caller, callpos, f.Func, args, nil)
 				}
 			}
 			if fn.Name() == "init" && fn.Type().String() == "func()" {
@@ -1040,7 +1040,7 @@ func callSSA(i *Interp, caller *frame, callpos token.Pos, fn *ssa.Function, args
 	return fr.result
 }
 
-func callReflect(i *Interp, caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
 	var ins []reflect.Value
 	typ := fn.Type()
 	isVariadic := fn.Type().IsVariadic()
@@ -1254,7 +1254,7 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {
-		r = call(i, nil, token.NoPos, fn, args, nil)
+		r = i.call(nil, token.NoPos, fn, args, nil)
 	} else {
 		err = fmt.Errorf("no function %v", name)
 	}
@@ -1286,7 +1286,7 @@ func (i *Interp) Run(entry string) (exitCode int, err error) {
 		}
 	}()
 	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
-		call(i, nil, token.NoPos, mainFn, nil, nil)
+		i.call(nil, token.NoPos, mainFn, nil, nil)
 		exitCode = 0
 	} else {
 		err = fmt.Errorf("no function %v", entry)
