@@ -189,7 +189,12 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 func (i *Interp) toType(typ types.Type) reflect.Type {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	return i.record.ToType(typ)
+	if t, ok := i.types[typ]; ok {
+		return t
+	}
+	t := i.record.ToType(typ)
+	i.types[typ] = t
+	return t
 }
 
 func (i *Interp) toFunc(fr *frame, typ reflect.Type, fn value) reflect.Value {
