@@ -99,20 +99,19 @@ func (e runtimeError) Error() string {
 
 // State shared between all interpreted goroutines.
 type Interp struct {
-	fset        *token.FileSet
-	prog        *ssa.Program        // the SSA program
-	mainpkg     *ssa.Package        // the SSA main package
-	globals     map[ssa.Value]value // addresses of global variables (immutable)
-	mode        Mode                // interpreter options
-	sizes       types.Sizes         // the effective type-sizing function
-	goroutines  int32               // atomically updated
-	types       map[types.Type]reflect.Type
-	caller      *frame
-	loader      Loader
-	record      *TypesRecord
-	typesMutex  sync.RWMutex
-	callerMutex sync.RWMutex
-	fnDebug     func(*DebugInfo)
+	fset       *token.FileSet
+	prog       *ssa.Program        // the SSA program
+	mainpkg    *ssa.Package        // the SSA main package
+	globals    map[ssa.Value]value // addresses of global variables (immutable)
+	mode       Mode                // interpreter options
+	sizes      types.Sizes         // the effective type-sizing function
+	goroutines int32               // atomically updated
+	types      map[types.Type]reflect.Type
+	caller     *frame
+	loader     Loader
+	record     *TypesRecord
+	typesMutex sync.RWMutex
+	fnDebug    func(*DebugInfo)
 }
 
 func (i *Interp) setDebug(fn func(*DebugInfo)) {
@@ -142,10 +141,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			for i := 0; i < len(args); i++ {
 				iargs[i] = args[i].Interface()
 			}
-			i.callerMutex.RLock()
-			caller := i.caller
-			i.callerMutex.RUnlock()
-			r := i.call(caller, token.NoPos, f, iargs, nil)
+			r := i.call(nil, token.NoPos, f, iargs, nil)
 			switch mtyp.NumOut() {
 			case 0:
 				return nil
@@ -914,9 +910,11 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 // callpos is the position of the callsite.
 //
 func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
-	i.callerMutex.Lock()
-	i.caller = caller
-	i.callerMutex.Unlock()
+	if caller == nil {
+		caller = i.caller
+	} else {
+		i.caller = caller
+	}
 	switch fn := fn.(type) {
 	case *ssa.Function:
 		if fn == nil {
