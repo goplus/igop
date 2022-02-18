@@ -1385,7 +1385,7 @@ func print(b []byte) (int, error) {
 
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
-func callBuiltin(inter *Interp, caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
+func (inter *Interp) callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
 	switch fn.Name() {
 	case "append":
 		if len(args) == 1 {
@@ -1403,33 +1403,16 @@ func callBuiltin(inter *Interp, caller *frame, callpos token.Pos, fn *ssa.Builti
 			panic(runtimeError("growslice: cap out of range"))
 		}
 		return reflect.AppendSlice(v0, v1).Interface()
-		// append([]T, ...[]T) []T
-		// return append(args[0].([]value), args[1].([]value)...)
 
 	case "copy": // copy([]T, []T) int or copy([]byte, string) int
 		return reflect.Copy(reflect.ValueOf(args[0]), reflect.ValueOf(args[1]))
-		// src := args[1]
-		// if _, ok := src.(string); ok {
-		// 	params := fn.Type().(*types.Signature).Params()
-		// 	src = conv(params.At(0).Type(), params.At(1).Type(), src)
-		// }
-		// return copy(args[0].([]value), src.([]value))
 
 	case "close": // close(chan T)
-		//close(args[0].(chan value))
 		reflect.ValueOf(args[0]).Close()
 		return nil
 
 	case "delete": // delete(map[K]value, K)
 		reflect.ValueOf(args[0]).SetMapIndex(reflect.ValueOf(args[1]), reflect.Value{})
-		// switch m := args[0].(type) {
-		// case map[value]value:
-		// 	delete(m, args[1])
-		// case *hashmap:
-		// 	m.delete(args[1].(hashable))
-		// default:
-		// 	panic(fmt.Sprintf("illegal map type: %T", m))
-		// }
 		return nil
 
 	case "print", "println": // print(any, ...)
@@ -1456,39 +1439,9 @@ func callBuiltin(inter *Interp, caller *frame, callpos token.Pos, fn *ssa.Builti
 
 	case "len":
 		return reflect.ValueOf(args[0]).Len()
-		// switch x := args[0].(type) {
-		// case string:
-		// 	return len(x)
-		// case array:
-		// 	return len(x)
-		// case *value:
-		// 	return len((*x).(array))
-		// case []value:
-		// 	return len(x)
-		// case map[value]value:
-		// 	return len(x)
-		// case *hashmap:
-		// 	return x.len()
-		// case chan value:
-		// 	return len(x)
-		// default:
-		// 	panic(fmt.Sprintf("len: illegal operand: %T", x))
-		// }
 
 	case "cap":
 		return reflect.ValueOf(args[0]).Cap()
-		// switch x := args[0].(type) {
-		// case array:
-		// 	return cap(x)
-		// case *value:
-		// 	return cap((*x).(array))
-		// case []value:
-		// 	return cap(x)
-		// case chan value:
-		// 	return cap(x)
-		// default:
-		// 	panic(fmt.Sprintf("cap: illegal operand: %T", x))
-		// }
 
 	case "real":
 		c := reflect.ValueOf(args[0])
