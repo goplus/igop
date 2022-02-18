@@ -226,7 +226,14 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 	case *types.Signature:
 		in := r.ToTypeList(t.Params())
 		out := r.ToTypeList(t.Results())
-		rt = reflect.FuncOf(in, out, t.Variadic())
+		b := t.Variadic()
+		if b && len(in) > 0 {
+			last := in[len(in)-1]
+			if last.Kind() == reflect.String {
+				in[len(in)-1] = reflect.TypeOf([]byte{})
+			}
+		}
+		rt = reflect.FuncOf(in, out, b)
 	default:
 		panic("unreachable")
 	}
