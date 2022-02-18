@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	for i := types.Invalid; i < types.UntypedNil; i++ {
+	for i := types.Invalid; i <= types.UntypedNil; i++ {
 		typ := types.Typ[i]
 		basicTypeNames[typ.String()] = typ
 	}

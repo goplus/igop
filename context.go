@@ -65,6 +65,11 @@ func NewContext(mode Mode) *Context {
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		Types:       make(map[types.Type]bool),
 	}
+	for i := types.Invalid; i <= types.UntypedNil; i++ {
+		typ := types.Typ[i]
+		ctx.Types[typ] = true
+	}
+	ctx.Types[typesEmptyInterface] = true
 	return ctx
 }
 
