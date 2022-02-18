@@ -99,19 +99,20 @@ func (e runtimeError) Error() string {
 
 // State shared between all interpreted goroutines.
 type Interp struct {
-	fset       *token.FileSet
-	prog       *ssa.Program        // the SSA program
-	mainpkg    *ssa.Package        // the SSA main package
-	globals    map[ssa.Value]value // addresses of global variables (immutable)
-	mode       Mode                // interpreter options
-	sizes      types.Sizes         // the effective type-sizing function
-	goroutines int32               // atomically updated
-	types      map[types.Type]reflect.Type
-	caller     *frame
-	loader     Loader
-	record     *TypesRecord
-	typesMutex sync.RWMutex
-	fnDebug    func(*DebugInfo)
+	fset         *token.FileSet
+	prog         *ssa.Program        // the SSA program
+	mainpkg      *ssa.Package        // the SSA main package
+	globals      map[ssa.Value]value // addresses of global variables (immutable)
+	mode         Mode                // interpreter options
+	sizes        types.Sizes         // the effective type-sizing function
+	goroutines   int32               // atomically updated
+	types        map[types.Type]reflect.Type
+	preloadTypes map[types.Type]reflect.Type
+	caller       *frame
+	loader       Loader
+	record       *TypesRecord
+	typesMutex   sync.RWMutex
+	fnDebug      func(*DebugInfo)
 }
 
 func (i *Interp) setDebug(fn func(*DebugInfo)) {
@@ -186,7 +187,19 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	return nil
 }
 
+func (i *Interp) preToType(typ types.Type) reflect.Type {
+	if t, ok := i.preloadTypes[typ]; ok {
+		return t
+	}
+	t := i.record.ToType(typ)
+	i.preloadTypes[typ] = t
+	return t
+}
+
 func (i *Interp) toType(typ types.Type) reflect.Type {
+	if t, ok := i.preloadTypes[typ]; ok {
+		return t
+	}
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
 	if t, ok := i.types[typ]; ok {
@@ -1206,13 +1219,14 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 
 func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) {
 	i := &Interp{
-		fset:       mainpkg.Prog.Fset,
-		prog:       mainpkg.Prog,
-		mainpkg:    mainpkg,
-		globals:    make(map[ssa.Value]value),
-		mode:       mode,
-		goroutines: 1,
-		types:      make(map[types.Type]reflect.Type),
+		fset:         mainpkg.Prog.Fset,
+		prog:         mainpkg.Prog,
+		mainpkg:      mainpkg,
+		globals:      make(map[ssa.Value]value),
+		mode:         mode,
+		goroutines:   1,
+		types:        make(map[types.Type]reflect.Type),
+		preloadTypes: make(map[types.Type]reflect.Type),
 	}
 	i.loader = loader
 	i.record = NewTypesRecord(i.loader, i)
@@ -1222,7 +1236,7 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 		for _, m := range pkg.Members {
 			switch v := m.(type) {
 			case *ssa.Global:
-				typ := i.toType(deref(v.Type()))
+				typ := i.preToType(deref(v.Type()))
 				i.globals[v] = reflect.New(typ).Interface()
 			}
 		}
@@ -1345,6 +1359,12 @@ func (i *Interp) GetType(key string) (reflect.Type, bool) {
 		return nil, false
 	}
 	return i.toType(t.Type()), true
+}
+
+func (i *Interp) PreloadTypes(ts map[types.Type]bool) {
+	for t := range ts {
+		i.preToType(t)
+	}
 }
 
 // deref returns a pointer's element type; otherwise it returns typ.
