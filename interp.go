@@ -197,9 +197,15 @@ func (i *Interp) preToType(typ types.Type) reflect.Type {
 }
 
 func (i *Interp) toType(typ types.Type) reflect.Type {
-	if t, ok := i.preloadTypes[typ]; ok {
-		return t
+	switch t := typ.(type) {
+	case *types.Basic:
+		return basicTypes[t.Kind()]
+	default:
+		if t, ok := i.preloadTypes[typ]; ok {
+			return t
+		}
 	}
+	//log.Println("toType", typ)
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
 	if t, ok := i.types[typ]; ok {
@@ -907,7 +913,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 				if f, ok := rtype.MethodByName(mname); ok {
 					fn = f.Func.Interface()
 				} else {
-					panic("method invoked on nil interface")
+					panic(runtimeError("invalid memory address or nil pointer dereference"))
 				}
 			}
 		}
@@ -1238,6 +1244,8 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 			case *ssa.Global:
 				typ := i.preToType(deref(v.Type()))
 				i.globals[v] = reflect.New(typ).Interface()
+			case *ssa.Type:
+				i.preToType(v.Type())
 			}
 		}
 	}

@@ -65,11 +65,8 @@ func NewContext(mode Mode) *Context {
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		Types:       make(map[types.Type]bool),
 	}
-	for i := types.Invalid; i <= types.UntypedNil; i++ {
-		typ := types.Typ[i]
-		ctx.Types[typ] = true
-	}
 	ctx.Types[typesEmptyInterface] = true
+	ctx.Types[typesError] = true
 	return ctx
 }
 
@@ -254,16 +251,6 @@ func (c *Context) RunTest(path string, args []string) error {
 	return c.TestPkg(pkgs, path, args)
 }
 
-func (ctx *Context) saveType(t types.Type) {
-	if tuple, ok := t.(*types.Tuple); ok {
-		for i := 0; i < tuple.Len(); i++ {
-			ctx.saveType(tuple.At(i).Type())
-		}
-		return
-	}
-	ctx.Types[t] = true
-}
-
 func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
 	if fset == nil {
 		panic("no token.FileSet")
@@ -289,7 +276,9 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 		return nil, nil, err
 	}
 	for _, v := range info.Types {
-		ctx.saveType(v.Type)
+		if v.IsType() {
+			ctx.Types[v.Type] = true
+		}
 	}
 	prog := ssa.NewProgram(fset, ctx.BuilderMode)
 
