@@ -221,10 +221,7 @@ func (r *rta) visitInvoke(site ssa.CallInstruction) {
 // ---------- main algorithm ----------
 
 func (r *rta) visitAlloc(f *ssa.Function) {
-	//return
 	for _, alloc := range f.Locals {
-		//r.addRuntimeType(alloc.Type(), true)
-		//log.Println("-->", alloc)
 		r.addType(alloc.Type())
 	}
 	for _, b := range f.Blocks {
@@ -232,12 +229,6 @@ func (r *rta) visitAlloc(f *ssa.Function) {
 			switch instr := instr.(type) {
 			case *ssa.Alloc:
 				r.addType(instr.Type())
-				//case *ssa.MakeInterface:
-				//				r.addType(instr.Type())
-				//				r.addType(instr.X.Type())
-				//case *ssa.MakeClosure:
-				// log.Printf("=====>%v %v %p\n", instr, instr.Type(), instr.Type())
-				// r.addType(instr.Type())
 			}
 		}
 	}
@@ -247,8 +238,6 @@ func (r *rta) visitAlloc(f *ssa.Function) {
 func (r *rta) visitFunc(f *ssa.Function) {
 	var space [32]*ssa.Value // preallocate space for common case
 	for _, alloc := range f.Locals {
-		//r.addRuntimeType(alloc.Type(), true)
-		//log.Println("-->", alloc)
 		r.addType(alloc.Type())
 	}
 	for _, b := range f.Blocks {
@@ -262,10 +251,8 @@ func (r *rta) visitFunc(f *ssa.Function) {
 				} else if g := call.StaticCallee(); g != nil {
 					r.addEdge(instr, g, false)
 					r.visitAlloc(g)
-					//log.Println("-->", instr)
 				} else if _, ok := call.Value.(*ssa.Builtin); !ok {
 					r.visitDynCall(instr)
-					//r.visitAlloc(builtin)
 				}
 				for _, arg := range call.Args {
 					r.addType(arg.Type())
@@ -275,96 +262,75 @@ func (r *rta) visitFunc(f *ssa.Function) {
 				// looking for address-taken Functions.
 				// Hack: assume this is rands[0].
 				rands = rands[1:]
-
 			case *ssa.MakeInterface:
 				r.addRuntimeType(instr.X.Type(), false)
-
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-			case *ssa.Alloc:
-				//log.Println("->", instr)
-				r.addType(instr.Type())
-			case *ssa.MakeMap:
-				r.addType(instr.Type())
-			case *ssa.MakeChan:
-				r.addType(instr.Type())
-			case *ssa.MakeSlice:
-				r.addType(instr.Type())
-			case *ssa.MakeClosure:
-				// log.Printf("=====>%v %v %p\n", instr, instr.Type(), instr.Type())
-				r.addType(instr.Type())
-			case *ssa.Store:
-				r.addType(instr.Addr.Type())
-				r.addType(instr.Val.Type())
-				//log.Println("store", instr.Addr.Type(), instr.Val.Type())
-			case *ssa.Convert:
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-			case *ssa.Return:
-				for _, result := range instr.Results {
-					r.addType(result.Type())
-				}
-			case *ssa.FieldAddr:
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-			case *ssa.IndexAddr:
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-				r.addType(instr.Index.Type())
-			case *ssa.Slice:
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-			case *ssa.Send:
-				r.addType(instr.Chan.Type())
-				r.addType(instr.X.Type())
-			case *ssa.Select:
-				for _, s := range instr.States {
-					r.addType(s.Chan.Type())
-				}
-			case *ssa.BinOp:
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-				r.addType(instr.Y.Type())
-			case *ssa.UnOp:
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-			case *ssa.TypeAssert:
-				r.addType(instr.Type())
-				r.addType(instr.AssertedType)
-				r.addType(instr.X.Type())
-			// case *ssa.Range:
+			//r.addType(instr.Type())
+			//r.addType(instr.X.Type())
+			// case *ssa.Alloc:
+			// r.addType(instr.Type())
+			// case *ssa.MakeMap:
+			// 	r.addType(instr.Type())
+			// case *ssa.MakeChan:
+			// 	r.addType(instr.Type())
+			// case *ssa.MakeSlice:
+			// 	r.addType(instr.Type())
+			// case *ssa.MakeClosure:
+			// 	r.addType(instr.Type())
+			// case *ssa.Store:
+			// 	r.addType(instr.Addr.Type())
+			// 	r.addType(instr.Val.Type())
+			// case *ssa.Convert:
 			// 	r.addType(instr.Type())
 			// 	r.addType(instr.X.Type())
-			// case *ssa.Next:
+			// case *ssa.Return:
+			// 	for _, result := range instr.Results {
+			// 		r.addType(result.Type())
+			// 	}
+			// case *ssa.FieldAddr:
 			// 	r.addType(instr.Type())
-			// 	r.addType(instr.Iter.Type())
-			case *ssa.ChangeType:
-				r.addType(instr.Type())
-				r.addType(instr.X.Type())
-				// case *ssa.Panic:
-				// 	r.addType(instr.X.Type())
-				// case *ssa.Extract:
-				// 	log.Println("--------", instr.Tuple)
-				// case *ssa.Jump:
-				// 	//log.Println(b.Succs)
-				// 	for _, b := range b.Succs {
-				// 		for _, instr := range b.Instrs {
-				// 			switch instr := instr.(type) {
-				// 			case *ssa.Alloc:
-				// 				//r.addType(instr.Type())
-				// 				log.Println("->", instr)
-
-				// 			}
-				// 		}
-				// 	}
+			// 	r.addType(instr.X.Type())
+			// case *ssa.IndexAddr:
+			// 	r.addType(instr.Type())
+			// 	r.addType(instr.X.Type())
+			// 	r.addType(instr.Index.Type())
+			// case *ssa.Slice:
+			// 	r.addType(instr.Type())
+			// 	r.addType(instr.X.Type())
+			// case *ssa.Send:
+			// 	r.addType(instr.Chan.Type())
+			// 	r.addType(instr.X.Type())
+			// case *ssa.Select:
+			// 	for _, s := range instr.States {
+			// 		r.addType(s.Chan.Type())
+			// 	}
+			// case *ssa.BinOp:
+			// 	r.addType(instr.Type())
+			// 	r.addType(instr.X.Type())
+			// 	r.addType(instr.Y.Type())
+			// case *ssa.UnOp:
+			// 	r.addType(instr.Type())
+			// 	r.addType(instr.X.Type())
+			// case *ssa.TypeAssert:
+			// 	r.addType(instr.Type())
+			// 	r.addType(instr.AssertedType)
+			// 	r.addType(instr.X.Type())
+			// case *ssa.ChangeType:
+			// 	r.addType(instr.Type())
+			// 	r.addType(instr.X.Type())
+			case *ssa.Next:
+				rands = nil
 			}
 
 			// Process all address-taken functions.
 			for _, op := range rands {
+				if (*op) == nil {
+					continue
+				}
 				if g, ok := (*op).(*ssa.Function); ok {
 					r.visitAddrTakenFunc(g)
 					r.visitAlloc(g)
 				}
+				r.addType((*op).Type())
 			}
 		}
 	}

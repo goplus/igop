@@ -191,11 +191,14 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 }
 
 func (i *Interp) preToType(typ types.Type) reflect.Type {
-	if t, ok := i.preloadTypes[typ]; ok {
-		return t
+	if t := i.statcTypes.At(typ); t != nil {
+		return t.(reflect.Type)
 	}
+	// if t, ok := i.preloadTypes[typ]; ok {
+	// 	return t
+	// }
 	t := i.record.ToType(typ)
-	i.preloadTypes[typ] = t
+	// i.preloadTypes[typ] = t
 	i.statcTypes.Set(typ, t)
 	return t
 }
@@ -212,7 +215,7 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 		// 	return t
 		// }
 	}
-	log.Panicf("error toType %v %p\n", typ, typ)
+	//log.Printf("error toType %v %p\n", typ, typ)
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
 	if t, ok := i.types[typ]; ok {
