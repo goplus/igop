@@ -56,8 +56,10 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/gossa/rta"
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
+	"golang.org/x/tools/go/types/typeutil"
 )
 
 var (
@@ -108,6 +110,7 @@ type Interp struct {
 	goroutines   int32               // atomically updated
 	types        map[types.Type]reflect.Type
 	preloadTypes map[types.Type]reflect.Type
+	statcTypes   typeutil.Map
 	caller       *frame
 	loader       Loader
 	record       *TypesRecord
@@ -193,6 +196,7 @@ func (i *Interp) preToType(typ types.Type) reflect.Type {
 	}
 	t := i.record.ToType(typ)
 	i.preloadTypes[typ] = t
+	i.statcTypes.Set(typ, t)
 	return t
 }
 
@@ -201,11 +205,14 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 	case *types.Basic:
 		return basicTypes[t.Kind()]
 	default:
-		if t, ok := i.preloadTypes[typ]; ok {
-			return t
+		if t := i.statcTypes.At(typ); t != nil {
+			return t.(reflect.Type)
 		}
+		// if t, ok := i.preloadTypes[typ]; ok {
+		// 	return t
+		// }
 	}
-	//log.Println("toType", typ)
+	log.Panicf("error toType %v %p\n", typ, typ)
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
 	if t, ok := i.types[typ]; ok {
@@ -1249,6 +1256,28 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 			}
 		}
 	}
+	var roots []*ssa.Function
+	roots = append(roots, mainpkg.Func("init"), mainpkg.Func("main"))
+	rtares := rta.Analyze(roots, false)
+	for _, t := range rtares.RuntimeTypes.Keys() {
+		if tuple, ok := t.(*types.Tuple); ok {
+			for n := 0; n < tuple.Len(); n++ {
+				i.preToType(tuple.At(n).Type())
+			}
+		} else {
+			i.preToType(t)
+		}
+	}
+	for _, t := range rtares.AllocTypes.Keys() {
+		if tuple, ok := t.(*types.Tuple); ok {
+			for n := 0; n < tuple.Len(); n++ {
+				i.preToType(tuple.At(n).Type())
+			}
+		} else {
+			i.preToType(t)
+		}
+	}
+
 	_, err := i.Run("init")
 	if err != nil {
 		err = fmt.Errorf("init error: %w", err)
