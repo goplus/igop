@@ -1583,6 +1583,12 @@ func toUnsafePointer(v reflect.Value) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(v.Uint()))
 }
 
+type reflectValue struct {
+	typ  unsafe.Pointer
+	ptr  unsafe.Pointer
+	flag uintptr
+}
+
 func convert(x interface{}, typ reflect.Type) interface{} {
 	v := reflect.ValueOf(x)
 	vk := v.Kind()
@@ -1600,6 +1606,38 @@ func convert(x interface{}, typ reflect.Type) interface{} {
 	case reflect.Ptr:
 		if vk == reflect.UnsafePointer {
 			return reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface()
+		}
+	case reflect.Slice:
+		if v.Kind() == reflect.String {
+			elem := typ.Elem()
+			switch elem.Kind() {
+			case reflect.Uint8:
+				if elem.PkgPath() != "" {
+					dst := reflect.New(typ).Elem()
+					dst.SetBytes([]byte(v.String()))
+					return dst.Interface()
+				}
+			case reflect.Int32:
+				if elem.PkgPath() != "" {
+					dst := reflect.New(typ).Elem()
+					*(*[]rune)((*reflectValue)(unsafe.Pointer(&dst)).ptr) = []rune(v.String())
+					return dst.Interface()
+				}
+			}
+		}
+	case reflect.String:
+		if v.Kind() == reflect.Slice {
+			elem := v.Type().Elem()
+			switch elem.Kind() {
+			case reflect.Uint8:
+				if elem.PkgPath() != "" {
+					v = reflect.ValueOf(string(v.Bytes()))
+				}
+			case reflect.Int32:
+				if elem.PkgPath() != "" {
+					v = reflect.ValueOf(*(*[]rune)(((*reflectValue)(unsafe.Pointer(&v))).ptr))
+				}
+			}
 		}
 	}
 	return v.Convert(typ).Interface()
