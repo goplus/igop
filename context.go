@@ -54,7 +54,6 @@ type Context struct {
 	External    types.Importer  // external import
 	Sizes       types.Sizes
 	DebugFunc   func(*DebugInfo)
-	Types       map[types.Type]bool
 }
 
 func NewContext(mode Mode) *Context {
@@ -63,7 +62,6 @@ func NewContext(mode Mode) *Context {
 		Mode:        mode,
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
-		Types:       make(map[types.Type]bool),
 	}
 	return ctx
 }
@@ -164,8 +162,7 @@ func (c *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (r
 
 func (c *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
 	r, err := NewInterp(c.Loader, mainPkg, c.Mode)
-	if err == nil {
-		r.PreloadTypes(c.Types)
+	if err == nil && c.DebugFunc != nil {
 		r.setDebug(c.DebugFunc)
 	}
 	return r, err
@@ -249,16 +246,6 @@ func (c *Context) RunTest(path string, args []string) error {
 	return c.TestPkg(pkgs, path, args)
 }
 
-func (ctx *Context) saveType(t types.Type) {
-	if tuple, ok := t.(*types.Tuple); ok {
-		for i := 0; i < tuple.Len(); i++ {
-			ctx.saveType(tuple.At(i).Type())
-		}
-		return
-	}
-	ctx.Types[t] = true
-}
-
 func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
 	if fset == nil {
 		panic("no token.FileSet")
@@ -283,9 +270,7 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		return nil, nil, err
 	}
-	for _, v := range info.Types {
-		ctx.saveType(v.Type)
-	}
+
 	prog := ssa.NewProgram(fset, ctx.BuilderMode)
 
 	// Create SSA packages for all imports.
