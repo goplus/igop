@@ -58,8 +58,6 @@ import (
 
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/ssa/ssautil"
-	"golang.org/x/tools/go/types/typeutil"
 )
 
 var (
@@ -108,9 +106,7 @@ type Interp struct {
 	mode         Mode                // interpreter options
 	sizes        types.Sizes         // the effective type-sizing function
 	goroutines   int32               // atomically updated
-	types        map[types.Type]reflect.Type
 	preloadTypes map[types.Type]reflect.Type
-	statcTypes   typeutil.Map
 	caller       *frame
 	loader       Loader
 	record       *TypesRecord
@@ -188,42 +184,6 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	// }
 	panic(fmt.Sprintf("Not found func %v", fn))
 	return nil
-}
-
-func (i *Interp) preToType(typ types.Type) reflect.Type {
-	if t := i.statcTypes.At(typ); t != nil {
-		return t.(reflect.Type)
-	}
-	// if t, ok := i.preloadTypes[typ]; ok {
-	// 	return t
-	// }
-	t := i.record.ToType(typ)
-	// i.preloadTypes[typ] = t
-	i.statcTypes.Set(typ, t)
-	return t
-}
-
-func (i *Interp) toType(typ types.Type) reflect.Type {
-	switch t := typ.(type) {
-	case *types.Basic:
-		return basicTypes[t.Kind()]
-	default:
-		if t := i.statcTypes.At(typ); t != nil {
-			return t.(reflect.Type)
-		}
-		// if t, ok := i.preloadTypes[typ]; ok {
-		// 	return t
-		// }
-	}
-	log.Panicf("error toType %v %p\n", typ, typ)
-	i.typesMutex.Lock()
-	defer i.typesMutex.Unlock()
-	if t, ok := i.types[typ]; ok {
-		return t
-	}
-	t := i.record.ToType(typ)
-	i.types[typ] = t
-	return t
 }
 
 func (i *Interp) toFunc(fr *frame, typ reflect.Type, fn value) reflect.Value {
@@ -1241,91 +1201,50 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 		globals:      make(map[ssa.Value]value),
 		mode:         mode,
 		goroutines:   1,
-		types:        make(map[types.Type]reflect.Type),
 		preloadTypes: make(map[types.Type]reflect.Type),
 	}
 	i.loader = loader
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
-	for _, pkg := range i.prog.AllPackages() {
-		// Initialize global storage.
-		for _, m := range pkg.Members {
-			switch v := m.(type) {
-			case *ssa.Global:
-				typ := i.preToType(deref(v.Type()))
-				i.globals[v] = reflect.New(typ).Interface()
-			case *ssa.Type:
-				i.preToType(v.Type())
-			}
-		}
-	}
-	funcs := ssautil.AllFunctions(i.prog)
-	chkType := func(typ types.Type) {
-		if tuple, ok := typ.(*types.Tuple); ok {
-			for n := 0; n < tuple.Len(); n++ {
-				i.preToType(tuple.At(n).Type())
-			}
-		} else {
-			i.preToType(typ)
-		}
-	}
 
-	var space [32]*ssa.Value // preallocate space for common case
-	for f := range funcs {
-		for _, alloc := range f.Locals {
-			chkType(alloc.Type())
+	// static check types.Type -> reflect.Type
+	WalkPackages(i.prog, []*ssa.Package{mainpkg}, func(typ types.Type) {
+		if _, ok := i.preloadTypes[typ]; !ok {
+			i.preloadTypes[typ] = i.record.ToType(typ)
 		}
-		for _, b := range f.Blocks {
-			for _, instr := range b.Instrs {
-				switch instr := instr.(type) {
-				case *ssa.Alloc:
-					chkType(instr.Type())
-					if !instr.Heap {
-						chkType(deref(instr.Type()))
-					}
-				case *ssa.Next:
-					chkType(instr.Type())
-				default:
-					rands := instr.Operands(space[:0])
-					for _, op := range rands {
-						if *op == nil {
-							continue
-						}
-						chkType((*op).Type())
-					}
-				}
-			}
+	})
+	// Initialize global storage.
+	for _, m := range mainpkg.Members {
+		switch v := m.(type) {
+		case *ssa.Global:
+			typ := i.preToType(deref(v.Type()))
+			i.globals[v] = reflect.New(typ).Interface()
 		}
 	}
-	/*
-		var roots []*ssa.Function
-		roots = append(roots, mainpkg.Func("init"), mainpkg.Func("main"))
-		rtares := rta.Analyze(roots, false)
-		for _, t := range rtares.RuntimeTypes.Keys() {
-			if tuple, ok := t.(*types.Tuple); ok {
-				for n := 0; n < tuple.Len(); n++ {
-					i.preToType(tuple.At(n).Type())
-				}
-			} else {
-				i.preToType(t)
-			}
-		}
-		for _, t := range rtares.AllocTypes.Keys() {
-			if tuple, ok := t.(*types.Tuple); ok {
-				for n := 0; n < tuple.Len(); n++ {
-					i.preToType(tuple.At(n).Type())
-				}
-			} else {
-				i.preToType(t)
-			}
-		}
-	*/
-
 	_, err := i.Run("init")
 	if err != nil {
 		err = fmt.Errorf("init error: %w", err)
 	}
 	return i, err
+}
+
+func (i *Interp) preToType(typ types.Type) reflect.Type {
+	if t, ok := i.preloadTypes[typ]; ok {
+		return t
+	}
+	t := i.record.ToType(typ)
+	i.preloadTypes[typ] = t
+	return t
+}
+
+func (i *Interp) toType(typ types.Type) reflect.Type {
+	if t, ok := i.preloadTypes[typ]; ok {
+		return t
+	}
+	//log.Panicf("toType %v %p\n", typ, typ)
+	i.typesMutex.Lock()
+	defer i.typesMutex.Unlock()
+	return i.record.ToType(typ)
 }
 
 func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
@@ -1439,12 +1358,6 @@ func (i *Interp) GetType(key string) (reflect.Type, bool) {
 		return nil, false
 	}
 	return i.toType(t.Type()), true
-}
-
-func (i *Interp) PreloadTypes(ts map[types.Type]bool) {
-	for t := range ts {
-		i.preToType(t)
-	}
 }
 
 // deref returns a pointer's element type; otherwise it returns typ.

@@ -54,7 +54,6 @@ type Context struct {
 	External    types.Importer  // external import
 	Sizes       types.Sizes
 	DebugFunc   func(*DebugInfo)
-	Types       map[types.Type]bool
 }
 
 func NewContext(mode Mode) *Context {
@@ -63,10 +62,7 @@ func NewContext(mode Mode) *Context {
 		Mode:        mode,
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
-		Types:       make(map[types.Type]bool),
 	}
-	ctx.Types[typesEmptyInterface] = true
-	ctx.Types[typesError] = true
 	return ctx
 }
 
@@ -166,8 +162,7 @@ func (c *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (r
 
 func (c *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
 	r, err := NewInterp(c.Loader, mainPkg, c.Mode)
-	if err == nil {
-		r.PreloadTypes(c.Types)
+	if err == nil && c.DebugFunc != nil {
 		r.setDebug(c.DebugFunc)
 	}
 	return r, err
@@ -275,11 +270,7 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		return nil, nil, err
 	}
-	for _, v := range info.Types {
-		if v.IsType() {
-			ctx.Types[v.Type] = true
-		}
-	}
+
 	prog := ssa.NewProgram(fset, ctx.BuilderMode)
 
 	// Create SSA packages for all imports.
