@@ -268,17 +268,7 @@ func (fr *frame) get(key ssa.Value) value {
 	case *ssa.Builtin:
 		return key
 	case *ssa.Const:
-		c := constValue(fr.i, key)
-		if c == nil {
-			return c
-		}
-		typ := fr.i.toType(key.Type())
-		if typ.PkgPath() == "" {
-			return c
-		}
-		v := reflect.New(typ).Elem()
-		SetValue(v, reflect.ValueOf(c))
-		return v.Interface()
+		return constValue(fr.i, key)
 	case *ssa.Global:
 		if key.Pkg != nil {
 			pkgpath := key.Pkg.Pkg.Path()

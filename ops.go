@@ -32,63 +32,74 @@ func (p targetPanic) Error() string {
 // If the target program calls exit, the interpreter panics with this type.
 type exitPanic int
 
+func basicValue(c *ssa.Const, kind types.BasicKind) value {
+	switch kind {
+	case types.Bool, types.UntypedBool:
+		return constant.BoolVal(c.Value)
+	case types.Int, types.UntypedInt:
+		// Assume sizeof(int) is same on host and target.
+		return int(c.Int64())
+	case types.Int8:
+		return int8(c.Int64())
+	case types.Int16:
+		return int16(c.Int64())
+	case types.Int32, types.UntypedRune:
+		return int32(c.Int64())
+	case types.Int64:
+		return c.Int64()
+	case types.Uint:
+		// Assume sizeof(uint) is same on host and target.
+		return uint(c.Uint64())
+	case types.Uint8:
+		return uint8(c.Uint64())
+	case types.Uint16:
+		return uint16(c.Uint64())
+	case types.Uint32:
+		return uint32(c.Uint64())
+	case types.Uint64:
+		return c.Uint64()
+	case types.Uintptr:
+		// Assume sizeof(uintptr) is same on host and target.
+		return uintptr(c.Uint64())
+	case types.Float32:
+		return float32(c.Float64())
+	case types.Float64, types.UntypedFloat:
+		return c.Float64()
+	case types.Complex64:
+		return complex64(c.Complex128())
+	case types.Complex128, types.UntypedComplex:
+		return c.Complex128()
+	case types.String, types.UntypedString:
+		if c.Value.Kind() == constant.String {
+			return constant.StringVal(c.Value)
+		}
+		return string(rune(c.Int64()))
+	case types.UnsafePointer:
+		return unsafe.Pointer(uintptr(c.Uint64()))
+	}
+	panic("unreachable")
+}
+
 // constValue returns the value of the constant with the
 // dynamic type tag appropriate for c.Type().
 func constValue(i *Interp, c *ssa.Const) value {
 	if c.IsNil() {
 		t := c.Type()
 		return reflect.Zero(i.toType(t)).Interface()
-		// return zero(c.Type()) // typed nil
 	}
-	if t, ok := c.Type().Underlying().(*types.Basic); ok {
-		// TODO(adonovan): eliminate untyped constants from SSA form.
-		switch t.Kind() {
-		case types.Bool, types.UntypedBool:
-			return constant.BoolVal(c.Value)
-		case types.Int, types.UntypedInt:
-			// Assume sizeof(int) is same on host and target.
-			return int(c.Int64())
-		case types.Int8:
-			return int8(c.Int64())
-		case types.Int16:
-			return int16(c.Int64())
-		case types.Int32, types.UntypedRune:
-			return int32(c.Int64())
-		case types.Int64:
-			return c.Int64()
-		case types.Uint:
-			// Assume sizeof(uint) is same on host and target.
-			return uint(c.Uint64())
-		case types.Uint8:
-			return uint8(c.Uint64())
-		case types.Uint16:
-			return uint16(c.Uint64())
-		case types.Uint32:
-			return uint32(c.Uint64())
-		case types.Uint64:
-			return c.Uint64()
-		case types.Uintptr:
-			// Assume sizeof(uintptr) is same on host and target.
-			return uintptr(c.Uint64())
-		case types.Float32:
-			return float32(c.Float64())
-		case types.Float64, types.UntypedFloat:
-			return c.Float64()
-		case types.Complex64:
-			return complex64(c.Complex128())
-		case types.Complex128, types.UntypedComplex:
-			return c.Complex128()
-		case types.String, types.UntypedString:
-			if c.Value.Kind() == constant.String {
-				return constant.StringVal(c.Value)
-			}
-			return string(rune(c.Int64()))
-		case types.UnsafePointer:
-			return unsafe.Pointer(uintptr(c.Uint64()))
+	typ := c.Type()
+	if basic, ok := typ.(*types.Basic); ok {
+		return basicValue(c, basic.Kind())
+	} else if basic, ok := typ.Underlying().(*types.Basic); ok {
+		v := basicValue(c, basic.Kind())
+		if v == nil {
+			return reflect.Zero(i.toType(typ)).Interface()
 		}
+		nv := reflect.New(i.toType(typ)).Elem()
+		SetValue(nv, reflect.ValueOf(v))
+		return nv.Interface()
 	}
-
-	panic(fmt.Sprintf("constValue: %s", c))
+	panic(fmt.Sprintf("unparser constValue: %s", c))
 }
 
 // asInt converts x, which must be an integer, to an int suitable for
