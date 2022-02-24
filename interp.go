@@ -240,28 +240,6 @@ func (fr *frame) get(key ssa.Value) value {
 	if key == nil {
 		return nil
 	}
-	// if ck, ok := key.(*ssa.Const); ok {
-	// 	c := constValue(fr.i, ck)
-	// 	if c == nil {
-	// 		return c
-	// 	}
-	// 	typ := fr.i.toType(key.Type())
-	// 	if typ.PkgPath() == "" {
-	// 		return c
-	// 	}
-	// 	v := reflect.New(typ).Elem()
-	// 	SetValue(v, reflect.ValueOf(c))
-	// 	return v.Interface()
-	// }
-	if key.Parent() == nil {
-		path := key.String()
-		if ext, ok := externValues[path]; ok {
-			if fr.i.mode&EnableTracing != 0 {
-				log.Println("\t(external)")
-			}
-			return ext.Interface()
-		}
-	}
 	switch key := key.(type) {
 	case *ssa.Function:
 		return key
@@ -282,6 +260,15 @@ func (fr *frame) get(key ssa.Value) value {
 		}
 		if r, ok := fr.i.globals[key]; ok {
 			return r
+		}
+	}
+	if key.Parent() == nil {
+		path := key.String()
+		if ext, ok := externValues[path]; ok {
+			if fr.i.mode&EnableTracing != 0 {
+				log.Println("\t(external)")
+			}
+			return ext.Interface()
 		}
 	}
 	if r, ok := fr.env[key]; ok {
