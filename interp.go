@@ -267,8 +267,10 @@ func (fr *frame) get(key ssa.Value) value {
 		return key
 	case *ssa.Builtin:
 		return key
+	case *constValue:
+		return key.Value
 	case *ssa.Const:
-		return constValue(fr.i, key)
+		return constToValue(fr.i, key)
 	case *ssa.Global:
 		if key.Pkg != nil {
 			pkgpath := key.Pkg.Pkg.Path()
@@ -1198,7 +1200,7 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 	i.record.Load(mainpkg)
 
 	// static check types.Type -> reflect.Type
-	WalkPackages(i.prog, []*ssa.Package{mainpkg}, func(typ types.Type) {
+	WalkPackages(i, i.prog, []*ssa.Package{mainpkg}, func(typ types.Type) {
 		if _, ok := i.preloadTypes[typ]; !ok {
 			i.preloadTypes[typ] = i.record.ToType(typ)
 		}

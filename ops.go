@@ -82,7 +82,7 @@ func basicValue(c *ssa.Const, kind types.BasicKind) value {
 
 // constValue returns the value of the constant with the
 // dynamic type tag appropriate for c.Type().
-func constValue(i *Interp, c *ssa.Const) value {
+func constToValue(i *Interp, c *ssa.Const) value {
 	if c.IsNil() {
 		t := c.Type()
 		return reflect.Zero(i.toType(t)).Interface()
@@ -93,7 +93,7 @@ func constValue(i *Interp, c *ssa.Const) value {
 	} else if basic, ok := typ.Underlying().(*types.Basic); ok {
 		v := basicValue(c, basic.Kind())
 		if v == nil {
-			return reflect.Zero(i.toType(typ)).Interface()
+			return v
 		}
 		nv := reflect.New(i.toType(typ)).Elem()
 		SetValue(nv, reflect.ValueOf(v))
@@ -1045,7 +1045,10 @@ func binop(instr *ssa.BinOp, t types.Type, x, y value) value {
 }
 
 func IsConstNil(v ssa.Value) bool {
-	if c, ok := v.(*ssa.Const); ok {
+	switch c := v.(type) {
+	case *ssa.Const:
+		return c.IsNil()
+	case *constValue:
 		return c.IsNil()
 	}
 	return false
