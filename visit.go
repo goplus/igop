@@ -1,19 +1,14 @@
 package gossa
 
 import (
-	"go/types"
-
 	"golang.org/x/tools/go/ssa"
 )
 
-type WalkTypeFunc func(typ types.Type)
-
-func WalkPackages(intp *Interp, prog *ssa.Program, pkgs []*ssa.Package, walk WalkTypeFunc) {
+func checkPackages(intp *Interp, pkgs []*ssa.Package) {
 	visit := visitor{
 		intp: intp,
-		prog: prog,
+		prog: intp.prog,
 		pkgs: pkgs,
-		walk: walk,
 		seen: make(map[*ssa.Function]bool),
 	}
 	visit.program()
@@ -23,7 +18,6 @@ type visitor struct {
 	intp *Interp
 	prog *ssa.Program
 	pkgs []*ssa.Package
-	walk WalkTypeFunc
 	seen map[*ssa.Function]bool
 }
 
@@ -46,10 +40,10 @@ func (visit *visitor) program() {
 func (visit *visitor) function(fn *ssa.Function) {
 	if !visit.seen[fn] {
 		visit.seen[fn] = true
-		visit.walk(fn.Type())
+		visit.intp.loadType(fn.Type())
 		for _, alloc := range fn.Locals {
-			visit.walk(alloc.Type())
-			visit.walk(deref(alloc.Type()))
+			visit.intp.loadType(alloc.Type())
+			visit.intp.loadType(deref(alloc.Type()))
 		}
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
@@ -57,8 +51,8 @@ func (visit *visitor) function(fn *ssa.Function) {
 				ops := instr.Operands(buf[:0])
 				switch instr := instr.(type) {
 				case *ssa.Alloc:
-					visit.walk(instr.Type())
-					visit.walk(deref(instr.Type()))
+					visit.intp.loadType(instr.Type())
+					visit.intp.loadType(deref(instr.Type()))
 				case *ssa.Next:
 					// skip *ssa.opaqueType: iter
 					ops = nil
@@ -66,21 +60,21 @@ func (visit *visitor) function(fn *ssa.Function) {
 					// skip
 					ops = nil
 				case *ssa.TypeAssert:
-					visit.walk(instr.AssertedType)
+					visit.intp.loadType(instr.AssertedType)
 				case *ssa.MakeChan:
-					visit.walk(instr.Type())
+					visit.intp.loadType(instr.Type())
 				case *ssa.MakeMap:
-					visit.walk(instr.Type())
+					visit.intp.loadType(instr.Type())
 				case *ssa.MakeSlice:
-					visit.walk(instr.Type())
+					visit.intp.loadType(instr.Type())
 				case *ssa.SliceToArrayPointer:
-					visit.walk(instr.Type())
+					visit.intp.loadType(instr.Type())
 				case *ssa.Convert:
-					visit.walk(instr.Type())
+					visit.intp.loadType(instr.Type())
 				case *ssa.ChangeType:
-					visit.walk(instr.Type())
+					visit.intp.loadType(instr.Type())
 				case *ssa.MakeInterface:
-					visit.walk(instr.Type())
+					visit.intp.loadType(instr.Type())
 				}
 				for _, op := range ops {
 					switch v := (*op).(type) {
@@ -91,7 +85,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 					case nil:
 						// skip
 					default:
-						visit.walk(v.Type())
+						visit.intp.loadType(v.Type())
 					}
 				}
 			}
