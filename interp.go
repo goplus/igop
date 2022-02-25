@@ -240,45 +240,15 @@ func (fr *frame) get(key ssa.Value) value {
 	if key == nil {
 		return nil
 	}
-	// if ck, ok := key.(*ssa.Const); ok {
-	// 	c := constValue(fr.i, ck)
-	// 	if c == nil {
-	// 		return c
-	// 	}
-	// 	typ := fr.i.toType(key.Type())
-	// 	if typ.PkgPath() == "" {
-	// 		return c
-	// 	}
-	// 	v := reflect.New(typ).Elem()
-	// 	SetValue(v, reflect.ValueOf(c))
-	// 	return v.Interface()
-	// }
-	if key.Parent() == nil {
-		path := key.String()
-		if ext, ok := externValues[path]; ok {
-			if fr.i.mode&EnableTracing != 0 {
-				log.Println("\t(external)")
-			}
-			return ext.Interface()
-		}
-	}
 	switch key := key.(type) {
 	case *ssa.Function:
 		return key
 	case *ssa.Builtin:
 		return key
+	case *constValue:
+		return key.Value
 	case *ssa.Const:
-		c := constValue(fr.i, key)
-		if c == nil {
-			return c
-		}
-		typ := fr.i.toType(key.Type())
-		if typ.PkgPath() == "" {
-			return c
-		}
-		v := reflect.New(typ).Elem()
-		SetValue(v, reflect.ValueOf(c))
-		return v.Interface()
+		return constToValue(fr.i, key)
 	case *ssa.Global:
 		if key.Pkg != nil {
 			pkgpath := key.Pkg.Pkg.Path()
@@ -290,6 +260,15 @@ func (fr *frame) get(key ssa.Value) value {
 		}
 		if r, ok := fr.i.globals[key]; ok {
 			return r
+		}
+	}
+	if key.Parent() == nil {
+		path := key.String()
+		if ext, ok := externValues[path]; ok {
+			if fr.i.mode&EnableTracing != 0 {
+				log.Println("\t(external)")
+			}
+			return ext.Interface()
 		}
 	}
 	if r, ok := fr.env[key]; ok {
@@ -1208,7 +1187,7 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 	i.record.Load(mainpkg)
 
 	// static check types.Type -> reflect.Type
-	WalkPackages(i.prog, []*ssa.Package{mainpkg}, func(typ types.Type) {
+	WalkPackages(i, i.prog, []*ssa.Package{mainpkg}, func(typ types.Type) {
 		if _, ok := i.preloadTypes[typ]; !ok {
 			i.preloadTypes[typ] = i.record.ToType(typ)
 		}

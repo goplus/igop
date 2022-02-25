@@ -48,7 +48,7 @@ import (
 type Value = value
 type Tuple = tuple
 
-type value interface{}
+type value = interface{}
 
 type tuple []value
 
