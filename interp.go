@@ -75,7 +75,7 @@ func init() {
 	}
 }
 
-type continuation int
+type continuation = int
 
 const (
 	kNext continuation = iota
