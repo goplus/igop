@@ -98,7 +98,11 @@ func (visit *visitor) function(fn *ssa.Function) {
 				fn := makeInstr(visit.intp, instr)
 				if visit.intp.mode&EnableDumpInstr != 0 {
 					block.Instrs[i] = func(fr *frame, k *int) {
-						log.Printf("Instr %T %v\n", instr, instr)
+						if v, ok := instr.(ssa.Value); ok {
+							log.Printf("\t%-20T %v = %v\n", instr, v.Name(), instr)
+						} else {
+							log.Printf("\t%-20T %v\n", instr, instr)
+						}
 						fn(fr, k)
 					}
 				} else {
