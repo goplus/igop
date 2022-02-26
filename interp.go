@@ -1075,25 +1075,27 @@ func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value,
 // control.
 //
 func (i *Interp) runFrame(fr *frame) {
-	defer func() {
-		if fr.block == nil {
-			return
-		}
-		if fr.fnBlock == nil {
-			return // normal return
-		}
-		if i.mode&DisableRecover != 0 {
-			return // let interpreter crash
-		}
-		fr.panicking = true
-		fr.panic = recover()
-		if i.mode&EnableTracing != 0 {
-			log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
-		}
-		fr.runDefers()
-		fr.block = fr.fn.Recover
-		fr.fnBlock = i.blocks[fr.block]
-	}()
+	if fr.fn.Recover != nil {
+		defer func() {
+			if fr.block == nil {
+				return
+			}
+			if fr.fnBlock == nil {
+				return // normal return
+			}
+			if i.mode&DisableRecover != 0 {
+				return // let interpreter crash
+			}
+			fr.panicking = true
+			fr.panic = recover()
+			if i.mode&EnableTracing != 0 {
+				log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
+			}
+			fr.runDefers()
+			fr.block = fr.fn.Recover
+			fr.fnBlock = i.blocks[fr.block]
+		}()
+	}
 
 	for {
 		if i.mode&EnableTracing != 0 {
