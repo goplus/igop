@@ -1,6 +1,8 @@
 package gossa
 
 import (
+	"log"
+
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -47,7 +49,12 @@ func (visit *visitor) function(fn *ssa.Function) {
 		}
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
-			for _, instr := range b.Instrs {
+			block := &FuncBlock{}
+			block.Instrs = make([]func(*frame, *int), len(b.Instrs), len(b.Instrs))
+			visit.intp.blocks[b] = block
+			//for i, instr := range b.Instrs {
+			for i := 0; i < len(b.Instrs); i++ {
+				instr := b.Instrs[i]
 				ops := instr.Operands(buf[:0])
 				switch instr := instr.(type) {
 				case *ssa.Alloc:
@@ -87,6 +94,15 @@ func (visit *visitor) function(fn *ssa.Function) {
 					default:
 						visit.intp.loadType(v.Type())
 					}
+				}
+				fn := makeInstr(visit.intp, instr)
+				if visit.intp.mode&EnableDumpInstr != 0 {
+					block.Instrs[i] = func(fr *frame, k *int) {
+						log.Printf("Instr %T %v\n", instr, instr)
+						fn(fr, k)
+					}
+				} else {
+					block.Instrs[i] = fn
 				}
 			}
 		}

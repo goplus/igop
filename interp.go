@@ -112,6 +112,7 @@ type Interp struct {
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
 	fnDebug      func(*DebugInfo)
+	blocks       map[*ssa.BasicBlock]*FuncBlock
 }
 
 func (i *Interp) setDebug(fn func(*DebugInfo)) {
@@ -223,17 +224,18 @@ type deferred struct {
 }
 
 type frame struct {
-	i                *Interp
-	caller           *frame
-	fn               *ssa.Function
-	block, prevBlock *ssa.BasicBlock
-	env              map[ssa.Value]value // dynamic values of SSA variables
-	locals           map[ssa.Value]reflect.Value
-	mapUnderscoreKey map[types.Type]bool
-	defers           *deferred
-	result           value
-	panicking        bool
-	panic            interface{}
+	i                    *Interp
+	caller               *frame
+	fn                   *ssa.Function
+	block, prevBlock     *ssa.BasicBlock
+	fnBlock, prevFnBlock *FuncBlock
+	env                  map[ssa.Value]value // dynamic values of SSA variables
+	locals               map[ssa.Value]reflect.Value
+	mapUnderscoreKey     map[types.Type]bool
+	defers               *deferred
+	result               value
+	panicking            bool
+	panic                interface{}
 }
 
 func (fr *frame) get(key ssa.Value) value {
@@ -988,6 +990,7 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	}
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fn.Blocks[0]
+	fr.fnBlock = i.blocks[fr.block]
 	fr.locals = make(map[ssa.Value]reflect.Value)
 	fr.mapUnderscoreKey = make(map[types.Type]bool)
 	for _, l := range fn.Locals {
@@ -1001,12 +1004,13 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	for i, fv := range fn.FreeVars {
 		fr.env[fv] = env[i]
 	}
-	for fr.block != nil {
+	for fr.fnBlock != nil {
 		i.runFrame(fr)
 	}
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
+	fr.fnBlock = nil
 	fr.locals = nil
 	return fr.result
 }
@@ -1073,6 +1077,9 @@ func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value,
 func (i *Interp) runFrame(fr *frame) {
 	defer func() {
 		if fr.block == nil {
+			return
+		}
+		if fr.fnBlock == nil {
 			return // normal return
 		}
 		if i.mode&DisableRecover != 0 {
@@ -1085,6 +1092,7 @@ func (i *Interp) runFrame(fr *frame) {
 		}
 		fr.runDefers()
 		fr.block = fr.fn.Recover
+		fr.fnBlock = i.blocks[fr.block]
 	}()
 
 	for {
@@ -1092,27 +1100,39 @@ func (i *Interp) runFrame(fr *frame) {
 			log.Printf(".%s:\n", fr.block)
 		}
 	block:
-		for _, instr := range fr.block.Instrs {
-			if i.mode&EnableTracing != 0 {
-				if v, ok := instr.(ssa.Value); ok {
-					log.Println("\t", v.Name(), "=", instr)
-				} else {
-					log.Println("\t", instr)
-				}
-			}
-			fn, cond := i.visitInstr(fr, instr)
-			if fn != nil {
-				fn()
-			}
-			switch cond {
+		for _, fn := range fr.fnBlock.Instrs {
+			var k int
+			fn(fr, &k)
+			switch k {
 			case kReturn:
 				return
-			case kNext:
-				// no-op
 			case kJump:
 				break block
 			}
 		}
+
+		// for _, instr := range fr.block.Instrs {
+		// 	if i.mode&EnableTracing != 0 {
+		// 		if v, ok := instr.(ssa.Value); ok {
+		// 			log.Println("\t", v.Name(), "=", instr)
+		// 		} else {
+		// 			log.Println("\t", instr)
+		// 		}
+		// 	}
+		// 	fn, cond := i.visitInstr(fr, instr)
+		// 	if fn != nil {
+		// 		fn()
+		// 	}
+		// 	switch cond {
+		// 	case kReturn:
+		// 		return
+		// 	case kNext:
+		// 		// no-op
+		// 	case kJump:
+		// 		break block
+		// 	}
+		// }
+
 	}
 }
 
@@ -1181,6 +1201,7 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 		mode:         mode,
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
+		blocks:       make(map[*ssa.BasicBlock]*FuncBlock),
 	}
 	i.loader = loader
 	i.record = NewTypesRecord(i.loader, i)
