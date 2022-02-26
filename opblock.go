@@ -194,7 +194,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = fr.get(instr.X)
 		}
 	case *ssa.ChangeType:
-		typ := interp.toType(instr.Type())
+		typ := interp.preToType(instr.Type())
 		return func(fr *frame, k *int) {
 			x := fr.get(instr.X)
 			var v reflect.Value
@@ -211,14 +211,14 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			}
 		}
 	case *ssa.Convert:
-		typ := interp.toType(instr.Type())
+		typ := interp.preToType(instr.Type())
 		return func(fr *frame, k *int) {
 			x := fr.get(instr.X)
 			fr.env[instr] = convert(x, typ)
 		}
 	case *ssa.MakeInterface:
-		typ := interp.toType(instr.Type())
-		xtyp := interp.toType(instr.X.Type())
+		typ := interp.preToType(instr.Type())
+		xtyp := interp.preToType(instr.X.Type())
 		return func(fr *frame, k *int) {
 			v := reflect.New(typ).Elem()
 			x := fr.get(instr.X)
@@ -239,7 +239,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		}
 	case *ssa.MakeClosure:
 		fn := instr.Fn.(*ssa.Function)
-		typ := interp.toType(fn.Type())
+		typ := interp.preToType(fn.Type())
 		return func(fr *frame, k *int) {
 			var bindings []value
 			for _, binding := range instr.Bindings {
@@ -249,7 +249,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = interp.toFunc(fr, typ, c).Interface()
 		}
 	case *ssa.MakeChan:
-		typ := interp.toType(instr.Type())
+		typ := interp.preToType(instr.Type())
 		return func(fr *frame, k *int) {
 			size := fr.get(instr.Size)
 			buffer := asInt(size)
@@ -260,7 +260,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		}
 	case *ssa.MakeMap:
 		typ := instr.Type()
-		rtyp := interp.toType(typ)
+		rtyp := interp.preToType(typ)
 		key := typ.Underlying().(*types.Map).Key()
 		var reserve int
 		return func(fr *frame, k *int) {
@@ -273,7 +273,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = reflect.MakeMapWithSize(rtyp, reserve).Interface()
 		}
 	case *ssa.MakeSlice:
-		typ := interp.toType(instr.Type())
+		typ := interp.preToType(instr.Type())
 		return func(fr *frame, k *int) {
 			Len := asInt(fr.get(instr.Len))
 			if Len < 0 || Len >= maxMemLen {
@@ -414,7 +414,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = r
 		}
 	case *ssa.SliceToArrayPointer:
-		typ := interp.toType(instr.Type())
+		typ := interp.preToType(instr.Type())
 		return func(fr *frame, k *int) {
 			x := fr.get(instr.X)
 			v := reflect.ValueOf(x)
