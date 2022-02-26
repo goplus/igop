@@ -87,8 +87,45 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = interp.call(fr, instr.Pos(), fn, args, instr.Call.Args)
 		}
 	case *ssa.BinOp:
-		return func(fr *frame, k *int) {
-			if instr.Op == token.SHR || instr.Op == token.SHL {
+		switch instr.Op {
+		case token.ADD:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opADD(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.SUB:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opSUB(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.MUL:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opMUL(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.QUO:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opQuo(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.REM:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opREM(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.AND:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opAND(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.OR:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opOR(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.XOR:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opXOR(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.AND_NOT:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opANDNOT(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.SHL:
+			return func(fr *frame, k *int) {
 				if c, ok := instr.Y.(*ssa.Convert); ok {
 					v := reflect.ValueOf(fr.get(c.X))
 					vk := v.Kind()
@@ -98,8 +135,47 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 						}
 					}
 				}
+				fr.env[instr] = opSHL(fr.get(instr.X), fr.get(instr.Y))
 			}
-			fr.env[instr] = binop(instr, instr.X.Type(), fr.get(instr.X), fr.get(instr.Y))
+		case token.SHR:
+			return func(fr *frame, k *int) {
+				if c, ok := instr.Y.(*ssa.Convert); ok {
+					v := reflect.ValueOf(fr.get(c.X))
+					vk := v.Kind()
+					if vk >= reflect.Int && vk <= reflect.Int64 {
+						if v.Int() < 0 {
+							panic(runtimeError("negative shift amount"))
+						}
+					}
+				}
+				fr.env[instr] = opSHR(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.LSS:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opLSS(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.LEQ:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opLEQ(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.EQL:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opEQL(instr, fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.NEQ:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = !opEQL(instr, fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.GTR:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opGTR(fr.get(instr.X), fr.get(instr.Y))
+			}
+		case token.GEQ:
+			return func(fr *frame, k *int) {
+				fr.env[instr] = opGEQ(fr.get(instr.X), fr.get(instr.Y))
+			}
+		default:
+			panic(fmt.Errorf("unreachable %v", instr.Op))
 		}
 	case *ssa.UnOp:
 		return func(fr *frame, k *int) {
