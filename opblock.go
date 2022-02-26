@@ -466,21 +466,31 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			*k = kJump
 		}
 	case *ssa.Return:
-		return func(fr *frame, k *int) {
-			switch len(instr.Results) {
-			case 0:
-			case 1:
+		switch n := len(instr.Results); n {
+		case 0:
+			return func(fr *frame, k *int) {
+				fr.block = nil
+				fr.fnBlock = nil
+				*k = kReturn
+			}
+		case 1:
+			return func(fr *frame, k *int) {
 				fr.result = fr.get(instr.Results[0])
-			default:
-				var res []value
-				for _, r := range instr.Results {
-					res = append(res, fr.get(r))
+				fr.block = nil
+				fr.fnBlock = nil
+				*k = kReturn
+			}
+		default:
+			res := make([]value, n, n)
+			return func(fr *frame, k *int) {
+				for i := 0; i < n; i++ {
+					res[i] = fr.get(instr.Results[i])
 				}
 				fr.result = tuple(res)
+				fr.block = nil
+				fr.fnBlock = nil
+				*k = kReturn
 			}
-			fr.block = nil
-			fr.fnBlock = nil
-			*k = kReturn
 		}
 	case *ssa.RunDefers:
 		return func(fr *frame, k *int) {
