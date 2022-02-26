@@ -125,29 +125,37 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 				fr.env[instr] = opANDNOT(fr.get(instr.X), fr.get(instr.Y))
 			}
 		case token.SHL:
-			return func(fr *frame, k *int) {
-				if c, ok := instr.Y.(*ssa.Convert); ok {
-					v := reflect.ValueOf(fr.get(c.X))
-					vk := v.Kind()
-					if vk >= reflect.Int && vk <= reflect.Int64 {
+			if c, ok := instr.Y.(*ssa.Convert); ok {
+				xtyp := interp.preToType(c.X.Type())
+				xk := xtyp.Kind()
+				if xk >= reflect.Int && xk <= reflect.Int64 {
+					return func(fr *frame, k *int) {
+						v := reflect.ValueOf(fr.get(c.X))
 						if v.Int() < 0 {
 							panic(runtimeError("negative shift amount"))
 						}
+						fr.env[instr] = opSHL(fr.get(instr.X), fr.get(instr.Y))
 					}
 				}
+			}
+			return func(fr *frame, k *int) {
 				fr.env[instr] = opSHL(fr.get(instr.X), fr.get(instr.Y))
 			}
 		case token.SHR:
-			return func(fr *frame, k *int) {
-				if c, ok := instr.Y.(*ssa.Convert); ok {
-					v := reflect.ValueOf(fr.get(c.X))
-					vk := v.Kind()
-					if vk >= reflect.Int && vk <= reflect.Int64 {
+			if c, ok := instr.Y.(*ssa.Convert); ok {
+				xtyp := interp.preToType(c.X.Type())
+				xk := xtyp.Kind()
+				if xk >= reflect.Int && xk <= reflect.Int64 {
+					return func(fr *frame, k *int) {
+						v := reflect.ValueOf(fr.get(c.X))
 						if v.Int() < 0 {
 							panic(runtimeError("negative shift amount"))
 						}
+						fr.env[instr] = opSHR(fr.get(instr.X), fr.get(instr.Y))
 					}
 				}
+			}
+			return func(fr *frame, k *int) {
 				fr.env[instr] = opSHR(fr.get(instr.X), fr.get(instr.Y))
 			}
 		case token.LSS:
