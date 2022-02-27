@@ -578,7 +578,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		if addr, ok := instr.Addr.(*ssa.FieldAddr); ok {
 			if s, ok := addr.X.Type().(*types.Pointer).Elem().(*types.Struct); ok {
 				if s.Field(addr.Field).Name() == "_" {
-					return func(fr *frame, k *int) {}
+					return nil
 				}
 			}
 		}
@@ -620,7 +620,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 
 	case *ssa.DebugRef:
 		if interp.fnDebug == nil {
-			return func(fr *frame, k *int) {}
+			return nil
 		} else {
 			return func(fr *frame, k *int) {
 				ref := &DebugInfo{DebugRef: instr, fset: interp.fset}
