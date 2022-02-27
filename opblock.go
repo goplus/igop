@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/goplus/reflectx"
+
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -67,7 +68,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 		if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
 			if recv := fn.Signature.Recv(); recv == nil {
 				ext, ok = pkg.Funcs[fn.Name()]
-			} else if typ := interp.preToType(recv.Type()); typ != nil {
+			} else if typ, found := interp.loader.LookupReflect(recv.Type()); found {
 				if m, found := reflectx.MethodByName(typ, fn.Name()); found {
 					ext, ok = m.Func, true
 				}
@@ -101,11 +102,12 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			}
 		}
 	case *ssa.Call:
+		pos := instr.Pos()
 		if instr.Call.Method == nil {
 			switch fn := instr.Call.Value.(type) {
 			case *ssa.Function:
 				if fn.Blocks == nil {
-					_, ok := findExternFunc(interp, fn)
+					ext, ok := findExternFunc(interp, fn)
 					if !ok {
 						// skip pkg.init
 						if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
@@ -113,15 +115,39 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 						}
 						panic(fmt.Errorf("no code for function: %v", fn))
 					}
+					nargs := len(instr.Call.Args)
+					return func(fr *frame, k *int) {
+						args := make([]value, nargs, nargs)
+						for i := 0; i < nargs; i++ {
+							v := fr.get(instr.Call.Args[i])
+							if fn, ok := v.(*ssa.Function); ok {
+								v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+							}
+							args[i] = v
+						}
+						fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
+					}
 				}
 			case *ssa.Builtin:
+				nargs := len(instr.Call.Args)
+				return func(fr *frame, k *int) {
+					args := make([]value, nargs, nargs)
+					for i := 0; i < nargs; i++ {
+						v := fr.get(instr.Call.Args[i])
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args[i] = v
+					}
+					fr.env[instr] = interp.callBuiltin(fr, pos, fn, args, instr.Call.Args)
+				}
 			case *ssa.MakeClosure:
 			default:
 				typ := interp.preToType(instr.Call.Value.Type())
 				if typ.Kind() != reflect.Func {
 					panic("unsupport")
 				}
-				//log.Printf("=>%v %T %v\n", instr, instr.Call.Value, interp.preToType(instr.Call.Value.Type()))
+				// nargs := len(instr.Call.Args)
 			}
 		}
 		return func(fr *frame, k *int) {

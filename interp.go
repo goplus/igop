@@ -933,11 +933,6 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 		}
 		defer log.Printf("Leaving %s%s.\n", fn, suffix)
 	}
-	fr := &frame{
-		i:      i,
-		caller: caller, // for panic/recover
-		fn:     fn,
-	}
 	if fn.Parent() == nil {
 		fullName := fn.String()
 		name := fn.Name()
@@ -987,6 +982,11 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 			}
 			panic("no code for function: " + fullName)
 		}
+	}
+	fr := &frame{
+		i:      i,
+		caller: caller, // for panic/recover
+		fn:     fn,
 	}
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fn.Blocks[0]
