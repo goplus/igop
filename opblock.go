@@ -63,11 +63,13 @@ type FuncBlock struct {
 func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 	switch instr := instr.(type) {
 	case *ssa.Alloc:
-		typ := interp.preToType(instr.Type()).Elem()
-		return func(fr *frame, k *int) {
-			if instr.Heap {
+		if instr.Heap {
+			typ := interp.preToType(instr.Type()).Elem()
+			return func(fr *frame, k *int) {
 				fr.env[instr] = reflect.New(typ).Interface()
-			} else {
+			}
+		} else {
+			return func(fr *frame, k *int) {
 				v := reflect.ValueOf(fr.env[instr])
 				SetValue(v.Elem(), fr.locals[instr])
 			}
