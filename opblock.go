@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sync/atomic"
 
+	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -60,6 +61,22 @@ type FuncBlock struct {
 	Instrs []func(fr *frame, k *int)
 }
 
+func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
+	ext, ok = externValues[fn.String()]
+	if !ok && fn.Pkg != nil {
+		if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
+			if recv := fn.Signature.Recv(); recv == nil {
+				ext, ok = pkg.Funcs[fn.Name()]
+			} else if typ := interp.preToType(recv.Type()); typ != nil {
+				if m, found := reflectx.MethodByName(typ, fn.Name()); found {
+					ext, ok = m.Func, true
+				}
+			}
+		}
+	}
+	return
+}
+
 func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 	switch instr := instr.(type) {
 	case *ssa.Alloc:
@@ -84,6 +101,29 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			}
 		}
 	case *ssa.Call:
+		if instr.Call.Method == nil {
+			switch fn := instr.Call.Value.(type) {
+			case *ssa.Function:
+				if fn.Blocks == nil {
+					_, ok := findExternFunc(interp, fn)
+					if !ok {
+						// skip pkg.init
+						if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
+							return nil
+						}
+						panic(fmt.Errorf("no code for function: %v", fn))
+					}
+				}
+			case *ssa.Builtin:
+			case *ssa.MakeClosure:
+			default:
+				typ := interp.preToType(instr.Call.Value.Type())
+				if typ.Kind() != reflect.Func {
+					panic("unsupport")
+				}
+				//log.Printf("=>%v %T %v\n", instr, instr.Call.Value, interp.preToType(instr.Call.Value.Type()))
+			}
+		}
 		return func(fr *frame, k *int) {
 			fn, args := interp.prepareCall(fr, &instr.Call)
 			fr.env[instr] = interp.call(fr, instr.Pos(), fn, args, instr.Call.Args)

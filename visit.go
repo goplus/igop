@@ -52,7 +52,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			block := &FuncBlock{}
 			block.Instrs = make([]func(*frame, *int), len(b.Instrs), len(b.Instrs))
 			visit.intp.blocks[b] = block
-			//for i, instr := range b.Instrs {
+			var index int
 			for i := 0; i < len(b.Instrs); i++ {
 				instr := b.Instrs[i]
 				ops := instr.Operands(buf[:0])
@@ -96,8 +96,11 @@ func (visit *visitor) function(fn *ssa.Function) {
 					}
 				}
 				fn := makeInstr(visit.intp, instr)
+				if fn == nil {
+					continue
+				}
 				if visit.intp.mode&EnableDumpInstr != 0 {
-					block.Instrs[i] = func(fr *frame, k *int) {
+					block.Instrs[index] = func(fr *frame, k *int) {
 						if v, ok := instr.(ssa.Value); ok {
 							log.Printf("\t%-20T %v = %v\n", instr, v.Name(), instr)
 						} else {
@@ -106,9 +109,11 @@ func (visit *visitor) function(fn *ssa.Function) {
 						fn(fr, k)
 					}
 				} else {
-					block.Instrs[i] = fn
+					block.Instrs[index] = fn
 				}
+				index++
 			}
+			block.Instrs = block.Instrs[:index]
 		}
 	}
 }
