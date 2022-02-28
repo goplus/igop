@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 
 	"github.com/goplus/reflectx"
-
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -102,87 +101,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			}
 		}
 	case *ssa.Call:
-		pos := instr.Pos()
-		if instr.Call.Method == nil {
-			switch fn := instr.Call.Value.(type) {
-			case *ssa.Function:
-				if fn.Blocks == nil {
-					ext, ok := findExternFunc(interp, fn)
-					if !ok {
-						// skip pkg.init
-						if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
-							return nil
-						}
-						panic(fmt.Errorf("no code for function: %v", fn))
-					}
-					nargs := len(instr.Call.Args)
-					return func(fr *frame, k *int) {
-						args := make([]value, nargs, nargs)
-						for i := 0; i < nargs; i++ {
-							v := fr.get(instr.Call.Args[i])
-							if fn, ok := v.(*ssa.Function); ok {
-								v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
-							}
-							args[i] = v
-						}
-						fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
-					}
-				} else {
-					nargs := len(instr.Call.Args)
-					return func(fr *frame, k *int) {
-						args := make([]value, nargs, nargs)
-						for i := 0; i < nargs; i++ {
-							v := fr.get(instr.Call.Args[i])
-							if fn, ok := v.(*ssa.Function); ok {
-								v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
-							}
-							args[i] = v
-						}
-						fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
-					}
-				}
-			case *ssa.Builtin:
-				nargs := len(instr.Call.Args)
-				return func(fr *frame, k *int) {
-					args := make([]value, nargs, nargs)
-					for i := 0; i < nargs; i++ {
-						v := fr.get(instr.Call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
-						}
-						args[i] = v
-					}
-					fr.env[instr] = interp.callBuiltin(fr, pos, fn, args, instr.Call.Args)
-				}
-			case *ssa.MakeClosure:
-				nargs := len(instr.Call.Args)
-				return func(fr *frame, k *int) {
-					var bindings []value
-					for _, binding := range fn.Bindings {
-						bindings = append(bindings, fr.get(binding))
-					}
-					args := make([]value, nargs, nargs)
-					for i := 0; i < nargs; i++ {
-						v := fr.get(instr.Call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
-						}
-						args[i] = v
-					}
-					fr.env[instr] = interp.callFunction(fr, pos, fn.Fn.(*ssa.Function), args, bindings)
-				}
-			default:
-				typ := interp.preToType(instr.Call.Value.Type())
-				if typ.Kind() != reflect.Func {
-					panic("unsupport")
-				}
-				// nargs := len(instr.Call.Args)
-			}
-		}
-		return func(fr *frame, k *int) {
-			fn, args := interp.prepareCall(fr, &instr.Call)
-			fr.env[instr] = interp.call(fr, instr.Pos(), fn, args, instr.Call.Args)
-		}
+		return makeCallInstr(interp, instr)
 	case *ssa.BinOp:
 		switch instr.Op {
 		case token.ADD:
@@ -690,5 +609,195 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		}
 	default:
 		panic(fmt.Errorf("unreachable %T", instr))
+	}
+}
+
+func makeCallInstr(interp *Interp, instr *ssa.Call) func(fr *frame, k *int) {
+	pos := instr.Pos()
+	if instr.Call.Method == nil {
+		switch fn := instr.Call.Value.(type) {
+		case *ssa.Function:
+			if fn.Blocks == nil {
+				ext, ok := findExternFunc(interp, fn)
+				if !ok {
+					// skip pkg.init
+					if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
+						return nil
+					}
+					panic(fmt.Errorf("no code for function: %v", fn))
+				}
+				nargs := len(instr.Call.Args)
+				return func(fr *frame, k *int) {
+					args := make([]value, nargs, nargs)
+					for i := 0; i < nargs; i++ {
+						v := fr.get(instr.Call.Args[i])
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args[i] = v
+					}
+					fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
+				}
+			} else {
+				nargs := len(instr.Call.Args)
+				return func(fr *frame, k *int) {
+					args := make([]value, nargs, nargs)
+					for i := 0; i < nargs; i++ {
+						v := fr.get(instr.Call.Args[i])
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args[i] = v
+					}
+					fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
+				}
+			}
+		case *ssa.Builtin:
+			nargs := len(instr.Call.Args)
+			return func(fr *frame, k *int) {
+				args := make([]value, nargs, nargs)
+				for i := 0; i < nargs; i++ {
+					v := fr.get(instr.Call.Args[i])
+					if fn, ok := v.(*ssa.Function); ok {
+						v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+					}
+					args[i] = v
+				}
+				fr.env[instr] = interp.callBuiltin(fr, pos, fn, args, instr.Call.Args)
+			}
+		case *ssa.MakeClosure:
+			nargs := len(instr.Call.Args)
+			return func(fr *frame, k *int) {
+				var bindings []value
+				for _, binding := range fn.Bindings {
+					bindings = append(bindings, fr.get(binding))
+				}
+				args := make([]value, nargs, nargs)
+				for i := 0; i < nargs; i++ {
+					v := fr.get(instr.Call.Args[i])
+					if fn, ok := v.(*ssa.Function); ok {
+						v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+					}
+					args[i] = v
+				}
+				fr.env[instr] = interp.callFunction(fr, pos, fn.Fn.(*ssa.Function), args, bindings)
+			}
+		default:
+			typ := interp.preToType(instr.Call.Value.Type())
+			if typ.Kind() != reflect.Func {
+				panic("unsupport")
+			}
+			// nargs := len(instr.Call.Args)
+		}
+	} else {
+		var isReflect bool
+		if pkg := instr.Call.Method.Pkg(); pkg == nil {
+			// error.Error
+			isReflect = true
+		} else if _, found := interp.installed(pkg.Path()); found {
+			isReflect = true
+		}
+		if isReflect {
+			mname := instr.Call.Method.Name()
+			// skip unexport method
+			if !token.IsExported(mname) {
+				return nil
+			}
+			switch fullName := instr.Call.Method.FullName(); fullName {
+			case "(reflect.Type).Method", "(reflect.Type).MethodByName":
+				var ext reflect.Value
+				if mname == "Method" {
+					ext = reflect.ValueOf(reflectx.MethodByIndex)
+				} else {
+					ext = reflect.ValueOf(reflectx.MethodByName)
+				}
+				return func(fr *frame, k *int) {
+					var args []interface{}
+					v := fr.get(instr.Call.Value)
+					args = append(args, v)
+					for _, arg := range instr.Call.Args {
+						v := fr.get(arg)
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args = append(args, v)
+					}
+					fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
+				}
+			default:
+				return func(fr *frame, k *int) {
+					var args []interface{}
+					var ext reflect.Value
+					v := fr.get(instr.Call.Value)
+					rtype := reflect.TypeOf(v)
+					if f, ok := reflectx.MethodByName(rtype, mname); ok {
+						ext = f.Func
+					} else {
+						panic(runtimeError("invalid memory address or nil pointer dereference"))
+					}
+					args = append(args, v)
+					for _, arg := range instr.Call.Args {
+						v := fr.get(arg)
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args = append(args, v)
+					}
+					fr.env[instr] = interp.callReflect(fr, instr.Pos(), ext, args, nil)
+				}
+			}
+		} else {
+			return func(fr *frame, k *int) {
+				var args []interface{}
+				v := fr.get(instr.Call.Value)
+				rtype := reflect.TypeOf(v)
+				if t, ok := interp.findType(rtype, true); ok {
+					fn := lookupMethod(interp, t, instr.Call.Method)
+					if fn == nil {
+						// Unreachable in well-typed programs.
+						panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, instr.Call.Method))
+					}
+					args = append(args, v)
+					for _, arg := range instr.Call.Args {
+						v := fr.get(arg)
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args = append(args, v)
+					}
+					fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
+				} else {
+					var ext reflect.Value
+					mname := instr.Call.Method.Name()
+					if s := rtype.String(); (s == "*reflect.rtype" || s == "reflect.Type") &&
+						mname == "Method" || mname == "MethodByName" {
+						if mname == "Method" {
+							ext = reflect.ValueOf(reflectx.MethodByIndex)
+						} else {
+							ext = reflect.ValueOf(reflectx.MethodByName)
+						}
+					} else {
+						if f, ok := reflectx.MethodByName(rtype, mname); ok {
+							ext = f.Func
+						} else {
+							panic(runtimeError("invalid memory address or nil pointer dereference"))
+						}
+					}
+					args = append(args, v)
+					for _, arg := range instr.Call.Args {
+						v := fr.get(arg)
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args = append(args, v)
+					}
+					fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
+				}
+			}
+		}
+	}
+	return func(fr *frame, k *int) {
+		fn, args := interp.prepareCall(fr, &instr.Call)
+		fr.env[instr] = interp.call(fr, pos, fn, args, instr.Call.Args)
 	}
 }
