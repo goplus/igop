@@ -687,7 +687,28 @@ func makeCallInstr(interp *Interp, instr *ssa.Call) func(fr *frame, k *int) {
 			if typ.Kind() != reflect.Func {
 				panic("unsupport")
 			}
-			// nargs := len(instr.Call.Args)
+			nargs := len(instr.Call.Args)
+			return func(fr *frame, k *int) {
+				fn := fr.get(instr.Call.Value)
+				args := make([]value, nargs, nargs)
+				for i := 0; i < nargs; i++ {
+					v := fr.get(instr.Call.Args[i])
+					if fn, ok := v.(*ssa.Function); ok {
+						v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+					}
+					args[i] = v
+				}
+				switch fn := fn.(type) {
+				case *ssa.Function:
+					fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
+				case *closure:
+					fr.env[instr] = interp.callFunction(fr, pos, fn.Fn, args, fn.Env)
+				case *ssa.Builtin:
+					fr.env[instr] = interp.callBuiltin(fr, pos, fn, args, instr.Call.Args)
+				default:
+					fr.env[instr] = interp.callReflect(fr, pos, reflect.ValueOf(fn), args, nil)
+				}
+			}
 		}
 	} else {
 		var isReflect bool
@@ -795,9 +816,5 @@ func makeCallInstr(interp *Interp, instr *ssa.Call) func(fr *frame, k *int) {
 				}
 			}
 		}
-	}
-	return func(fr *frame, k *int) {
-		fn, args := interp.prepareCall(fr, &instr.Call)
-		fr.env[instr] = interp.call(fr, pos, fn, args, instr.Call.Args)
 	}
 }
