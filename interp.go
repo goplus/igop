@@ -918,6 +918,39 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 	return " at " + fset.Position(pos).String()
 }
 
+func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+	fr := &frame{
+		i:      i,
+		caller: caller, // for panic/recover
+		fn:     fn,
+	}
+	fr.env = make(map[ssa.Value]value)
+	fr.block = fn.Blocks[0]
+	fr.fnBlock = i.blocks[fr.block]
+	fr.locals = make(map[ssa.Value]reflect.Value)
+	fr.mapUnderscoreKey = make(map[types.Type]bool)
+	for _, l := range fn.Locals {
+		typ := i.toType(deref(l.Type()))
+		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
+		fr.env[l] = reflect.New(typ).Interface() //&fr.locals[i]
+	}
+	for i, p := range fn.Params {
+		fr.env[p] = args[i]
+	}
+	for i, fv := range fn.FreeVars {
+		fr.env[fv] = env[i]
+	}
+	for fr.fnBlock != nil {
+		i.runFrame(fr)
+	}
+	// Destroy the locals to avoid accidental use after return.
+	fr.env = nil
+	fr.block = nil
+	fr.fnBlock = nil
+	fr.locals = nil
+	return fr.result
+}
+
 // callSSA interprets a call to function fn with arguments args,
 // and lexical environment env, returning its result.
 // callpos is the position of the callsite.

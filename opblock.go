@@ -127,6 +127,19 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 						}
 						fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
 					}
+				} else {
+					nargs := len(instr.Call.Args)
+					return func(fr *frame, k *int) {
+						args := make([]value, nargs, nargs)
+						for i := 0; i < nargs; i++ {
+							v := fr.get(instr.Call.Args[i])
+							if fn, ok := v.(*ssa.Function); ok {
+								v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+							}
+							args[i] = v
+						}
+						fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
+					}
 				}
 			case *ssa.Builtin:
 				nargs := len(instr.Call.Args)
@@ -142,6 +155,22 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 					fr.env[instr] = interp.callBuiltin(fr, pos, fn, args, instr.Call.Args)
 				}
 			case *ssa.MakeClosure:
+				nargs := len(instr.Call.Args)
+				return func(fr *frame, k *int) {
+					var bindings []value
+					for _, binding := range fn.Bindings {
+						bindings = append(bindings, fr.get(binding))
+					}
+					args := make([]value, nargs, nargs)
+					for i := 0; i < nargs; i++ {
+						v := fr.get(instr.Call.Args[i])
+						if fn, ok := v.(*ssa.Function); ok {
+							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						}
+						args[i] = v
+					}
+					fr.env[instr] = interp.callFunction(fr, pos, fn.Fn.(*ssa.Function), args, bindings)
+				}
 			default:
 				typ := interp.preToType(instr.Call.Value.Type())
 				if typ.Kind() != reflect.Func {
