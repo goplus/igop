@@ -216,7 +216,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			var v reflect.Value
 			switch f := x.(type) {
 			case *ssa.Function:
-				v = interp.toFunc(fr, interp.toType(f.Type()), f)
+				v = interp.makeFunc(fr, interp.toType(f.Type()), f)
 			default:
 				v = reflect.ValueOf(x)
 			}
@@ -239,9 +239,9 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			v := reflect.New(typ).Elem()
 			x := fr.get(instr.X)
 			var vx reflect.Value
-			switch x.(type) {
+			switch x := x.(type) {
 			case *ssa.Function:
-				vx = interp.toFunc(fr, xtyp, x)
+				vx = interp.makeFunc(fr, xtyp, x)
 			case nil:
 				vx = reflect.New(xtyp).Elem()
 			default:
@@ -262,7 +262,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 				bindings = append(bindings, fr.get(binding))
 			}
 			c := &closure{fn, bindings}
-			fr.env[instr] = interp.toFunc(fr, typ, c).Interface()
+			fr.env[instr] = interp.makeFuncEx(fr, typ, c.Fn, c.Env).Interface()
 		}
 	case *ssa.MakeChan:
 		typ := interp.preToType(instr.Type())
@@ -454,7 +454,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			v := fr.get(instr.X)
 			if fn, ok := v.(*ssa.Function); ok {
 				typ := interp.toType(fn.Type())
-				v = interp.toFunc(fr, typ, fn).Interface()
+				v = interp.makeFunc(fr, typ, fn).Interface()
 			}
 			fr.env[instr] = typeAssert(interp, instr, v)
 		}
@@ -561,7 +561,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			val := fr.get(instr.Val)
 			switch fn := val.(type) {
 			case *ssa.Function:
-				f := interp.toFunc(fr, interp.toType(fn.Type()), fn)
+				f := interp.makeFunc(fr, interp.toType(fn.Type()), fn)
 				SetValue(x.Elem(), f)
 			default:
 				v := reflect.ValueOf(val)
@@ -579,7 +579,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			v := fr.get(instr.Value)
 			if fn, ok := v.(*ssa.Function); ok {
 				typ := interp.toType(fn.Type())
-				v = interp.toFunc(fr, typ, fn).Interface()
+				v = interp.makeFunc(fr, typ, fn).Interface()
 			}
 			if fr.mapUnderscoreKey[instr.Map.Type()] {
 				for _, vv := range vm.MapKeys() {
@@ -612,9 +612,27 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 	}
 }
 
+type argType struct {
+	fetch bool
+	value interface{}
+}
+
 func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr *frame, k *int) {
 	pos := instr.Pos()
 	nargs := len(call.Args)
+	targs := make([]argType, nargs, nargs)
+	for i := 0; i < nargs; i++ {
+		switch arg := call.Args[i].(type) {
+		case constValue:
+			targs[i].value = arg.Value
+		case *ssa.Const:
+			targs[i].value = constToValue(interp, arg)
+		case *ssa.Function:
+			targs[i].value = interp.makeFunc(nil, interp.preToType(arg.Type()), arg).Interface()
+		default:
+			targs[i].fetch = true
+		}
+	}
 	if call.Method == nil {
 		switch fn := call.Value.(type) {
 		case *ssa.Function:
@@ -635,11 +653,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 					return func(fr *frame, k *int) {
 						args := make([]value, nargs, nargs)
 						for i := 0; i < nargs; i++ {
-							v := fr.get(call.Args[i])
-							if fn, ok := v.(*ssa.Function); ok {
-								v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+							if targs[i].fetch {
+								args[i] = fr.get(call.Args[i])
+							} else {
+								args[i] = targs[i].value
 							}
-							args[i] = v
 						}
 						fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
 					}
@@ -653,11 +671,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 					return func(fr *frame, k *int) {
 						args := make([]value, nargs, nargs)
 						for i := 0; i < nargs; i++ {
-							v := fr.get(call.Args[i])
-							if fn, ok := v.(*ssa.Function); ok {
-								v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+							if targs[i].fetch {
+								args[i] = fr.get(call.Args[i])
+							} else {
+								args[i] = targs[i].value
 							}
-							args[i] = v
 						}
 						fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
 					}
@@ -672,11 +690,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 				return func(fr *frame, k *int) {
 					args := make([]value, nargs, nargs)
 					for i := 0; i < nargs; i++ {
-						v := fr.get(call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						if targs[i].fetch {
+							args[i] = fr.get(call.Args[i])
+						} else {
+							args[i] = targs[i].value
 						}
-						args[i] = v
 					}
 					fr.env[instr] = interp.callBuiltin(fr, pos, fn, args, call.Args)
 				}
@@ -689,11 +707,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 				}
 				args := make([]value, nargs, nargs)
 				for i := 0; i < nargs; i++ {
-					v := fr.get(call.Args[i])
-					if fn, ok := v.(*ssa.Function); ok {
-						v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+					if targs[i].fetch {
+						args[i] = fr.get(call.Args[i])
+					} else {
+						args[i] = targs[i].value
 					}
-					args[i] = v
 				}
 				fr.env[instr] = interp.callFunction(fr, pos, fn.Fn.(*ssa.Function), args, bindings)
 			}
@@ -721,11 +739,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 					fn := fr.get(call.Value)
 					args := make([]value, nargs, nargs)
 					for i := 0; i < nargs; i++ {
-						v := fr.get(call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						if targs[i].fetch {
+							args[i] = fr.get(call.Args[i])
+						} else {
+							args[i] = targs[i].value
 						}
-						args[i] = v
 					}
 					switch fn := fn.(type) {
 					case *ssa.Function:
@@ -767,11 +785,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 					args := make([]value, margs, margs)
 					args[0] = fr.get(call.Value)
 					for i := 0; i < nargs; i++ {
-						v := fr.get(call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						if targs[i].fetch {
+							args[i+1] = fr.get(call.Args[i])
+						} else {
+							args[i+1] = targs[i].value
 						}
-						args[i+1] = v
 					}
 					fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
 				}
@@ -788,11 +806,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 					args := make([]value, margs, margs)
 					args[0] = v
 					for i := 0; i < nargs; i++ {
-						v := fr.get(call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						if targs[i].fetch {
+							args[i+1] = fr.get(call.Args[i])
+						} else {
+							args[i+1] = targs[i].value
 						}
-						args[i+1] = v
 					}
 					fr.env[instr] = interp.callReflect(fr, instr.Pos(), ext, args, nil)
 				}
@@ -810,11 +828,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 					args := make([]value, margs, margs)
 					args[0] = v
 					for i := 0; i < nargs; i++ {
-						v := fr.get(call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						if targs[i].fetch {
+							args[i+1] = fr.get(call.Args[i])
+						} else {
+							args[i+1] = targs[i].value
 						}
-						args[i+1] = v
 					}
 					fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
 				} else {
@@ -837,11 +855,11 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call ssa.CallCommon) func(fr
 					args := make([]value, margs, margs)
 					args[0] = v
 					for i := 0; i < nargs; i++ {
-						v := fr.get(call.Args[i])
-						if fn, ok := v.(*ssa.Function); ok {
-							v = interp.toFunc(fr, interp.toType(fn.Type()), fn).Interface()
+						if targs[i].fetch {
+							args[i+1] = fr.get(call.Args[i])
+						} else {
+							args[i+1] = targs[i].value
 						}
-						args[i+1] = v
 					}
 					fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
 				}

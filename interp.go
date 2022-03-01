@@ -187,13 +187,17 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	return nil
 }
 
-func (i *Interp) toFunc(fr *frame, typ reflect.Type, fn value) reflect.Value {
+func (i *Interp) makeFunc(fr *frame, typ reflect.Type, f *ssa.Function) reflect.Value {
+	return i.makeFuncEx(fr, typ, f, nil)
+}
+
+func (i *Interp) makeFuncEx(fr *frame, typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		iargs := make([]value, len(args))
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := i.call(fr, token.NoPos, fn, iargs, nil)
+		r := i.callFunction(i.caller, token.NoPos, fn, iargs, env)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -432,7 +436,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		var v reflect.Value
 		switch f := x.(type) {
 		case *ssa.Function:
-			v = i.toFunc(fr, i.toType(f.Type()), f)
+			v = i.makeFunc(fr, i.toType(f.Type()), f)
 		default:
 			v = reflect.ValueOf(x)
 		}
@@ -455,9 +459,9 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		xtyp := i.toType(instr.X.Type())
 		x := fr.get(instr.X)
 		var vx reflect.Value
-		switch x.(type) {
+		switch x := x.(type) {
 		case *ssa.Function:
-			vx = i.toFunc(fr, xtyp, x)
+			vx = i.makeFunc(fr, xtyp, x)
 		case nil:
 			vx = reflect.New(xtyp).Elem()
 		default:
@@ -521,7 +525,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		val := fr.get(instr.Val)
 		switch fn := val.(type) {
 		case *ssa.Function:
-			f := i.toFunc(fr, i.toType(fn.Type()), fn)
+			f := i.makeFunc(fr, i.toType(fn.Type()), fn)
 			SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
@@ -719,7 +723,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		v := fr.get(instr.Value)
 		if fn, ok := v.(*ssa.Function); ok {
 			typ := i.toType(fn.Type())
-			v = i.toFunc(fr, typ, fn).Interface()
+			v = i.makeFunc(fr, typ, fn).Interface()
 		}
 		if fr.mapUnderscoreKey[instr.Map.Type()] {
 			for _, vv := range vm.MapKeys() {
@@ -735,7 +739,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		v := fr.get(instr.X)
 		if fn, ok := v.(*ssa.Function); ok {
 			typ := i.toType(fn.Type())
-			v = i.toFunc(fr, typ, fn).Interface()
+			v = i.makeFunc(fr, typ, fn).Interface()
 		}
 		fr.env[instr] = typeAssert(i, instr, v)
 
@@ -747,7 +751,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		//fr.env[instr] = &closure{instr.Fn.(*ssa.Function), bindings}
 		c := &closure{instr.Fn.(*ssa.Function), bindings}
 		typ := i.toType(c.Fn.Type())
-		fr.env[instr] = i.toFunc(fr, typ, c).Interface()
+		fr.env[instr] = i.makeFuncEx(fr, typ, c.Fn, c.Env).Interface()
 
 	case *ssa.Phi:
 		for i, pred := range instr.Block().Preds {
@@ -873,7 +877,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 	for _, arg := range call.Args {
 		v := fr.get(arg)
 		if fn, ok := v.(*ssa.Function); ok {
-			v = i.toFunc(fr, i.toType(fn.Type()), fn).Interface()
+			v = i.makeFunc(fr, i.toType(fn.Type()), fn).Interface()
 		}
 		args = append(args, v)
 	}
@@ -1049,6 +1053,7 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 }
 
 func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+	i.caller = caller
 	var ins []reflect.Value
 	typ := fn.Type()
 	isVariadic := fn.Type().IsVariadic()
@@ -1357,7 +1362,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.toFunc(nil, i.toType(fn.Type()), fn).Interface(), true
+	return i.makeFunc(nil, i.toType(fn.Type()), fn).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
