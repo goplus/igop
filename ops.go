@@ -102,6 +102,21 @@ func constToValue(i *Interp, c *ssa.Const) value {
 	panic(fmt.Sprintf("unparser constValue: %s", c))
 }
 
+func globalToValue(i *Interp, key *ssa.Global) (interface{}, bool) {
+	if key.Pkg != nil {
+		pkgpath := key.Pkg.Pkg.Path()
+		if pkg, ok := i.installed(pkgpath); ok {
+			if ext, ok := pkg.Vars[key.Name()]; ok {
+				return ext.Interface(), true
+			}
+		}
+	}
+	if v, ok := i.globals[key]; ok {
+		return v, true
+	}
+	return nil, false
+}
+
 // asInt converts x, which must be an integer, to an int suitable for
 // use as a slice or array index or operand to make().
 func asInt(x value) int {
