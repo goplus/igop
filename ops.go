@@ -117,6 +117,18 @@ func globalToValue(i *Interp, key *ssa.Global) (interface{}, bool) {
 	return nil, false
 }
 
+func staticToValue(i *Interp, value ssa.Value) (interface{}, bool) {
+	switch v := value.(type) {
+	case *ssa.Global:
+		return globalToValue(i, v)
+	case *constValue:
+		return v.Value, true
+	case *ssa.Const:
+		return constToValue(i, v), true
+	}
+	return nil, false
+}
+
 // asInt converts x, which must be an integer, to an int suitable for
 // use as a slice or array index or operand to make().
 func asInt(x value) int {
