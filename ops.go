@@ -1327,10 +1327,9 @@ failed:
 // It returns the extracted value on success, and panics on failure,
 // unless instr.CommaOk, in which case it always returns a "value,ok" tuple.
 //
-func typeAssert(i *Interp, instr *ssa.TypeAssert, iv interface{}) value {
+func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface{}) value {
 	var v value
 	var err error
-	typ := i.toType(instr.AssertedType)
 	if iv == nil {
 		err = plainError(fmt.Sprintf("interface conversion: interface is nil, not %v", typ))
 	} else {

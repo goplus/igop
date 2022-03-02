@@ -741,7 +741,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 			typ := i.toType(fn.Type())
 			v = i.makeFunc(fr, typ, fn).Interface()
 		}
-		fr.env[instr] = typeAssert(i, instr, v)
+		fr.env[instr] = typeAssert(i, instr, i.toType(instr.AssertedType), v)
 
 	case *ssa.MakeClosure:
 		var bindings []value

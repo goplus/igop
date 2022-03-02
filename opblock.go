@@ -450,13 +450,18 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = fr.get(instr.Iter).(iter).next()
 		}
 	case *ssa.TypeAssert:
-		return func(fr *frame, k *int) {
-			v := fr.get(instr.X)
-			if fn, ok := v.(*ssa.Function); ok {
-				typ := interp.toType(fn.Type())
-				v = interp.makeFunc(fr, typ, fn).Interface()
+		if fn, ok := instr.X.(*ssa.Function); ok {
+			f := interp.makeFuncEx(nil, interp.toType(fn.Type()), fn, nil).Interface()
+			typ := interp.toType(instr.AssertedType)
+			return func(fr *frame, k *int) {
+				fr.env[instr] = typeAssert(interp, instr, typ, f)
 			}
-			fr.env[instr] = typeAssert(interp, instr, v)
+		} else {
+			typ := interp.toType(instr.AssertedType)
+			return func(fr *frame, k *int) {
+				v := fr.get(instr.X)
+				fr.env[instr] = typeAssert(interp, instr, typ, v)
+			}
 		}
 	case *ssa.Extract:
 		return func(fr *frame, k *int) {
