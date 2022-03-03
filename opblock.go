@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
+	"strings"
 	"sync/atomic"
 
 	"github.com/goplus/reflectx"
@@ -442,12 +443,30 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = v.Convert(typ).Interface()
 		}
 	case *ssa.Range:
-		return func(fr *frame, k *int) {
-			fr.env[instr] = rangeIter(fr.get(instr.X), instr.X.Type())
+		typ := interp.preToType(instr.X.Type())
+		switch typ.Kind() {
+		case reflect.String:
+			return func(fr *frame, k *int) {
+				v := fr.get(instr.X)
+				fr.env[instr] = &stringIter{Reader: strings.NewReader(reflect.ValueOf(v).String())}
+			}
+		case reflect.Map:
+			return func(fr *frame, k *int) {
+				v := fr.get(instr.X)
+				fr.env[instr] = &mapIter{iter: reflect.ValueOf(v).MapRange()}
+			}
+		default:
+			panic("unreachable")
 		}
 	case *ssa.Next:
-		return func(fr *frame, k *int) {
-			fr.env[instr] = fr.get(instr.Iter).(iter).next()
+		if instr.IsString {
+			return func(fr *frame, k *int) {
+				fr.env[instr] = fr.get(instr.Iter).(*stringIter).next()
+			}
+		} else {
+			return func(fr *frame, k *int) {
+				fr.env[instr] = fr.get(instr.Iter).(*mapIter).next()
+			}
 		}
 	case *ssa.TypeAssert:
 		if fn, ok := instr.X.(*ssa.Function); ok {
