@@ -357,12 +357,18 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			fr.env[instr] = v.Index(asInt(idx)).Interface()
 		}
 	case *ssa.Lookup:
-		return func(fr *frame, k *int) {
-			m := fr.get(instr.X)
-			idx := fr.get(instr.Index)
-			if s, ok := m.(string); ok {
-				fr.env[instr] = s[asInt(idx)]
-			} else {
+		typ := interp.preToType(instr.X.Type())
+		switch typ.Kind() {
+		case reflect.String:
+			return func(fr *frame, k *int) {
+				v := fr.get(instr.X)
+				idx := fr.get(instr.Index)
+				fr.env[instr] = reflect.ValueOf(v).String()[asInt(idx)]
+			}
+		case reflect.Map:
+			return func(fr *frame, k *int) {
+				m := fr.get(instr.X)
+				idx := fr.get(instr.Index)
 				vm := reflect.ValueOf(m)
 				v := vm.MapIndex(reflect.ValueOf(idx))
 				ok := v.IsValid()
@@ -370,7 +376,7 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 				if ok {
 					rv = v.Interface()
 				} else {
-					rv = reflect.New(vm.Type().Elem()).Elem().Interface()
+					rv = reflect.New(typ.Elem()).Elem().Interface()
 				}
 				if instr.CommaOk {
 					fr.env[instr] = tuple{rv, ok}
@@ -378,6 +384,8 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 					fr.env[instr] = rv
 				}
 			}
+		default:
+			panic("unreachable")
 		}
 	case *ssa.Select:
 		return func(fr *frame, k *int) {
