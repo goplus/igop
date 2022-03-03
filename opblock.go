@@ -477,14 +477,13 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			}
 		}
 	case *ssa.TypeAssert:
+		typ := interp.preToType(instr.AssertedType)
 		if fn, ok := instr.X.(*ssa.Function); ok {
 			f := interp.makeFuncEx(nil, interp.toType(fn.Type()), fn, nil).Interface()
-			typ := interp.toType(instr.AssertedType)
 			return func(fr *frame, k *int) {
 				fr.env[instr] = typeAssert(interp, instr, typ, f)
 			}
 		} else {
-			typ := interp.toType(instr.AssertedType)
 			return func(fr *frame, k *int) {
 				v := fr.get(instr.X)
 				fr.env[instr] = typeAssert(interp, instr, typ, v)
