@@ -212,19 +212,20 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		}
 	case *ssa.ChangeType:
 		typ := interp.preToType(instr.Type())
-		return func(fr *frame, k *int) {
-			x := fr.get(instr.X)
-			var v reflect.Value
-			switch f := x.(type) {
-			case *ssa.Function:
-				v = interp.makeFunc(fr, interp.toType(f.Type()), f)
-			default:
-				v = reflect.ValueOf(x)
-			}
-			if !v.IsValid() {
-				fr.env[instr] = reflect.New(typ).Elem()
-			} else {
+		switch f := instr.X.(type) {
+		case *ssa.Function:
+			return func(fr *frame, k *int) {
+				v := interp.makeFunc(fr, interp.toType(f.Type()), f)
 				fr.env[instr] = v.Convert(typ).Interface()
+			}
+		default:
+			return func(fr *frame, k *int) {
+				x := fr.get(instr.X)
+				if x == nil {
+					fr.env[instr] = reflect.New(typ).Elem().Interface()
+				} else {
+					fr.env[instr] = reflect.ValueOf(x).Convert(typ).Interface()
+				}
 			}
 		}
 	case *ssa.Convert:
