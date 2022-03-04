@@ -8,6 +8,11 @@ import (
 )
 
 func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
+	defer func() {
+		if v := recover(); v != nil {
+			err = v.(error)
+		}
+	}()
 	visit := visitor{
 		intp: intp,
 		prog: intp.prog,
@@ -17,7 +22,8 @@ func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 	for _, pkg := range pkgs {
 		visit.pkgs[pkg] = true
 	}
-	return visit.program()
+	visit.program()
+	return
 }
 
 type visitor struct {
@@ -27,35 +33,30 @@ type visitor struct {
 	seen map[*ssa.Function]bool
 }
 
-func (visit *visitor) program() error {
+func (visit *visitor) program() {
 	for pkg := range visit.pkgs {
 		for _, mem := range pkg.Members {
 			if fn, ok := mem.(*ssa.Function); ok {
-				if err := visit.function(fn); err != nil {
-					return err
-				}
+				visit.function(fn)
 			}
 		}
 	}
 	for _, T := range visit.prog.RuntimeTypes() {
 		mset := visit.prog.MethodSets.MethodSet(T)
 		for i, n := 0, mset.Len(); i < n; i++ {
-			if err := visit.function(visit.prog.MethodValue(mset.At(i))); err != nil {
-				return err
-			}
+			visit.function(visit.prog.MethodValue(mset.At(i)))
 		}
 	}
-	return nil
 }
 
-func (visit *visitor) function(fn *ssa.Function) error {
+func (visit *visitor) function(fn *ssa.Function) {
 	if !visit.seen[fn] {
 		visit.seen[fn] = true
 		if fn.Blocks == nil {
 			if _, ok := visit.pkgs[fn.Pkg]; ok {
-				return fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos()))
+				panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
 			}
-			return nil
+			return
 		}
 		visit.intp.loadType(fn.Type())
 		for _, alloc := range fn.Locals {
@@ -131,7 +132,6 @@ func (visit *visitor) function(fn *ssa.Function) error {
 			block.Instrs = block.Instrs[:index]
 		}
 	}
-	return nil
 }
 
 type constValue struct {
