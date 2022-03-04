@@ -51,10 +51,11 @@ func (visit *visitor) program() error {
 func (visit *visitor) function(fn *ssa.Function) error {
 	if !visit.seen[fn] {
 		visit.seen[fn] = true
-		if fn.Blocks == nil && fn.Pkg != nil {
+		if fn.Blocks == nil {
 			if _, ok := visit.pkgs[fn.Pkg]; ok {
 				return fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos()))
 			}
+			return nil
 		}
 		visit.intp.loadType(fn.Type())
 		for _, alloc := range fn.Locals {
