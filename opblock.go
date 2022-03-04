@@ -236,23 +236,30 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 	case *ssa.MakeInterface:
 		typ := interp.preToType(instr.Type())
 		xtyp := interp.preToType(instr.X.Type())
-		return func(fr *frame, k *int) {
-			v := reflect.New(typ).Elem()
-			x := fr.get(instr.X)
-			var vx reflect.Value
-			switch x := x.(type) {
-			case *ssa.Function:
-				vx = interp.makeFunc(fr, xtyp, x)
-			case nil:
-				vx = reflect.New(xtyp).Elem()
-			default:
-				vx = reflect.ValueOf(x)
-				if xtyp != vx.Type() {
-					vx = reflect.ValueOf(convert(x, xtyp))
-				}
+		switch f := instr.X.(type) {
+		case *ssa.Function:
+			fn := interp.makeFunc(nil, xtyp, f)
+			return func(fr *frame, k *int) {
+				v := reflect.New(typ).Elem()
+				SetValue(v, fn)
+				fr.env[instr] = v.Interface()
 			}
-			SetValue(v, vx)
-			fr.env[instr] = v.Interface()
+		default:
+			return func(fr *frame, k *int) {
+				v := reflect.New(typ).Elem()
+				x := fr.get(instr.X)
+				var vx reflect.Value
+				if x == nil {
+					vx = reflect.New(xtyp).Elem()
+				} else {
+					vx = reflect.ValueOf(x)
+					if xtyp != vx.Type() {
+						vx = reflect.ValueOf(convert(x, xtyp))
+					}
+				}
+				SetValue(v, vx)
+				fr.env[instr] = v.Interface()
+			}
 		}
 	case *ssa.MakeClosure:
 		fn := instr.Fn.(*ssa.Function)
