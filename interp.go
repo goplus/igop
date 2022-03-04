@@ -1256,9 +1256,12 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 		}
 	}
 	// static types check
-	checkPackages(i, []*ssa.Package{mainpkg})
+	err := checkPackages(i, []*ssa.Package{mainpkg})
+	if err != nil {
+		return i, err
+	}
 
-	_, err := i.Run("init")
+	_, err = i.Run("init")
 	if err != nil {
 		err = fmt.Errorf("init error: %w", err)
 	}

@@ -1,47 +1,61 @@
 package gossa
 
 import (
+	"fmt"
 	"log"
 
 	"golang.org/x/tools/go/ssa"
 )
 
-func checkPackages(intp *Interp, pkgs []*ssa.Package) {
+func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 	visit := visitor{
 		intp: intp,
 		prog: intp.prog,
-		pkgs: pkgs,
+		pkgs: make(map[*ssa.Package]bool),
 		seen: make(map[*ssa.Function]bool),
 	}
-	visit.program()
+	for _, pkg := range pkgs {
+		visit.pkgs[pkg] = true
+	}
+	return visit.program()
 }
 
 type visitor struct {
 	intp *Interp
 	prog *ssa.Program
-	pkgs []*ssa.Package
+	pkgs map[*ssa.Package]bool
 	seen map[*ssa.Function]bool
 }
 
-func (visit *visitor) program() {
-	for _, pkg := range visit.pkgs {
+func (visit *visitor) program() error {
+	for pkg := range visit.pkgs {
 		for _, mem := range pkg.Members {
 			if fn, ok := mem.(*ssa.Function); ok {
-				visit.function(fn)
+				if err := visit.function(fn); err != nil {
+					return err
+				}
 			}
 		}
 	}
 	for _, T := range visit.prog.RuntimeTypes() {
 		mset := visit.prog.MethodSets.MethodSet(T)
 		for i, n := 0, mset.Len(); i < n; i++ {
-			visit.function(visit.prog.MethodValue(mset.At(i)))
+			if err := visit.function(visit.prog.MethodValue(mset.At(i))); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
-func (visit *visitor) function(fn *ssa.Function) {
+func (visit *visitor) function(fn *ssa.Function) error {
 	if !visit.seen[fn] {
 		visit.seen[fn] = true
+		if fn.Blocks == nil && fn.Pkg != nil {
+			if _, ok := visit.pkgs[fn.Pkg]; ok {
+				return fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos()))
+			}
+		}
 		visit.intp.loadType(fn.Type())
 		for _, alloc := range fn.Locals {
 			visit.intp.loadType(alloc.Type())
@@ -116,6 +130,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			block.Instrs = block.Instrs[:index]
 		}
 	}
+	return nil
 }
 
 type constValue struct {
