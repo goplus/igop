@@ -498,6 +498,9 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 			}
 		}
 	case *ssa.Extract:
+		if *instr.Referrers() == nil {
+			return nil
+		}
 		return func(fr *frame, k *int) {
 			fr.env[instr] = fr.get(instr.Tuple).(tuple)[instr.Index]
 		}
