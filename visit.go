@@ -63,11 +63,12 @@ func (visit *visitor) function(fn *ssa.Function) {
 			visit.intp.loadType(alloc.Type())
 			visit.intp.loadType(deref(alloc.Type()))
 		}
+		blocks := make(map[*ssa.BasicBlock]*FuncBlock)
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
-			block := &FuncBlock{}
+			block := &FuncBlock{Index: b.Index}
 			block.Instrs = make([]func(*frame, *int), len(b.Instrs), len(b.Instrs))
-			visit.intp.blocks[b] = block
+			blocks[b] = block
 			var index int
 			for i := 0; i < len(b.Instrs); i++ {
 				instr := b.Instrs[i]
@@ -130,6 +131,20 @@ func (visit *visitor) function(fn *ssa.Function) {
 				index++
 			}
 			block.Instrs = block.Instrs[:index]
+		}
+		for b, fb := range blocks {
+			for _, v := range b.Preds {
+				fb.Preds = append(fb.Preds, blocks[v])
+			}
+			for _, v := range b.Succs {
+				fb.Succs = append(fb.Succs, blocks[v])
+			}
+		}
+		visit.intp.funcs[fn] = &Function{
+			Fn:      fn,
+			Blocks:  blocks,
+			MainBlock:    blocks[fn.Blocks[0]],
+			Recover: blocks[fn.Recover],
 		}
 	}
 }

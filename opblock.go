@@ -59,7 +59,16 @@ const (
 */
 
 type FuncBlock struct {
-	Instrs []func(fr *frame, k *int)
+	Index        int
+	Instrs       []func(fr *frame, k *int)
+	Preds, Succs []*FuncBlock
+}
+
+type Function struct {
+	Fn        *ssa.Function
+	Blocks    map[*ssa.BasicBlock]*FuncBlock
+	MainBlock *FuncBlock
+	Recover   *FuncBlock
 }
 
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
@@ -94,7 +103,8 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		}
 	case *ssa.Phi:
 		return func(fr *frame, k *int) {
-			for i, pred := range instr.Block().Preds {
+			block := fr.pfn.Blocks[instr.Block()]
+			for i, pred := range block.Preds {
 				if fr.prevBlock == pred {
 					fr.env[instr] = fr.get(instr.Edges[i])
 					break
@@ -508,8 +518,6 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 	case *ssa.Jump:
 		return func(fr *frame, k *int) {
 			fr.prevBlock, fr.block = fr.block, fr.block.Succs[0]
-			fr.fnBlock = interp.blocks[fr.block]
-			fr.prevFnBlock = interp.blocks[fr.prevBlock]
 			*k = kJump
 		}
 	case *ssa.If:
@@ -519,8 +527,6 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 				succ = 0
 			}
 			fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
-			fr.fnBlock = interp.blocks[fr.block]
-			fr.prevFnBlock = interp.blocks[fr.prevBlock]
 			*k = kJump
 		}
 	case *ssa.Return:
@@ -528,14 +534,12 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		case 0:
 			return func(fr *frame, k *int) {
 				fr.block = nil
-				fr.fnBlock = nil
 				*k = kReturn
 			}
 		case 1:
 			return func(fr *frame, k *int) {
 				fr.result = fr.get(instr.Results[0])
 				fr.block = nil
-				fr.fnBlock = nil
 				*k = kReturn
 			}
 		default:
@@ -546,7 +550,6 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 				}
 				fr.result = tuple(res)
 				fr.block = nil
-				fr.fnBlock = nil
 				*k = kReturn
 			}
 		}

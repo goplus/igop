@@ -53,7 +53,6 @@ import (
 	"reflect"
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"unsafe"
 
 	"github.com/goplus/reflectx"
@@ -112,7 +111,7 @@ type Interp struct {
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
 	fnDebug      func(*DebugInfo)
-	blocks       map[*ssa.BasicBlock]*FuncBlock
+	funcs        map[*ssa.Function]*Function
 }
 
 func (i *Interp) setDebug(fn func(*DebugInfo)) {
@@ -228,18 +227,17 @@ type deferred struct {
 }
 
 type frame struct {
-	i                    *Interp
-	caller               *frame
-	fn                   *ssa.Function
-	block, prevBlock     *ssa.BasicBlock
-	fnBlock, prevFnBlock *FuncBlock
-	env                  map[ssa.Value]value // dynamic values of SSA variables
-	locals               map[ssa.Value]reflect.Value
-	mapUnderscoreKey     map[types.Type]bool
-	defers               *deferred
-	result               value
-	panicking            bool
-	panic                interface{}
+	i                *Interp
+	caller           *frame
+	pfn              *Function
+	block, prevBlock *FuncBlock
+	env              map[ssa.Value]value // dynamic values of SSA variables
+	locals           map[ssa.Value]reflect.Value
+	mapUnderscoreKey map[types.Type]bool
+	defers           *deferred
+	result           value
+	panicking        bool
+	panic            interface{}
 }
 
 func (fr *frame) get(key ssa.Value) value {
@@ -384,6 +382,7 @@ func (i *DebugInfo) AsFunc() (*types.Func, bool) {
 	return v, ok
 }
 
+/*
 // visitInstr interprets a single ssa.Instruction within the activation
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
@@ -831,6 +830,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 
 	return nil, kNext
 }
+*/
 
 // prepareCall determines the function value and argument values for a
 // function call in a Call, Go or Defer instruction, performing
@@ -926,11 +926,10 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	fr := &frame{
 		i:      i,
 		caller: caller, // for panic/recover
-		fn:     fn,
+		pfn:    i.funcs[fn],
 	}
 	fr.env = make(map[ssa.Value]value)
-	fr.block = fn.Blocks[0]
-	fr.fnBlock = i.blocks[fr.block]
+	fr.block = fr.pfn.MainBlock
 	fr.locals = make(map[ssa.Value]reflect.Value)
 	fr.mapUnderscoreKey = make(map[types.Type]bool)
 	for _, l := range fn.Locals {
@@ -944,13 +943,12 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	for i, fv := range fn.FreeVars {
 		fr.env[fv] = env[i]
 	}
-	for fr.fnBlock != nil {
+	for fr.block != nil {
 		i.runFrame(fr)
 	}
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
-	fr.fnBlock = nil
 	fr.locals = nil
 	return fr.result
 }
@@ -966,7 +964,7 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
 		suffix := ""
 		if caller != nil {
-			suffix = ", resuming " + caller.fn.String() + loc(fset, callpos)
+			suffix = ", resuming " + caller.pfn.Fn.String() + loc(fset, callpos)
 		}
 		defer log.Printf("Leaving %s%s.\n", fn, suffix)
 	}
@@ -1023,11 +1021,10 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	fr := &frame{
 		i:      i,
 		caller: caller, // for panic/recover
-		fn:     fn,
+		pfn:    i.funcs[fn],
 	}
 	fr.env = make(map[ssa.Value]value)
-	fr.block = fn.Blocks[0]
-	fr.fnBlock = i.blocks[fr.block]
+	fr.block = fr.pfn.MainBlock
 	fr.locals = make(map[ssa.Value]reflect.Value)
 	fr.mapUnderscoreKey = make(map[types.Type]bool)
 	for _, l := range fn.Locals {
@@ -1041,13 +1038,12 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	for i, fv := range fn.FreeVars {
 		fr.env[fv] = env[i]
 	}
-	for fr.fnBlock != nil {
+	for fr.block != nil {
 		i.runFrame(fr)
 	}
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
-	fr.fnBlock = nil
 	fr.locals = nil
 	return fr.result
 }
@@ -1113,12 +1109,9 @@ func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value,
 // control.
 //
 func (i *Interp) runFrame(fr *frame) {
-	if fr.fn.Recover != nil {
+	if fr.pfn.Recover != nil {
 		defer func() {
 			if fr.block == nil {
-				return
-			}
-			if fr.fnBlock == nil {
 				return // normal return
 			}
 			if i.mode&DisableRecover != 0 {
@@ -1130,17 +1123,16 @@ func (i *Interp) runFrame(fr *frame) {
 				log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
 			}
 			fr.runDefers()
-			fr.block = fr.fn.Recover
-			fr.fnBlock = i.blocks[fr.block]
+			fr.block = fr.pfn.Recover
 		}()
 	}
 
 	for {
 		if i.mode&EnableTracing != 0 {
-			log.Printf(".%s:\n", fr.block)
+			log.Printf(".%v:\n", fr.block.Index)
 		}
 	block:
-		for _, fn := range fr.fnBlock.Instrs {
+		for _, fn := range fr.block.Instrs {
 			var k int
 			fn(fr, &k)
 			switch k {
@@ -1241,7 +1233,7 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 		mode:         mode,
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
-		blocks:       make(map[*ssa.BasicBlock]*FuncBlock),
+		funcs:        make(map[*ssa.Function]*Function),
 	}
 	i.loader = loader
 	i.record = NewTypesRecord(i.loader, i)
