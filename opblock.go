@@ -74,13 +74,13 @@ type Function struct {
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
 	ext, ok = externValues[fn.String()]
 	if !ok && fn.Pkg != nil {
-		if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
-			if recv := fn.Signature.Recv(); recv == nil {
+		if recv := fn.Signature.Recv(); recv == nil {
+			if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
 				ext, ok = pkg.Funcs[fn.Name()]
-			} else if typ, found := interp.loader.LookupReflect(recv.Type()); found {
-				if m, found := reflectx.MethodByName(typ, fn.Name()); found {
-					ext, ok = m.Func, true
-				}
+			}
+		} else if typ, found := interp.loader.LookupReflect(recv.Type()); found {
+			if m, found := reflectx.MethodByName(typ, fn.Name()); found {
+				ext, ok = m.Func, true
 			}
 		}
 	}
