@@ -87,7 +87,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	return
 }
 
-func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
+func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *frame, k *int) {
 	switch instr := instr.(type) {
 	case *ssa.Alloc:
 		if instr.Heap {

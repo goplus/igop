@@ -64,6 +64,11 @@ func (visit *visitor) function(fn *ssa.Function) {
 			visit.intp.loadType(deref(alloc.Type()))
 		}
 		blocks := make(map[*ssa.BasicBlock]*FuncBlock)
+		pfn := &Function{
+			Fn:     fn,
+			Blocks: blocks,
+		}
+		visit.intp.funcs[fn] = pfn
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
 			block := &FuncBlock{Index: b.Index}
@@ -112,8 +117,8 @@ func (visit *visitor) function(fn *ssa.Function) {
 						visit.intp.loadType(v.Type())
 					}
 				}
-				fn := makeInstr(visit.intp, instr)
-				if fn == nil {
+				ifn := makeInstr(visit.intp, pfn, instr)
+				if ifn == nil {
 					continue
 				}
 				if visit.intp.mode&EnableDumpInstr != 0 {
@@ -123,10 +128,10 @@ func (visit *visitor) function(fn *ssa.Function) {
 						} else {
 							log.Printf("\t%-20T %v\n", instr, instr)
 						}
-						fn(fr, k)
+						ifn(fr, k)
 					}
 				} else {
-					block.Instrs[index] = fn
+					block.Instrs[index] = ifn
 				}
 				index++
 			}
@@ -140,12 +145,8 @@ func (visit *visitor) function(fn *ssa.Function) {
 				fb.Succs = append(fb.Succs, blocks[v])
 			}
 		}
-		visit.intp.funcs[fn] = &Function{
-			Fn:      fn,
-			Blocks:  blocks,
-			MainBlock:    blocks[fn.Blocks[0]],
-			Recover: blocks[fn.Recover],
-		}
+		pfn.MainBlock = blocks[fn.Blocks[0]]
+		pfn.Recover = blocks[fn.Recover]
 	}
 }
 
