@@ -224,9 +224,10 @@ func makeInstr(interp *Interp, instr ssa.Instruction) func(fr *frame, k *int) {
 		typ := interp.preToType(instr.Type())
 		switch f := instr.X.(type) {
 		case *ssa.Function:
+			fn := interp.makeFunc(nil, interp.preToType(f.Type()), f)
+			v := fn.Convert(typ).Interface()
 			return func(fr *frame, k *int) {
-				v := interp.makeFunc(fr, interp.toType(f.Type()), f)
-				fr.env[instr] = v.Convert(typ).Interface()
+				fr.env[instr] = v
 			}
 		default:
 			return func(fr *frame, k *int) {
