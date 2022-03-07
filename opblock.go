@@ -621,14 +621,24 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		}
 	case *ssa.MapUpdate:
 		if pfn.mapUnderscoreKey[instr.Map.Type()] {
+			if fn, ok := instr.Value.(*ssa.Function); ok {
+				v := interp.makeFuncEx(nil, interp.preToType(fn.Type()), fn, nil)
+				return func(fr *frame, k *int) {
+					vm := reflect.ValueOf(fr.get(instr.Map))
+					vk := reflect.ValueOf(fr.get(instr.Key))
+					for _, vv := range vm.MapKeys() {
+						if equalStruct(vk, vv) {
+							vk = vv
+							break
+						}
+					}
+					vm.SetMapIndex(vk, reflect.ValueOf(v))
+				}
+			}
 			return func(fr *frame, k *int) {
 				vm := reflect.ValueOf(fr.get(instr.Map))
 				vk := reflect.ValueOf(fr.get(instr.Key))
 				v := fr.get(instr.Value)
-				if fn, ok := v.(*ssa.Function); ok {
-					typ := interp.toType(fn.Type())
-					v = interp.makeFunc(fr, typ, fn).Interface()
-				}
 				for _, vv := range vm.MapKeys() {
 					if equalStruct(vk, vv) {
 						vk = vv
@@ -638,15 +648,20 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				vm.SetMapIndex(vk, reflect.ValueOf(v))
 			}
 		} else {
-			return func(fr *frame, k *int) {
-				vm := reflect.ValueOf(fr.get(instr.Map))
-				vk := reflect.ValueOf(fr.get(instr.Key))
-				v := fr.get(instr.Value)
-				if fn, ok := v.(*ssa.Function); ok {
-					typ := interp.toType(fn.Type())
-					v = interp.makeFunc(fr, typ, fn).Interface()
+			if fn, ok := instr.Value.(*ssa.Function); ok {
+				v := interp.makeFuncEx(nil, interp.preToType(fn.Type()), fn, nil)
+				return func(fr *frame, k *int) {
+					vm := reflect.ValueOf(fr.get(instr.Map))
+					vk := reflect.ValueOf(fr.get(instr.Key))
+					vm.SetMapIndex(vk, reflect.ValueOf(v))
 				}
-				vm.SetMapIndex(vk, reflect.ValueOf(v))
+			} else {
+				return func(fr *frame, k *int) {
+					vm := reflect.ValueOf(fr.get(instr.Map))
+					vk := reflect.ValueOf(fr.get(instr.Key))
+					v := fr.get(instr.Value)
+					vm.SetMapIndex(vk, reflect.ValueOf(v))
+				}
 			}
 		}
 	case *ssa.DebugRef:
