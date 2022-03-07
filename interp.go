@@ -233,7 +233,6 @@ type frame struct {
 	block, prevBlock *FuncBlock
 	env              map[ssa.Value]value // dynamic values of SSA variables
 	locals           map[ssa.Value]reflect.Value
-	mapUnderscoreKey map[types.Type]bool
 	defers           *deferred
 	result           value
 	panicking        bool
@@ -931,7 +930,6 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fr.pfn.MainBlock
 	fr.locals = make(map[ssa.Value]reflect.Value)
-	fr.mapUnderscoreKey = make(map[types.Type]bool)
 	for _, l := range fn.Locals {
 		typ := i.toType(deref(l.Type()))
 		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
@@ -1026,7 +1024,6 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fr.pfn.MainBlock
 	fr.locals = make(map[ssa.Value]reflect.Value)
-	fr.mapUnderscoreKey = make(map[types.Type]bool)
 	for _, l := range fn.Locals {
 		typ := i.toType(deref(l.Type()))
 		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))

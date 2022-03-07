@@ -65,10 +65,11 @@ type FuncBlock struct {
 }
 
 type Function struct {
-	Fn        *ssa.Function
-	Blocks    map[*ssa.BasicBlock]*FuncBlock
-	MainBlock *FuncBlock
-	Recover   *FuncBlock
+	Fn               *ssa.Function
+	Blocks           map[*ssa.BasicBlock]*FuncBlock
+	MainBlock        *FuncBlock
+	Recover          *FuncBlock
+	mapUnderscoreKey map[types.Type]bool
 }
 
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
@@ -298,13 +299,13 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		typ := instr.Type()
 		rtyp := interp.preToType(typ)
 		key := typ.Underlying().(*types.Map).Key()
+		if st, ok := key.Underlying().(*types.Struct); ok && hasUnderscore(st) {
+			pfn.mapUnderscoreKey[typ] = true
+		}
 		var reserve int
 		return func(fr *frame, k *int) {
 			if instr.Reserve != nil {
 				reserve = asInt(fr.get(instr.Reserve))
-			}
-			if st, ok := key.Underlying().(*types.Struct); ok && hasUnderscore(st) {
-				fr.mapUnderscoreKey[typ] = true
 			}
 			fr.env[instr] = reflect.MakeMapWithSize(rtyp, reserve).Interface()
 		}
@@ -619,25 +620,35 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 	case *ssa.MapUpdate:
-		return func(fr *frame, k *int) {
-			vm := reflect.ValueOf(fr.get(instr.Map))
-			vk := reflect.ValueOf(fr.get(instr.Key))
-			v := fr.get(instr.Value)
-			if fn, ok := v.(*ssa.Function); ok {
-				typ := interp.toType(fn.Type())
-				v = interp.makeFunc(fr, typ, fn).Interface()
-			}
-			if fr.mapUnderscoreKey[instr.Map.Type()] {
+		if pfn.mapUnderscoreKey[instr.Map.Type()] {
+			return func(fr *frame, k *int) {
+				vm := reflect.ValueOf(fr.get(instr.Map))
+				vk := reflect.ValueOf(fr.get(instr.Key))
+				v := fr.get(instr.Value)
+				if fn, ok := v.(*ssa.Function); ok {
+					typ := interp.toType(fn.Type())
+					v = interp.makeFunc(fr, typ, fn).Interface()
+				}
 				for _, vv := range vm.MapKeys() {
 					if equalStruct(vk, vv) {
 						vk = vv
 						break
 					}
 				}
+				vm.SetMapIndex(vk, reflect.ValueOf(v))
 			}
-			vm.SetMapIndex(vk, reflect.ValueOf(v))
+		} else {
+			return func(fr *frame, k *int) {
+				vm := reflect.ValueOf(fr.get(instr.Map))
+				vk := reflect.ValueOf(fr.get(instr.Key))
+				v := fr.get(instr.Value)
+				if fn, ok := v.(*ssa.Function); ok {
+					typ := interp.toType(fn.Type())
+					v = interp.makeFunc(fr, typ, fn).Interface()
+				}
+				vm.SetMapIndex(vk, reflect.ValueOf(v))
+			}
 		}
-
 	case *ssa.DebugRef:
 		if interp.fnDebug == nil {
 			return nil

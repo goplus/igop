@@ -2,6 +2,7 @@ package gossa
 
 import (
 	"fmt"
+	"go/types"
 	"log"
 
 	"golang.org/x/tools/go/ssa"
@@ -65,8 +66,9 @@ func (visit *visitor) function(fn *ssa.Function) {
 		}
 		blocks := make(map[*ssa.BasicBlock]*FuncBlock)
 		pfn := &Function{
-			Fn:     fn,
-			Blocks: blocks,
+			Fn:               fn,
+			Blocks:           blocks,
+			mapUnderscoreKey: make(map[types.Type]bool),
 		}
 		visit.intp.funcs[fn] = pfn
 		var buf [32]*ssa.Value // avoid alloc in common case
