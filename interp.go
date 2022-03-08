@@ -897,12 +897,23 @@ func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, 
 		if fn == nil {
 			panic("call of nil function") // nil of func type
 		}
-		return i.callSSA(caller, callpos, fn, args, nil)
+		if fn.Blocks == nil {
+			ext, ok := findExternFunc(i, fn)
+			if !ok {
+				// skip pkg.init
+				if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
+					return nil
+				}
+				panic(fmt.Errorf("no code for function: %v", fn))
+			}
+			return i.callReflect(caller, callpos, ext, args, nil)
+		}
+		return i.callFunction(caller, callpos, fn, args, nil)
 	case *closure:
 		if fn.Fn == nil {
 			panic("call of nil closure function") // nil of func type
 		}
-		return i.callSSA(caller, callpos, fn.Fn, args, fn.Env)
+		return i.callFunction(caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
 		return i.callBuiltin(caller, callpos, fn, args, ssaArgs)
 	default:
