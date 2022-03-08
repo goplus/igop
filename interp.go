@@ -232,7 +232,6 @@ type frame struct {
 	pfn              *Function
 	block, prevBlock *FuncBlock
 	env              map[ssa.Value]value // dynamic values of SSA variables
-	locals           map[ssa.Value]reflect.Value
 	defers           *deferred
 	result           value
 	panicking        bool
@@ -929,12 +928,6 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	}
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fr.pfn.MainBlock
-	fr.locals = make(map[ssa.Value]reflect.Value)
-	for _, l := range fn.Locals {
-		typ := i.toType(deref(l.Type()))
-		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
-		fr.env[l] = reflect.New(typ).Interface() //&fr.locals[i]
-	}
 	for i, p := range fn.Params {
 		fr.env[p] = args[i]
 	}
@@ -947,7 +940,6 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
-	fr.locals = nil
 	return fr.result
 }
 
@@ -1023,12 +1015,6 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	}
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fr.pfn.MainBlock
-	fr.locals = make(map[ssa.Value]reflect.Value)
-	for _, l := range fn.Locals {
-		typ := i.toType(deref(l.Type()))
-		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
-		fr.env[l] = reflect.New(typ).Interface() //&fr.locals[i]
-	}
 	for i, p := range fn.Params {
 		fr.env[p] = args[i]
 	}
@@ -1041,7 +1027,6 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
-	fr.locals = nil
 	return fr.result
 }
 

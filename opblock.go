@@ -97,9 +97,14 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				fr.env[instr] = reflect.New(typ).Interface()
 			}
 		} else {
+			typ := interp.preToType(instr.Type()).Elem()
+			elem := reflect.New(typ).Elem()
 			return func(fr *frame, k *int) {
-				v := reflect.ValueOf(fr.env[instr])
-				SetValue(v.Elem(), fr.locals[instr])
+				if v, ok := fr.env[instr]; ok {
+					SetValue(reflect.ValueOf(v).Elem(), elem)
+				} else {
+					fr.env[instr] = reflect.New(typ).Interface()
+				}
 			}
 		}
 	case *ssa.Phi:
