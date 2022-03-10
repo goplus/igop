@@ -63,7 +63,7 @@ func main() {
 	if !interp {
 		test14reflect1()
 		test14reflect2()
-		test15()
+		//test15()
 		test16()
 	}
 }

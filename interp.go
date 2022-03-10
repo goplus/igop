@@ -196,7 +196,7 @@ func (i *Interp) makeFuncEx(fr *frame, typ reflect.Type, fn *ssa.Function, env [
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := i.callFunction(i.caller, token.NoPos, fn, iargs, env)
+		r := i.callFunction(fr, token.NoPos, fn, iargs, env)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
