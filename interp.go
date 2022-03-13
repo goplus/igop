@@ -279,6 +279,47 @@ func (fr *frame) get(key ssa.Value) value {
 	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
 }
 
+func (fr *frame) getParam(key ssa.Value) value {
+	if key == nil {
+		return nil
+	}
+	switch key := key.(type) {
+	case *ssa.Function:
+		return fr.i.makeFuncEx(fr, fr.i.preToType(key.Type()), key, nil).Interface()
+	case *ssa.Builtin:
+		return key
+	case *constValue:
+		return key.Value
+	case *ssa.Const:
+		return constToValue(fr.i, key)
+	case *ssa.Global:
+		if key.Pkg != nil {
+			pkgpath := key.Pkg.Pkg.Path()
+			if pkg, ok := fr.i.installed(pkgpath); ok {
+				if ext, ok := pkg.Vars[key.Name()]; ok {
+					return ext.Interface()
+				}
+			}
+		}
+		if r, ok := fr.i.globals[key]; ok {
+			return r
+		}
+	}
+	if key.Parent() == nil {
+		path := key.String()
+		if ext, ok := externValues[path]; ok {
+			if fr.i.mode&EnableTracing != 0 {
+				log.Println("\t(external)")
+			}
+			return ext.Interface()
+		}
+	}
+	if r, ok := fr.env[key]; ok {
+		return r
+	}
+	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
+}
+
 // runDefer runs a deferred call d.
 // It always returns normally, but may set or clear fr.panic.
 //
