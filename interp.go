@@ -53,9 +53,11 @@ import (
 	"reflect"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/goplus/reflectx"
+	"github.com/petermattis/goid"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -106,7 +108,8 @@ type Interp struct {
 	sizes        types.Sizes         // the effective type-sizing function
 	goroutines   int32               // atomically updated
 	preloadTypes map[types.Type]reflect.Type
-	caller       *frame
+	deferMap     sync.Map
+	deferCount   int32
 	loader       Loader
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
@@ -133,6 +136,13 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 	}
 }
 
+func (i *Interp) deferFrame() *frame {
+	if f, ok := i.deferMap.Load(goid.Get()); ok {
+		return f.(*frame)
+	}
+	return nil
+}
+
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
 	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
@@ -141,7 +151,13 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			for i := 0; i < len(args); i++ {
 				iargs[i] = args[i].Interface()
 			}
-			r := i.call(nil, token.NoPos, f, iargs, nil)
+			var fr *frame
+			if atomic.LoadInt32(&i.deferCount) != 0 {
+				if v, ok := i.deferMap.Load(goid.Get()); ok {
+					fr = v.(*frame)
+				}
+			}
+			r := i.callFunction(fr, token.NoPos, f, iargs, nil)
 			switch mtyp.NumOut() {
 			case 0:
 				return nil
@@ -231,11 +247,11 @@ type frame struct {
 	caller           *frame
 	pfn              *Function
 	block, prevBlock *FuncBlock
-	env              map[ssa.Value]value // dynamic values of SSA variables
 	defers           *deferred
+	env              map[ssa.Value]value // dynamic values of SSA variables
 	result           value
-	panicking        bool
 	panic            interface{}
+	panicking        bool
 }
 
 func (fr *frame) get(key ssa.Value) value {
@@ -353,10 +369,14 @@ func (fr *frame) runDefer(d *deferred) {
 // runDefers returns normally.
 //
 func (fr *frame) runDefers() {
+	id := goid.Get()
+	atomic.AddInt32(&fr.i.deferCount, 1)
+	fr.i.deferMap.Store(id, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
-	fr.defers = nil
+	fr.i.deferMap.Delete(id)
+	atomic.AddInt32(&fr.i.deferCount, -1)
 	// runtime.Goexit() fr.panic == nil
 	if fr.panicking && fr.panic != nil {
 		panic(fr.panic) // new panic, or still panicking
@@ -928,11 +948,6 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 // callpos is the position of the callsite.
 //
 func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
-	if caller == nil {
-		caller = i.caller
-	} else {
-		i.caller = caller
-	}
 	switch fn := fn.(type) {
 	case *ssa.Function:
 		if fn == nil {
@@ -1083,7 +1098,6 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 }
 
 func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
-	i.caller = caller
 	var ins []reflect.Value
 	typ := fn.Type()
 	isVariadic := fn.Type().IsVariadic()
