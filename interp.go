@@ -57,6 +57,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/reflectx"
+	"github.com/petermattis/goid"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -75,7 +76,7 @@ func init() {
 	}
 }
 
-type continuation int
+type continuation = int
 
 const (
 	kNext continuation = iota
@@ -107,11 +108,13 @@ type Interp struct {
 	sizes        types.Sizes         // the effective type-sizing function
 	goroutines   int32               // atomically updated
 	preloadTypes map[types.Type]reflect.Type
-	caller       *frame
+	deferMap     sync.Map
+	deferCount   int32
 	loader       Loader
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
 	fnDebug      func(*DebugInfo)
+	funcs        map[*ssa.Function]*Function
 }
 
 func (i *Interp) setDebug(fn func(*DebugInfo)) {
@@ -133,6 +136,15 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 	}
 }
 
+func (i *Interp) tryDeferFrame() *frame {
+	if atomic.LoadInt32(&i.deferCount) != 0 {
+		if f, ok := i.deferMap.Load(goid.Get()); ok {
+			return f.(*frame)
+		}
+	}
+	return nil
+}
+
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
 	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
@@ -141,7 +153,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			for i := 0; i < len(args); i++ {
 				iargs[i] = args[i].Interface()
 			}
-			r := i.call(nil, token.NoPos, f, iargs, nil)
+			r := i.callFunction(i.tryDeferFrame(), token.NoPos, f, iargs, nil)
 			switch mtyp.NumOut() {
 			case 0:
 				return nil
@@ -186,13 +198,13 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	return nil
 }
 
-func (i *Interp) toFunc(fr *frame, typ reflect.Type, fn value) reflect.Value {
+func (i *Interp) makeFunc(fr *frame, typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		iargs := make([]value, len(args))
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := i.call(fr, token.NoPos, fn, iargs, nil)
+		r := i.callFunction(i.tryDeferFrame(), token.NoPos, fn, iargs, env)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -223,17 +235,19 @@ type deferred struct {
 }
 
 type frame struct {
+	deferid          int64
 	i                *Interp
 	caller           *frame
-	fn               *ssa.Function
-	block, prevBlock *ssa.BasicBlock
-	env              map[ssa.Value]value // dynamic values of SSA variables
-	locals           map[ssa.Value]reflect.Value
-	mapUnderscoreKey map[types.Type]bool
+	pfn              *Function
+	block, prevBlock *FuncBlock
 	defers           *deferred
+	panicking        *panicking
+	env              map[ssa.Value]value // dynamic values of SSA variables
 	result           value
-	panicking        bool
-	panic            interface{}
+}
+
+type panicking struct {
+	value interface{}
 }
 
 func (fr *frame) get(key ssa.Value) value {
@@ -243,6 +257,47 @@ func (fr *frame) get(key ssa.Value) value {
 	switch key := key.(type) {
 	case *ssa.Function:
 		return key
+	case *ssa.Builtin:
+		return key
+	case *constValue:
+		return key.Value
+	case *ssa.Const:
+		return constToValue(fr.i, key)
+	case *ssa.Global:
+		if key.Pkg != nil {
+			pkgpath := key.Pkg.Pkg.Path()
+			if pkg, ok := fr.i.installed(pkgpath); ok {
+				if ext, ok := pkg.Vars[key.Name()]; ok {
+					return ext.Interface()
+				}
+			}
+		}
+		if r, ok := fr.i.globals[key]; ok {
+			return r
+		}
+	}
+	if key.Parent() == nil {
+		path := key.String()
+		if ext, ok := externValues[path]; ok {
+			if fr.i.mode&EnableTracing != 0 {
+				log.Println("\t(external)")
+			}
+			return ext.Interface()
+		}
+	}
+	if r, ok := fr.env[key]; ok {
+		return r
+	}
+	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
+}
+
+func (fr *frame) getParam(key ssa.Value) value {
+	if key == nil {
+		return nil
+	}
+	switch key := key.(type) {
+	case *ssa.Function:
+		return fr.i.makeFunc(fr, fr.i.toType(key.Type()), key, nil).Interface()
 	case *ssa.Builtin:
 		return key
 	case *constValue:
@@ -289,8 +344,7 @@ func (fr *frame) runDefer(d *deferred) {
 	defer func() {
 		if !ok {
 			// Deferred call created a new state of panic.
-			fr.panicking = true
-			fr.panic = recover()
+			fr.panicking = &panicking{recover()}
 		}
 	}()
 	fr.i.call(fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
@@ -310,13 +364,18 @@ func (fr *frame) runDefer(d *deferred) {
 // runDefers returns normally.
 //
 func (fr *frame) runDefers() {
+	atomic.AddInt32(&fr.i.deferCount, 1)
+	fr.deferid = goid.Get()
+	fr.i.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
-	fr.defers = nil
+	fr.i.deferMap.Delete(fr.deferid)
+	atomic.AddInt32(&fr.i.deferCount, -1)
+	fr.deferid = 0
 	// runtime.Goexit() fr.panic == nil
-	if fr.panicking && fr.panic != nil {
-		panic(fr.panic) // new panic, or still panicking
+	if fr.panicking != nil {
+		panic(fr.panicking.value) // new panic, or still panicking
 	}
 }
 
@@ -378,6 +437,7 @@ func (i *DebugInfo) AsFunc() (*types.Func, bool) {
 	return v, ok
 }
 
+/*
 // visitInstr interprets a single ssa.Instruction within the activation
 // record frame.  It returns a continuation value indicating where to
 // read the next instruction from.
@@ -430,7 +490,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		var v reflect.Value
 		switch f := x.(type) {
 		case *ssa.Function:
-			v = i.toFunc(fr, i.toType(f.Type()), f)
+			v = i.makeFunc(fr, i.toType(f.Type()), f)
 		default:
 			v = reflect.ValueOf(x)
 		}
@@ -453,9 +513,9 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		xtyp := i.toType(instr.X.Type())
 		x := fr.get(instr.X)
 		var vx reflect.Value
-		switch x.(type) {
+		switch x := x.(type) {
 		case *ssa.Function:
-			vx = i.toFunc(fr, xtyp, x)
+			vx = i.makeFunc(fr, xtyp, x)
 		case nil:
 			vx = reflect.New(xtyp).Elem()
 		default:
@@ -519,7 +579,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		val := fr.get(instr.Val)
 		switch fn := val.(type) {
 		case *ssa.Function:
-			f := i.toFunc(fr, i.toType(fn.Type()), fn)
+			f := i.makeFunc(fr, i.toType(fn.Type()), fn)
 			SetValue(x.Elem(), f)
 		default:
 			v := reflect.ValueOf(val)
@@ -717,7 +777,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		v := fr.get(instr.Value)
 		if fn, ok := v.(*ssa.Function); ok {
 			typ := i.toType(fn.Type())
-			v = i.toFunc(fr, typ, fn).Interface()
+			v = i.makeFunc(fr, typ, fn).Interface()
 		}
 		if fr.mapUnderscoreKey[instr.Map.Type()] {
 			for _, vv := range vm.MapKeys() {
@@ -733,9 +793,9 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		v := fr.get(instr.X)
 		if fn, ok := v.(*ssa.Function); ok {
 			typ := i.toType(fn.Type())
-			v = i.toFunc(fr, typ, fn).Interface()
+			v = i.makeFunc(fr, typ, fn).Interface()
 		}
-		fr.env[instr] = typeAssert(i, instr, v)
+		fr.env[instr] = typeAssert(i, instr, i.toType(instr.AssertedType), v)
 
 	case *ssa.MakeClosure:
 		var bindings []value
@@ -745,7 +805,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 		//fr.env[instr] = &closure{instr.Fn.(*ssa.Function), bindings}
 		c := &closure{instr.Fn.(*ssa.Function), bindings}
 		typ := i.toType(c.Fn.Type())
-		fr.env[instr] = i.toFunc(fr, typ, c).Interface()
+		fr.env[instr] = i.makeFuncEx(fr, typ, c.Fn, c.Env).Interface()
 
 	case *ssa.Phi:
 		for i, pred := range instr.Block().Preds {
@@ -825,6 +885,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 
 	return nil, kNext
 }
+*/
 
 // prepareCall determines the function value and argument values for a
 // function call in a Call, Go or Defer instruction, performing
@@ -871,7 +932,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 	for _, arg := range call.Args {
 		v := fr.get(arg)
 		if fn, ok := v.(*ssa.Function); ok {
-			v = i.toFunc(fr, i.toType(fn.Type()), fn).Interface()
+			v = i.makeFunc(fr, i.toType(fn.Type()), fn, nil).Interface()
 		}
 		args = append(args, v)
 	}
@@ -883,22 +944,28 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 // callpos is the position of the callsite.
 //
 func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
-	if caller == nil {
-		caller = i.caller
-	} else {
-		i.caller = caller
-	}
 	switch fn := fn.(type) {
 	case *ssa.Function:
 		if fn == nil {
 			panic("call of nil function") // nil of func type
 		}
-		return i.callSSA(caller, callpos, fn, args, nil)
+		if fn.Blocks == nil {
+			ext, ok := findExternFunc(i, fn)
+			if !ok {
+				// skip pkg.init
+				if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
+					return nil
+				}
+				panic(fmt.Errorf("no code for function: %v", fn))
+			}
+			return i.callReflect(caller, callpos, ext, args, nil)
+		}
+		return i.callFunction(caller, callpos, fn, args, nil)
 	case *closure:
 		if fn.Fn == nil {
 			panic("call of nil closure function") // nil of func type
 		}
-		return i.callSSA(caller, callpos, fn.Fn, args, fn.Env)
+		return i.callFunction(caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
 		return i.callBuiltin(caller, callpos, fn, args, ssaArgs)
 	default:
@@ -916,6 +983,32 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 	return " at " + fset.Position(pos).String()
 }
 
+func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+	fr := &frame{
+		i:      i,
+		caller: caller, // for panic/recover
+		pfn:    i.funcs[fn],
+	}
+	if caller != nil {
+		fr.deferid = caller.deferid
+	}
+	fr.env = make(map[ssa.Value]value)
+	fr.block = fr.pfn.MainBlock
+	for i, p := range fn.Params {
+		fr.env[p] = args[i]
+	}
+	for i, fv := range fn.FreeVars {
+		fr.env[fv] = env[i]
+	}
+	for fr.block != nil {
+		i.runFrame(fr)
+	}
+	// Destroy the locals to avoid accidental use after return.
+	fr.env = nil
+	fr.block = nil
+	return fr.result
+}
+
 // callSSA interprets a call to function fn with arguments args,
 // and lexical environment env, returning its result.
 // callpos is the position of the callsite.
@@ -927,14 +1020,9 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
 		suffix := ""
 		if caller != nil {
-			suffix = ", resuming " + caller.fn.String() + loc(fset, callpos)
+			suffix = ", resuming " + caller.pfn.Fn.String() + loc(fset, callpos)
 		}
 		defer log.Printf("Leaving %s%s.\n", fn, suffix)
-	}
-	fr := &frame{
-		i:      i,
-		caller: caller, // for panic/recover
-		fn:     fn,
 	}
 	if fn.Parent() == nil {
 		fullName := fn.String()
@@ -986,15 +1074,13 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 			panic("no code for function: " + fullName)
 		}
 	}
-	fr.env = make(map[ssa.Value]value)
-	fr.block = fn.Blocks[0]
-	fr.locals = make(map[ssa.Value]reflect.Value)
-	fr.mapUnderscoreKey = make(map[types.Type]bool)
-	for _, l := range fn.Locals {
-		typ := i.toType(deref(l.Type()))
-		fr.locals[l] = reflect.New(typ).Elem()   //zero(deref(l.Type()))
-		fr.env[l] = reflect.New(typ).Interface() //&fr.locals[i]
+	fr := &frame{
+		i:      i,
+		caller: caller, // for panic/recover
+		pfn:    i.funcs[fn],
 	}
+	fr.env = make(map[ssa.Value]value)
+	fr.block = fr.pfn.MainBlock
 	for i, p := range fn.Params {
 		fr.env[p] = args[i]
 	}
@@ -1007,11 +1093,13 @@ func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, arg
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
-	fr.locals = nil
 	return fr.result
 }
 
 func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+	if caller != nil && caller.deferid != 0 {
+		i.deferMap.Store(caller.deferid, caller)
+	}
 	var ins []reflect.Value
 	typ := fn.Type()
 	isVariadic := fn.Type().IsVariadic()
@@ -1071,48 +1159,61 @@ func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value,
 // control.
 //
 func (i *Interp) runFrame(fr *frame) {
-	defer func() {
-		if fr.block == nil {
-			return // normal return
-		}
-		if i.mode&DisableRecover != 0 {
-			return // let interpreter crash
-		}
-		fr.panicking = true
-		fr.panic = recover()
-		if i.mode&EnableTracing != 0 {
-			log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
-		}
-		fr.runDefers()
-		fr.block = fr.fn.Recover
-	}()
+	if fr.pfn.Recover != nil {
+		defer func() {
+			if fr.block == nil {
+				return // normal return
+			}
+			if i.mode&DisableRecover != 0 {
+				return // let interpreter crash
+			}
+			fr.panicking = &panicking{recover()}
+			if i.mode&EnableTracing != 0 {
+				log.Printf("Panicking: %T %v.\n", fr.panicking.value, fr.panicking.value)
+			}
+			fr.runDefers()
+			fr.block = fr.pfn.Recover
+		}()
+	}
 
 	for {
 		if i.mode&EnableTracing != 0 {
-			log.Printf(".%s:\n", fr.block)
+			log.Printf(".%v:\n", fr.block.Index)
 		}
 	block:
-		for _, instr := range fr.block.Instrs {
-			if i.mode&EnableTracing != 0 {
-				if v, ok := instr.(ssa.Value); ok {
-					log.Println("\t", v.Name(), "=", instr)
-				} else {
-					log.Println("\t", instr)
-				}
-			}
-			fn, cond := i.visitInstr(fr, instr)
-			if fn != nil {
-				fn()
-			}
-			switch cond {
+		for _, fn := range fr.block.Instrs {
+			var k int
+			fn(fr, &k)
+			switch k {
 			case kReturn:
 				return
-			case kNext:
-				// no-op
 			case kJump:
 				break block
 			}
 		}
+
+		// for _, instr := range fr.block.Instrs {
+		// 	if i.mode&EnableTracing != 0 {
+		// 		if v, ok := instr.(ssa.Value); ok {
+		// 			log.Println("\t", v.Name(), "=", instr)
+		// 		} else {
+		// 			log.Println("\t", instr)
+		// 		}
+		// 	}
+		// 	fn, cond := i.visitInstr(fr, instr)
+		// 	if fn != nil {
+		// 		fn()
+		// 	}
+		// 	switch cond {
+		// 	case kReturn:
+		// 		return
+		// 	case kNext:
+		// 		// no-op
+		// 	case kJump:
+		// 		break block
+		// 	}
+		// }
+
 	}
 }
 
@@ -1123,11 +1224,10 @@ func doRecover(caller *frame) value {
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
 	if caller.i.mode&DisableRecover == 0 &&
-		caller != nil && !caller.panicking &&
-		caller.caller != nil && caller.caller.panicking {
-		caller.caller.panicking = false
-		p := caller.caller.panic
-		caller.caller.panic = nil
+		caller != nil && caller.panicking == nil &&
+		caller.caller != nil && caller.caller.panicking != nil {
+		p := caller.caller.panicking.value
+		caller.caller.panicking = nil
 		// TODO(adonovan): support runtime.Goexit.
 		switch p := p.(type) {
 		case targetPanic:
@@ -1181,13 +1281,12 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 		mode:         mode,
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
+		funcs:        make(map[*ssa.Function]*Function),
 	}
 	i.loader = loader
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
 
-	// static types check
-	checkPackages(i, []*ssa.Package{mainpkg})
 	// Initialize global storage.
 	for _, m := range mainpkg.Members {
 		switch v := m.(type) {
@@ -1196,7 +1295,13 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 			i.globals[v] = reflect.New(typ).Interface()
 		}
 	}
-	_, err := i.Run("init")
+	// static types check
+	err := checkPackages(i, []*ssa.Package{mainpkg})
+	if err != nil {
+		return i, err
+	}
+
+	_, err = i.Run("init")
 	if err != nil {
 		err = fmt.Errorf("init error: %w", err)
 	}
@@ -1301,7 +1406,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.toFunc(nil, i.toType(fn.Type()), fn).Interface(), true
+	return i.makeFunc(nil, i.toType(fn.Type()), fn, nil).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {

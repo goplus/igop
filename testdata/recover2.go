@@ -64,8 +64,7 @@ func main() {
 		test14reflect1()
 		test14reflect2()
 		test15()
-		//test16()
-		println("TODO: skip test16 bug")
+		test16()
 	}
 }
 

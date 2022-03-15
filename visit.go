@@ -1,28 +1,41 @@
 package gossa
 
 import (
+	"fmt"
+	"go/types"
+	"log"
+
 	"golang.org/x/tools/go/ssa"
 )
 
-func checkPackages(intp *Interp, pkgs []*ssa.Package) {
+func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
+	defer func() {
+		if v := recover(); v != nil {
+			err = v.(error)
+		}
+	}()
 	visit := visitor{
 		intp: intp,
 		prog: intp.prog,
-		pkgs: pkgs,
+		pkgs: make(map[*ssa.Package]bool),
 		seen: make(map[*ssa.Function]bool),
 	}
+	for _, pkg := range pkgs {
+		visit.pkgs[pkg] = true
+	}
 	visit.program()
+	return
 }
 
 type visitor struct {
 	intp *Interp
 	prog *ssa.Program
-	pkgs []*ssa.Package
+	pkgs map[*ssa.Package]bool
 	seen map[*ssa.Function]bool
 }
 
 func (visit *visitor) program() {
-	for _, pkg := range visit.pkgs {
+	for pkg := range visit.pkgs {
 		for _, mem := range pkg.Members {
 			if fn, ok := mem.(*ssa.Function); ok {
 				visit.function(fn)
@@ -40,14 +53,32 @@ func (visit *visitor) program() {
 func (visit *visitor) function(fn *ssa.Function) {
 	if !visit.seen[fn] {
 		visit.seen[fn] = true
+		if fn.Blocks == nil {
+			if _, ok := visit.pkgs[fn.Pkg]; ok {
+				panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+			}
+			return
+		}
 		visit.intp.loadType(fn.Type())
 		for _, alloc := range fn.Locals {
 			visit.intp.loadType(alloc.Type())
 			visit.intp.loadType(deref(alloc.Type()))
 		}
+		blocks := make(map[*ssa.BasicBlock]*FuncBlock)
+		pfn := &Function{
+			Fn:               fn,
+			Blocks:           blocks,
+			mapUnderscoreKey: make(map[types.Type]bool),
+		}
+		visit.intp.funcs[fn] = pfn
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
-			for _, instr := range b.Instrs {
+			block := &FuncBlock{Index: b.Index}
+			block.Instrs = make([]func(*frame, *int), len(b.Instrs), len(b.Instrs))
+			blocks[b] = block
+			var index int
+			for i := 0; i < len(b.Instrs); i++ {
+				instr := b.Instrs[i]
 				ops := instr.Operands(buf[:0])
 				switch instr := instr.(type) {
 				case *ssa.Alloc:
@@ -88,8 +119,36 @@ func (visit *visitor) function(fn *ssa.Function) {
 						visit.intp.loadType(v.Type())
 					}
 				}
+				ifn := makeInstr(visit.intp, pfn, instr)
+				if ifn == nil {
+					continue
+				}
+				if visit.intp.mode&EnableDumpInstr != 0 {
+					block.Instrs[index] = func(fr *frame, k *int) {
+						if v, ok := instr.(ssa.Value); ok {
+							log.Printf("\t%-20T %v = %v\n", instr, v.Name(), instr)
+						} else {
+							log.Printf("\t%-20T %v\n", instr, instr)
+						}
+						ifn(fr, k)
+					}
+				} else {
+					block.Instrs[index] = ifn
+				}
+				index++
+			}
+			block.Instrs = block.Instrs[:index]
+		}
+		for b, fb := range blocks {
+			for _, v := range b.Preds {
+				fb.Preds = append(fb.Preds, blocks[v])
+			}
+			for _, v := range b.Succs {
+				fb.Succs = append(fb.Succs, blocks[v])
 			}
 		}
+		pfn.MainBlock = blocks[fn.Blocks[0]]
+		pfn.Recover = blocks[fn.Recover]
 	}
 }
 

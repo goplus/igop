@@ -102,6 +102,33 @@ func constToValue(i *Interp, c *ssa.Const) value {
 	panic(fmt.Sprintf("unparser constValue: %s", c))
 }
 
+func globalToValue(i *Interp, key *ssa.Global) (interface{}, bool) {
+	if key.Pkg != nil {
+		pkgpath := key.Pkg.Pkg.Path()
+		if pkg, ok := i.installed(pkgpath); ok {
+			if ext, ok := pkg.Vars[key.Name()]; ok {
+				return ext.Interface(), true
+			}
+		}
+	}
+	if v, ok := i.globals[key]; ok {
+		return v, true
+	}
+	return nil, false
+}
+
+func staticToValue(i *Interp, value ssa.Value) (interface{}, bool) {
+	switch v := value.(type) {
+	case *ssa.Global:
+		return globalToValue(i, v)
+	case *constValue:
+		return v.Value, true
+	case *ssa.Const:
+		return constToValue(i, v), true
+	}
+	return nil, false
+}
+
 // asInt converts x, which must be an integer, to an int suitable for
 // use as a slice or array index or operand to make().
 func asInt(x value) int {
@@ -1300,10 +1327,9 @@ failed:
 // It returns the extracted value on success, and panics on failure,
 // unless instr.CommaOk, in which case it always returns a "value,ok" tuple.
 //
-func typeAssert(i *Interp, instr *ssa.TypeAssert, iv interface{}) value {
+func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface{}) value {
 	var v value
 	var err error
-	typ := i.toType(instr.AssertedType)
 	if iv == nil {
 		err = plainError(fmt.Sprintf("interface conversion: interface is nil, not %v", typ))
 	} else {
