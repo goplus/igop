@@ -230,7 +230,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		typ := interp.preToType(instr.Type())
 		switch f := instr.X.(type) {
 		case *ssa.Function:
-			fn := interp.makeFunc(nil, interp.preToType(f.Type()), f)
+			fn := interp.makeFunc(nil, interp.preToType(f.Type()), f, nil)
 			v := fn.Convert(typ).Interface()
 			return func(fr *frame, k *int) {
 				fr.env[instr] = v
@@ -256,7 +256,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		xtyp := interp.preToType(instr.X.Type())
 		switch f := instr.X.(type) {
 		case *ssa.Function:
-			fn := interp.makeFunc(nil, xtyp, f)
+			fn := interp.makeFunc(nil, xtyp, f, nil)
 			return func(fr *frame, k *int) {
 				v := reflect.New(typ).Elem()
 				SetValue(v, fn)
@@ -288,7 +288,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				bindings = append(bindings, fr.get(binding))
 			}
 			c := &closure{fn, bindings}
-			fr.env[instr] = interp.makeFuncEx(fr, typ, c.Fn, c.Env).Interface()
+			fr.env[instr] = interp.makeFunc(fr, typ, c.Fn, c.Env).Interface()
 		}
 	case *ssa.MakeChan:
 		typ := interp.preToType(instr.Type())
@@ -504,7 +504,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	case *ssa.TypeAssert:
 		typ := interp.preToType(instr.AssertedType)
 		if fn, ok := instr.X.(*ssa.Function); ok {
-			f := interp.makeFuncEx(nil, interp.preToType(fn.Type()), fn, nil).Interface()
+			f := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil).Interface()
 			return func(fr *frame, k *int) {
 				fr.env[instr] = typeAssert(interp, instr, typ, f)
 			}
@@ -613,7 +613,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			val := fr.get(instr.Val)
 			switch fn := val.(type) {
 			case *ssa.Function:
-				f := interp.makeFunc(fr, interp.toType(fn.Type()), fn)
+				f := interp.makeFunc(fr, interp.toType(fn.Type()), fn, nil)
 				SetValue(x.Elem(), f)
 			default:
 				v := reflect.ValueOf(val)
@@ -627,7 +627,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	case *ssa.MapUpdate:
 		if pfn.mapUnderscoreKey[instr.Map.Type()] {
 			if fn, ok := instr.Value.(*ssa.Function); ok {
-				v := interp.makeFuncEx(nil, interp.preToType(fn.Type()), fn, nil)
+				v := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil)
 				return func(fr *frame, k *int) {
 					vm := reflect.ValueOf(fr.get(instr.Map))
 					vk := reflect.ValueOf(fr.get(instr.Key))
@@ -654,7 +654,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			}
 		} else {
 			if fn, ok := instr.Value.(*ssa.Function); ok {
-				v := interp.makeFuncEx(nil, interp.preToType(fn.Type()), fn, nil)
+				v := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil)
 				return func(fr *frame, k *int) {
 					vm := reflect.ValueOf(fr.get(instr.Map))
 					vk := reflect.ValueOf(fr.get(instr.Key))

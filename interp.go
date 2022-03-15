@@ -198,11 +198,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	return nil
 }
 
-func (i *Interp) makeFunc(fr *frame, typ reflect.Type, f *ssa.Function) reflect.Value {
-	return i.makeFuncEx(fr, typ, f, nil)
-}
-
-func (i *Interp) makeFuncEx(fr *frame, typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
+func (i *Interp) makeFunc(fr *frame, typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		iargs := make([]value, len(args))
 		for i := 0; i < len(args); i++ {
@@ -301,7 +297,7 @@ func (fr *frame) getParam(key ssa.Value) value {
 	}
 	switch key := key.(type) {
 	case *ssa.Function:
-		return fr.i.makeFuncEx(fr, fr.i.preToType(key.Type()), key, nil).Interface()
+		return fr.i.makeFunc(fr, fr.i.preToType(key.Type()), key, nil).Interface()
 	case *ssa.Builtin:
 		return key
 	case *constValue:
@@ -936,7 +932,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 	for _, arg := range call.Args {
 		v := fr.get(arg)
 		if fn, ok := v.(*ssa.Function); ok {
-			v = i.makeFunc(fr, i.toType(fn.Type()), fn).Interface()
+			v = i.makeFunc(fr, i.toType(fn.Type()), fn, nil).Interface()
 		}
 		args = append(args, v)
 	}
@@ -1410,7 +1406,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.makeFunc(nil, i.toType(fn.Type()), fn).Interface(), true
+	return i.makeFunc(nil, i.toType(fn.Type()), fn, nil).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
