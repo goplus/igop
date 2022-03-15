@@ -368,7 +368,7 @@ func (fr *frame) runDefer(d *deferred) {
 func (fr *frame) runDefers() {
 	atomic.AddInt32(&fr.i.deferCount, 1)
 	fr.deferid = goid.Get()
-	//fr.i.deferMap.Store(id, fr)
+	fr.i.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
