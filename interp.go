@@ -245,10 +245,13 @@ type frame struct {
 	pfn              *Function
 	block, prevBlock *FuncBlock
 	defers           *deferred
+	panicking        *panicking
 	env              map[ssa.Value]value // dynamic values of SSA variables
 	result           value
-	panic            interface{}
-	panicking        bool
+}
+
+type panicking struct {
+	value interface{}
 }
 
 func (fr *frame) get(key ssa.Value) value {
@@ -345,8 +348,7 @@ func (fr *frame) runDefer(d *deferred) {
 	defer func() {
 		if !ok {
 			// Deferred call created a new state of panic.
-			fr.panicking = true
-			fr.panic = recover()
+			fr.panicking = &panicking{recover()}
 		}
 	}()
 	fr.i.call(fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
@@ -376,8 +378,8 @@ func (fr *frame) runDefers() {
 	atomic.AddInt32(&fr.i.deferCount, -1)
 	fr.deferid = 0
 	// runtime.Goexit() fr.panic == nil
-	if fr.panicking && fr.panic != nil {
-		panic(fr.panic) // new panic, or still panicking
+	if fr.panicking != nil {
+		panic(fr.panicking.value) // new panic, or still panicking
 	}
 }
 
@@ -1169,10 +1171,9 @@ func (i *Interp) runFrame(fr *frame) {
 			if i.mode&DisableRecover != 0 {
 				return // let interpreter crash
 			}
-			fr.panicking = true
-			fr.panic = recover()
+			fr.panicking = &panicking{recover()}
 			if i.mode&EnableTracing != 0 {
-				log.Printf("Panicking: %T %v.\n", fr.panic, fr.panic)
+				log.Printf("Panicking: %T %v.\n", fr.panicking.value, fr.panicking.value)
 			}
 			fr.runDefers()
 			fr.block = fr.pfn.Recover
@@ -1227,11 +1228,10 @@ func doRecover(caller *frame) value {
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
 	if caller.i.mode&DisableRecover == 0 &&
-		caller != nil && !caller.panicking &&
-		caller.caller != nil && caller.caller.panicking {
-		caller.caller.panicking = false
-		p := caller.caller.panic
-		caller.caller.panic = nil
+		caller != nil && caller.panicking == nil &&
+		caller.caller != nil && caller.caller.panicking != nil {
+		p := caller.caller.panicking.value
+		caller.caller.panicking = nil
 		// TODO(adonovan): support runtime.Goexit.
 		switch p := p.(type) {
 		case targetPanic:
