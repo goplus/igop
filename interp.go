@@ -297,7 +297,7 @@ func (fr *frame) getParam(key ssa.Value) value {
 	}
 	switch key := key.(type) {
 	case *ssa.Function:
-		return fr.i.makeFunc(fr, fr.i.preToType(key.Type()), key, nil).Interface()
+		return fr.i.makeFunc(fr, fr.i.toType(key.Type()), key, nil).Interface()
 	case *ssa.Builtin:
 		return key
 	case *constValue:

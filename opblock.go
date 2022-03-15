@@ -608,20 +608,21 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				}
 			}
 		}
+		if fn, ok := instr.Val.(*ssa.Function); ok {
+			v := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil)
+			return func(fr *frame, k *int) {
+				x := reflect.ValueOf(fr.get(instr.Addr))
+				SetValue(x.Elem(), v)
+			}
+		}
 		return func(fr *frame, k *int) {
 			x := reflect.ValueOf(fr.get(instr.Addr))
 			val := fr.get(instr.Val)
-			switch fn := val.(type) {
-			case *ssa.Function:
-				f := interp.makeFunc(fr, interp.toType(fn.Type()), fn, nil)
-				SetValue(x.Elem(), f)
-			default:
-				v := reflect.ValueOf(val)
-				if v.IsValid() {
-					SetValue(x.Elem(), v)
-				} else {
-					SetValue(x.Elem(), reflect.New(x.Elem().Type()).Elem())
-				}
+			v := reflect.ValueOf(val)
+			if v.IsValid() {
+				SetValue(x.Elem(), v)
+			} else {
+				SetValue(x.Elem(), reflect.New(x.Elem().Type()).Elem())
 			}
 		}
 	case *ssa.MapUpdate:
