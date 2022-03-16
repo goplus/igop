@@ -16,10 +16,10 @@ support ABI0 and ABIInternal
 	- Go1.17: amd64
 	- Go1.18: amd64 arm64 ppc64/ppc64le
 
-### Go1.18 unsupport features
+### unsupport features
 
-- type parameters
-- fuzzing
+- Go1.18 type parameters
+- Go1.18 fuzzing
 
 ### gossa command line
 ```
