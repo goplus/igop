@@ -4,6 +4,7 @@
 [![Go1.15](https://github.com/goplus/gossa/workflows/Go1.15/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.15)
 [![Go1.16](https://github.com/goplus/gossa/workflows/Go1.16/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.16)
 [![Go1.17](https://github.com/goplus/gossa/workflows/Go1.17/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.17)
+[![Go1.18](https://github.com/goplus/gossa/workflows/Go1.18/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.18)
 
 ### ABI
 
@@ -14,6 +15,11 @@ support ABI0 and ABIInternal
 
 	- Go1.17: amd64
 	- Go1.18: amd64 arm64 ppc64/ppc64le
+
+### Go1.18 unsupport features
+
+- type parameters
+- fuzzing
 
 ### gossa command line
 ```
