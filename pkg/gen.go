@@ -20,8 +20,12 @@ func main() {
 	var name string
 	var fname string
 	switch ver {
+	case "go1.18":
+		tags = "//+build go1.18"
+		name = "go118_export"
+		fname = "go118_pkgs.go"
 	case "go1.17":
-		tags = "//+build go1.17"
+		tags = "//+build go1.17,!go1.18"
 		name = "go117_export"
 		fname = "go117_pkgs.go"
 	case "go1.16":
@@ -39,11 +43,9 @@ func main() {
 	}
 
 	pkgs := stdList()
-	list := osarchList()
 
 	log.Println(ver, name, tags)
 	log.Println(pkgs)
-	log.Println(list)
 
 	cmd := exec.Command("go", "run", "../cmd/qexp", "-outdir", ".", "-addtags", tags, "-filename", name)
 	cmd.Args = append(cmd.Args, pkgs...)
@@ -54,20 +56,28 @@ func main() {
 		panic(err)
 	}
 
-	cmd = exec.Command("go", "run", "../cmd/qexp", "-outdir", ".", "-addtags", tags, "-filename", name, "-contexts", strings.Join(list, " "), "syscall")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	if ver >= "go1.17" {
+	list := osarchList()
+	log.Println(list)
+	for _, osarch := range list {
+		ar := strings.Split(osarch, "_")
+		if len(ar) != 2 {
+			continue
+		}
+		cmd := exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name, "-contexts", osarch, "syscall")
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
 		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "GOOS="+ar[0])
+		cmd.Env = append(cmd.Env, "GOARCH="+ar[1])
 		cmd.Env = append(cmd.Env, "GOEXPERIMENT=noregabi")
-	}
-	err = cmd.Run()
-	if err != nil {
-		panic(err)
-	}
-	err = makepkg("./"+fname, []string{tags}, pkgs)
-	if err != nil {
-		panic(err)
+		err := cmd.Run()
+		if err != nil {
+			panic(err)
+		}
+		err = makepkg("./"+fname, []string{tags}, pkgs)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -141,6 +151,31 @@ func isSkipPkg(pkg string) bool {
 		}
 	}
 	return false
+}
+
+// aix_ppc64 android_386 android_amd64
+func checkRegAbi(list []string, ver string) (regabi []string, noregabi []string) {
+	for _, v := range list {
+		ar := strings.Split(v, "_")
+		if len(ar) != 2 {
+			continue
+		}
+		switch ver {
+		case "go1.17":
+			if ar[1] == "amd64" {
+				regabi = append(regabi, v)
+				continue
+			}
+		case "go1.18":
+			switch ar[1] {
+			case "amd64", "arm64", "ppc64", "ppc64le":
+				regabi = append(regabi, v)
+				continue
+			}
+		}
+		noregabi = append(noregabi, v)
+	}
+	return
 }
 
 func osarchList() []string {
