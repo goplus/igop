@@ -736,7 +736,7 @@ failed:
 }
 
 func opSHL(x, _y value) value {
-	y := asUint64(_y)
+	y := asInt(_y)
 	switch x.(type) {
 	case int:
 		return x.(int) << y
@@ -778,7 +778,7 @@ failed:
 }
 
 func opSHR(x, _y value) value {
-	y := asUint64(_y)
+	y := asInt(_y)
 	switch x.(type) {
 	case int:
 		return x.(int) >> y
