@@ -33,6 +33,7 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	var data struct {
 		Pkg                         *ssa.Package
 		Tests, Benchmarks, Examples []*ssa.Function
+		FuzzTargets                 []*ssa.Function
 		Main                        *ssa.Function
 	}
 	data.Pkg = pkg
@@ -57,6 +58,9 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	path := pkg.Pkg.Path() + "$testmain"
 	tmpl := testmainTmpl
 	if testingPkg := prog.ImportedPackage("testing"); testingPkg != nil {
+		if testingPkg.Type("InternalFuzzTarget") != nil {
+			tmpl = testmainTmpl_go118
+		}
 		// In Go 1.8, testing.MainStart's first argument is an interface, not a func.
 		// data.Go18 = types.IsInterface(testingPkg.Func("MainStart").Signature.Params().At(0).Type())
 	} else {
@@ -183,6 +187,99 @@ var examples = []testing.InternalExample{
 
 func main() {
 	m := testing.MainStart(deps{}, tests, benchmarks, examples)
+{{with .Main}}
+	_test.{{.Name}}(m)
+{{else}}
+	os.Exit(m.Run())
+{{end}}
+}
+
+`))
+
+var testmainTmpl_go118 = template.Must(template.New("testmain").Parse(`
+package main
+
+import (
+	"io"
+	"os"
+	"regexp"
+	"testing"
+	"time"
+	"reflect"
+	_test {{printf "%q" .Pkg.Pkg.Path}}
+)
+
+type deps struct{}
+
+func (deps) ImportPath() string { return "" }
+func (deps) SetPanicOnExit0(bool) {}
+func (deps) StartCPUProfile(io.Writer) error { return nil }
+func (deps) StartTestLog(io.Writer) {}
+func (deps) StopCPUProfile() {}
+func (deps) StopTestLog() error { return nil }
+func (deps) WriteHeapProfile(io.Writer) error { return nil }
+func (deps) WriteProfileTo(string, io.Writer, int) error { return nil }
+
+type corpusEntry = struct {
+	Parent     string
+	Path       string
+	Data       []byte
+	Values     []any
+	Generation int
+	IsSeed     bool
+}
+
+func (deps) CoordinateFuzzing(time.Duration, int64, time.Duration, int64, int, []corpusEntry, []reflect.Type, string, string) error {
+	return nil
+}
+func (deps) RunFuzzWorker(func(corpusEntry) error) error { return nil }
+func (deps) ReadCorpus(string, []reflect.Type) ([]corpusEntry, error) {
+	return nil, nil
+}
+func (f deps) CheckCorpus([]any, []reflect.Type) error { return nil }
+func (f deps) ResetCoverage() {}
+func (f deps) SnapshotCoverage() {}
+
+var matchPat string
+var matchRe *regexp.Regexp
+
+func (deps) MatchString(pat, str string) (result bool, err error) {
+	if matchRe == nil || matchPat != pat {
+		matchPat = pat
+		matchRe, err = regexp.Compile(matchPat)
+		if err != nil {
+			return
+		}
+	}
+	return matchRe.MatchString(str), nil
+}
+
+var tests = []testing.InternalTest{
+{{range .Tests}}
+	{ {{printf "%q" .Name}}, _test.{{.Name}} },
+{{end}}
+}
+
+var benchmarks = []testing.InternalBenchmark{
+{{range .Benchmarks}}
+	{ {{printf "%q" .Name}}, _test.{{.Name}} },
+{{end}}
+}
+
+var fuzzTargets = []testing.InternalFuzzTarget{
+{{range .FuzzTargets}}
+	{ {{printf "%q" .Name}}, _test.{{.Name}} },
+{{end}}
+}
+
+var examples = []testing.InternalExample{
+{{range .Examples}}
+	{Name: {{printf "%q" .Name}}, F: _test.{{.Name}}},
+{{end}}
+}
+
+func main() {
+	m := testing.MainStart(deps{}, tests, benchmarks, fuzzTargets, examples)
 {{with .Main}}
 	_test.{{.Name}}(m)
 {{else}}
