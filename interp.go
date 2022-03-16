@@ -1287,16 +1287,25 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
 
-	// Initialize global storage.
-	for _, m := range mainpkg.Members {
-		switch v := m.(type) {
-		case *ssa.Global:
-			typ := i.preToType(deref(v.Type()))
-			i.globals[v] = reflect.New(typ).Interface()
+	var pkgs []*ssa.Package
+	for _, pkg := range mainpkg.Prog.AllPackages() {
+		// skip external pkg
+		if pkg.Func("init").Blocks == nil {
+			continue
+		}
+		pkgs = append(pkgs, pkg)
+		// Initialize global storage.
+		for _, m := range pkg.Members {
+			switch v := m.(type) {
+			case *ssa.Global:
+				typ := i.preToType(deref(v.Type()))
+				i.globals[v] = reflect.New(typ).Interface()
+			}
 		}
 	}
+
 	// static types check
-	err := checkPackages(i, []*ssa.Package{mainpkg})
+	err := checkPackages(i, pkgs)
 	if err != nil {
 		return i, err
 	}

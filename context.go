@@ -198,7 +198,12 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	for _, pkg := range testPkgs {
-		interp, _ := NewInterp(c.Loader, pkg, c.Mode)
+		interp, err := NewInterp(c.Loader, pkg, c.Mode)
+		if err != nil {
+			failed = true
+			fmt.Printf("create interp failed: %v\n", err)
+			continue
+		}
 		exitCode, _ := interp.Run("main")
 		if exitCode != 0 {
 			failed = true
