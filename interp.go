@@ -1378,10 +1378,13 @@ func (i *Interp) Run(entry string) (exitCode int, err error) {
 	i.exited = false
 	exitCode = 2
 	defer func() {
-		if i.exited || i.mode&DisableRecover != 0 {
+		if i.exited {
 			return
 		}
 		i.exited = true
+		if i.mode&DisableRecover != 0 {
+			return
+		}
 		switch p := recover().(type) {
 		case nil:
 			// nothing
