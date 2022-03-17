@@ -105,16 +105,17 @@ type Interp struct {
 	mainpkg      *ssa.Package        // the SSA main package
 	globals      map[ssa.Value]value // addresses of global variables (immutable)
 	mode         Mode                // interpreter options
-	sizes        types.Sizes         // the effective type-sizing function
 	goroutines   int32               // atomically updated
+	deferCount   int32
+	exited       bool
 	preloadTypes map[types.Type]reflect.Type
 	deferMap     sync.Map
-	deferCount   int32
 	loader       Loader
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
 	fnDebug      func(*DebugInfo)
 	funcs        map[*ssa.Function]*Function
+	//sizes        types.Sizes         // the effective type-sizing function
 }
 
 func (i *Interp) setDebug(fn func(*DebugInfo)) {
@@ -1374,11 +1375,13 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 
 func (i *Interp) Run(entry string) (exitCode int, err error) {
 	// Top-level error handler.
+	i.exited = false
 	exitCode = 2
 	defer func() {
-		if exitCode != 2 || i.mode&DisableRecover != 0 {
+		if i.exited || i.mode&DisableRecover != 0 {
 			return
 		}
+		i.exited = true
 		switch p := recover().(type) {
 		case nil:
 			// nothing

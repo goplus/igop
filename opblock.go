@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"os"
 	"reflect"
 	"strings"
 	"sync/atomic"
@@ -73,7 +74,17 @@ type Function struct {
 }
 
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
-	ext, ok = externValues[fn.String()]
+	fnName := fn.String()
+	if fnName == "os.Exit" {
+		return reflect.ValueOf(func(code int) {
+			if interp.exited {
+				os.Exit(code)
+			} else {
+				panic(exitPanic(code))
+			}
+		}), true
+	}
+	ext, ok = externValues[fnName]
 	if !ok && fn.Pkg != nil {
 		if recv := fn.Signature.Recv(); recv == nil {
 			if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {

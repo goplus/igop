@@ -20,12 +20,6 @@ import (
 	"golang.org/x/tools/go/ssa/ssautil"
 )
 
-func init() {
-	RegisterExternal("os.Exit", func(code int) {
-		panic(exitPanic(code))
-	})
-}
-
 // Mode is a bitmask of options affecting the interpreter.
 type Mode uint
 

@@ -208,7 +208,7 @@ func init() {
 	gorootTestSkips["fixedbugs/issue4618.go"] = "testing.AllocsPerRun"
 	gorootTestSkips["fixedbugs/issue4667.go"] = "testing.AllocsPerRun"
 	gorootTestSkips["fixedbugs/issue5856.go"] = "runtime.Caller"
-	gorootTestSkips["fixedbugs/issue5963.go"] = "BUG, recover"
+	//gorootTestSkips["fixedbugs/issue5963.go"] = "BUG, recover"
 	gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
