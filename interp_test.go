@@ -209,7 +209,6 @@ func init() {
 	gorootTestSkips["fixedbugs/issue4667.go"] = "testing.AllocsPerRun"
 	gorootTestSkips["fixedbugs/issue5856.go"] = "runtime.Caller"
 	//gorootTestSkips["fixedbugs/issue5963.go"] = "BUG, recover"
-	gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
@@ -217,19 +216,29 @@ func init() {
 	gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
 	gorootTestSkips["atomicload.go"] = "slow"
 
-	ver := runtime.Version()
-	if strings.HasPrefix(ver, "go1.17") || strings.HasPrefix(ver, "go1.18") {
+	// fixedbugs/issue7740.go
+	// const ulp = (1.0 + (2.0 / 3.0)) - (5.0 / 3.0)
+	// Go 1.14 1.15 1.16 ulp = 1.4916681462400413e-154
+	// Go 1.17 1.18 ulp = 0
+
+	ver := runtime.Version()[:6]
+	switch ver {
+	case "go1.17", "go1.18":
 		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "very slow"
 		gorootTestSkips["abi/fibish_closure.go"] = "very slow"
 		gorootTestSkips["abi/uglyfib.go"] = "very slow"
 		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
-	} else if strings.HasPrefix(ver, "go1.15") {
+	case "go1.16":
+		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
+	case "go1.15":
 		gorootTestSkips["fixedbugs/issue15039.go"] = "BUG, uint64 -> string"
 		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
-	} else if strings.HasPrefix(ver, "go1.14") {
+		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
+	case "go1.14":
 		gorootTestSkips["fixedbugs/issue9355.go"] = "TODO, chdir"
+		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	}
 
 	if runtime.GOOS == "windows" {
