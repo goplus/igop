@@ -318,12 +318,15 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		if st, ok := key.Underlying().(*types.Struct); ok && hasUnderscore(st) {
 			pfn.mapUnderscoreKey[typ] = true
 		}
-		var reserve int
-		return func(fr *frame, k *int) {
-			if instr.Reserve != nil {
-				reserve = asInt(fr.get(instr.Reserve))
+		if instr.Reserve == nil {
+			return func(fr *frame, k *int) {
+				fr.env[instr] = reflect.MakeMap(rtyp).Interface()
 			}
-			fr.env[instr] = reflect.MakeMapWithSize(rtyp, reserve).Interface()
+		} else {
+			return func(fr *frame, k *int) {
+				reserve := asInt(fr.get(instr.Reserve))
+				fr.env[instr] = reflect.MakeMapWithSize(rtyp, reserve).Interface()
+			}
 		}
 	case *ssa.MakeSlice:
 		typ := interp.preToType(instr.Type())
