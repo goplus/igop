@@ -985,6 +985,15 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 }
 
 func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+	if i.mode&EnableTracing != 0 {
+		fset := fn.Prog.Fset
+		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
+		suffix := ""
+		if caller != nil {
+			suffix = ", resuming " + caller.pfn.Fn.String() + loc(fset, callpos)
+		}
+		defer log.Printf("Leaving %s%s.\n", fn, suffix)
+	}
 	fr := &frame{
 		i:      i,
 		caller: caller, // for panic/recover
