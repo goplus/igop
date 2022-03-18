@@ -539,13 +539,25 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			*k = kJump
 		}
 	case *ssa.If:
-		return func(fr *frame, k *int) {
-			succ := 1
-			if v := fr.get(instr.Cond); reflect.ValueOf(v).Bool() {
-				succ = 0
+		switch instr.Cond.Type().(type) {
+		case *types.Basic:
+			return func(fr *frame, k *int) {
+				succ := 1
+				if v := fr.get(instr.Cond); v.(bool) {
+					succ = 0
+				}
+				fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
+				*k = kJump
 			}
-			fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
-			*k = kJump
+		default:
+			return func(fr *frame, k *int) {
+				succ := 1
+				if v := fr.get(instr.Cond); reflect.ValueOf(v).Bool() {
+					succ = 0
+				}
+				fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
+				*k = kJump
+			}
 		}
 	case *ssa.Return:
 		switch n := len(instr.Results); n {
