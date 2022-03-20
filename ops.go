@@ -194,7 +194,7 @@ func asUint64(x value) uint64 {
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
-func slice(fr *frame, instr *ssa.Slice) value {
+func slice(fr *frame, instr *ssa.Slice) reflect.Value {
 	_, makeslice := instr.X.(*ssa.Alloc)
 	x := fr.get(instr.X)
 	lo := fr.get(instr.Low)
@@ -278,11 +278,11 @@ func slice(fr *frame, instr *ssa.Slice) value {
 	case reflect.String:
 		// optimization x[len(x):], see $GOROOT/test/slicecap.go
 		if l == h {
-			return v.Slice(0, 0).Interface()
+			return v.Slice(0, 0)
 		}
-		return v.Slice(l, h).Interface()
+		return v.Slice(l, h)
 	case reflect.Slice, reflect.Array:
-		return v.Slice3(l, h, m).Interface()
+		return v.Slice3(l, h, m)
 	}
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
 }
