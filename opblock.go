@@ -347,13 +347,14 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	case *ssa.Slice:
 		typ := interp.preToType(instr.Type())
 		isNamed := typ.Kind() == reflect.Slice && typ != reflect.SliceOf(typ.Elem())
+		_, makesliceCheck := instr.X.(*ssa.Alloc)
 		if isNamed {
 			return func(fr *frame, k *int) {
-				fr.env[instr] = slice(fr, instr).Convert(typ).Interface()
+				fr.env[instr] = slice(fr, instr, makesliceCheck).Convert(typ).Interface()
 			}
 		} else {
 			return func(fr *frame, k *int) {
-				fr.env[instr] = slice(fr, instr).Interface()
+				fr.env[instr] = slice(fr, instr, makesliceCheck).Interface()
 			}
 		}
 	case *ssa.FieldAddr:

@@ -194,15 +194,16 @@ func asUint64(x value) uint64 {
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
-func slice(fr *frame, instr *ssa.Slice) reflect.Value {
-	_, makeslice := instr.X.(*ssa.Alloc)
+func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool) reflect.Value {
 	x := fr.get(instr.X)
 	var Len, Cap int
 	v := reflect.ValueOf(x)
+	// *array
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	switch v.Kind() {
+	kind := v.Kind()
+	switch kind {
 	case reflect.String:
 		Len = v.Len()
 		Cap = Len
@@ -226,8 +227,7 @@ func slice(fr *frame, instr *ssa.Slice) reflect.Value {
 		slice3 = true
 	}
 
-	kind := v.Kind()
-	if makeslice {
+	if makesliceCheck {
 		if hi < 0 {
 			panic(runtimeError("makeslice: len out of range"))
 		} else if hi > max {
