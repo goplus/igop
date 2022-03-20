@@ -402,9 +402,6 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			x := fr.get(instr.X)
 			idx := fr.get(instr.Index)
 			v := reflect.ValueOf(x)
-			if v.Kind() == reflect.Ptr {
-				v = v.Elem()
-			}
 			fr.env[instr] = v.Index(asInt(idx)).Interface()
 		}
 	case *ssa.Lookup:
