@@ -268,25 +268,28 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		switch f := instr.X.(type) {
 		case *ssa.Function:
 			fn := interp.makeFunc(nil, xtyp, f, nil)
+			if typ == tyEmptyInterface {
+				return func(fr *frame, k *int) {
+					fr.env[instr] = fn.Interface()
+				}
+			}
 			return func(fr *frame, k *int) {
 				v := reflect.New(typ).Elem()
 				SetValue(v, fn)
 				fr.env[instr] = v.Interface()
 			}
 		default:
+			if typ == tyEmptyInterface {
+				return func(fr *frame, k *int) {
+					x := fr.get(instr.X)
+					fr.env[instr] = x
+				}
+			}
 			return func(fr *frame, k *int) {
 				v := reflect.New(typ).Elem()
-				x := fr.get(instr.X)
-				var vx reflect.Value
-				if x == nil {
-					vx = reflect.New(xtyp).Elem()
-				} else {
-					vx = reflect.ValueOf(x)
-					if xtyp != vx.Type() {
-						vx = reflect.ValueOf(convert(x, xtyp))
-					}
+				if x := fr.get(instr.X); x != nil {
+					SetValue(v, reflect.ValueOf(x))
 				}
-				SetValue(v, vx)
 				fr.env[instr] = v.Interface()
 			}
 		}
@@ -342,8 +345,17 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			fr.env[instr] = reflect.MakeSlice(typ, Len, Cap).Interface()
 		}
 	case *ssa.Slice:
-		return func(fr *frame, k *int) {
-			fr.env[instr] = slice(fr, instr)
+		typ := interp.preToType(instr.Type())
+		isNamed := typ.Kind() == reflect.Slice && typ != reflect.SliceOf(typ.Elem())
+		_, makesliceCheck := instr.X.(*ssa.Alloc)
+		if isNamed {
+			return func(fr *frame, k *int) {
+				fr.env[instr] = slice(fr, instr, makesliceCheck).Convert(typ).Interface()
+			}
+		} else {
+			return func(fr *frame, k *int) {
+				fr.env[instr] = slice(fr, instr, makesliceCheck).Interface()
+			}
 		}
 	case *ssa.FieldAddr:
 		return func(fr *frame, k *int) {
@@ -390,9 +402,6 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			x := fr.get(instr.X)
 			idx := fr.get(instr.Index)
 			v := reflect.ValueOf(x)
-			if v.Kind() == reflect.Ptr {
-				v = v.Elem()
-			}
 			fr.env[instr] = v.Index(asInt(idx)).Interface()
 		}
 	case *ssa.Lookup:

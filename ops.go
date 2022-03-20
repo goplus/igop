@@ -194,18 +194,16 @@ func asUint64(x value) uint64 {
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
-func slice(fr *frame, instr *ssa.Slice) value {
-	_, makeslice := instr.X.(*ssa.Alloc)
+func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool) reflect.Value {
 	x := fr.get(instr.X)
-	lo := fr.get(instr.Low)
-	hi := fr.get(instr.High)
-	max := fr.get(instr.Max)
 	var Len, Cap int
 	v := reflect.ValueOf(x)
+	// *array
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	switch v.Kind() {
+	kind := v.Kind()
+	switch kind {
 	case reflect.String:
 		Len = v.Len()
 		Cap = Len
@@ -214,75 +212,71 @@ func slice(fr *frame, instr *ssa.Slice) value {
 		Cap = v.Cap()
 	}
 
-	l := 0
-	if lo != nil {
-		l = asInt(lo)
-	}
-
-	h := Len
-	if hi != nil {
-		h = asInt(hi)
-	}
-
+	lo := 0
+	hi := Len
+	max := Cap
 	var slice3 bool
-
-	m := Cap
-	if max != nil {
-		m = asInt(max)
+	if instr.Low != nil {
+		lo = asInt(fr.get(instr.Low))
+	}
+	if instr.High != nil {
+		hi = asInt(fr.get(instr.High))
+	}
+	if instr.Max != nil {
+		max = asInt(fr.get(instr.Max))
 		slice3 = true
 	}
 
-	kind := v.Kind()
-	if makeslice {
-		if h < 0 {
+	if makesliceCheck {
+		if hi < 0 {
 			panic(runtimeError("makeslice: len out of range"))
-		} else if h > m {
+		} else if hi > max {
 			panic(runtimeError("makeslice: cap out of range"))
 		}
 	} else {
 		if slice3 {
-			if m < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v]", m)))
-			} else if m > Cap {
+			if max < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v]", max)))
+			} else if max > Cap {
 				if kind == reflect.Slice {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with capacity %v", m, Cap)))
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with capacity %v", max, Cap)))
 				} else {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with length %v", m, Cap)))
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with length %v", max, Cap)))
 				}
-			} else if h < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:]", h)))
-			} else if h > m {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:%v]", h, m)))
-			} else if l < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v::]", l)))
-			} else if l > h {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v:]", l, h)))
+			} else if hi < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:]", hi)))
+			} else if hi > max {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:%v]", hi, max)))
+			} else if lo < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v::]", lo)))
+			} else if lo > hi {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v:]", lo, hi)))
 			}
 		} else {
-			if h < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v]", h)))
-			} else if h > Cap {
+			if hi < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v]", hi)))
+			} else if hi > Cap {
 				if kind == reflect.Slice {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with capacity %v", h, Cap)))
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with capacity %v", hi, Cap)))
 				} else {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with length %v", h, Cap)))
+					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with length %v", hi, Cap)))
 				}
-			} else if l < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:]", l)))
-			} else if l > h {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v]", l, h)))
+			} else if lo < 0 {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:]", lo)))
+			} else if lo > hi {
+				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v]", lo, hi)))
 			}
 		}
 	}
 	switch kind {
 	case reflect.String:
 		// optimization x[len(x):], see $GOROOT/test/slicecap.go
-		if l == h {
-			return v.Slice(0, 0).Interface()
+		if lo == hi {
+			return v.Slice(0, 0)
 		}
-		return v.Slice(l, h).Interface()
+		return v.Slice(lo, hi)
 	case reflect.Slice, reflect.Array:
-		return v.Slice3(l, h, m).Interface()
+		return v.Slice3(lo, hi, max)
 	}
 	panic(fmt.Sprintf("slice: unexpected X type: %T", x))
 }
