@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"sync/atomic"
+	"unsafe"
 
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
@@ -257,11 +258,12 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 	case *ssa.Convert:
-		typ := interp.preToType(instr.Type())
-		return func(fr *frame, k *int) {
-			x := fr.get(instr.X)
-			fr.env[instr] = convert(x, typ)
-		}
+		return makeConvertInstr(interp, instr)
+		// typ := interp.preToType(instr.Type())
+		// return func(fr *frame, k *int) {
+		// 	x := fr.get(instr.X)
+		// 	fr.env[instr] = convert(x, typ)
+		// }
 	case *ssa.MakeInterface:
 		typ := interp.preToType(instr.Type())
 		xtyp := interp.preToType(instr.X.Type())
@@ -728,6 +730,90 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		}
 	default:
 		panic(fmt.Errorf("unreachable %T", instr))
+	}
+}
+
+func makeConvertInstr(interp *Interp, instr *ssa.Convert) func(fr *frame, k *int) {
+	typ := interp.preToType(instr.Type())
+	xtyp := interp.preToType(instr.X.Type())
+	vk := xtyp.Kind()
+	switch typ.Kind() {
+	case reflect.UnsafePointer:
+		if vk == reflect.Uintptr {
+			return func(fr *frame, k *int) {
+				v := reflect.ValueOf(fr.get(instr.X))
+				fr.env[instr] = toUnsafePointer(v)
+			}
+		} else if vk == reflect.Ptr {
+			return func(fr *frame, k *int) {
+				v := reflect.ValueOf(fr.get(instr.X))
+				fr.env[instr] = unsafe.Pointer(v.Pointer())
+			}
+		}
+	case reflect.Uintptr:
+		if vk == reflect.UnsafePointer {
+			return func(fr *frame, k *int) {
+				v := reflect.ValueOf(fr.get(instr.X))
+				fr.env[instr] = v.Pointer()
+			}
+		}
+	case reflect.Ptr:
+		if vk == reflect.UnsafePointer {
+			return func(fr *frame, k *int) {
+				v := reflect.ValueOf(fr.get(instr.X))
+				fr.env[instr] = reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface()
+			}
+		}
+	case reflect.Slice:
+		if vk == reflect.String {
+			elem := typ.Elem()
+			switch elem.Kind() {
+			case reflect.Uint8:
+				if elem.PkgPath() != "" {
+					return func(fr *frame, k *int) {
+						v := reflect.ValueOf(fr.get(instr.X))
+						dst := reflect.New(typ).Elem()
+						dst.SetBytes([]byte(v.String()))
+						fr.env[instr] = dst.Interface()
+					}
+				}
+			case reflect.Int32:
+				if elem.PkgPath() != "" {
+					return func(fr *frame, k *int) {
+						v := reflect.ValueOf(fr.get(instr.X))
+						dst := reflect.New(typ).Elem()
+						*(*[]rune)((*reflectValue)(unsafe.Pointer(&dst)).ptr) = []rune(v.String())
+						fr.env[instr] = dst.Interface()
+					}
+				}
+			}
+		}
+	case reflect.String:
+		if vk == reflect.Slice {
+			elem := xtyp.Elem()
+			switch elem.Kind() {
+			case reflect.Uint8:
+				if elem.PkgPath() != "" {
+					return func(fr *frame, k *int) {
+						v := reflect.ValueOf(fr.get(instr.X))
+						v = reflect.ValueOf(string(v.Bytes()))
+						fr.env[instr] = v.Convert(typ).Interface()
+					}
+				}
+			case reflect.Int32:
+				if elem.PkgPath() != "" {
+					return func(fr *frame, k *int) {
+						v := reflect.ValueOf(fr.get(instr.X))
+						v = reflect.ValueOf(*(*[]rune)(((*reflectValue)(unsafe.Pointer(&v))).ptr))
+						fr.env[instr] = v.Convert(typ).Interface()
+					}
+				}
+			}
+		}
+	}
+	return func(fr *frame, k *int) {
+		v := reflect.ValueOf(fr.get(instr.X))
+		fr.env[instr] = v.Convert(typ).Interface()
 	}
 }
 
