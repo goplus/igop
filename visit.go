@@ -126,7 +126,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 				if visit.intp.mode&EnableDumpInstr != 0 {
 					block.Instrs[index] = func(fr *frame, k *int) {
 						if v, ok := instr.(ssa.Value); ok {
-							log.Printf("\t%-20T %v = %v\n", instr, v.Name(), instr)
+							log.Printf("\t%-20T %v = %-40v\t%v\n", instr, v.Name(), instr, v.Type())
 						} else {
 							log.Printf("\t%-20T %v\n", instr, instr)
 						}
