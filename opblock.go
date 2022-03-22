@@ -68,7 +68,6 @@ type FuncBlock struct {
 
 type Function struct {
 	Fn               *ssa.Function
-	Blocks           map[*ssa.BasicBlock]*FuncBlock
 	MainBlock        *FuncBlock
 	Recover          *FuncBlock
 	mapUnderscoreKey map[types.Type]bool
