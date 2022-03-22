@@ -1010,9 +1010,7 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	for i, fv := range fn.FreeVars {
 		fr.env[fv] = env[i]
 	}
-	for fr.block != nil {
-		i.runFrame(fr)
-	}
+	i.runFrame(fr)
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
@@ -1182,48 +1180,29 @@ func (i *Interp) runFrame(fr *frame) {
 				log.Printf("Panicking: %T %v.\n", fr.panicking.value, fr.panicking.value)
 			}
 			fr.runDefers()
-			fr.block = fr.pfn.Recover
+			var k int
+			for _, fn := range fr.pfn.Recover.Instrs {
+				fn(fr, &k)
+				if k == kReturn {
+					return
+				}
+			}
 		}()
 	}
-
 	for {
 		if i.mode&EnableTracing != 0 {
 			log.Printf(".%v:\n", fr.block.Index)
 		}
-	block:
+		var k int
 		for _, fn := range fr.block.Instrs {
-			var k int
 			fn(fr, &k)
 			switch k {
 			case kReturn:
 				return
 			case kJump:
-				break block
+				break
 			}
 		}
-
-		// for _, instr := range fr.block.Instrs {
-		// 	if i.mode&EnableTracing != 0 {
-		// 		if v, ok := instr.(ssa.Value); ok {
-		// 			log.Println("\t", v.Name(), "=", instr)
-		// 		} else {
-		// 			log.Println("\t", instr)
-		// 		}
-		// 	}
-		// 	fn, cond := i.visitInstr(fr, instr)
-		// 	if fn != nil {
-		// 		fn()
-		// 	}
-		// 	switch cond {
-		// 	case kReturn:
-		// 		return
-		// 	case kNext:
-		// 		// no-op
-		// 	case kJump:
-		// 		break block
-		// 	}
-		// }
-
 	}
 }
 
