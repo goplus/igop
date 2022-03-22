@@ -236,15 +236,16 @@ type deferred struct {
 }
 
 type frame struct {
-	deferid          int64
-	i                *Interp
-	caller           *frame
-	pfn              *Function
-	block, prevBlock *FuncBlock
-	defers           *deferred
-	panicking        *panicking
-	env              map[ssa.Value]value // dynamic values of SSA variables
-	result           value
+	deferid   int64
+	i         *Interp
+	caller    *frame
+	pfn       *Function
+	block     *FuncBlock
+	pred      int
+	defers    *deferred
+	panicking *panicking
+	env       map[ssa.Value]value // dynamic values of SSA variables
+	result    value
 }
 
 type panicking struct {

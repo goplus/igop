@@ -61,9 +61,10 @@ const (
 */
 
 type FuncBlock struct {
-	Index        int
-	Instrs       []func(fr *frame, k *int)
-	Preds, Succs []*FuncBlock
+	Index  int
+	Instrs []func(fr *frame, k *int)
+	Succs  []*FuncBlock
+	Preds  []int
 }
 
 type Function struct {
@@ -123,7 +124,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		return func(fr *frame, k *int) {
 			block := fr.pfn.Blocks[instr.Block()]
 			for i, pred := range block.Preds {
-				if fr.prevBlock == pred {
+				if fr.pred == pred {
 					fr.env[instr] = fr.get(instr.Edges[i])
 					break
 				}
@@ -549,7 +550,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	// Instructions executed for effect
 	case *ssa.Jump:
 		return func(fr *frame, k *int) {
-			fr.prevBlock, fr.block = fr.block, fr.block.Succs[0]
+			fr.pred, fr.block = fr.block.Index, fr.block.Succs[0]
 			*k = kJump
 		}
 	case *ssa.If:
@@ -560,7 +561,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				if v := fr.get(instr.Cond); v.(bool) {
 					succ = 0
 				}
-				fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
+				fr.pred, fr.block = fr.block.Index, fr.block.Succs[succ]
 				*k = kJump
 			}
 		default:
@@ -569,7 +570,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				if v := fr.get(instr.Cond); reflect.ValueOf(v).Bool() {
 					succ = 0
 				}
-				fr.prevBlock, fr.block = fr.block, fr.block.Succs[succ]
+				fr.pred, fr.block = fr.block.Index, fr.block.Succs[succ]
 				*k = kJump
 			}
 		}

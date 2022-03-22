@@ -141,7 +141,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 		}
 		for b, fb := range blocks {
 			for _, v := range b.Preds {
-				fb.Preds = append(fb.Preds, blocks[v])
+				fb.Preds = append(fb.Preds, blocks[v].Index)
 			}
 			for _, v := range b.Succs {
 				fb.Succs = append(fb.Succs, blocks[v])
