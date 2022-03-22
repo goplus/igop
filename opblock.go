@@ -64,7 +64,6 @@ type FuncBlock struct {
 	Index  int
 	Instrs []func(fr *frame, k *int)
 	Succs  []*FuncBlock
-	Preds  []int
 }
 
 type Function struct {
@@ -122,9 +121,8 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		}
 	case *ssa.Phi:
 		return func(fr *frame, k *int) {
-			block := fr.pfn.Blocks[instr.Block()]
-			for i, pred := range block.Preds {
-				if fr.pred == pred {
+			for i, pred := range instr.Block().Preds {
+				if fr.pred == pred.Index {
 					fr.env[instr] = fr.get(instr.Edges[i])
 					break
 				}
