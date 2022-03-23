@@ -115,6 +115,7 @@ type Interp struct {
 	typesMutex   sync.RWMutex
 	fnDebug      func(*DebugInfo)
 	funcs        map[*ssa.Function]*Function
+	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
 	//sizes        types.Sizes         // the effective type-sizing function
 }
 
@@ -1272,6 +1273,7 @@ func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) 
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*Function),
+		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
 	}
 	i.loader = loader
 	i.record = NewTypesRecord(i.loader, i)

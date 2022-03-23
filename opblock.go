@@ -904,6 +904,13 @@ var (
 	vfnMethodByName = reflect.ValueOf(reflectx.MethodByName)
 )
 
+func findUserMethod(typ reflect.Type, name string) (ext reflect.Value, ok bool) {
+	if m, ok := reflectx.MethodByName(typ, name); ok {
+		return m.Func, true
+	}
+	return
+}
+
 func findExternMethod(typ reflect.Type, name string) (ext reflect.Value, ok bool) {
 	if typ == typeOfType {
 		switch name {
@@ -913,7 +920,7 @@ func findExternMethod(typ reflect.Type, name string) (ext reflect.Value, ok bool
 			return vfnMethodByName, true
 		}
 	}
-	if m, ok := reflectx.MethodByName(typ, name); ok {
+	if m, ok := typ.MethodByName(name); ok {
 		return m.Func, true
 	}
 	return
@@ -931,42 +938,47 @@ func isSkipMethod(interp *Interp, pkg *types.Package, mname string) bool {
 	return false
 }
 
-func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame, k *int) {
-	pkg := call.Method.Pkg()
-	mname := call.Method.Name()
-	if isSkipMethod(interp, pkg, mname) {
-		return nil
+func (i *Interp) findMethod(typ reflect.Type, mname string) (f *ssa.Function, ok bool) {
+	if mset, mok := i.msets[typ]; mok {
+		f, ok = mset[mname]
 	}
+	return
+}
+
+func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame, k *int) {
+	mname := call.Method.Name()
 	nargs := len(call.Args)
 	margs := nargs + 1
 	pos := instr.Pos()
+	var found bool
+	var ext reflect.Value
 	return func(fr *frame, k *int) {
 		v := fr.get(call.Value)
 		rtype := reflect.TypeOf(v)
-		if t, ok := interp.findType(rtype, true); ok {
-			fn := interp.prog.LookupMethod(t, pkg, mname)
-			if fn == nil {
-				// Unreachable in well-typed programs.
-				panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
+		// find user type method *ssa.Function
+		if mset, ok := interp.msets[rtype]; ok {
+			if fn, ok := mset[mname]; ok {
+				args := make([]value, margs, margs)
+				args[0] = v
+				for i := 0; i < nargs; i++ {
+					args[i+1] = fr.getParam(call.Args[i])
+				}
+				fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
+				return
 			}
-			args := make([]value, margs, margs)
-			args[0] = v
-			for i := 0; i < nargs; i++ {
-				args[i+1] = fr.getParam(call.Args[i])
-			}
-			fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
+			ext, found = findUserMethod(rtype, mname)
 		} else {
-			ext, ok := findExternMethod(rtype, mname)
-			if !ok {
-				panic(runtimeError("invalid memory address or nil pointer dereference"))
-			}
-			args := make([]value, margs, margs)
-			args[0] = v
-			for i := 0; i < nargs; i++ {
-				args[i+1] = fr.getParam(call.Args[i])
-			}
-			fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
+			ext, found = findExternMethod(rtype, mname)
 		}
+		if !found {
+			panic(runtimeError("invalid memory address or nil pointer dereference"))
+		}
+		args := make([]value, margs, margs)
+		args[0] = v
+		for i := 0; i < nargs; i++ {
+			args[i+1] = fr.getParam(call.Args[i])
+		}
+		fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
 	}
 }
 

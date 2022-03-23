@@ -37,7 +37,7 @@ type visitor struct {
 
 func (visit *visitor) program() {
 	chks := make(map[string]bool)
-	chks[""] = true // anonymous struct
+	chks[""] = true // anonymous struct embbed named type
 	for pkg := range visit.pkgs {
 		chks[pkg.Pkg.Path()] = true
 		for _, mem := range pkg.Members {
@@ -54,14 +54,24 @@ func (visit *visitor) program() {
 	}
 	for _, T := range visit.prog.RuntimeTypes() {
 		typ := visit.intp.preToType(T)
+		// skip extern type
 		if isExtern(typ) {
 			continue
 		}
+		mmap := make(map[string]*ssa.Function)
 		mset := visit.prog.MethodSets.MethodSet(T)
 		for i, n := 0, mset.Len(); i < n; i++ {
-			fn := mset.At(i)
-			visit.function(visit.prog.MethodValue(fn))
+			sel := mset.At(i)
+			obj := sel.Obj()
+			// skip embbed extern type method
+			if !chks[obj.Pkg().Path()] {
+				continue
+			}
+			fn := visit.prog.MethodValue(sel)
+			mmap[obj.Name()] = fn
+			visit.function(fn)
 		}
+		visit.intp.msets[typ] = mmap
 	}
 }
 
