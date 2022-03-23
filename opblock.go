@@ -898,97 +898,74 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(f
 	}
 }
 
+var (
+	typeOfType      = reflect.TypeOf(reflect.TypeOf(0))
+	vfnMethod       = reflect.ValueOf(reflectx.MethodByIndex)
+	vfnMethodByName = reflect.ValueOf(reflectx.MethodByName)
+)
+
+func findExternMethod(typ reflect.Type, name string) (ext reflect.Value, ok bool) {
+	if typ == typeOfType {
+		switch name {
+		case "Method":
+			return vfnMethod, true
+		case "MethodByName":
+			return vfnMethodByName, true
+		}
+	}
+	if m, ok := reflectx.MethodByName(typ, name); ok {
+		return m.Func, true
+	}
+	return
+}
+
+// skip unexport method
+func isSkipMethod(interp *Interp, pkg *types.Package, mname string) bool {
+	if pkg != nil {
+		if _, found := interp.installed(pkg.Path()); found {
+			if !token.IsExported(mname) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame, k *int) {
+	pkg := call.Method.Pkg()
+	mname := call.Method.Name()
+	if isSkipMethod(interp, pkg, mname) {
+		return nil
+	}
 	nargs := len(call.Args)
 	margs := nargs + 1
 	pos := instr.Pos()
-	var isReflect bool
-	if pkg := call.Method.Pkg(); pkg == nil {
-		// error.Error
-		isReflect = true
-	} else if _, found := interp.installed(pkg.Path()); found {
-		isReflect = true
-	}
-	if isReflect {
-		mname := call.Method.Name()
-		// skip unexport method
-		if !token.IsExported(mname) {
-			return nil
-		}
-		switch fullName := call.Method.FullName(); fullName {
-		case "(reflect.Type).Method", "(reflect.Type).MethodByName":
-			var ext reflect.Value
-			if mname == "Method" {
-				ext = reflect.ValueOf(reflectx.MethodByIndex)
-			} else {
-				ext = reflect.ValueOf(reflectx.MethodByName)
+	return func(fr *frame, k *int) {
+		v := fr.get(call.Value)
+		rtype := reflect.TypeOf(v)
+		if t, ok := interp.findType(rtype, true); ok {
+			fn := interp.prog.LookupMethod(t, pkg, mname)
+			if fn == nil {
+				// Unreachable in well-typed programs.
+				panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
 			}
-			return func(fr *frame, k *int) {
-				args := make([]value, margs, margs)
-				args[0] = fr.get(call.Value)
-				for i := 0; i < nargs; i++ {
-					args[i+1] = fr.getParam(call.Args[i])
-				}
-				fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
+			args := make([]value, margs, margs)
+			args[0] = v
+			for i := 0; i < nargs; i++ {
+				args[i+1] = fr.getParam(call.Args[i])
 			}
-		default:
-			return func(fr *frame, k *int) {
-				var ext reflect.Value
-				v := fr.get(call.Value)
-				rtype := reflect.TypeOf(v)
-				if f, ok := reflectx.MethodByName(rtype, mname); ok {
-					ext = f.Func
-				} else {
-					panic(runtimeError("invalid memory address or nil pointer dereference"))
-				}
-				args := make([]value, margs, margs)
-				args[0] = v
-				for i := 0; i < nargs; i++ {
-					args[i+1] = fr.getParam(call.Args[i])
-				}
-				fr.env[instr] = interp.callReflect(fr, instr.Pos(), ext, args, nil)
+			fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
+		} else {
+			ext, ok := findExternMethod(rtype, mname)
+			if !ok {
+				panic(runtimeError("invalid memory address or nil pointer dereference"))
 			}
-		}
-	} else {
-		return func(fr *frame, k *int) {
-			v := fr.get(call.Value)
-			rtype := reflect.TypeOf(v)
-			if t, ok := interp.findType(rtype, true); ok {
-				fn := lookupMethod(interp, t, call.Method)
-				if fn == nil {
-					// Unreachable in well-typed programs.
-					panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
-				}
-				args := make([]value, margs, margs)
-				args[0] = v
-				for i := 0; i < nargs; i++ {
-					args[i+1] = fr.getParam(call.Args[i])
-				}
-				fr.env[instr] = interp.callFunction(fr, pos, fn, args, nil)
-			} else {
-				var ext reflect.Value
-				mname := call.Method.Name()
-				if s := rtype.String(); (s == "*reflect.rtype" || s == "reflect.Type") &&
-					mname == "Method" || mname == "MethodByName" {
-					if mname == "Method" {
-						ext = reflect.ValueOf(reflectx.MethodByIndex)
-					} else {
-						ext = reflect.ValueOf(reflectx.MethodByName)
-					}
-				} else {
-					if f, ok := reflectx.MethodByName(rtype, mname); ok {
-						ext = f.Func
-					} else {
-						panic(runtimeError("invalid memory address or nil pointer dereference"))
-					}
-				}
-				args := make([]value, margs, margs)
-				args[0] = v
-				for i := 0; i < nargs; i++ {
-					args[i+1] = fr.getParam(call.Args[i])
-				}
-				fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
+			args := make([]value, margs, margs)
+			args[0] = v
+			for i := 0; i < nargs; i++ {
+				args[i+1] = fr.getParam(call.Args[i])
 			}
+			fr.env[instr] = interp.callReflect(fr, pos, ext, args, nil)
 		}
 	}
 }
