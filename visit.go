@@ -67,7 +67,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 		blocks := make(map[*ssa.BasicBlock]*FuncBlock)
 		pfn := &Function{
 			Fn:               fn,
-			Blocks:           blocks,
 			mapUnderscoreKey: make(map[types.Type]bool),
 		}
 		visit.intp.funcs[fn] = pfn
@@ -140,9 +139,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 			block.Instrs = block.Instrs[:index]
 		}
 		for b, fb := range blocks {
-			for _, v := range b.Preds {
-				fb.Preds = append(fb.Preds, blocks[v])
-			}
 			for _, v := range b.Succs {
 				fb.Succs = append(fb.Succs, blocks[v])
 			}

@@ -236,15 +236,16 @@ type deferred struct {
 }
 
 type frame struct {
-	deferid          int64
-	i                *Interp
-	caller           *frame
-	pfn              *Function
-	block, prevBlock *FuncBlock
-	defers           *deferred
-	panicking        *panicking
-	env              map[ssa.Value]value // dynamic values of SSA variables
-	result           value
+	deferid   int64
+	i         *Interp
+	caller    *frame
+	pfn       *Function
+	block     *FuncBlock
+	pred      int
+	defers    *deferred
+	panicking *panicking
+	env       map[ssa.Value]value // dynamic values of SSA variables
+	result    value
 }
 
 type panicking struct {
@@ -1010,9 +1011,7 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	for i, fv := range fn.FreeVars {
 		fr.env[fv] = env[i]
 	}
-	for fr.block != nil {
-		i.runFrame(fr)
-	}
+	fr.run()
 	// Destroy the locals to avoid accidental use after return.
 	fr.env = nil
 	fr.block = nil
@@ -1023,88 +1022,88 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 // and lexical environment env, returning its result.
 // callpos is the position of the callsite.
 //
-func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
-	if i.mode&EnableTracing != 0 {
-		fset := fn.Prog.Fset
-		// TODO(adonovan): fix: loc() lies for external functions.
-		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
-		suffix := ""
-		if caller != nil {
-			suffix = ", resuming " + caller.pfn.Fn.String() + loc(fset, callpos)
-		}
-		defer log.Printf("Leaving %s%s.\n", fn, suffix)
-	}
-	if fn.Parent() == nil {
-		fullName := fn.String()
-		name := fn.Name()
-		if ext := externValues[fullName]; ext.Kind() == reflect.Func {
-			if i.mode&EnableTracing != 0 {
-				log.Println("\t(external)")
-			}
-			return i.callReflect(caller, callpos, ext, args, nil)
-		}
-		if fn.Pkg != nil {
-			pkgPath := fn.Pkg.Pkg.Path()
-			if pkg, ok := i.installed(pkgPath); ok {
-				if recv := fn.Signature.Recv(); recv == nil {
-					if ext, ok := pkg.Funcs[name]; ok {
-						if i.mode&EnableTracing != 0 {
-							log.Println("\t(external func)")
-						}
-						return i.callReflect(caller, callpos, ext, args, nil)
-					}
-				} else if typ, ok := i.loader.LookupReflect(recv.Type()); ok {
-					//TODO maybe make full name for search
-					if m, ok := typ.MethodByName(fn.Name()); ok {
-						if i.mode&EnableTracing != 0 {
-							log.Println("\t(external reflect method)")
-						}
-						return i.callReflect(caller, callpos, m.Func, args, nil)
-					}
-					// if ext, ok := pkg.Methods[fullName]; ok {
-					// 	if i.mode&EnableTracing != 0 {
-					// 		log.Println("\t(external method)")
-					// 	}
-					// 	return i.callReflect(caller, callpos, ext, args, nil)
-					// }
-				}
-			}
-		}
-		if fn.Blocks == nil {
-			// check unexport method
-			if fn.Signature.Recv() != nil {
-				v := reflect.ValueOf(args[0])
-				if f, ok := v.Type().MethodByName(fn.Name()); ok {
-					return i.callReflect(caller, callpos, f.Func, args, nil)
-				}
-			}
-			if fn.Name() == "init" && fn.Type().String() == "func()" {
-				return true
-			}
-			panic("no code for function: " + fullName)
-		}
-	}
-	fr := &frame{
-		i:      i,
-		caller: caller, // for panic/recover
-		pfn:    i.funcs[fn],
-	}
-	fr.env = make(map[ssa.Value]value)
-	fr.block = fr.pfn.MainBlock
-	for i, p := range fn.Params {
-		fr.env[p] = args[i]
-	}
-	for i, fv := range fn.FreeVars {
-		fr.env[fv] = env[i]
-	}
-	for fr.block != nil {
-		i.runFrame(fr)
-	}
-	// Destroy the locals to avoid accidental use after return.
-	fr.env = nil
-	fr.block = nil
-	return fr.result
-}
+// func (i *Interp) callSSA(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+// 	if i.mode&EnableTracing != 0 {
+// 		fset := fn.Prog.Fset
+// 		// TODO(adonovan): fix: loc() lies for external functions.
+// 		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
+// 		suffix := ""
+// 		if caller != nil {
+// 			suffix = ", resuming " + caller.pfn.Fn.String() + loc(fset, callpos)
+// 		}
+// 		defer log.Printf("Leaving %s%s.\n", fn, suffix)
+// 	}
+// 	if fn.Parent() == nil {
+// 		fullName := fn.String()
+// 		name := fn.Name()
+// 		if ext := externValues[fullName]; ext.Kind() == reflect.Func {
+// 			if i.mode&EnableTracing != 0 {
+// 				log.Println("\t(external)")
+// 			}
+// 			return i.callReflect(caller, callpos, ext, args, nil)
+// 		}
+// 		if fn.Pkg != nil {
+// 			pkgPath := fn.Pkg.Pkg.Path()
+// 			if pkg, ok := i.installed(pkgPath); ok {
+// 				if recv := fn.Signature.Recv(); recv == nil {
+// 					if ext, ok := pkg.Funcs[name]; ok {
+// 						if i.mode&EnableTracing != 0 {
+// 							log.Println("\t(external func)")
+// 						}
+// 						return i.callReflect(caller, callpos, ext, args, nil)
+// 					}
+// 				} else if typ, ok := i.loader.LookupReflect(recv.Type()); ok {
+// 					//TODO maybe make full name for search
+// 					if m, ok := typ.MethodByName(fn.Name()); ok {
+// 						if i.mode&EnableTracing != 0 {
+// 							log.Println("\t(external reflect method)")
+// 						}
+// 						return i.callReflect(caller, callpos, m.Func, args, nil)
+// 					}
+// 					// if ext, ok := pkg.Methods[fullName]; ok {
+// 					// 	if i.mode&EnableTracing != 0 {
+// 					// 		log.Println("\t(external method)")
+// 					// 	}
+// 					// 	return i.callReflect(caller, callpos, ext, args, nil)
+// 					// }
+// 				}
+// 			}
+// 		}
+// 		if fn.Blocks == nil {
+// 			// check unexport method
+// 			if fn.Signature.Recv() != nil {
+// 				v := reflect.ValueOf(args[0])
+// 				if f, ok := v.Type().MethodByName(fn.Name()); ok {
+// 					return i.callReflect(caller, callpos, f.Func, args, nil)
+// 				}
+// 			}
+// 			if fn.Name() == "init" && fn.Type().String() == "func()" {
+// 				return true
+// 			}
+// 			panic("no code for function: " + fullName)
+// 		}
+// 	}
+// 	fr := &frame{
+// 		i:      i,
+// 		caller: caller, // for panic/recover
+// 		pfn:    i.funcs[fn],
+// 	}
+// 	fr.env = make(map[ssa.Value]value)
+// 	fr.block = fr.pfn.MainBlock
+// 	for i, p := range fn.Params {
+// 		fr.env[p] = args[i]
+// 	}
+// 	for i, fv := range fn.FreeVars {
+// 		fr.env[fv] = env[i]
+// 	}
+// 	for fr.block != nil {
+// 		i.runFrame(fr)
+// 	}
+// 	// Destroy the locals to avoid accidental use after return.
+// 	fr.env = nil
+// 	fr.block = nil
+// 	return fr.result
+// }
 
 func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
 	if caller != nil && caller.deferid != 0 {
@@ -1168,62 +1167,43 @@ func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value,
 // undefined and fr.block contains the block at which to resume
 // control.
 //
-func (i *Interp) runFrame(fr *frame) {
+func (fr *frame) run() {
 	if fr.pfn.Recover != nil {
 		defer func() {
 			if fr.block == nil {
 				return // normal return
 			}
-			if i.mode&DisableRecover != 0 {
+			if fr.i.mode&DisableRecover != 0 {
 				return // let interpreter crash
 			}
 			fr.panicking = &panicking{recover()}
-			if i.mode&EnableTracing != 0 {
+			if fr.i.mode&EnableTracing != 0 {
 				log.Printf("Panicking: %T %v.\n", fr.panicking.value, fr.panicking.value)
 			}
 			fr.runDefers()
-			fr.block = fr.pfn.Recover
+			var k int
+			for _, fn := range fr.pfn.Recover.Instrs {
+				fn(fr, &k)
+				if k == kReturn {
+					return
+				}
+			}
 		}()
 	}
-
 	for {
-		if i.mode&EnableTracing != 0 {
+		if fr.i.mode&EnableTracing != 0 {
 			log.Printf(".%v:\n", fr.block.Index)
 		}
-	block:
+		var k int
 		for _, fn := range fr.block.Instrs {
-			var k int
 			fn(fr, &k)
 			switch k {
 			case kReturn:
 				return
 			case kJump:
-				break block
+				break
 			}
 		}
-
-		// for _, instr := range fr.block.Instrs {
-		// 	if i.mode&EnableTracing != 0 {
-		// 		if v, ok := instr.(ssa.Value); ok {
-		// 			log.Println("\t", v.Name(), "=", instr)
-		// 		} else {
-		// 			log.Println("\t", instr)
-		// 		}
-		// 	}
-		// 	fn, cond := i.visitInstr(fr, instr)
-		// 	if fn != nil {
-		// 		fn()
-		// 	}
-		// 	switch cond {
-		// 	case kReturn:
-		// 		return
-		// 	case kNext:
-		// 		// no-op
-		// 	case kJump:
-		// 		break block
-		// 	}
-		// }
-
 	}
 }
 
