@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"log"
+	"reflect"
 
 	"golang.org/x/tools/go/ssa"
 )
@@ -35,17 +36,31 @@ type visitor struct {
 }
 
 func (visit *visitor) program() {
+	chks := make(map[string]bool)
+	chks[""] = true // anonymous struct
 	for pkg := range visit.pkgs {
+		chks[pkg.Pkg.Path()] = true
 		for _, mem := range pkg.Members {
 			if fn, ok := mem.(*ssa.Function); ok {
 				visit.function(fn)
 			}
 		}
 	}
+	isExtern := func(typ reflect.Type) bool {
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+		return !chks[typ.PkgPath()]
+	}
 	for _, T := range visit.prog.RuntimeTypes() {
+		typ := visit.intp.preToType(T)
+		if isExtern(typ) {
+			continue
+		}
 		mset := visit.prog.MethodSets.MethodSet(T)
 		for i, n := 0, mset.Len(); i < n; i++ {
-			visit.function(visit.prog.MethodValue(mset.At(i)))
+			fn := mset.At(i)
+			visit.function(visit.prog.MethodValue(fn))
 		}
 	}
 }
