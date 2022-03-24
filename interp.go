@@ -56,7 +56,6 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/reflectx"
 	"github.com/petermattis/goid"
 	"golang.org/x/tools/go/ssa"
 )
@@ -894,49 +893,61 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 // function call in a Call, Go or Defer instruction, performing
 // interface method lookup if needed.
 //
-func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []value) {
-	v := fr.get(call.Value)
+func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fv value, args []value) {
 	if call.Method == nil {
-		// Function call.
-		fn = v
-	} else {
-		// Interface method invocation.
-		//vt, ok := call.Value.(*ssa.MakeInterface)
-		// recv := v.(iface)
-		rv := reflect.ValueOf(v)
-		t, ok := i.findType(rv.Type(), true)
-		if ok {
-			if f := lookupMethod(i, t, call.Method); f == nil {
-				// Unreachable in well-typed programs.
-				panic(fmt.Sprintf("method set for dynamic type %v does not contain %s", t, call.Method))
+		switch f := call.Value.(type) {
+		case *ssa.Builtin:
+			fv = f
+		case *ssa.Function:
+			if f.Blocks == nil {
+				ext, ok := findExternFunc(i, f)
+				if !ok {
+					// skip pkg.init
+					if f.Pkg != nil && f.Name() == "init" {
+						fv = func() {}
+					} else {
+						panic(fmt.Errorf("no code for function: %v", f))
+					}
+				} else {
+					fv = ext
+				}
 			} else {
-				fn = f
+				fv = f
+			}
+		case *ssa.MakeClosure:
+			var bindings []value
+			for _, binding := range f.Bindings {
+				bindings = append(bindings, fr.getParam(binding))
+			}
+			fv = &closure{f.Fn.(*ssa.Function), bindings}
+		default:
+			fv = fr.get(call.Value)
+		}
+	} else {
+		v := fr.get(call.Value)
+		rtype := reflect.TypeOf(v)
+		mname := call.Method.Name()
+		if mset, ok := i.msets[rtype]; ok {
+			if f, ok := mset[mname]; ok {
+				fv = f
+			} else {
+				ext, ok := findUserMethod(rtype, mname)
+				if !ok {
+					panic(fmt.Errorf("no code for method: %v.%v", rtype, mname))
+				}
+				fv = ext
 			}
 		} else {
-			rtype := rv.Type()
-			mname := call.Method.Name()
-			if s := rtype.String(); (s == "*reflect.rtype" || s == "reflect.Type") &&
-				mname == "Method" || mname == "MethodByName" {
-				if mname == "Method" {
-					fn = reflectx.MethodByIndex
-				} else {
-					fn = reflectx.MethodByName
-				}
-			} else {
-				if f, ok := rtype.MethodByName(mname); ok {
-					fn = f.Func.Interface()
-				} else {
-					panic(runtimeError("invalid memory address or nil pointer dereference"))
-				}
+			ext, ok := findExternMethod(rtype, mname)
+			if !ok {
+				panic(fmt.Errorf("no code for method: %v.%v", rtype, mname))
 			}
+			fv = ext
 		}
 		args = append(args, v)
 	}
 	for _, arg := range call.Args {
-		v := fr.get(arg)
-		if fn, ok := v.(*ssa.Function); ok {
-			v = i.makeFunc(fr, i.toType(fn.Type()), fn, nil).Interface()
-		}
+		v := fr.getParam(arg)
 		args = append(args, v)
 	}
 	return
@@ -949,32 +960,15 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fn value, args []
 func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
 	switch fn := fn.(type) {
 	case *ssa.Function:
-		if fn == nil {
-			panic("call of nil function") // nil of func type
-		}
-		if fn.Blocks == nil {
-			ext, ok := findExternFunc(i, fn)
-			if !ok {
-				// skip pkg.init
-				if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
-					return nil
-				}
-				panic(fmt.Errorf("no code for function: %v", fn))
-			}
-			return i.callReflect(caller, callpos, ext, args, nil)
-		}
 		return i.callFunction(caller, callpos, fn, args, nil)
 	case *closure:
-		if fn.Fn == nil {
-			panic("call of nil closure function") // nil of func type
-		}
 		return i.callFunction(caller, callpos, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
 		return i.callBuiltin(caller, callpos, fn, args, ssaArgs)
+	case reflect.Value:
+		return i.callReflect(caller, callpos, fn, args, nil)
 	default:
-		if f := reflect.ValueOf(fn); f.Kind() == reflect.Func {
-			return i.callReflect(caller, callpos, f, args, nil)
-		}
+		return i.callReflect(caller, callpos, reflect.ValueOf(fn), args, nil)
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }

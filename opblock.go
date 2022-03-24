@@ -815,6 +815,13 @@ func makeConvertInstr(interp *Interp, instr *ssa.Convert) func(fr *frame, k *int
 	}
 }
 
+func makeCallInstr1(interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame, k *int) {
+	return func(fr *frame, k *int) {
+		fn, args := interp.prepareCall(fr, call)
+		fr.env[instr] = interp.call(fr, call.Pos(), fn, args, call.Args)
+	}
+}
+
 func makeCallInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame, k *int) {
 	pos := instr.Pos()
 	switch fn := call.Value.(type) {
@@ -848,7 +855,7 @@ func makeCallInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(f
 			ext, ok := findExternFunc(interp, fn)
 			if !ok {
 				// skip pkg.init
-				if fn.Pkg != nil && fn.Name() == "init" && fn.Type().String() == "func()" {
+				if fn.Pkg != nil && fn.Name() == "init" {
 					return nil
 				}
 				panic(fmt.Errorf("no code for function: %v", fn))
@@ -938,9 +945,9 @@ func findExternMethod(typ reflect.Type, name string) (ext reflect.Value, ok bool
 // 	return false
 // }
 
-func (i *Interp) findMethod(typ reflect.Type, mname string) (f *ssa.Function, ok bool) {
+func (i *Interp) findMethod(typ reflect.Type, mname string) (fn *ssa.Function, ok bool) {
 	if mset, mok := i.msets[typ]; mok {
-		f, ok = mset[mname]
+		fn, ok = mset[mname]
 	}
 	return
 }
@@ -971,7 +978,7 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon) 
 			ext, found = findExternMethod(rtype, mname)
 		}
 		if !found {
-			panic(runtimeError("invalid memory address or nil pointer dereference"))
+			panic(fmt.Errorf("no code for method: %v.%v", rtype, mname))
 		}
 		args := make([]value, margs, margs)
 		args[0] = v
