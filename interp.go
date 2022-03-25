@@ -902,7 +902,7 @@ func (i *Interp) visitInstr(fr *frame, instr ssa.Instruction) (func(), continuat
 // function call in a Call, Go or Defer instruction, performing
 // interface method lookup if needed.
 //
-func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fv value, args []value) {
+func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, ib []int) (fv value, args []value) {
 	if call.Method == nil {
 		switch f := call.Value.(type) {
 		case *ssa.Builtin:
@@ -925,15 +925,18 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fv value, args []
 			}
 		case *ssa.MakeClosure:
 			var bindings []value
-			for _, binding := range f.Bindings {
-				bindings = append(bindings, fr.getParam(binding))
+			for i, _ := range f.Bindings {
+				//bindings = append(bindings, fr.getParam(binding))
+				bindings = append(bindings, fr.reg(ib[i]))
 			}
 			fv = &closure{f.Fn.(*ssa.Function), bindings}
 		default:
-			fv = fr.get(call.Value)
+			// fv = fr.get(call.Value)
+			fv = fr.reg(iv)
 		}
 	} else {
-		v := fr.get(call.Value)
+		// v := fr.get(call.Value)
+		v := fr.reg(iv)
 		rtype := reflect.TypeOf(v)
 		mname := call.Method.Name()
 		if mset, ok := i.msets[rtype]; ok {
@@ -955,8 +958,9 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon) (fv value, args []
 		}
 		args = append(args, v)
 	}
-	for _, arg := range call.Args {
-		v := fr.getParam(arg)
+	for i, _ := range call.Args {
+		// v := fr.getParam(arg)
+		v := fr.reg(ia[i])
 		args = append(args, v)
 	}
 	return
@@ -1008,17 +1012,22 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 		fr.deferid = caller.deferid
 	}
 	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.env = make(map[ssa.Value]value)
+	//fr.env = make(map[ssa.Value]value)
 	fr.block = fr.pfn.MainBlock
-	for i, p := range fn.Params {
-		fr.env[p] = args[i]
+	var ip = 0
+	for i, _ := range fn.Params {
+		//fr.env[p] = args[i]
+		fr.stack[ip] = args[i]
+		ip++
 	}
-	for i, fv := range fn.FreeVars {
-		fr.env[fv] = env[i]
+	for i, _ := range fn.FreeVars {
+		//fr.env[fv] = env[i]
+		fr.stack[ip] = env[i]
+		ip++
 	}
 	fr.run()
 	// Destroy the locals to avoid accidental use after return.
-	fr.env = nil
+	//fr.env = nil
 	fr.block = nil
 	return fr.result
 }
