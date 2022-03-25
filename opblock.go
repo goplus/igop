@@ -71,6 +71,32 @@ type Function struct {
 	MainBlock        *FuncBlock
 	Recover          *FuncBlock
 	mapUnderscoreKey map[types.Type]bool
+	regIndex         map[ssa.Value]int
+	stack            []interface{}
+}
+
+func (p *Function) getIndex(interp *Interp, v ssa.Value) int {
+	if i, ok := p.regIndex[v]; ok {
+		return i
+	}
+	i := len(p.stack)
+	p.regIndex[v] = i
+	switch v := v.(type) {
+	case *constValue:
+		p.stack = append(p.stack, v.Value)
+	case *ssa.Const:
+		p.stack = append(p.stack, constToValue(interp, v))
+	case *ssa.Global:
+		g, _ := globalToValue(interp, v)
+		p.stack = append(p.stack, g)
+	case *ssa.Function:
+		typ := interp.preToType(v.Type())
+		fn := interp.makeFunc(nil, typ, v, nil).Interface()
+		p.stack = append(p.stack, fn)
+	default:
+		p.stack = append(p.stack, nil)
+	}
+	return i
 }
 
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {

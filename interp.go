@@ -246,6 +246,15 @@ type frame struct {
 	panicking *panicking
 	env       map[ssa.Value]value // dynamic values of SSA variables
 	result    value
+	stack     []value
+}
+
+func (fr *frame) setReg(index int, v value) {
+	fr.stack[index] = v
+}
+
+func (fr *frame) reg(index int) value {
+	return fr.stack[index]
 }
 
 type panicking struct {
@@ -998,6 +1007,7 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	if caller != nil {
 		fr.deferid = caller.deferid
 	}
+	fr.stack = append([]value{}, fr.pfn.stack...)
 	fr.env = make(map[ssa.Value]value)
 	fr.block = fr.pfn.MainBlock
 	for i, p := range fn.Params {

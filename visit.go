@@ -93,6 +93,13 @@ func (visit *visitor) function(fn *ssa.Function) {
 		pfn := &Function{
 			Fn:               fn,
 			mapUnderscoreKey: make(map[types.Type]bool),
+			regIndex:         make(map[ssa.Value]int),
+		}
+		for _, p := range fn.Params {
+			pfn.getIndex(visit.intp, p)
+		}
+		for _, p := range fn.FreeVars {
+			pfn.getIndex(visit.intp, p)
 		}
 		visit.intp.funcs[fn] = pfn
 		var buf [32]*ssa.Value // avoid alloc in common case
