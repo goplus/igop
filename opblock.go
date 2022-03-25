@@ -83,8 +83,6 @@ func (p *Function) getIndex(v ssa.Value) int {
 	i := len(p.stack)
 	p.regIndex[v] = i
 	switch v := v.(type) {
-	case *constValue:
-		p.stack = append(p.stack, v.Value)
 	case *ssa.Const:
 		p.stack = append(p.stack, constToValue(p.Interp, v))
 	case *ssa.Global:

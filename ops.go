@@ -121,8 +121,6 @@ func staticToValue(i *Interp, value ssa.Value) (interface{}, bool) {
 	switch v := value.(type) {
 	case *ssa.Global:
 		return globalToValue(i, v)
-	case *constValue:
-		return v.Value, true
 	case *ssa.Const:
 		return constToValue(i, v), true
 	}
@@ -1072,8 +1070,6 @@ func binop(instr *ssa.BinOp, t types.Type, x, y value) value {
 func IsConstNil(v ssa.Value) bool {
 	switch c := v.(type) {
 	case *ssa.Const:
-		return c.IsNil()
-	case *constValue:
 		return c.IsNil()
 	}
 	return false

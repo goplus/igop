@@ -143,8 +143,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 					switch v := (*op).(type) {
 					case *ssa.Function:
 						visit.function(v)
-					case *ssa.Const:
-						*op = &constValue{v, constToValue(visit.intp, v)}
 					case nil:
 						// skip
 					default:
