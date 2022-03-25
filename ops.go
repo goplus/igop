@@ -85,7 +85,7 @@ func basicValue(c *ssa.Const, kind types.BasicKind) value {
 func constToValue(i *Interp, c *ssa.Const) value {
 	if c.IsNil() {
 		t := c.Type()
-		return reflect.Zero(i.toType(t)).Interface()
+		return reflect.Zero(i.preToType(t)).Interface()
 	}
 	typ := c.Type()
 	if basic, ok := typ.(*types.Basic); ok {
@@ -95,7 +95,7 @@ func constToValue(i *Interp, c *ssa.Const) value {
 		if v == nil {
 			return v
 		}
-		nv := reflect.New(i.toType(typ)).Elem()
+		nv := reflect.New(i.preToType(typ)).Elem()
 		SetValue(nv, reflect.ValueOf(v))
 		return nv.Interface()
 	}

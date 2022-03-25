@@ -1341,7 +1341,7 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 	if t, ok := i.preloadTypes[typ]; ok {
 		return t
 	}
-	//log.Panicf("toType %v %p\n", typ, typ)
+	// log.Panicf("toType %v %p\n", typ, typ)
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
 	return i.record.ToType(typ)
