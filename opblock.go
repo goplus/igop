@@ -73,7 +73,7 @@ type Function struct {
 	Recover          *FuncBlock
 	mapUnderscoreKey map[types.Type]bool
 	regIndex         map[ssa.Value]int
-	stack            []interface{}
+	stack            []value
 }
 
 func (p *Function) getIndex(v ssa.Value) int {
