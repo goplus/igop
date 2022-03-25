@@ -236,16 +236,15 @@ type deferred struct {
 }
 
 type frame struct {
-	deferid   int64
-	i         *Interp
+	interp    *Interp
 	caller    *frame
 	pfn       *Function
 	block     *FuncBlock
-	pred      int
 	defers    *deferred
 	panicking *panicking
-	env       map[ssa.Value]value // dynamic values of SSA variables
 	result    value
+	pred      int
+	deferid   int64
 	stack     []value
 }
 
@@ -261,95 +260,95 @@ type panicking struct {
 	value interface{}
 }
 
-func (fr *frame) get(key ssa.Value) value {
-	if key == nil {
-		return nil
-	}
-	switch key := key.(type) {
-	case *ssa.Function:
-		return key
-	case *ssa.Builtin:
-		return key
-	case *constValue:
-		return key.Value
-	case *ssa.Const:
-		return constToValue(fr.i, key)
-	case *ssa.Global:
-		if key.Pkg != nil {
-			pkgpath := key.Pkg.Pkg.Path()
-			if pkg, ok := fr.i.installed(pkgpath); ok {
-				if ext, ok := pkg.Vars[key.Name()]; ok {
-					return ext.Interface()
-				}
-			}
-		}
-		if r, ok := fr.i.globals[key]; ok {
-			return r
-		}
-	}
-	if key.Parent() == nil {
-		path := key.String()
-		if ext, ok := externValues[path]; ok {
-			if fr.i.mode&EnableTracing != 0 {
-				log.Println("\t(external)")
-			}
-			return ext.Interface()
-		}
-	}
-	if r, ok := fr.env[key]; ok {
-		return r
-	}
-	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
-}
+// func (fr *frame) get(key ssa.Value) value {
+// 	if key == nil {
+// 		return nil
+// 	}
+// 	switch key := key.(type) {
+// 	case *ssa.Function:
+// 		return key
+// 	case *ssa.Builtin:
+// 		return key
+// 	case *constValue:
+// 		return key.Value
+// 	case *ssa.Const:
+// 		return constToValue(fr.i, key)
+// 	case *ssa.Global:
+// 		if key.Pkg != nil {
+// 			pkgpath := key.Pkg.Pkg.Path()
+// 			if pkg, ok := fr.i.installed(pkgpath); ok {
+// 				if ext, ok := pkg.Vars[key.Name()]; ok {
+// 					return ext.Interface()
+// 				}
+// 			}
+// 		}
+// 		if r, ok := fr.i.globals[key]; ok {
+// 			return r
+// 		}
+// 	}
+// 	if key.Parent() == nil {
+// 		path := key.String()
+// 		if ext, ok := externValues[path]; ok {
+// 			if fr.i.mode&EnableTracing != 0 {
+// 				log.Println("\t(external)")
+// 			}
+// 			return ext.Interface()
+// 		}
+// 	}
+// 	if r, ok := fr.env[key]; ok {
+// 		return r
+// 	}
+// 	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
+// }
 
-func (fr *frame) getParam(key ssa.Value) value {
-	if key == nil {
-		return nil
-	}
-	switch key := key.(type) {
-	case *ssa.Function:
-		return fr.i.makeFunc(fr, fr.i.toType(key.Type()), key, nil).Interface()
-	case *ssa.Builtin:
-		return key
-	case *constValue:
-		return key.Value
-	case *ssa.Const:
-		return constToValue(fr.i, key)
-	case *ssa.Global:
-		if key.Pkg != nil {
-			pkgpath := key.Pkg.Pkg.Path()
-			if pkg, ok := fr.i.installed(pkgpath); ok {
-				if ext, ok := pkg.Vars[key.Name()]; ok {
-					return ext.Interface()
-				}
-			}
-		}
-		if r, ok := fr.i.globals[key]; ok {
-			return r
-		}
-	}
-	if key.Parent() == nil {
-		path := key.String()
-		if ext, ok := externValues[path]; ok {
-			if fr.i.mode&EnableTracing != 0 {
-				log.Println("\t(external)")
-			}
-			return ext.Interface()
-		}
-	}
-	if r, ok := fr.env[key]; ok {
-		return r
-	}
-	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
-}
+// func (fr *frame) getParam(key ssa.Value) value {
+// 	if key == nil {
+// 		return nil
+// 	}
+// 	switch key := key.(type) {
+// 	case *ssa.Function:
+// 		return fr.i.makeFunc(fr, fr.i.toType(key.Type()), key, nil).Interface()
+// 	case *ssa.Builtin:
+// 		return key
+// 	case *constValue:
+// 		return key.Value
+// 	case *ssa.Const:
+// 		return constToValue(fr.i, key)
+// 	case *ssa.Global:
+// 		if key.Pkg != nil {
+// 			pkgpath := key.Pkg.Pkg.Path()
+// 			if pkg, ok := fr.i.installed(pkgpath); ok {
+// 				if ext, ok := pkg.Vars[key.Name()]; ok {
+// 					return ext.Interface()
+// 				}
+// 			}
+// 		}
+// 		if r, ok := fr.i.globals[key]; ok {
+// 			return r
+// 		}
+// 	}
+// 	if key.Parent() == nil {
+// 		path := key.String()
+// 		if ext, ok := externValues[path]; ok {
+// 			if fr.i.mode&EnableTracing != 0 {
+// 				log.Println("\t(external)")
+// 			}
+// 			return ext.Interface()
+// 		}
+// 	}
+// 	if r, ok := fr.env[key]; ok {
+// 		return r
+// 	}
+// 	panic(fmt.Sprintf("get: no value for %T: %v", key, key.String()))
+// }
 
 // runDefer runs a deferred call d.
 // It always returns normally, but may set or clear fr.panic.
 //
 func (fr *frame) runDefer(d *deferred) {
-	if fr.i.mode&EnableTracing != 0 {
+	if fr.interp.mode&EnableTracing != 0 {
 		log.Printf("%s: invoking deferred function call\n",
-			fr.i.prog.Fset.Position(d.instr.Pos()))
+			fr.interp.prog.Fset.Position(d.instr.Pos()))
 	}
 	var ok bool
 	defer func() {
@@ -358,7 +357,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panicking = &panicking{recover()}
 		}
 	}()
-	fr.i.call(fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
+	fr.interp.call(fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -375,14 +374,14 @@ func (fr *frame) runDefer(d *deferred) {
 // runDefers returns normally.
 //
 func (fr *frame) runDefers() {
-	atomic.AddInt32(&fr.i.deferCount, 1)
+	atomic.AddInt32(&fr.interp.deferCount, 1)
 	fr.deferid = goid.Get()
-	fr.i.deferMap.Store(fr.deferid, fr)
+	fr.interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
-	fr.i.deferMap.Delete(fr.deferid)
-	atomic.AddInt32(&fr.i.deferCount, -1)
+	fr.interp.deferMap.Delete(fr.deferid)
+	atomic.AddInt32(&fr.interp.deferCount, -1)
 	fr.deferid = 0
 	// runtime.Goexit() fr.panic == nil
 	if fr.panicking != nil {
@@ -1004,7 +1003,7 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 		defer log.Printf("Leaving %s%s.\n", fn, suffix)
 	}
 	fr := &frame{
-		i:      i,
+		interp: i,
 		caller: caller, // for panic/recover
 		pfn:    i.funcs[fn],
 	}
@@ -1029,6 +1028,7 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	// Destroy the locals to avoid accidental use after return.
 	//fr.env = nil
 	fr.block = nil
+	fr.stack = nil
 	return fr.result
 }
 
@@ -1187,11 +1187,11 @@ func (fr *frame) run() {
 			if fr.block == nil {
 				return // normal return
 			}
-			if fr.i.mode&DisableRecover != 0 {
+			if fr.interp.mode&DisableRecover != 0 {
 				return // let interpreter crash
 			}
 			fr.panicking = &panicking{recover()}
-			if fr.i.mode&EnableTracing != 0 {
+			if fr.interp.mode&EnableTracing != 0 {
 				log.Printf("Panicking: %T %v.\n", fr.panicking.value, fr.panicking.value)
 			}
 			fr.runDefers()
@@ -1205,7 +1205,7 @@ func (fr *frame) run() {
 		}()
 	}
 	for {
-		if fr.i.mode&EnableTracing != 0 {
+		if fr.interp.mode&EnableTracing != 0 {
 			log.Printf(".%v:\n", fr.block.Index)
 		}
 		var k int
@@ -1227,7 +1227,7 @@ func doRecover(caller *frame) value {
 	// function (two levels beneath the panicking function) to
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
-	if caller.i.mode&DisableRecover == 0 &&
+	if caller.interp.mode&DisableRecover == 0 &&
 		caller != nil && caller.panicking == nil &&
 		caller.caller != nil && caller.caller.panicking != nil {
 		p := caller.caller.panicking.value
