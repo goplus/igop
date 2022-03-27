@@ -60,6 +60,19 @@ const (
 )
 */
 
+type kind int
+
+func (k kind) isStatic() bool {
+	return k == kindConst || k == kindGlobal || k == kindFunction
+}
+
+const (
+	kindInvalid kind = iota
+	kindConst
+	kindGlobal
+	kindFunction
+)
+
 type FuncBlock struct {
 	Index  int
 	Instrs []func(fr *frame, k *int)
@@ -72,29 +85,48 @@ type Function struct {
 	MainBlock        *FuncBlock
 	Recover          *FuncBlock
 	mapUnderscoreKey map[types.Type]bool
-	index            map[ssa.Value]int
+	index            map[ssa.Value]uint32
 	stack            []value
 }
 
 func (p *Function) regIndex(v ssa.Value) int {
+	instr := p.regInstr(v)
+	return int(instr & 0xffffff)
+}
+
+func (p *Function) regIndex2(v ssa.Value) (int, kind) {
+	instr := p.regInstr(v)
+	return int(instr & 0xffffff), kind(instr >> 24)
+}
+
+func (p *Function) regIndex3(v ssa.Value) (int, kind, value) {
+	instr := p.regInstr(v)
+	index := int(instr & 0xffffff)
+	return index, kind(instr >> 24), p.stack[index]
+}
+
+func (p *Function) regInstr(v ssa.Value) uint32 {
 	if i, ok := p.index[v]; ok {
 		return i
 	}
-	i := len(p.stack)
-	p.index[v] = i
+	i := uint32(len(p.stack))
 	switch v := v.(type) {
 	case *ssa.Const:
 		p.stack = append(p.stack, constToValue(p.Interp, v))
+		i |= uint32(kindConst << 24)
 	case *ssa.Global:
 		g, _ := globalToValue(p.Interp, v)
 		p.stack = append(p.stack, g)
+		i |= uint32(kindGlobal << 24)
 	case *ssa.Function:
 		typ := p.Interp.preToType(v.Type())
 		fn := p.Interp.makeFunc(nil, typ, v, nil).Interface()
 		p.stack = append(p.stack, fn)
+		i |= uint32(kindFunction << 24)
 	default:
 		p.stack = append(p.stack, nil)
 	}
+	p.index[v] = i
 	return i
 }
 

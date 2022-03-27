@@ -94,7 +94,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			Interp:           visit.intp,
 			Fn:               fn,
 			mapUnderscoreKey: make(map[types.Type]bool),
-			index:            make(map[ssa.Value]int),
+			index:            make(map[ssa.Value]uint32),
 		}
 		for _, p := range fn.Params {
 			pfn.regIndex(p)
