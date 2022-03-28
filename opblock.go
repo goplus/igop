@@ -762,22 +762,22 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		switch instr.Cond.Type().(type) {
 		case *types.Basic:
 			return func(fr *frame) {
-				succ := 1
-				// if v := fr.get(instr.Cond); v.(bool) {
-				if v := fr.reg(ic); v.(bool) {
-					succ = 0
+				fr.pred = fr.block.Index
+				if fr.reg(ic).(bool) {
+					fr.block = fr.block.Succs[0]
+				} else {
+					fr.block = fr.block.Succs[1]
 				}
-				fr.pred, fr.block = fr.block.Index, fr.block.Succs[succ]
 				fr.pc = fr.pfn.Blocks[fr.block.Index]
 			}
 		default:
 			return func(fr *frame) {
-				succ := 1
-				// if v := fr.get(instr.Cond); reflect.ValueOf(v).Bool() {
+				fr.pred = fr.block.Index
 				if v := fr.reg(ic); reflect.ValueOf(v).Bool() {
-					succ = 0
+					fr.block = fr.block.Succs[0]
+				} else {
+					fr.block = fr.block.Succs[1]
 				}
-				fr.pred, fr.block = fr.block.Index, fr.block.Succs[succ]
 				fr.pc = fr.pfn.Blocks[fr.block.Index]
 			}
 		}
