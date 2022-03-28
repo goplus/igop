@@ -73,20 +73,15 @@ const (
 	kindFunction
 )
 
-type FuncBlock struct {
-	Index  int
-	Instrs []func(fr *frame, k *int)
-	Succs  []*FuncBlock
-}
-
 type Function struct {
 	Interp           *Interp
-	Fn               *ssa.Function
-	MainBlock        *FuncBlock
-	Recover          *FuncBlock
+	Fn               *ssa.Function             // ssa function
+	Instrs           []func(fr *frame, k *int) // main instrs
+	Recover          []func(fr *frame, k *int) // recover instrs
+	Blocks           []int                     // block offset
+	stack            []value                   // stack
+	index            map[ssa.Value]uint32      // stack index
 	mapUnderscoreKey map[types.Type]bool
-	index            map[ssa.Value]uint32
-	stack            []value
 }
 
 func (p *Function) regIndex(v ssa.Value) int {
@@ -760,7 +755,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	case *ssa.Jump:
 		return func(fr *frame, k *int) {
 			fr.pred, fr.block = fr.block.Index, fr.block.Succs[0]
-			*k = kJump
+			fr.pc = fr.pfn.Blocks[fr.block.Index]
 		}
 	case *ssa.If:
 		ic := pfn.regIndex(instr.Cond)
@@ -773,7 +768,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 					succ = 0
 				}
 				fr.pred, fr.block = fr.block.Index, fr.block.Succs[succ]
-				*k = kJump
+				fr.pc = fr.pfn.Blocks[fr.block.Index]
 			}
 		default:
 			return func(fr *frame, k *int) {
@@ -783,23 +778,25 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 					succ = 0
 				}
 				fr.pred, fr.block = fr.block.Index, fr.block.Succs[succ]
-				*k = kJump
+				fr.pc = fr.pfn.Blocks[fr.block.Index]
 			}
 		}
 	case *ssa.Return:
 		switch n := len(instr.Results); n {
 		case 0:
 			return func(fr *frame, k *int) {
-				fr.block = nil
-				*k = kReturn
+				// fr.block = nil
+				//*k = kReturn
+				fr.pc = -1
 			}
 		case 1:
 			ir := pfn.regIndex(instr.Results[0])
 			return func(fr *frame, k *int) {
 				// fr.result = fr.get(instr.Results[0])
 				fr.result = fr.reg(ir)
-				fr.block = nil
-				*k = kReturn
+				// fr.block = nil
+				//*k = kReturn
+				fr.pc = -1
 			}
 		default:
 			ir := make([]int, n, n)
@@ -813,8 +810,9 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 					res[i] = fr.reg(ir[i])
 				}
 				fr.result = tuple(res)
-				fr.block = nil
-				*k = kReturn
+				// fr.block = nil
+				//*k = kReturn
+				fr.pc = -1
 			}
 		}
 	case *ssa.RunDefers:

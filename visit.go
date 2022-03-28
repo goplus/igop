@@ -89,7 +89,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 			visit.intp.loadType(alloc.Type())
 			visit.intp.loadType(deref(alloc.Type()))
 		}
-		blocks := make(map[*ssa.BasicBlock]*FuncBlock)
 		pfn := &Function{
 			Interp:           visit.intp,
 			Fn:               fn,
@@ -105,9 +104,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 		visit.intp.funcs[fn] = pfn
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
-			block := &FuncBlock{Index: b.Index}
-			block.Instrs = make([]func(*frame, *int), len(b.Instrs), len(b.Instrs))
-			blocks[b] = block
+			Instrs := make([]func(*frame, *int), len(b.Instrs), len(b.Instrs))
 			var index int
 			for i := 0; i < len(b.Instrs); i++ {
 				instr := b.Instrs[i]
@@ -154,7 +151,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 					continue
 				}
 				if visit.intp.mode&EnableDumpInstr != 0 {
-					block.Instrs[index] = func(fr *frame, k *int) {
+					Instrs[index] = func(fr *frame, k *int) {
 						if v, ok := instr.(ssa.Value); ok {
 							log.Printf("\t%-20T %v = %-40v\t%v\n", instr, v.Name(), instr, v.Type())
 						} else {
@@ -163,19 +160,18 @@ func (visit *visitor) function(fn *ssa.Function) {
 						ifn(fr, k)
 					}
 				} else {
-					block.Instrs[index] = ifn
+					Instrs[index] = ifn
 				}
 				index++
 			}
-			block.Instrs = block.Instrs[:index]
-		}
-		for b, fb := range blocks {
-			for _, v := range b.Succs {
-				fb.Succs = append(fb.Succs, blocks[v])
+			Instrs = Instrs[:index]
+			offset := len(pfn.Instrs)
+			pfn.Blocks = append(pfn.Blocks, offset)
+			pfn.Instrs = append(pfn.Instrs, Instrs...)
+			if b == fn.Recover {
+				pfn.Recover = pfn.Instrs[offset:]
 			}
 		}
-		pfn.MainBlock = blocks[fn.Blocks[0]]
-		pfn.Recover = blocks[fn.Recover]
 	}
 }
 

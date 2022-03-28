@@ -239,12 +239,13 @@ type frame struct {
 	interp    *Interp
 	caller    *frame
 	pfn       *Function
-	block     *FuncBlock
 	defers    *deferred
 	panicking *panicking
-	result    value
+	block     *ssa.BasicBlock
+	pc        int
 	pred      int
 	deferid   int64
+	result    value
 	stack     []value
 }
 
@@ -1012,7 +1013,7 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	}
 	fr.stack = append([]value{}, fr.pfn.stack...)
 	//fr.env = make(map[ssa.Value]value)
-	fr.block = fr.pfn.MainBlock
+	fr.block = fr.pfn.Fn.Blocks[0]
 	var ip = 0
 	for i, _ := range fn.Params {
 		//fr.env[p] = args[i]
@@ -1027,7 +1028,6 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	fr.run()
 	// Destroy the locals to avoid accidental use after return.
 	//fr.env = nil
-	fr.block = nil
 	fr.stack = nil
 	return fr.result
 }
@@ -1184,7 +1184,7 @@ func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value,
 func (fr *frame) run() {
 	if fr.pfn.Recover != nil {
 		defer func() {
-			if fr.block == nil {
+			if fr.pc == -1 {
 				return // normal return
 			}
 			if fr.interp.mode&DisableRecover != 0 {
@@ -1195,29 +1195,16 @@ func (fr *frame) run() {
 				log.Printf("Panicking: %T %v.\n", fr.panicking.value, fr.panicking.value)
 			}
 			fr.runDefers()
-			var k int
-			for _, fn := range fr.pfn.Recover.Instrs {
-				fn(fr, &k)
-				if k == kReturn {
-					return
-				}
+			for _, fn := range fr.pfn.Recover {
+				fn(fr, nil)
 			}
 		}()
 	}
-	for {
-		if fr.interp.mode&EnableTracing != 0 {
-			log.Printf(".%v:\n", fr.block.Index)
-		}
-		var k int
-		for _, fn := range fr.block.Instrs {
-			fn(fr, &k)
-			switch k {
-			case kReturn:
-				return
-			case kJump:
-				break
-			}
-		}
+
+	for fr.pc >= 0 {
+		fn := fr.pfn.Instrs[fr.pc]
+		fr.pc++
+		fn(fr, nil)
 	}
 }
 
