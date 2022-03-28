@@ -1196,7 +1196,7 @@ func (fr *frame) run() {
 			}
 			fr.runDefers()
 			for _, fn := range fr.pfn.Recover {
-				fn(fr, nil)
+				fn(fr)
 			}
 		}()
 	}
@@ -1204,7 +1204,7 @@ func (fr *frame) run() {
 	for fr.pc >= 0 {
 		fn := fr.pfn.Instrs[fr.pc]
 		fr.pc++
-		fn(fr, nil)
+		fn(fr)
 	}
 }
 

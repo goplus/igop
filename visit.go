@@ -104,7 +104,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 		visit.intp.funcs[fn] = pfn
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
-			Instrs := make([]func(*frame, *int), len(b.Instrs), len(b.Instrs))
+			Instrs := make([]func(*frame), len(b.Instrs), len(b.Instrs))
 			var index int
 			for i := 0; i < len(b.Instrs); i++ {
 				instr := b.Instrs[i]
@@ -151,13 +151,13 @@ func (visit *visitor) function(fn *ssa.Function) {
 					continue
 				}
 				if visit.intp.mode&EnableDumpInstr != 0 {
-					Instrs[index] = func(fr *frame, k *int) {
+					Instrs[index] = func(fr *frame) {
 						if v, ok := instr.(ssa.Value); ok {
 							log.Printf("\t%-20T %v = %-40v\t%v\n", instr, v.Name(), instr, v.Type())
 						} else {
 							log.Printf("\t%-20T %v\n", instr, instr)
 						}
-						ifn(fr, k)
+						ifn(fr)
 					}
 				} else {
 					Instrs[index] = ifn
