@@ -115,7 +115,7 @@ func (p *Function) regInstr(v ssa.Value) uint32 {
 		i |= uint32(kindGlobal << 24)
 	case *ssa.Function:
 		typ := p.Interp.preToType(v.Type())
-		fn := p.Interp.makeFunc(nil, typ, v, nil).Interface()
+		fn := p.Interp.makeFunc(typ, v, nil).Interface()
 		p.stack = append(p.stack, fn)
 		i |= uint32(kindFunction << 24)
 	default:
@@ -337,29 +337,27 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	case *ssa.ChangeType:
 		typ := interp.preToType(instr.Type())
 		ir := pfn.regIndex(instr)
-		switch f := instr.X.(type) {
-		case *ssa.Function:
-			fn := interp.makeFunc(nil, interp.preToType(f.Type()), f, nil)
-			v := fn.Convert(typ).Interface()
-			return func(fr *frame) {
-				// fr.env[instr] = v
-				fr.setReg(ir, v)
+		ix, kx, vx := pfn.regIndex3(instr.X)
+		if kx.isStatic() {
+			if vx == nil {
+				vx = reflect.New(typ).Elem().Interface()
 			}
-		default:
-			ix := pfn.regIndex(instr.X)
 			return func(fr *frame) {
-				// x := fr.get(instr.X)
-				// if x == nil {
-				// 	fr.env[instr] = reflect.New(typ).Elem().Interface()
-				// } else {
-				// 	fr.env[instr] = reflect.ValueOf(x).Convert(typ).Interface()
-				// }
-				x := fr.reg(ix)
-				if x == nil {
-					fr.setReg(ir, reflect.New(typ).Elem().Interface())
-				} else {
-					fr.setReg(ir, reflect.ValueOf(x).Convert(typ).Interface())
-				}
+				fr.setReg(ir, vx)
+			}
+		}
+		return func(fr *frame) {
+			// x := fr.get(instr.X)
+			// if x == nil {
+			// 	fr.env[instr] = reflect.New(typ).Elem().Interface()
+			// } else {
+			// 	fr.env[instr] = reflect.ValueOf(x).Convert(typ).Interface()
+			// }
+			x := fr.reg(ix)
+			if x == nil {
+				fr.setReg(ir, reflect.New(typ).Elem().Interface())
+			} else {
+				fr.setReg(ir, reflect.ValueOf(x).Convert(typ).Interface())
 			}
 		}
 	case *ssa.Convert:
@@ -371,41 +369,40 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		// }
 	case *ssa.MakeInterface:
 		typ := interp.preToType(instr.Type())
-		xtyp := interp.preToType(instr.X.Type())
 		ir := pfn.regIndex(instr)
-		ix := pfn.regIndex(instr.X)
-		switch f := instr.X.(type) {
-		case *ssa.Function:
-			fn := interp.makeFunc(nil, xtyp, f, nil)
+		ix, kx, vx := pfn.regIndex3(instr.X)
+		if kx.isStatic() {
 			if typ == tyEmptyInterface {
 				return func(fr *frame) {
 					// fr.env[instr] = fn.Interface()
-					fr.setReg(ir, fn.Interface())
+					fr.setReg(ir, vx)
 				}
 			}
+			v := reflect.New(typ).Elem()
+			if vx != nil {
+				SetValue(v, reflect.ValueOf(vx))
+			}
+			vx = v.Interface()
 			return func(fr *frame) {
-				v := reflect.New(typ).Elem()
-				SetValue(v, fn)
 				// fr.env[instr] = v.Interface()
-				fr.setReg(ir, v.Interface())
+				fr.setReg(ir, vx)
 			}
-		default:
-			if typ == tyEmptyInterface {
-				return func(fr *frame) {
-					// x := fr.get(instr.X)
-					// fr.env[instr] = x
-					fr.setReg(ir, fr.reg(ix))
-				}
-			}
+		}
+		if typ == tyEmptyInterface {
 			return func(fr *frame) {
-				v := reflect.New(typ).Elem()
-				// if x := fr.get(instr.X); x != nil {
-				if x := fr.reg(ix); x != nil {
-					SetValue(v, reflect.ValueOf(x))
-				}
-				// fr.env[instr] = v.Interface()
-				fr.setReg(ir, v.Interface())
+				// x := fr.get(instr.X)
+				// fr.env[instr] = x
+				fr.setReg(ir, fr.reg(ix))
 			}
+		}
+		return func(fr *frame) {
+			v := reflect.New(typ).Elem()
+			// if x := fr.get(instr.X); x != nil {
+			if x := fr.reg(ix); x != nil {
+				SetValue(v, reflect.ValueOf(x))
+			}
+			// fr.env[instr] = v.Interface()
+			fr.setReg(ir, v.Interface())
 		}
 	case *ssa.MakeClosure:
 		fn := instr.Fn.(*ssa.Function)
@@ -423,7 +420,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			}
 			c := &closure{fn, bindings}
 			// fr.env[instr] = interp.makeFunc(fr, typ, c.Fn, c.Env).Interface()
-			fr.setReg(ir, interp.makeFunc(fr, typ, c.Fn, c.Env).Interface())
+			fr.setReg(ir, interp.makeFunc(typ, c.Fn, c.Env).Interface())
 		}
 	case *ssa.MakeChan:
 		typ := interp.preToType(instr.Type())
@@ -726,20 +723,17 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	case *ssa.TypeAssert:
 		typ := interp.preToType(instr.AssertedType)
 		ir := pfn.regIndex(instr)
-		if fn, ok := instr.X.(*ssa.Function); ok {
-			f := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil).Interface()
+		ix, kx, vx := pfn.regIndex3(instr.X)
+		if kx.isStatic() {
 			return func(fr *frame) {
-				// fr.env[instr] = typeAssert(interp, instr, typ, f)
-				fr.setReg(ir, typeAssert(interp, instr, typ, f))
+				fr.setReg(ir, typeAssert(interp, instr, typ, vx))
 			}
-		} else {
-			ix := pfn.regIndex(instr.X)
-			return func(fr *frame) {
-				// v := fr.get(instr.X)
-				// fr.env[instr] = typeAssert(interp, instr, typ, v)
-				v := fr.reg(ix)
-				fr.setReg(ir, typeAssert(interp, instr, typ, v))
-			}
+		}
+		return func(fr *frame) {
+			// v := fr.get(instr.X)
+			// fr.env[instr] = typeAssert(interp, instr, typ, v)
+			v := fr.reg(ix)
+			fr.setReg(ir, typeAssert(interp, instr, typ, v))
 		}
 	case *ssa.Extract:
 		if *instr.Referrers() == nil {
@@ -872,52 +866,51 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 		ia := pfn.regIndex(instr.Addr)
-		if fn, ok := instr.Val.(*ssa.Function); ok {
-			v := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil)
+		iv, kv, vv := pfn.regIndex3(instr.Val)
+		if kv.isStatic() {
+			if vv == nil {
+				return func(fr *frame) {
+					// x := reflect.ValueOf(fr.get(instr.Addr))
+					x := reflect.ValueOf(fr.reg(ia))
+					SetValue(x.Elem(), reflect.New(x.Elem().Type()).Elem())
+				}
+			}
 			return func(fr *frame) {
 				// x := reflect.ValueOf(fr.get(instr.Addr))
 				x := reflect.ValueOf(fr.reg(ia))
-				SetValue(x.Elem(), v)
+				SetValue(x.Elem(), reflect.ValueOf(vv))
 			}
 		}
-		iv := pfn.regIndex(instr.Val)
 		return func(fr *frame) {
 			// x := reflect.ValueOf(fr.get(instr.Addr))
 			// val := fr.get(instr.Val)
 			x := reflect.ValueOf(fr.reg(ia))
 			val := fr.reg(iv)
-			switch fn := val.(type) {
-			case *ssa.Function:
-				f := interp.makeFunc(fr, interp.toType(fn.Type()), fn, nil)
-				SetValue(x.Elem(), f)
-			default:
-				v := reflect.ValueOf(val)
-				if v.IsValid() {
-					SetValue(x.Elem(), v)
-				} else {
-					SetValue(x.Elem(), reflect.New(x.Elem().Type()).Elem())
-				}
+			v := reflect.ValueOf(val)
+			if v.IsValid() {
+				SetValue(x.Elem(), v)
+			} else {
+				SetValue(x.Elem(), reflect.New(x.Elem().Type()).Elem())
 			}
 		}
 	case *ssa.MapUpdate:
-		iv := pfn.regIndex(instr.Value)
 		im := pfn.regIndex(instr.Map)
 		ik := pfn.regIndex(instr.Key)
+		iv, kv, vv := pfn.regIndex3(instr.Value)
 		if pfn.mapUnderscoreKey[instr.Map.Type()] {
-			if fn, ok := instr.Value.(*ssa.Function); ok {
-				v := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil)
+			if kv.isStatic() {
 				return func(fr *frame) {
 					// vm := reflect.ValueOf(fr.get(instr.Map))
 					// vk := reflect.ValueOf(fr.get(instr.Key))
 					vm := reflect.ValueOf(fr.reg(im))
 					vk := reflect.ValueOf(fr.reg(ik))
-					for _, vv := range vm.MapKeys() {
-						if equalStruct(vk, vv) {
-							vk = vv
+					for _, v := range vm.MapKeys() {
+						if equalStruct(vk, v) {
+							vk = v
 							break
 						}
 					}
-					vm.SetMapIndex(vk, reflect.ValueOf(v))
+					vm.SetMapIndex(vk, reflect.ValueOf(vv))
 				}
 			}
 			return func(fr *frame) {
@@ -935,26 +928,24 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				}
 				vm.SetMapIndex(vk, reflect.ValueOf(v))
 			}
+		}
+		if kv.isStatic() {
+			return func(fr *frame) {
+				// vm := reflect.ValueOf(fr.get(instr.Map))
+				// vk := reflect.ValueOf(fr.get(instr.Key))
+				vm := reflect.ValueOf(fr.reg(im))
+				vk := reflect.ValueOf(fr.reg(ik))
+				vm.SetMapIndex(vk, reflect.ValueOf(vv))
+			}
 		} else {
-			if fn, ok := instr.Value.(*ssa.Function); ok {
-				v := interp.makeFunc(nil, interp.preToType(fn.Type()), fn, nil)
-				return func(fr *frame) {
-					// vm := reflect.ValueOf(fr.get(instr.Map))
-					// vk := reflect.ValueOf(fr.get(instr.Key))
-					vm := reflect.ValueOf(fr.reg(im))
-					vk := reflect.ValueOf(fr.reg(ik))
-					vm.SetMapIndex(vk, reflect.ValueOf(v))
-				}
-			} else {
-				return func(fr *frame) {
-					// vm := reflect.ValueOf(fr.get(instr.Map))
-					// vk := reflect.ValueOf(fr.get(instr.Key))
-					// v := fr.get(instr.Value)
-					vm := reflect.ValueOf(fr.reg(im))
-					vk := reflect.ValueOf(fr.reg(ik))
-					v := fr.reg(iv)
-					vm.SetMapIndex(vk, reflect.ValueOf(v))
-				}
+			return func(fr *frame) {
+				// vm := reflect.ValueOf(fr.get(instr.Map))
+				// vk := reflect.ValueOf(fr.get(instr.Key))
+				// v := fr.get(instr.Value)
+				vm := reflect.ValueOf(fr.reg(im))
+				vk := reflect.ValueOf(fr.reg(ik))
+				v := fr.reg(iv)
+				vm.SetMapIndex(vk, reflect.ValueOf(v))
 			}
 		}
 	case *ssa.DebugRef:
