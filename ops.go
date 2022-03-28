@@ -85,7 +85,7 @@ func basicValue(c *ssa.Const, kind types.BasicKind) value {
 func constToValue(i *Interp, c *ssa.Const) value {
 	if c.IsNil() {
 		t := c.Type()
-		return reflect.Zero(i.toType(t)).Interface()
+		return reflect.Zero(i.preToType(t)).Interface()
 	}
 	typ := c.Type()
 	if basic, ok := typ.(*types.Basic); ok {
@@ -95,7 +95,7 @@ func constToValue(i *Interp, c *ssa.Const) value {
 		if v == nil {
 			return v
 		}
-		nv := reflect.New(i.toType(typ)).Elem()
+		nv := reflect.New(i.preToType(typ)).Elem()
 		SetValue(nv, reflect.ValueOf(v))
 		return nv.Interface()
 	}
@@ -121,8 +121,6 @@ func staticToValue(i *Interp, value ssa.Value) (interface{}, bool) {
 	switch v := value.(type) {
 	case *ssa.Global:
 		return globalToValue(i, v)
-	case *constValue:
-		return v.Value, true
 	case *ssa.Const:
 		return constToValue(i, v), true
 	}
@@ -194,8 +192,9 @@ func asUint64(x value) uint64 {
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
-func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool) reflect.Value {
-	x := fr.get(instr.X)
+func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool, ix, ih, il, im int) reflect.Value {
+	// x := fr.get(instr.X)
+	x := fr.reg(ix)
 	var Len, Cap int
 	v := reflect.ValueOf(x)
 	// *array
@@ -217,13 +216,16 @@ func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool) reflect.Value {
 	max := Cap
 	var slice3 bool
 	if instr.Low != nil {
-		lo = asInt(fr.get(instr.Low))
+		// lo = asInt(fr.get(instr.Low))
+		lo = asInt(fr.reg(il))
 	}
 	if instr.High != nil {
-		hi = asInt(fr.get(instr.High))
+		// hi = asInt(fr.get(instr.High))
+		hi = asInt(fr.reg(ih))
 	}
 	if instr.Max != nil {
-		max = asInt(fr.get(instr.Max))
+		// max = asInt(fr.get(instr.Max))
+		max = asInt(fr.reg(im))
 		slice3 = true
 	}
 
@@ -1068,8 +1070,6 @@ func binop(instr *ssa.BinOp, t types.Type, x, y value) value {
 func IsConstNil(v ssa.Value) bool {
 	switch c := v.(type) {
 	case *ssa.Const:
-		return c.IsNil()
-	case *constValue:
 		return c.IsNil()
 	}
 	return false
