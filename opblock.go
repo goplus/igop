@@ -80,8 +80,23 @@ type Function struct {
 	Recover          []func(fr *frame)    // recover instrs
 	Blocks           []int                // block offset
 	stack            []value              // stack
+	ssaInstrs        []ssa.Instruction    // org ssa instr
 	index            map[ssa.Value]uint32 // stack index
 	mapUnderscoreKey map[types.Type]bool
+}
+
+func (p *Function) InstrForPC(pc int) ssa.Instruction {
+	if pc >= 0 && pc < len(p.ssaInstrs) {
+		return p.ssaInstrs[pc]
+	}
+	return nil
+}
+
+func (p *Function) PosForPC(pc int) token.Pos {
+	if instr := p.InstrForPC(pc); instr != nil {
+		return instr.Pos()
+	}
+	return token.NoPos
 }
 
 func (p *Function) regIndex(v ssa.Value) int {

@@ -49,7 +49,6 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"log"
 	"reflect"
 	"runtime"
 	"sync"
@@ -265,10 +264,6 @@ type panicking struct {
 // It always returns normally, but may set or clear fr.panic.
 //
 func (fr *frame) runDefer(d *deferred) {
-	if fr.interp.mode&EnableTracing != 0 {
-		log.Printf("%s: invoking deferred function call\n",
-			fr.interp.prog.Fset.Position(d.instr.Pos()))
-	}
 	var ok bool
 	defer func() {
 		if !ok {
@@ -458,15 +453,6 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 }
 
 func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
-	if i.mode&EnableTracing != 0 {
-		fset := fn.Prog.Fset
-		log.Printf("Entering %s%s.\n", fn, loc(fset, fn.Pos()))
-		suffix := ""
-		if caller != nil {
-			suffix = ", resuming " + caller.pfn.Fn.String() + loc(fset, callpos)
-		}
-		defer log.Printf("Leaving %s%s.\n", fn, suffix)
-	}
 	fr := &frame{
 		interp: i,
 		caller: caller, // for panic/recover
@@ -564,9 +550,6 @@ func (fr *frame) run() {
 				return // let interpreter crash
 			}
 			fr.panicking = &panicking{recover()}
-			if fr.interp.mode&EnableTracing != 0 {
-				log.Printf("Panicking: %T %v.\n", fr.panicking.value, fr.panicking.value)
-			}
 			fr.runDefers()
 			for _, fn := range fr.pfn.Recover {
 				fn(fr)

@@ -105,6 +105,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 		var buf [32]*ssa.Value // avoid alloc in common case
 		for _, b := range fn.Blocks {
 			Instrs := make([]func(*frame), len(b.Instrs), len(b.Instrs))
+			ssaInstrs := make([]ssa.Instruction, len(b.Instrs), len(b.Instrs))
 			var index int
 			for i := 0; i < len(b.Instrs); i++ {
 				instr := b.Instrs[i]
@@ -168,14 +169,39 @@ func (visit *visitor) function(fn *ssa.Function) {
 							pfn(fr)
 						}
 					}
+					if index == 0 && b.Index == 0 {
+						pfn := ifn
+						ifn = func(fr *frame) {
+							log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.interp.fset, fr.pfn.Fn.Pos()))
+							pfn(fr)
+						}
+					}
+					if _, ok := instr.(*ssa.Return); ok {
+						pfn := ifn
+						ifn = func(fr *frame) {
+							pfn(fr)
+							var caller ssa.Instruction
+							if fr.caller != nil {
+								caller = fr.caller.pfn.InstrForPC(fr.caller.pc - 1)
+							}
+							if caller == nil {
+								log.Printf("Leaving %v.\n", fr.pfn.Fn)
+							} else {
+								log.Printf("Leaving %v, resuming %v call %v%v.\n",
+									fr.pfn.Fn, fr.caller.pfn.Fn, caller, loc(fr.interp.fset, caller.Pos()))
+							}
+						}
+					}
 				}
 				Instrs[index] = ifn
+				ssaInstrs[index] = instr
 				index++
 			}
 			Instrs = Instrs[:index]
 			offset := len(pfn.Instrs)
 			pfn.Blocks = append(pfn.Blocks, offset)
 			pfn.Instrs = append(pfn.Instrs, Instrs...)
+			pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs...)
 			if b == fn.Recover {
 				pfn.Recover = pfn.Instrs[offset:]
 			}
