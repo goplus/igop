@@ -151,17 +151,25 @@ func (visit *visitor) function(fn *ssa.Function) {
 					continue
 				}
 				if visit.intp.mode&EnableDumpInstr != 0 {
-					Instrs[index] = func(fr *frame) {
+					pfn := ifn
+					ifn = func(fr *frame) {
 						if v, ok := instr.(ssa.Value); ok {
 							log.Printf("\t%-20T %v = %-40v\t%v\n", instr, v.Name(), instr, v.Type())
 						} else {
 							log.Printf("\t%-20T %v\n", instr, instr)
 						}
-						ifn(fr)
+						pfn(fr)
 					}
-				} else {
-					Instrs[index] = ifn
+					if index == 0 {
+						pfn := ifn
+						bi := b.Index
+						ifn = func(fr *frame) {
+							log.Printf(".%v\n", bi)
+							pfn(fr)
+						}
+					}
 				}
+				Instrs[index] = ifn
 				index++
 			}
 			Instrs = Instrs[:index]
