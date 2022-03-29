@@ -153,7 +153,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			for i := 0; i < len(args); i++ {
 				iargs[i] = args[i].Interface()
 			}
-			r := i.callFunction(i.tryDeferFrame(), token.NoPos, f, iargs, nil)
+			r := i.callFunction(i.tryDeferFrame(), f, iargs, nil)
 			switch mtyp.NumOut() {
 			case 0:
 				return nil
@@ -204,7 +204,7 @@ func (i *Interp) makeFunc(typ reflect.Type, fn *ssa.Function, env []value) refle
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := i.callFunction(i.tryDeferFrame(), token.NoPos, fn, iargs, env)
+		r := i.callFunction(i.tryDeferFrame(), fn, iargs, env)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -271,7 +271,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panicking = &panicking{recover()}
 		}
 	}()
-	fr.interp.call(fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
+	fr.interp.call(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -429,18 +429,18 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, 
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
 //
-func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
+func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value) value {
 	switch fn := fn.(type) {
 	case *ssa.Function:
-		return i.callFunction(caller, callpos, fn, args, nil)
+		return i.callFunction(caller, fn, args, nil)
 	case *closure:
-		return i.callFunction(caller, callpos, fn.Fn, args, fn.Env)
+		return i.callFunction(caller, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
-		return i.callBuiltin(caller, callpos, fn, args, ssaArgs)
+		return i.callBuiltin(caller, fn, args, ssaArgs)
 	case reflect.Value:
-		return i.callReflect(caller, callpos, fn, args, nil)
+		return i.callReflect(caller, fn, args, nil)
 	default:
-		return i.callReflect(caller, callpos, reflect.ValueOf(fn), args, nil)
+		return i.callReflect(caller, reflect.ValueOf(fn), args, nil)
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }
@@ -452,7 +452,7 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 	return " at " + fset.Position(pos).String()
 }
 
-func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) (result value) {
+func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env []value) (result value) {
 	fr := &frame{
 		interp: i,
 		caller: caller, // for panic/recover
@@ -488,7 +488,7 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	return
 }
 
-func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+func (i *Interp) callReflect(caller *frame, fn reflect.Value, args []value, env []value) value {
 	if caller != nil && caller.deferid != 0 {
 		i.deferMap.Store(caller.deferid, caller)
 	}
@@ -720,7 +720,7 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {
-		r = i.call(nil, token.NoPos, fn, args, nil)
+		r = i.call(nil, fn, args, nil)
 	} else {
 		err = fmt.Errorf("no function %v", name)
 	}
@@ -757,7 +757,7 @@ func (i *Interp) Run(entry string) (exitCode int, err error) {
 		}
 	}()
 	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
-		i.call(nil, token.NoPos, mainFn, nil, nil)
+		i.call(nil, mainFn, nil, nil)
 		exitCode = 0
 	} else {
 		err = fmt.Errorf("no function %v", entry)

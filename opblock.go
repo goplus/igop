@@ -737,7 +737,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
 			atomic.AddInt32(&interp.goroutines, 1)
 			go func() {
-				interp.call(nil, instr.Pos(), fn, args, instr.Call.Args)
+				interp.call(nil, fn, args, instr.Call.Args)
 				atomic.AddInt32(&interp.goroutines, -1)
 			}()
 		}
@@ -976,7 +976,6 @@ func makeConvertInstr(pfn *Function, interp *Interp, instr *ssa.Convert) func(fr
 // }
 
 func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame) {
-	pos := instr.Pos()
 	ir := pfn.regIndex(instr)
 	iv, ia, ib := getCallIndex(pfn, call)
 	switch fn := call.Value.(type) {
@@ -987,7 +986,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			for i := 0; i < nargs; i++ {
 				args[i] = fr.reg(ia[i])
 			}
-			fr.setReg(ir, interp.callBuiltin(fr, pos, fn, args, call.Args))
+			fr.setReg(ir, interp.callBuiltin(fr, fn, args, call.Args))
 		}
 	case *ssa.MakeClosure:
 		pfn := fn.Fn.(*ssa.Function)
@@ -1002,7 +1001,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			for i := 0; i < nargs; i++ {
 				args[i] = fr.reg(ia[i])
 			}
-			fr.setReg(ir, interp.callFunction(fr, pos, pfn, args, env))
+			fr.setReg(ir, interp.callFunction(fr, pfn, args, env))
 		}
 	case *ssa.Function:
 		// "static func/method call"
@@ -1021,7 +1020,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				for i := 0; i < nargs; i++ {
 					args[i] = fr.reg(ia[i])
 				}
-				fr.setReg(ir, interp.callReflect(fr, pos, ext, args, nil))
+				fr.setReg(ir, interp.callReflect(fr, ext, args, nil))
 			}
 		}
 		return func(fr *frame) {
@@ -1029,7 +1028,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			for i := 0; i < nargs; i++ {
 				args[i] = fr.reg(ia[i])
 			}
-			fr.setReg(ir, interp.callFunction(fr, pos, fn, args, nil))
+			fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
 		}
 	}
 	// "dynamic method call" // ("invoke" mode)
@@ -1050,13 +1049,13 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		}
 		switch fn := fn.(type) {
 		case *ssa.Function:
-			fr.setReg(ir, interp.callFunction(fr, pos, fn, args, nil))
+			fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
 		case *closure:
-			fr.setReg(ir, interp.callFunction(fr, pos, fn.Fn, args, fn.Env))
+			fr.setReg(ir, interp.callFunction(fr, fn.Fn, args, fn.Env))
 		case *ssa.Builtin:
-			fr.setReg(ir, interp.callBuiltin(fr, pos, fn, args, call.Args))
+			fr.setReg(ir, interp.callBuiltin(fr, fn, args, call.Args))
 		default:
-			fr.setReg(ir, interp.callReflect(fr, pos, reflect.ValueOf(fn), args, nil))
+			fr.setReg(ir, interp.callReflect(fr, reflect.ValueOf(fn), args, nil))
 		}
 	}
 }
@@ -1100,7 +1099,6 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 	mname := call.Method.Name()
 	nargs := len(call.Args)
 	margs := nargs + 1
-	pos := instr.Pos()
 	var found bool
 	var ext reflect.Value
 	return func(fr *frame) {
@@ -1114,7 +1112,7 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 				for i := 0; i < nargs; i++ {
 					args[i+1] = fr.reg(ia[i])
 				}
-				fr.setReg(ir, interp.callFunction(fr, pos, fn, args, nil))
+				fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
 				return
 			}
 			ext, found = findUserMethod(rtype, mname)
@@ -1129,6 +1127,6 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 		for i := 0; i < nargs; i++ {
 			args[i+1] = fr.reg(ia[i])
 		}
-		fr.setReg(ir, interp.callReflect(fr, pos, ext, args, nil))
+		fr.setReg(ir, interp.callReflect(fr, ext, args, nil))
 	}
 }
