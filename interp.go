@@ -556,9 +556,6 @@ func (fr *frame) run() {
 			if fr.pc == -1 {
 				return // normal return
 			}
-			if fr.interp.mode&DisableRecover != 0 {
-				return // let interpreter crash
-			}
 			fr.panicking = &panicking{recover()}
 			fr.runDefers()
 			for _, fn := range fr.pfn.Recover {

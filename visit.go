@@ -202,7 +202,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			pfn.Blocks = append(pfn.Blocks, offset)
 			pfn.Instrs = append(pfn.Instrs, Instrs...)
 			pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs...)
-			if b == fn.Recover {
+			if b == fn.Recover && visit.intp.mode&DisableRecover == 0 {
 				pfn.Recover = pfn.Instrs[offset:]
 			}
 		}
