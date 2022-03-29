@@ -256,6 +256,10 @@ func (fr *frame) reg(index int) value {
 	return fr.stack[index]
 }
 
+func (fr *frame) copyReg(dst int, src int) {
+	fr.stack[dst] = fr.stack[src]
+}
+
 type panicking struct {
 	value interface{}
 }
