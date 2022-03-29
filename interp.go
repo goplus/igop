@@ -244,8 +244,8 @@ type frame struct {
 	pc        int
 	pred      int
 	deferid   int64
-	result    value
 	stack     []value
+	results   []int
 }
 
 func (fr *frame) setReg(index int, v value) {
@@ -452,7 +452,7 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 	return " at " + fset.Position(pos).String()
 }
 
-func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) (result value) {
 	fr := &frame{
 		interp: i,
 		caller: caller, // for panic/recover
@@ -474,8 +474,18 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	}
 	fr.run()
 	// Destroy the locals to avoid accidental use after return.
+	n := len(fr.results)
+	if n == 1 {
+		result = fr.stack[fr.results[0]]
+	} else if n > 1 {
+		res := make([]value, n, n)
+		for i := 0; i < n; i++ {
+			res[i] = fr.reg(fr.results[i])
+		}
+		result = tuple(res)
+	}
 	fr.stack = nil
-	return fr.result
+	return
 }
 
 func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
