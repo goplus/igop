@@ -234,12 +234,17 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 			}
 		}
 		rt = reflect.FuncOf(in, out, b)
+	case *types.Tuple:
+		r.ToTypeList(t)
+		rt = reflect.TypeOf((*_tuple)(nil)).Elem()
 	default:
-		panic("unreachable")
+		panic(fmt.Errorf("ToType: not handled %v\n", typ))
 	}
 	r.saveType(typ, rt)
 	return rt
 }
+
+type _tuple struct{}
 
 func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 	n := t.NumMethods()
