@@ -989,20 +989,24 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			fr.setReg(ir, interp.callBuiltin(fr, fn, args, call.Args))
 		}
 	case *ssa.MakeClosure:
-		pfn := fn.Fn.(*ssa.Function)
-		nargs := len(call.Args)
-		nenv := len(fn.Bindings)
+		ifn := interp.funcs[fn.Fn.(*ssa.Function)]
+		ia = append(ia, ib...)
 		return func(fr *frame) {
-			env := make([]value, nenv, nenv)
-			for i := 0; i < nenv; i++ {
-				env[i] = fr.reg(ib[i])
-			}
-			args := make([]value, nargs, nargs)
-			for i := 0; i < nargs; i++ {
-				args[i] = fr.reg(ia[i])
-			}
-			fr.setReg(ir, interp.callFunction(fr, pfn, args, env))
+			interp.callFunctionByStack(fr, ifn, ir, ia)
 		}
+		// nargs := len(call.Args)
+		// nenv := len(fn.Bindings)
+		// return func(fr *frame) {
+		// 	env := make([]value, nenv, nenv)
+		// 	for i := 0; i < nenv; i++ {
+		// 		env[i] = fr.reg(ib[i])
+		// 	}
+		// 	args := make([]value, nargs, nargs)
+		// 	for i := 0; i < nargs; i++ {
+		// 		args[i] = fr.reg(ia[i])
+		// 	}
+		// 	fr.setReg(ir, interp.callFunction(fr, pfn, args, env))
+		// }
 	case *ssa.Function:
 		// "static func/method call"
 		nargs := len(call.Args)
