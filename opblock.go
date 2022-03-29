@@ -1023,13 +1023,17 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				fr.setReg(ir, interp.callReflect(fr, ext, args, nil))
 			}
 		}
+		ifn := interp.funcs[fn]
 		return func(fr *frame) {
-			args := make([]value, nargs, nargs)
-			for i := 0; i < nargs; i++ {
-				args[i] = fr.reg(ia[i])
-			}
-			fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
+			interp.callFunctionByStack(fr, ifn, ir, ia)
 		}
+		// return func(fr *frame) {
+		// 	args := make([]value, nargs, nargs)
+		// 	for i := 0; i < nargs; i++ {
+		// 		args[i] = fr.reg(ia[i])
+		// 	}
+		// 	fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
+		// }
 	}
 	// "dynamic method call" // ("invoke" mode)
 	if call.IsInvoke() {
