@@ -275,7 +275,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panicking = &panicking{recover()}
 		}
 	}()
-	fr.interp.call(fr, d.fn, d.args, d.ssaArgs)
+	fr.interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -449,6 +449,25 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }
 
+// call interprets a call to a function (function, builtin or closure)
+// fn with arguments args, returning its result.
+// callpos is the position of the callsite.
+//
+func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaArgs []ssa.Value) {
+	switch fn := fn.(type) {
+	case *ssa.Function:
+		i.callFunctionDiscardsResult(caller, fn, args, nil)
+	case *closure:
+		i.callFunctionDiscardsResult(caller, fn.Fn, args, fn.Env)
+	case *ssa.Builtin:
+		i.callBuiltinDiscardsResult(caller, fn, args, ssaArgs)
+	case reflect.Value:
+		i.callReflectDiscardsResult(caller, fn, args, nil)
+	default:
+		i.callReflectDiscardsResult(caller, reflect.ValueOf(fn), args, nil)
+	}
+}
+
 func loc(fset *token.FileSet, pos token.Pos) string {
 	if pos == token.NoPos {
 		return ""
@@ -477,7 +496,6 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 		ip++
 	}
 	fr.run()
-	// Destroy the locals to avoid accidental use after return.
 	n := len(fr.results)
 	if n == 1 {
 		result = fr.stack[fr.results[0]]
@@ -492,6 +510,30 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 	return
 }
 
+func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, args []value, env []value) {
+	fr := &frame{
+		interp: i,
+		caller: caller, // for panic/recover
+		pfn:    i.funcs[fn],
+	}
+	if caller != nil {
+		fr.deferid = caller.deferid
+	}
+	fr.stack = append([]value{}, fr.pfn.stack...)
+	fr.block = fr.pfn.Fn.Blocks[0]
+	var ip = 0
+	for i := range fn.Params {
+		fr.stack[ip] = args[i]
+		ip++
+	}
+	for i := range fn.FreeVars {
+		fr.stack[ip] = env[i]
+		ip++
+	}
+	fr.run()
+	fr.stack = nil
+}
+
 func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []int) {
 	fr := &frame{
 		interp:  i,
@@ -501,13 +543,10 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 	}
 	fr.stack = append([]value{}, pfn.stack...)
 	fr.block = pfn.Fn.Blocks[0]
-
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
-
 	fr.run()
-	// Destroy the locals to avoid accidental use after return.
 	n := len(fr.results)
 	if n == 1 {
 		caller.setReg(ir, fr.stack[fr.results[0]])
@@ -564,6 +603,35 @@ func (i *Interp) callReflect(caller *frame, fn reflect.Value, args []value, env 
 			res = append(res, r.Interface())
 		}
 		return tuple(res)
+	}
+}
+func (i *Interp) callReflectDiscardsResult(caller *frame, fn reflect.Value, args []value, env []value) {
+	if caller != nil && caller.deferid != 0 {
+		i.deferMap.Store(caller.deferid, caller)
+	}
+	var ins []reflect.Value
+	typ := fn.Type()
+	isVariadic := fn.Type().IsVariadic()
+	if isVariadic {
+		for i := 0; i < len(args)-1; i++ {
+			if args[i] == nil {
+				ins = append(ins, reflect.New(typ.In(i)).Elem())
+			} else {
+				ins = append(ins, reflect.ValueOf(args[i]))
+			}
+		}
+		ins = append(ins, reflect.ValueOf(args[len(args)-1]))
+		fn.CallSlice(ins)
+	} else {
+		ins = make([]reflect.Value, len(args), len(args))
+		for i := 0; i < len(args); i++ {
+			if args[i] == nil {
+				ins[i] = reflect.New(typ.In(i)).Elem()
+			} else {
+				ins[i] = reflect.ValueOf(args[i])
+			}
+		}
+		fn.Call(ins)
 	}
 }
 

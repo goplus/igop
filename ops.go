@@ -1420,7 +1420,7 @@ func print(b []byte) (int, error) {
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
 func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
-	switch fn.Name() {
+	switch fnName := fn.Name(); fnName {
 	case "append":
 		if len(args) == 1 {
 			return args[0]
@@ -1553,9 +1553,97 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		typ := reflect.ArrayOf(length, ptr.Type().Elem())
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		return v.Elem().Slice(0, length).Interface()
+	default:
+		panic("unknown built-in: " + fnName)
 	}
+}
 
-	panic("unknown built-in: " + fn.Name())
+// callBuiltinDiscardsResult interprets a call to builtin fn with arguments args,
+// discards its result.
+func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) {
+	switch fnName := fn.Name(); fnName {
+	case "append":
+		panic("discards result of " + fnName)
+
+	case "copy": // copy([]T, []T) int or copy([]byte, string) int
+		reflect.Copy(reflect.ValueOf(args[0]), reflect.ValueOf(args[1]))
+
+	case "close": // close(chan T)
+		reflect.ValueOf(args[0]).Close()
+
+	case "delete": // delete(map[K]value, K)
+		reflect.ValueOf(args[0]).SetMapIndex(reflect.ValueOf(args[1]), reflect.Value{})
+
+	case "print", "println": // print(any, ...)
+		ln := fn.Name() == "println"
+		var buf bytes.Buffer
+		for i, arg := range args {
+			if i > 0 && ln {
+				buf.WriteRune(' ')
+			}
+			if len(ssaArgs) > i {
+				typ := inter.toType(ssaArgs[i].Type())
+				if typ.Kind() == reflect.Interface {
+					buf.WriteString(toInterface(arg))
+					continue
+				}
+			}
+			buf.WriteString(toString(arg))
+		}
+		if ln {
+			buf.WriteRune('\n')
+		}
+		print(buf.Bytes())
+
+	case "len":
+		panic("discards result of " + fnName)
+
+	case "cap":
+		panic("discards result of " + fnName)
+
+	case "real":
+		panic("discards result of " + fnName)
+
+	case "imag":
+		panic("discards result of " + fnName)
+
+	case "complex":
+		panic("discards result of " + fnName)
+
+	case "panic":
+		// ssa.Panic handles most cases; this is only for "go
+		// panic" or "defer panic".
+		panic(targetPanic{args[0]})
+
+	case "recover":
+		doRecover(caller)
+
+	case "ssa:wrapnilchk":
+		recv := args[0]
+		if reflect.ValueOf(recv).IsNil() {
+			recvType := args[1]
+			methodName := args[2]
+			var info value
+			if s, ok := recvType.(string); ok && strings.HasPrefix(s, "main.") {
+				info = s[5:]
+			} else {
+				info = recvType
+			}
+			panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
+				recvType, methodName, info)))
+		}
+
+	case "Add":
+		panic("discards result of " + fnName)
+
+	case "Slice":
+		//func Slice(ptr *ArbitraryType, len IntegerType) []ArbitraryType
+		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
+		panic("discards result of " + fnName)
+
+	default:
+		panic("unknown built-in: " + fnName)
+	}
 }
 
 // callBuiltin interprets a call to builtin fn with arguments args,
