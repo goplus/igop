@@ -1013,7 +1013,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		// }
 	case *ssa.Function:
 		// "static func/method call"
-		nargs := len(call.Args)
+		// nargs := len(call.Args)
 		if fn.Blocks == nil {
 			ext, ok := findExternFunc(interp, fn)
 			if !ok {
@@ -1024,12 +1024,15 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				panic(fmt.Errorf("no code for function: %v", fn))
 			}
 			return func(fr *frame) {
-				args := make([]value, nargs, nargs)
-				for i := 0; i < nargs; i++ {
-					args[i] = fr.reg(ia[i])
-				}
-				fr.setReg(ir, interp.callReflect(fr, ext, args, nil))
+				interp.callReflectByStack(fr, ext, ir, ia)
 			}
+			// return func(fr *frame) {
+			// 	args := make([]value, nargs, nargs)
+			// 	for i := 0; i < nargs; i++ {
+			// 		args[i] = fr.reg(ia[i])
+			// 	}
+			// 	fr.setReg(ir, interp.callReflect(fr, ext, args, nil))
+			// }
 		}
 		ifn := interp.funcs[fn]
 		return func(fr *frame) {
@@ -1052,24 +1055,42 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	if typ.Kind() != reflect.Func {
 		panic("unsupport")
 	}
-	nargs := len(call.Args)
+	// nargs := len(call.Args)
+	ia = append(ia, ib...)
 	return func(fr *frame) {
 		fn := fr.reg(iv)
-		args := make([]value, nargs, nargs)
-		for i := 0; i < nargs; i++ {
-			args[i] = fr.reg(ia[i])
-		}
 		switch fn := fn.(type) {
 		case *ssa.Function:
-			fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
+			// fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
+			interp.callFunctionByStack(fr, interp.funcs[fn], ir, ia)
 		case *closure:
-			fr.setReg(ir, interp.callFunction(fr, fn.Fn, args, fn.Env))
+			//fr.setReg(ir, interp.callFunction(fr, fn.Fn, args, fn.Env))
+			interp.callFunctionByStack(fr, interp.funcs[fn.Fn], ir, ia)
 		case *ssa.Builtin:
-			fr.setReg(ir, interp.callBuiltin(fr, fn, args, call.Args))
+			//fr.setReg(ir, interp.callBuiltin(fr, fn, args, call.Args))
+			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:
-			fr.setReg(ir, interp.callReflect(fr, reflect.ValueOf(fn), args, nil))
+			// fr.setReg(ir, interp.callReflect(fr, reflect.ValueOf(fn), args, nil))
+			interp.callReflectByStack(fr, reflect.ValueOf(fn), ir, ia)
 		}
 	}
+	// return func(fr *frame) {
+	// 	fn := fr.reg(iv)
+	// 	args := make([]value, nargs, nargs)
+	// 	for i := 0; i < nargs; i++ {
+	// 		args[i] = fr.reg(ia[i])
+	// 	}
+	// 	switch fn := fn.(type) {
+	// 	case *ssa.Function:
+	// 		fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
+	// 	case *closure:
+	// 		fr.setReg(ir, interp.callFunction(fr, fn.Fn, args, fn.Env))
+	// 	case *ssa.Builtin:
+	// 		fr.setReg(ir, interp.callBuiltin(fr, fn, args, call.Args))
+	// 	default:
+	// 		fr.setReg(ir, interp.callReflect(fr, reflect.ValueOf(fn), args, nil))
+	// 	}
+	// }
 }
 
 var (
