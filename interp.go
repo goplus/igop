@@ -275,7 +275,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panicking = &panicking{recover()}
 		}
 	}()
-	fr.interp.call(fr, d.fn, d.args, d.ssaArgs)
+	fr.interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -447,6 +447,25 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 		return i.callReflect(caller, reflect.ValueOf(fn), args, nil)
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
+}
+
+// call interprets a call to a function (function, builtin or closure)
+// fn with arguments args, returning its result.
+// callpos is the position of the callsite.
+//
+func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaArgs []ssa.Value) {
+	switch fn := fn.(type) {
+	case *ssa.Function:
+		i.callFunctionDiscardsResult(caller, fn, args, nil)
+	case *closure:
+		i.callFunctionDiscardsResult(caller, fn.Fn, args, fn.Env)
+	case *ssa.Builtin:
+		i.callBuiltinDiscardsResult(caller, fn, args, ssaArgs)
+	case reflect.Value:
+		i.callReflectDiscardsResult(caller, fn, args, nil)
+	default:
+		i.callReflectDiscardsResult(caller, reflect.ValueOf(fn), args, nil)
+	}
 }
 
 func loc(fset *token.FileSet, pos token.Pos) string {

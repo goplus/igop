@@ -737,7 +737,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
 			atomic.AddInt32(&interp.goroutines, 1)
 			go func() {
-				interp.call(nil, fn, args, instr.Call.Args)
+				interp.callDiscardsResult(nil, fn, args, instr.Call.Args)
 				atomic.AddInt32(&interp.goroutines, -1)
 			}()
 		}
