@@ -76,140 +76,136 @@ func (visit *visitor) program() {
 }
 
 func (visit *visitor) function(fn *ssa.Function) {
-	if !visit.seen[fn] {
-		visit.seen[fn] = true
-		if fn.Blocks == nil {
-			if _, ok := visit.pkgs[fn.Pkg]; ok {
-				panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+	if visit.seen[fn] {
+		return
+	}
+	visit.seen[fn] = true
+	if fn.Blocks == nil {
+		if _, ok := visit.pkgs[fn.Pkg]; ok {
+			panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+		}
+		return
+	}
+	visit.intp.loadType(fn.Type())
+	for _, alloc := range fn.Locals {
+		visit.intp.loadType(alloc.Type())
+		visit.intp.loadType(deref(alloc.Type()))
+	}
+	pfn := &Function{
+		Interp:           visit.intp,
+		Fn:               fn,
+		mapUnderscoreKey: make(map[types.Type]bool),
+		index:            make(map[ssa.Value]uint32),
+	}
+	for _, p := range fn.Params {
+		pfn.regIndex(p)
+	}
+	for _, p := range fn.FreeVars {
+		pfn.regIndex(p)
+	}
+	visit.intp.funcs[fn] = pfn
+	var buf [32]*ssa.Value // avoid alloc in common case
+	for _, b := range fn.Blocks {
+		Instrs := make([]func(*frame), len(b.Instrs), len(b.Instrs))
+		ssaInstrs := make([]ssa.Instruction, len(b.Instrs), len(b.Instrs))
+		var index int
+		for i := 0; i < len(b.Instrs); i++ {
+			instr := b.Instrs[i]
+			ops := instr.Operands(buf[:0])
+			switch instr := instr.(type) {
+			case *ssa.Alloc:
+				visit.intp.loadType(instr.Type())
+				visit.intp.loadType(deref(instr.Type()))
+			case *ssa.Next:
+				// skip *ssa.opaqueType: iter
+				ops = nil
+			case *ssa.Extract:
+				// skip
+				ops = nil
+			case *ssa.TypeAssert:
+				visit.intp.loadType(instr.AssertedType)
+			case *ssa.MakeChan:
+				visit.intp.loadType(instr.Type())
+			case *ssa.MakeMap:
+				visit.intp.loadType(instr.Type())
+			case *ssa.MakeSlice:
+				visit.intp.loadType(instr.Type())
+			case *ssa.SliceToArrayPointer:
+				visit.intp.loadType(instr.Type())
+			case *ssa.Convert:
+				visit.intp.loadType(instr.Type())
+			case *ssa.ChangeType:
+				visit.intp.loadType(instr.Type())
+			case *ssa.MakeInterface:
+				visit.intp.loadType(instr.Type())
 			}
-			return
-		}
-		visit.intp.loadType(fn.Type())
-		for _, alloc := range fn.Locals {
-			visit.intp.loadType(alloc.Type())
-			visit.intp.loadType(deref(alloc.Type()))
-		}
-		pfn := &Function{
-			Interp:           visit.intp,
-			Fn:               fn,
-			mapUnderscoreKey: make(map[types.Type]bool),
-			index:            make(map[ssa.Value]uint32),
-		}
-		for _, p := range fn.Params {
-			pfn.regIndex(p)
-		}
-		for _, p := range fn.FreeVars {
-			pfn.regIndex(p)
-		}
-		visit.intp.funcs[fn] = pfn
-		var buf [32]*ssa.Value // avoid alloc in common case
-		for _, b := range fn.Blocks {
-			Instrs := make([]func(*frame), len(b.Instrs), len(b.Instrs))
-			ssaInstrs := make([]ssa.Instruction, len(b.Instrs), len(b.Instrs))
-			var index int
-			for i := 0; i < len(b.Instrs); i++ {
-				instr := b.Instrs[i]
-				ops := instr.Operands(buf[:0])
-				switch instr := instr.(type) {
-				case *ssa.Alloc:
-					visit.intp.loadType(instr.Type())
-					visit.intp.loadType(deref(instr.Type()))
-				case *ssa.Next:
-					// skip *ssa.opaqueType: iter
-					ops = nil
-				case *ssa.Extract:
+			for _, op := range ops {
+				switch v := (*op).(type) {
+				case *ssa.Function:
+					visit.function(v)
+				case nil:
 					// skip
-					ops = nil
-				case *ssa.TypeAssert:
-					visit.intp.loadType(instr.AssertedType)
-				case *ssa.MakeChan:
-					visit.intp.loadType(instr.Type())
-				case *ssa.MakeMap:
-					visit.intp.loadType(instr.Type())
-				case *ssa.MakeSlice:
-					visit.intp.loadType(instr.Type())
-				case *ssa.SliceToArrayPointer:
-					visit.intp.loadType(instr.Type())
-				case *ssa.Convert:
-					visit.intp.loadType(instr.Type())
-				case *ssa.ChangeType:
-					visit.intp.loadType(instr.Type())
-				case *ssa.MakeInterface:
-					visit.intp.loadType(instr.Type())
+				default:
+					visit.intp.loadType(v.Type())
 				}
-				for _, op := range ops {
-					switch v := (*op).(type) {
-					case *ssa.Function:
-						visit.function(v)
-					case nil:
-						// skip
-					default:
-						visit.intp.loadType(v.Type())
+			}
+			ifn := makeInstr(visit.intp, pfn, instr)
+			if ifn == nil {
+				continue
+			}
+			if visit.intp.mode&EnableDumpInstr != 0 {
+				pfn := ifn
+				ifn = func(fr *frame) {
+					if v, ok := instr.(ssa.Value); ok {
+						log.Printf("\t%-20T %v = %-40v\t%v\n", instr, v.Name(), instr, v.Type())
+					} else {
+						log.Printf("\t%-20T %v\n", instr, instr)
 					}
+					pfn(fr)
 				}
-				ifn := makeInstr(visit.intp, pfn, instr)
-				if ifn == nil {
-					continue
-				}
-				if visit.intp.mode&EnableDumpInstr != 0 {
+				if index == 0 {
 					pfn := ifn
+					bi := b.Index
 					ifn = func(fr *frame) {
-						if v, ok := instr.(ssa.Value); ok {
-							log.Printf("\t%-20T %v = %-40v\t%v\n", instr, v.Name(), instr, v.Type())
-						} else {
-							log.Printf("\t%-20T %v\n", instr, instr)
-						}
+						log.Printf(".%v\n", bi)
 						pfn(fr)
 					}
-					if index == 0 {
-						pfn := ifn
-						bi := b.Index
-						ifn = func(fr *frame) {
-							log.Printf(".%v\n", bi)
-							pfn(fr)
-						}
+				}
+				if index == 0 && b.Index == 0 {
+					pfn := ifn
+					ifn = func(fr *frame) {
+						log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.interp.fset, fr.pfn.Fn.Pos()))
+						pfn(fr)
 					}
-					if index == 0 && b.Index == 0 {
-						pfn := ifn
-						ifn = func(fr *frame) {
-							log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.interp.fset, fr.pfn.Fn.Pos()))
-							pfn(fr)
+				}
+				if _, ok := instr.(*ssa.Return); ok {
+					pfn := ifn
+					ifn = func(fr *frame) {
+						pfn(fr)
+						var caller ssa.Instruction
+						if fr.caller != nil {
+							caller = fr.caller.pfn.InstrForPC(fr.caller.pc - 1)
 						}
-					}
-					if _, ok := instr.(*ssa.Return); ok {
-						pfn := ifn
-						ifn = func(fr *frame) {
-							pfn(fr)
-							var caller ssa.Instruction
-							if fr.caller != nil {
-								caller = fr.caller.pfn.InstrForPC(fr.caller.pc - 1)
-							}
-							if caller == nil {
-								log.Printf("Leaving %v.\n", fr.pfn.Fn)
-							} else {
-								log.Printf("Leaving %v, resuming %v call %v%v.\n",
-									fr.pfn.Fn, fr.caller.pfn.Fn, caller, loc(fr.interp.fset, caller.Pos()))
-							}
+						if caller == nil {
+							log.Printf("Leaving %v.\n", fr.pfn.Fn)
+						} else {
+							log.Printf("Leaving %v, resuming %v call %v%v.\n",
+								fr.pfn.Fn, fr.caller.pfn.Fn, caller, loc(fr.interp.fset, caller.Pos()))
 						}
 					}
 				}
-				Instrs[index] = ifn
-				ssaInstrs[index] = instr
-				index++
 			}
-			Instrs = Instrs[:index]
-			offset := len(pfn.Instrs)
-			pfn.Blocks = append(pfn.Blocks, offset)
-			pfn.Instrs = append(pfn.Instrs, Instrs...)
-			pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs...)
-			if b == fn.Recover && visit.intp.mode&DisableRecover == 0 {
-				pfn.Recover = pfn.Instrs[offset:]
-			}
+			Instrs[index] = ifn
+			ssaInstrs[index] = instr
+			index++
+		}
+		Instrs = Instrs[:index]
+		offset := len(pfn.Instrs)
+		pfn.Blocks = append(pfn.Blocks, offset)
+		pfn.Instrs = append(pfn.Instrs, Instrs...)
+		pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs...)
+		if b == fn.Recover && visit.intp.mode&DisableRecover == 0 {
+			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
-}
-
-type constValue struct {
-	*ssa.Const
-	Value value
 }
