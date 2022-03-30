@@ -1130,8 +1130,9 @@ func (i *Interp) findMethod(typ reflect.Type, mname string) (fn *ssa.Function, o
 
 func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, ir int, iv int, ia []int) func(fr *frame) {
 	mname := call.Method.Name()
-	nargs := len(call.Args)
-	margs := nargs + 1
+	ia = append([]int{iv}, ia...)
+	// nargs := len(call.Args)
+	// margs := nargs + 1
 	var found bool
 	var ext reflect.Value
 	return func(fr *frame) {
@@ -1140,12 +1141,13 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 		// find user type method *ssa.Function
 		if mset, ok := interp.msets[rtype]; ok {
 			if fn, ok := mset[mname]; ok {
-				args := make([]value, margs, margs)
-				args[0] = v
-				for i := 0; i < nargs; i++ {
-					args[i+1] = fr.reg(ia[i])
-				}
-				fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
+				// args := make([]value, margs, margs)
+				// args[0] = v
+				// for i := 0; i < nargs; i++ {
+				// 	args[i+1] = fr.reg(ia[i])
+				// }
+				// fr.setReg(ir, interp.callFunction(fr, fn, args, nil))
+				interp.callFunctionByStack(fr, interp.funcs[fn], ir, ia)
 				return
 			}
 			ext, found = findUserMethod(rtype, mname)
@@ -1155,11 +1157,12 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 		if !found {
 			panic(fmt.Errorf("no code for method: %v.%v", rtype, mname))
 		}
-		args := make([]value, margs, margs)
-		args[0] = v
-		for i := 0; i < nargs; i++ {
-			args[i+1] = fr.reg(ia[i])
-		}
-		fr.setReg(ir, interp.callReflect(fr, ext, args, nil))
+		interp.callReflectByStack(fr, ext, ir, ia)
+		// args := make([]value, margs, margs)
+		// args[0] = v
+		// for i := 0; i < nargs; i++ {
+		// 	args[i+1] = fr.reg(ia[i])
+		// }
+		// fr.setReg(ir, interp.callReflect(fr, ext, args, nil))
 	}
 }
