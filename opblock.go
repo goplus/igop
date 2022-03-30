@@ -845,20 +845,22 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 	case *ssa.DebugRef:
-		if interp.fnDebug == nil {
-			return nil
-		} else {
+		if v, ok := instr.Object().(*types.Var); ok {
 			ix := pfn.regIndex(instr.X)
 			return func(fr *frame) {
 				ref := &DebugInfo{DebugRef: instr, fset: interp.fset}
 				ref.toValue = func() (*types.Var, interface{}, bool) {
-					if v, ok := instr.Object().(*types.Var); ok {
-						return v, fr.reg(ix), true
-					}
-					return nil, nil, false
+					return v, fr.reg(ix), true
 				}
 				interp.fnDebug(ref)
 			}
+		}
+		return func(fr *frame) {
+			ref := &DebugInfo{DebugRef: instr, fset: interp.fset}
+			ref.toValue = func() (*types.Var, interface{}, bool) {
+				return nil, nil, false
+			}
+			interp.fnDebug(ref)
 		}
 	default:
 		panic(fmt.Errorf("unreachable %T", instr))
