@@ -1419,7 +1419,7 @@ func print(b []byte) (int, error) {
 
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
-func (inter *Interp) callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
+func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
 	switch fn.Name() {
 	case "append":
 		if len(args) == 1 {
@@ -1556,6 +1556,165 @@ func (inter *Interp) callBuiltin(caller *frame, callpos token.Pos, fn *ssa.Built
 	}
 
 	panic("unknown built-in: " + fn.Name())
+}
+
+// callBuiltin interprets a call to builtin fn with arguments args,
+// returning its result.
+func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.Value, ir int, ia []int) {
+	switch fn {
+	case "append":
+		if len(ia) == 1 {
+			caller.copyReg(ir, ia[0])
+			return
+		}
+		arg0 := caller.reg(ia[0])
+		arg1 := caller.reg(ia[1])
+		if s, ok := arg1.(string); ok {
+			// append([]byte, ...string) []byte
+			arg1 = []byte(s)
+		}
+		v0 := reflect.ValueOf(arg0)
+		v1 := reflect.ValueOf(arg1)
+		i0 := v0.Len()
+		i1 := v1.Len()
+		if i0+i1 < i0 {
+			panic(runtimeError("growslice: cap out of range"))
+		}
+		caller.setReg(ir, reflect.AppendSlice(v0, v1).Interface())
+
+	case "copy": // copy([]T, []T) int or copy([]byte, string) int
+		arg0 := caller.reg(ia[0])
+		arg1 := caller.reg(ia[1])
+		caller.setReg(ir, reflect.Copy(reflect.ValueOf(arg0), reflect.ValueOf(arg1)))
+
+	case "close": // close(chan T)
+		arg0 := caller.reg(ia[0])
+		reflect.ValueOf(arg0).Close()
+
+	case "delete": // delete(map[K]value, K)
+		arg0 := caller.reg(ia[0])
+		arg1 := caller.reg(ia[1])
+		reflect.ValueOf(arg0).SetMapIndex(reflect.ValueOf(arg1), reflect.Value{})
+
+	case "print", "println": // print(any, ...)
+		ln := fn == "println"
+		var buf bytes.Buffer
+		for i := 0; i < len(ia); i++ {
+			arg := caller.reg(ia[i])
+			if i > 0 && ln {
+				buf.WriteRune(' ')
+			}
+			if len(ssaArgs) > i {
+				typ := inter.toType(ssaArgs[i].Type())
+				if typ.Kind() == reflect.Interface {
+					buf.WriteString(toInterface(arg))
+					continue
+				}
+			}
+			buf.WriteString(toString(arg))
+		}
+		if ln {
+			buf.WriteRune('\n')
+		}
+		print(buf.Bytes())
+
+	case "len":
+		arg0 := caller.reg(ia[0])
+		caller.setReg(ir, reflect.ValueOf(arg0).Len())
+
+	case "cap":
+		arg0 := caller.reg(ia[0])
+		caller.setReg(ir, reflect.ValueOf(arg0).Cap())
+
+	case "real":
+		arg0 := caller.reg(ia[0])
+		c := reflect.ValueOf(arg0)
+		switch c.Kind() {
+		case reflect.Complex64:
+			caller.setReg(ir, real(complex64(c.Complex())))
+		case reflect.Complex128:
+			caller.setReg(ir, real(c.Complex()))
+		default:
+			panic(fmt.Sprintf("real: illegal operand: %T", c))
+		}
+
+	case "imag":
+		arg0 := caller.reg(ia[0])
+		c := reflect.ValueOf(arg0)
+		switch c.Kind() {
+		case reflect.Complex64:
+			caller.setReg(ir, imag(complex64(c.Complex())))
+		case reflect.Complex128:
+			caller.setReg(ir, imag(c.Complex()))
+		default:
+			panic(fmt.Sprintf("imag: illegal operand: %T", c))
+		}
+
+	case "complex":
+		arg0 := caller.reg(ia[0])
+		arg1 := caller.reg(ia[1])
+		r := reflect.ValueOf(arg0)
+		i := reflect.ValueOf(arg1)
+		switch r.Kind() {
+		case reflect.Float32:
+			caller.setReg(ir, complex(float32(r.Float()), float32(i.Float())))
+		case reflect.Float64:
+			caller.setReg(ir, complex(r.Float(), i.Float()))
+		default:
+			panic(fmt.Sprintf("complex: illegal operand: %v", r.Kind()))
+		}
+
+	case "panic":
+		// ssa.Panic handles most cases; this is only for "go
+		// panic" or "defer panic".
+		arg0 := caller.reg(ia[0])
+		panic(targetPanic{arg0})
+
+	case "recover":
+		caller.setReg(ir, doRecover(caller))
+
+	case "ssa:wrapnilchk":
+		recv := caller.reg(ia[0])
+		if reflect.ValueOf(recv).IsNil() {
+			recvType := caller.reg(ia[1])
+			methodName := caller.reg(ia[2])
+			var info value
+			if s, ok := recvType.(string); ok && strings.HasPrefix(s, "main.") {
+				info = s[5:]
+			} else {
+				info = recvType
+			}
+			panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
+				recvType, methodName, info)))
+		}
+		caller.setReg(ir, recv)
+
+	case "Add":
+		arg0 := caller.reg(ia[0])
+		arg1 := caller.reg(ia[1])
+		ptr := arg0.(unsafe.Pointer)
+		length := asInt(arg1)
+		caller.setReg(ir, unsafe.Pointer(uintptr(ptr)+uintptr(length)))
+	case "Slice":
+		//func Slice(ptr *ArbitraryType, len IntegerType) []ArbitraryType
+		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
+		arg0 := caller.reg(ia[0])
+		arg1 := caller.reg(ia[1])
+		ptr := reflect.ValueOf(arg0)
+		length := asInt(arg1)
+		if ptr.IsNil() {
+			if length == 0 {
+				caller.setReg(ir, reflect.New(reflect.SliceOf(ptr.Type().Elem())).Elem().Interface())
+				return
+			}
+			panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
+		}
+		typ := reflect.ArrayOf(length, ptr.Type().Elem())
+		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
+		caller.setReg(ir, v.Elem().Slice(0, length).Interface())
+	default:
+		panic("unknown built-in: " + fn)
+	}
 }
 
 func rangeIter(x value, t types.Type) iter {

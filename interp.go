@@ -153,7 +153,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 			for i := 0; i < len(args); i++ {
 				iargs[i] = args[i].Interface()
 			}
-			r := i.callFunction(i.tryDeferFrame(), token.NoPos, f, iargs, nil)
+			r := i.callFunction(i.tryDeferFrame(), f, iargs, nil)
 			switch mtyp.NumOut() {
 			case 0:
 				return nil
@@ -204,7 +204,7 @@ func (i *Interp) makeFunc(typ reflect.Type, fn *ssa.Function, env []value) refle
 		for i := 0; i < len(args); i++ {
 			iargs[i] = args[i].Interface()
 		}
-		r := i.callFunction(i.tryDeferFrame(), token.NoPos, fn, iargs, env)
+		r := i.callFunction(i.tryDeferFrame(), fn, iargs, env)
 		if v, ok := r.(tuple); ok {
 			res := make([]reflect.Value, len(v))
 			for i := 0; i < len(v); i++ {
@@ -244,8 +244,8 @@ type frame struct {
 	pc        int
 	pred      int
 	deferid   int64
-	result    value
 	stack     []value
+	results   []int
 }
 
 func (fr *frame) setReg(index int, v value) {
@@ -254,6 +254,10 @@ func (fr *frame) setReg(index int, v value) {
 
 func (fr *frame) reg(index int) value {
 	return fr.stack[index]
+}
+
+func (fr *frame) copyReg(dst int, src int) {
+	fr.stack[dst] = fr.stack[src]
 }
 
 type panicking struct {
@@ -271,7 +275,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panicking = &panicking{recover()}
 		}
 	}()
-	fr.interp.call(fr, d.instr.Pos(), d.fn, d.args, d.ssaArgs)
+	fr.interp.call(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -429,18 +433,18 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, 
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
 //
-func (i *Interp) call(caller *frame, callpos token.Pos, fn value, args []value, ssaArgs []ssa.Value) value {
+func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value) value {
 	switch fn := fn.(type) {
 	case *ssa.Function:
-		return i.callFunction(caller, callpos, fn, args, nil)
+		return i.callFunction(caller, fn, args, nil)
 	case *closure:
-		return i.callFunction(caller, callpos, fn.Fn, args, fn.Env)
+		return i.callFunction(caller, fn.Fn, args, fn.Env)
 	case *ssa.Builtin:
-		return i.callBuiltin(caller, callpos, fn, args, ssaArgs)
+		return i.callBuiltin(caller, fn, args, ssaArgs)
 	case reflect.Value:
-		return i.callReflect(caller, callpos, fn, args, nil)
+		return i.callReflect(caller, fn, args, nil)
 	default:
-		return i.callReflect(caller, callpos, reflect.ValueOf(fn), args, nil)
+		return i.callReflect(caller, reflect.ValueOf(fn), args, nil)
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }
@@ -452,7 +456,7 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 	return " at " + fset.Position(pos).String()
 }
 
-func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function, args []value, env []value) value {
+func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env []value) (result value) {
 	fr := &frame{
 		interp: i,
 		caller: caller, // for panic/recover
@@ -474,11 +478,50 @@ func (i *Interp) callFunction(caller *frame, callpos token.Pos, fn *ssa.Function
 	}
 	fr.run()
 	// Destroy the locals to avoid accidental use after return.
+	n := len(fr.results)
+	if n == 1 {
+		result = fr.stack[fr.results[0]]
+	} else if n > 1 {
+		res := make([]value, n, n)
+		for i := 0; i < n; i++ {
+			res[i] = fr.reg(fr.results[i])
+		}
+		result = tuple(res)
+	}
 	fr.stack = nil
-	return fr.result
+	return
 }
 
-func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value, args []value, env []value) value {
+func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []int) {
+	fr := &frame{
+		interp:  i,
+		caller:  caller, // for panic/recover
+		pfn:     pfn,
+		deferid: caller.deferid,
+	}
+	fr.stack = append([]value{}, pfn.stack...)
+	fr.block = pfn.Fn.Blocks[0]
+
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i] = caller.reg(ia[i])
+	}
+
+	fr.run()
+	// Destroy the locals to avoid accidental use after return.
+	n := len(fr.results)
+	if n == 1 {
+		caller.setReg(ir, fr.stack[fr.results[0]])
+	} else if n > 1 {
+		res := make([]value, n, n)
+		for i := 0; i < n; i++ {
+			res[i] = fr.reg(fr.results[i])
+		}
+		caller.setReg(ir, tuple(res))
+	}
+	fr.stack = nil
+}
+
+func (i *Interp) callReflect(caller *frame, fn reflect.Value, args []value, env []value) value {
 	if caller != nil && caller.deferid != 0 {
 		i.deferMap.Store(caller.deferid, caller)
 	}
@@ -524,6 +567,55 @@ func (i *Interp) callReflect(caller *frame, callpos token.Pos, fn reflect.Value,
 	}
 }
 
+func (i *Interp) callReflectByStack(caller *frame, fn reflect.Value, ir int, ia []int) {
+	if caller.deferid != 0 {
+		i.deferMap.Store(caller.deferid, caller)
+	}
+	var ins []reflect.Value
+	typ := fn.Type()
+	isVariadic := fn.Type().IsVariadic()
+	if isVariadic {
+		var i int
+		for n := len(ia) - 1; i < n; i++ {
+			arg := caller.reg(ia[i])
+			if arg == nil {
+				ins = append(ins, reflect.New(typ.In(i)).Elem())
+			} else {
+				ins = append(ins, reflect.ValueOf(arg))
+			}
+		}
+		ins = append(ins, reflect.ValueOf(caller.reg(ia[i])))
+	} else {
+		n := len(ia)
+		ins = make([]reflect.Value, n, n)
+		for i := 0; i < n; i++ {
+			arg := caller.reg(ia[i])
+			if arg == nil {
+				ins[i] = reflect.New(typ.In(i)).Elem()
+			} else {
+				ins[i] = reflect.ValueOf(arg)
+			}
+		}
+	}
+	var results []reflect.Value
+	if isVariadic {
+		results = fn.CallSlice(ins)
+	} else {
+		results = fn.Call(ins)
+	}
+	switch len(results) {
+	case 0:
+	case 1:
+		caller.setReg(ir, results[0].Interface())
+	default:
+		var res []value
+		for _, r := range results {
+			res = append(res, r.Interface())
+		}
+		caller.setReg(ir, tuple(res))
+	}
+}
+
 // runFrame executes SSA instructions starting at fr.block and
 // continuing until a return, a panic, or a recovered panic.
 //
@@ -545,9 +637,6 @@ func (fr *frame) run() {
 		defer func() {
 			if fr.pc == -1 {
 				return // normal return
-			}
-			if fr.interp.mode&DisableRecover != 0 {
-				return // let interpreter crash
 			}
 			fr.panicking = &panicking{recover()}
 			fr.runDefers()
@@ -713,7 +802,7 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {
-		r = i.call(nil, token.NoPos, fn, args, nil)
+		r = i.call(nil, fn, args, nil)
 	} else {
 		err = fmt.Errorf("no function %v", name)
 	}
@@ -750,7 +839,7 @@ func (i *Interp) Run(entry string) (exitCode int, err error) {
 		}
 	}()
 	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
-		i.call(nil, token.NoPos, mainFn, nil, nil)
+		i.call(nil, mainFn, nil, nil)
 		exitCode = 0
 	} else {
 		err = fmt.Errorf("no function %v", entry)

@@ -709,7 +709,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		case 1:
 			ir := pfn.regIndex(instr.Results[0])
 			return func(fr *frame) {
-				fr.result = fr.reg(ir)
+				fr.results = []int{ir}
 				fr.pc = -1
 			}
 		default:
@@ -718,11 +718,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				ir[i] = pfn.regIndex(v)
 			}
 			return func(fr *frame) {
-				res := make([]value, n, n)
-				for i := 0; i < n; i++ {
-					res[i] = fr.reg(ir[i])
-				}
-				fr.result = tuple(res)
+				fr.results = ir
 				fr.pc = -1
 			}
 		}
@@ -741,7 +737,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
 			atomic.AddInt32(&interp.goroutines, 1)
 			go func() {
-				interp.call(nil, instr.Pos(), fn, args, instr.Call.Args)
+				interp.call(nil, fn, args, instr.Call.Args)
 				atomic.AddInt32(&interp.goroutines, -1)
 			}()
 		}
@@ -970,47 +966,23 @@ func makeConvertInstr(pfn *Function, interp *Interp, instr *ssa.Convert) func(fr
 	}
 }
 
-// func makeCallInstr1(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame) {
-// 	ir := pfn.regIndex(instr)
-// 	iv, ia, ib := getCallIndex(pfn, call)
-// 	return func(fr *frame) {
-// 		fn, args := interp.prepareCall(fr, call, iv, ia, ib)
-// 		fr.setReg(ir, interp.call(fr, call.Pos(), fn, args, call.Args))
-// 	}
-// }
-
 func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame) {
-	pos := instr.Pos()
 	ir := pfn.regIndex(instr)
 	iv, ia, ib := getCallIndex(pfn, call)
 	switch fn := call.Value.(type) {
 	case *ssa.Builtin:
-		nargs := len(call.Args)
+		fname := fn.Name()
 		return func(fr *frame) {
-			args := make([]value, nargs, nargs)
-			for i := 0; i < nargs; i++ {
-				args[i] = fr.reg(ia[i])
-			}
-			fr.setReg(ir, interp.callBuiltin(fr, pos, fn, args, call.Args))
+			interp.callBuiltinByStack(fr, fname, call.Args, ir, ia)
 		}
 	case *ssa.MakeClosure:
-		pfn := fn.Fn.(*ssa.Function)
-		nargs := len(call.Args)
-		nenv := len(fn.Bindings)
+		ifn := interp.funcs[fn.Fn.(*ssa.Function)]
+		ia = append(ia, ib...)
 		return func(fr *frame) {
-			env := make([]value, nenv, nenv)
-			for i := 0; i < nenv; i++ {
-				env[i] = fr.reg(ib[i])
-			}
-			args := make([]value, nargs, nargs)
-			for i := 0; i < nargs; i++ {
-				args[i] = fr.reg(ia[i])
-			}
-			fr.setReg(ir, interp.callFunction(fr, pos, pfn, args, env))
+			interp.callFunctionByStack(fr, ifn, ir, ia)
 		}
 	case *ssa.Function:
 		// "static func/method call"
-		nargs := len(call.Args)
 		if fn.Blocks == nil {
 			ext, ok := findExternFunc(interp, fn)
 			if !ok {
@@ -1021,19 +993,12 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				panic(fmt.Errorf("no code for function: %v", fn))
 			}
 			return func(fr *frame) {
-				args := make([]value, nargs, nargs)
-				for i := 0; i < nargs; i++ {
-					args[i] = fr.reg(ia[i])
-				}
-				fr.setReg(ir, interp.callReflect(fr, pos, ext, args, nil))
+				interp.callReflectByStack(fr, ext, ir, ia)
 			}
 		}
+		ifn := interp.funcs[fn]
 		return func(fr *frame) {
-			args := make([]value, nargs, nargs)
-			for i := 0; i < nargs; i++ {
-				args[i] = fr.reg(ia[i])
-			}
-			fr.setReg(ir, interp.callFunction(fr, pos, fn, args, nil))
+			interp.callFunctionByStack(fr, ifn, ir, ia)
 		}
 	}
 	// "dynamic method call" // ("invoke" mode)
@@ -1045,22 +1010,18 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	if typ.Kind() != reflect.Func {
 		panic("unsupport")
 	}
-	nargs := len(call.Args)
+	ia = append(ia, ib...)
 	return func(fr *frame) {
 		fn := fr.reg(iv)
-		args := make([]value, nargs, nargs)
-		for i := 0; i < nargs; i++ {
-			args[i] = fr.reg(ia[i])
-		}
 		switch fn := fn.(type) {
 		case *ssa.Function:
-			fr.setReg(ir, interp.callFunction(fr, pos, fn, args, nil))
+			interp.callFunctionByStack(fr, interp.funcs[fn], ir, ia)
 		case *closure:
-			fr.setReg(ir, interp.callFunction(fr, pos, fn.Fn, args, fn.Env))
+			interp.callFunctionByStack(fr, interp.funcs[fn.Fn], ir, ia)
 		case *ssa.Builtin:
-			fr.setReg(ir, interp.callBuiltin(fr, pos, fn, args, call.Args))
+			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:
-			fr.setReg(ir, interp.callReflect(fr, pos, reflect.ValueOf(fn), args, nil))
+			interp.callReflectByStack(fr, reflect.ValueOf(fn), ir, ia)
 		}
 	}
 }
@@ -1102,9 +1063,7 @@ func (i *Interp) findMethod(typ reflect.Type, mname string) (fn *ssa.Function, o
 
 func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, ir int, iv int, ia []int) func(fr *frame) {
 	mname := call.Method.Name()
-	nargs := len(call.Args)
-	margs := nargs + 1
-	pos := instr.Pos()
+	ia = append([]int{iv}, ia...)
 	var found bool
 	var ext reflect.Value
 	return func(fr *frame) {
@@ -1113,12 +1072,7 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 		// find user type method *ssa.Function
 		if mset, ok := interp.msets[rtype]; ok {
 			if fn, ok := mset[mname]; ok {
-				args := make([]value, margs, margs)
-				args[0] = v
-				for i := 0; i < nargs; i++ {
-					args[i+1] = fr.reg(ia[i])
-				}
-				fr.setReg(ir, interp.callFunction(fr, pos, fn, args, nil))
+				interp.callFunctionByStack(fr, interp.funcs[fn], ir, ia)
 				return
 			}
 			ext, found = findUserMethod(rtype, mname)
@@ -1128,11 +1082,6 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 		if !found {
 			panic(fmt.Errorf("no code for method: %v.%v", rtype, mname))
 		}
-		args := make([]value, margs, margs)
-		args[0] = v
-		for i := 0; i < nargs; i++ {
-			args[i+1] = fr.reg(ia[i])
-		}
-		fr.setReg(ir, interp.callReflect(fr, pos, ext, args, nil))
+		interp.callReflectByStack(fr, ext, ir, ia)
 	}
 }
