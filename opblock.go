@@ -151,8 +151,17 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 			}
 		}), true
 	}
+	// check override func
+	ext, ok = interp.ctx.override[fnName]
+	if ok {
+		return
+	}
+	// check extern func
 	ext, ok = externValues[fnName]
-	if !ok && fn.Pkg != nil {
+	if ok {
+		return
+	}
+	if fn.Pkg != nil {
 		if recv := fn.Signature.Recv(); recv == nil {
 			if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
 				ext, ok = pkg.Funcs[fn.Name()]
@@ -852,7 +861,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				ref.toValue = func() (*types.Var, interface{}, bool) {
 					return v, fr.reg(ix), true
 				}
-				interp.fnDebug(ref)
+				interp.ctx.debugFunc(ref)
 			}
 		}
 		return func(fr *frame) {
@@ -860,7 +869,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			ref.toValue = func() (*types.Var, interface{}, bool) {
 				return nil, nil, false
 			}
-			interp.fnDebug(ref)
+			interp.ctx.debugFunc(ref)
 		}
 	default:
 		panic(fmt.Errorf("unreachable %T", instr))

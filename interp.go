@@ -98,6 +98,7 @@ func (e runtimeError) Error() string {
 
 // State shared between all interpreted goroutines.
 type Interp struct {
+	ctx          *Context
 	fset         *token.FileSet
 	prog         *ssa.Program        // the SSA program
 	mainpkg      *ssa.Package        // the SSA main package
@@ -111,14 +112,8 @@ type Interp struct {
 	loader       Loader
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
-	fnDebug      func(*DebugInfo)
 	funcs        map[*ssa.Function]*Function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
-	//sizes        types.Sizes         // the effective type-sizing function
-}
-
-func (i *Interp) setDebug(fn func(*DebugInfo)) {
-	i.fnDebug = fn
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -776,19 +771,20 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 // The SSA program must include the "runtime" package.
 //
 
-func NewInterp(loader Loader, mainpkg *ssa.Package, mode Mode) (*Interp, error) {
+func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 	i := &Interp{
+		ctx:          ctx,
 		fset:         mainpkg.Prog.Fset,
 		prog:         mainpkg.Prog,
 		mainpkg:      mainpkg,
 		globals:      make(map[ssa.Value]value),
-		mode:         mode,
+		mode:         ctx.Mode,
+		loader:       ctx.Loader,
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*Function),
 		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
 	}
-	i.loader = loader
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
 
