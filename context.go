@@ -67,6 +67,7 @@ func (c *Context) SetDebug(fn func(*DebugInfo)) {
 	c.debugFunc = fn
 }
 
+// match func fullname and signature
 func (c *Context) SetOverrideFunction(key string, fn interface{}) {
 	if fn == nil {
 		delete(c.override, key)

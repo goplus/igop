@@ -81,7 +81,8 @@ func (visit *visitor) function(fn *ssa.Function) {
 	}
 	visit.seen[fn] = true
 	fnPath := fn.String()
-	if f := visit.intp.ctx.override[fnPath]; f.Kind() == reflect.Func {
+	if f, ok := visit.intp.ctx.override[fnPath]; ok &&
+		visit.intp.preToType(fn.Type()) == f.Type() {
 		fn.Blocks = nil
 		return
 	}
