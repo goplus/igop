@@ -82,7 +82,9 @@ func (visit *visitor) function(fn *ssa.Function) {
 	visit.seen[fn] = true
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
-			panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+			if _, ok = externValues[fn.String()]; !ok {
+				panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+			}
 		}
 		return
 	}
