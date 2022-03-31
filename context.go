@@ -41,13 +41,14 @@ type Loader interface {
 }
 
 type Context struct {
-	Loader      Loader          // types loader
-	Mode        Mode            // mode
-	ParserMode  parser.Mode     // parser mode
-	BuilderMode ssa.BuilderMode // ssa builder mode
-	External    types.Importer  // external import
-	Sizes       types.Sizes
-	DebugFunc   func(*DebugInfo)
+	Loader      Loader                   // types loader
+	Mode        Mode                     // mode
+	ParserMode  parser.Mode              // parser mode
+	BuilderMode ssa.BuilderMode          // ssa builder mode
+	External    types.Importer           // external import
+	Sizes       types.Sizes              // types size for package unsafe
+	debugFunc   func(*DebugInfo)         // debug func
+	override    map[string]reflect.Value // override function
 }
 
 func NewContext(mode Mode) *Context {
@@ -56,13 +57,24 @@ func NewContext(mode Mode) *Context {
 		Mode:        mode,
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
+		override:    make(map[string]reflect.Value),
 	}
 	return ctx
 }
 
 func (c *Context) SetDebug(fn func(*DebugInfo)) {
 	c.BuilderMode |= ssa.GlobalDebug
-	c.DebugFunc = fn
+	c.debugFunc = fn
+}
+
+// register external function to override function.
+// match func fullname and signature
+func (c *Context) SetOverrideFunction(key string, fn interface{}) {
+	if fn == nil {
+		delete(c.override, key)
+	} else {
+		c.override[key] = reflect.ValueOf(fn)
+	}
 }
 
 func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package, first error) {
@@ -155,11 +167,7 @@ func (c *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (r
 }
 
 func (c *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
-	r, err := NewInterp(c.Loader, mainPkg, c.Mode)
-	if err == nil && c.DebugFunc != nil {
-		r.setDebug(c.DebugFunc)
-	}
-	return r, err
+	return NewInterp(c, mainPkg)
 }
 
 func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) error {
@@ -192,7 +200,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	for _, pkg := range testPkgs {
-		interp, err := NewInterp(c.Loader, pkg, c.Mode)
+		interp, err := NewInterp(c, pkg)
 		if err != nil {
 			failed = true
 			fmt.Printf("create interp failed: %v\n", err)

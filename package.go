@@ -73,7 +73,7 @@ var (
 	externValues = make(map[string]reflect.Value)
 )
 
-// register external interface
+// register external function for no function body
 func RegisterExternal(key string, i interface{}) {
 	externValues[key] = reflect.ValueOf(i)
 }

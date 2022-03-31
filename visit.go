@@ -80,9 +80,17 @@ func (visit *visitor) function(fn *ssa.Function) {
 		return
 	}
 	visit.seen[fn] = true
+	fnPath := fn.String()
+	if f, ok := visit.intp.ctx.override[fnPath]; ok &&
+		visit.intp.preToType(fn.Type()) == f.Type() {
+		fn.Blocks = nil
+		return
+	}
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
-			panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+			if _, ok = externValues[fnPath]; !ok {
+				panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+			}
 		}
 		return
 	}
