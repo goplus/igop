@@ -995,7 +995,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				panic(fmt.Errorf("no code for function: %v", fn))
 			}
 			return func(fr *frame) {
-				interp.callReflectByStack(fr, ext, ir, ia)
+				interp.callExternalByStack(fr, ext, ir, ia)
 			}
 		}
 		ifn := interp.funcs[fn]
@@ -1023,7 +1023,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		case *ssa.Builtin:
 			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:
-			interp.callReflectByStack(fr, reflect.ValueOf(fn), ir, ia)
+			interp.callExternalByStack(fr, reflect.ValueOf(fn), ir, ia)
 		}
 	}
 }
@@ -1084,6 +1084,6 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 		if !found {
 			panic(fmt.Errorf("no code for method: %v.%v", rtype, mname))
 		}
-		interp.callReflectByStack(fr, ext, ir, ia)
+		interp.callExternalByStack(fr, ext, ir, ia)
 	}
 }

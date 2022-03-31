@@ -442,9 +442,9 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 	case *ssa.Builtin:
 		return i.callBuiltin(caller, fn, args, ssaArgs)
 	case reflect.Value:
-		return i.callReflect(caller, fn, args, nil)
+		return i.callExternal(caller, fn, args, nil)
 	default:
-		return i.callReflect(caller, reflect.ValueOf(fn), args, nil)
+		return i.callExternal(caller, reflect.ValueOf(fn), args, nil)
 	}
 	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }
@@ -462,9 +462,9 @@ func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaAr
 	case *ssa.Builtin:
 		i.callBuiltinDiscardsResult(caller, fn, args, ssaArgs)
 	case reflect.Value:
-		i.callReflectDiscardsResult(caller, fn, args, nil)
+		i.callExternalDiscardsResult(caller, fn, args, nil)
 	default:
-		i.callReflectDiscardsResult(caller, reflect.ValueOf(fn), args, nil)
+		i.callExternalDiscardsResult(caller, reflect.ValueOf(fn), args, nil)
 	}
 }
 
@@ -560,7 +560,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 	fr.stack = nil
 }
 
-func (i *Interp) callReflect(caller *frame, fn reflect.Value, args []value, env []value) value {
+func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env []value) value {
 	if caller != nil && caller.deferid != 0 {
 		i.deferMap.Store(caller.deferid, caller)
 	}
@@ -605,7 +605,7 @@ func (i *Interp) callReflect(caller *frame, fn reflect.Value, args []value, env 
 		return tuple(res)
 	}
 }
-func (i *Interp) callReflectDiscardsResult(caller *frame, fn reflect.Value, args []value, env []value) {
+func (i *Interp) callExternalDiscardsResult(caller *frame, fn reflect.Value, args []value, env []value) {
 	if caller != nil && caller.deferid != 0 {
 		i.deferMap.Store(caller.deferid, caller)
 	}
@@ -635,7 +635,7 @@ func (i *Interp) callReflectDiscardsResult(caller *frame, fn reflect.Value, args
 	}
 }
 
-func (i *Interp) callReflectByStack(caller *frame, fn reflect.Value, ir int, ia []int) {
+func (i *Interp) callExternalByStack(caller *frame, fn reflect.Value, ir int, ia []int) {
 	if caller.deferid != 0 {
 		i.deferMap.Store(caller.deferid, caller)
 	}
