@@ -980,6 +980,11 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	case *ssa.MakeClosure:
 		ifn := interp.funcs[fn.Fn.(*ssa.Function)]
 		ia = append(ia, ib...)
+		if ifn.Recover == nil {
+			return func(fr *frame) {
+				interp.callFunctionByStackNoRecover(fr, ifn, ir, ia)
+			}
+		}
 		return func(fr *frame) {
 			interp.callFunctionByStack(fr, ifn, ir, ia)
 		}
@@ -999,6 +1004,11 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			}
 		}
 		ifn := interp.funcs[fn]
+		if pfn.Recover == nil {
+			return func(fr *frame) {
+				interp.callFunctionByStackNoRecover(fr, ifn, ir, ia)
+			}
+		}
 		return func(fr *frame) {
 			interp.callFunctionByStack(fr, ifn, ir, ia)
 		}
