@@ -7,5 +7,5 @@ require (
 	github.com/goplus/gox v1.9.6
 	github.com/goplus/reflectx v0.8.6
 	github.com/petermattis/goid v0.0.0-20220302125637-5f11c28912df
-	golang.org/x/tools v0.1.8
+	golang.org/x/tools v0.1.10
 )
