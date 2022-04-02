@@ -254,38 +254,10 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				fr.setReg(ir, opANDNOT(fr.reg(ix), fr.reg(iy)))
 			}
 		case token.SHL:
-			if c, ok := instr.Y.(*ssa.Convert); ok {
-				xtyp := interp.preToType(c.X.Type())
-				xk := xtyp.Kind()
-				ic := pfn.regIndex(c.X)
-				if xk >= reflect.Int && xk <= reflect.Int64 {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ic))
-						if v.Int() < 0 {
-							panic(runtimeError("negative shift amount"))
-						}
-						fr.setReg(ir, opSHL(fr.reg(ix), fr.reg(iy)))
-					}
-				}
-			}
 			return func(fr *frame) {
 				fr.setReg(ir, opSHL(fr.reg(ix), fr.reg(iy)))
 			}
 		case token.SHR:
-			if c, ok := instr.Y.(*ssa.Convert); ok {
-				xtyp := interp.preToType(c.X.Type())
-				xk := xtyp.Kind()
-				ic := pfn.regIndex(c.X)
-				if xk >= reflect.Int && xk <= reflect.Int64 {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ic))
-						if v.Int() < 0 {
-							panic(runtimeError("negative shift amount"))
-						}
-						fr.setReg(ir, opSHR(fr.reg(ix), fr.reg(iy)))
-					}
-				}
-			}
 			return func(fr *frame) {
 				fr.setReg(ir, opSHR(fr.reg(ix), fr.reg(iy)))
 			}
