@@ -215,6 +215,7 @@ func init() {
 	//gorootTestSkips["fixedbugs/bug295.go"] = "skip, gossa not import testing"
 	gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
 	gorootTestSkips["atomicload.go"] = "slow"
+	gorootTestSkips["chan/select5.go"] = "bug, select case expr call order"
 
 	// fixedbugs/issue7740.go
 	// const ulp = (1.0 + (2.0 / 3.0)) - (5.0 / 3.0)
@@ -258,6 +259,7 @@ func init() {
 }
 
 var (
+	goCmd    string
 	gossaCmd string
 )
 
@@ -266,6 +268,10 @@ func init() {
 	gossaCmd, err = exec.LookPath("gossa")
 	if err != nil {
 		panic(fmt.Sprintf("not found gossa: %v", err))
+	}
+	goCmd, err = exec.LookPath("go")
+	if err != nil {
+		panic(fmt.Sprintf("not found go: %v", err))
 	}
 }
 
@@ -327,7 +333,7 @@ func TestTestdataFiles(t *testing.T) {
 }
 
 // $GOROOT/test/*.go runs
-func getGorootTestRuns(t *testing.T) (dir string, files []string) {
+func getGorootTestRuns(t *testing.T) (dir string, run []string, runoutput []string) {
 	dir = filepath.Join(build.Default.GOROOT, "test")
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -354,7 +360,9 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 		if len(lines) > 0 {
 			line := strings.TrimSpace(lines[0])
 			if line == "// run" {
-				files = append(files, path)
+				run = append(run, path)
+			} else if line == "// runoutput" {
+				runoutput = append(runoutput, path)
 			}
 		}
 		return nil
@@ -364,10 +372,10 @@ func getGorootTestRuns(t *testing.T) (dir string, files []string) {
 
 // TestGorootTest runs the interpreter on $GOROOT/test/*.go.
 func TestGorootTest(t *testing.T) {
-	dir, files := getGorootTestRuns(t)
+	dir, runs, runoutput := getGorootTestRuns(t)
 	var failures []string
 
-	for _, input := range files {
+	for _, input := range runs {
 		f := input[len(dir)+1:]
 		if info, ok := gorootTestSkips[f]; ok {
 			fmt.Println("Skip:", input, info)
@@ -377,5 +385,35 @@ func TestGorootTest(t *testing.T) {
 			failures = append(failures, input)
 		}
 	}
+	for _, input := range runoutput {
+		f := input[len(dir)+1:]
+		if info, ok := gorootTestSkips[f]; ok {
+			fmt.Println("Skip:", input, info)
+			continue
+		}
+		fmt.Println("runoutput:", input)
+		file, err := execRunoutput(input)
+		if err != nil {
+			t.Errorf("go run %v error, %v\n", input, err)
+			continue
+		}
+		if !runCommand(t, file) {
+			failures = append(failures, input)
+		}
+	}
 	printFailures(failures)
+}
+
+func execRunoutput(input string) (string, error) {
+	cmd := exec.Command(goCmd, "run", input)
+	data, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	fileName := filepath.Join(os.TempDir(), "tmp.go")
+	err = ioutil.WriteFile(fileName, data, 0666)
+	if err != nil {
+		return "", err
+	}
+	return fileName, nil
 }
