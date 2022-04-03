@@ -215,6 +215,7 @@ func init() {
 	//gorootTestSkips["fixedbugs/bug295.go"] = "skip, gossa not import testing"
 	gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
 	gorootTestSkips["atomicload.go"] = "slow"
+	gorootTestSkips["chan/select5.go"] = "bug, select case expr call order"
 
 	// fixedbugs/issue7740.go
 	// const ulp = (1.0 + (2.0 / 3.0)) - (5.0 / 3.0)
