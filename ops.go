@@ -169,6 +169,26 @@ func asInt(x value) int {
 // suitable for use as a bitwise shift count.
 func asUint64(x value) uint64 {
 	switch x := x.(type) {
+	case int:
+		if x >= 0 {
+			return uint64(x)
+		}
+	case int8:
+		if x >= 0 {
+			return uint64(x)
+		}
+	case int16:
+		if x >= 0 {
+			return uint64(x)
+		}
+	case int32:
+		if x >= 0 {
+			return uint64(x)
+		}
+	case int64:
+		if x >= 0 {
+			return uint64(x)
+		}
 	case uint:
 		return uint64(x)
 	case uint8:
@@ -185,10 +205,17 @@ func asUint64(x value) uint64 {
 		v := reflect.ValueOf(x)
 		switch v.Kind() {
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			v.Uint()
+			return v.Uint()
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			x := v.Int()
+			if x >= 0 {
+				return uint64(x)
+			}
+		default:
+			panic(fmt.Sprintf("cannot convert %T to uint64", x))
 		}
 	}
-	panic(fmt.Sprintf("cannot convert %T to uint64", x))
+	panic(runtimeError("negative shift amount"))
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
@@ -732,7 +759,7 @@ failed:
 }
 
 func opSHL(x, _y value) value {
-	y := asInt(_y)
+	y := asUint64(_y)
 	switch x.(type) {
 	case int:
 		return x.(int) << y
@@ -774,7 +801,7 @@ failed:
 }
 
 func opSHR(x, _y value) value {
-	y := asInt(_y)
+	y := asUint64(_y)
 	switch x.(type) {
 	case int:
 		return x.(int) >> y
