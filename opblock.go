@@ -960,7 +960,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			interp.callBuiltinByStack(fr, fname, call.Args, ir, ia)
 		}
 	case *ssa.MakeClosure:
-		ifn := interp.funcs[fn.Fn.(*ssa.Function)]
+		ifn := interp.loadFunction(fn.Fn.(*ssa.Function))
 		ia = append(ia, ib...)
 		if ifn.Recover == nil {
 			return func(fr *frame) {
@@ -985,7 +985,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				interp.callExternalByStack(fr, ext, ir, ia)
 			}
 		}
-		ifn := interp.funcs[fn]
+		ifn := interp.loadFunction(fn)
 		if ifn.Recover == nil {
 			return func(fr *frame) {
 				interp.callFunctionByStackNoRecover(fr, ifn, ir, ia)

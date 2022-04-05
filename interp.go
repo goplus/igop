@@ -113,6 +113,21 @@ func (i *Interp) installed(path string) (pkg *Package, ok bool) {
 	return
 }
 
+func (i *Interp) loadFunction(fn *ssa.Function) *Function {
+	if pfn, ok := i.funcs[fn]; ok {
+		return pfn
+	}
+	pfn := &Function{
+		Interp:           i,
+		Fn:               fn,
+		Main:             fn.Blocks[0],
+		mapUnderscoreKey: make(map[types.Type]bool),
+		index:            make(map[ssa.Value]uint32),
+	}
+	i.funcs[fn] = pfn
+	return pfn
+}
+
 func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
