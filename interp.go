@@ -195,29 +195,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 
 func (i *Interp) makeFunc(typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-		iargs := make([]value, len(args))
-		for i := 0; i < len(args); i++ {
-			iargs[i] = args[i].Interface()
-		}
-		r := i.callFunction(i.tryDeferFrame(), fn, iargs, env)
-		if v, ok := r.(tuple); ok {
-			res := make([]reflect.Value, len(v))
-			for i := 0; i < len(v); i++ {
-				if v[i] == nil {
-					res[i] = reflect.New(typ.Out(i)).Elem()
-				} else {
-					res[i] = reflect.ValueOf(v[i])
-				}
-			}
-			return res
-		} else if typ.NumOut() == 1 {
-			if r != nil {
-				return []reflect.Value{reflect.ValueOf(r)}
-			} else {
-				return []reflect.Value{reflect.New(typ.Out(0)).Elem()}
-			}
-		}
-		return nil
+		return i.callFunctionByReflect(i.tryDeferFrame(), typ, fn, args, env)
 	})
 }
 
@@ -500,6 +478,43 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 			res[i] = fr.reg(fr.results[i])
 		}
 		result = tuple(res)
+	}
+	fr.stack = nil
+	return
+}
+
+func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, fn *ssa.Function, args []reflect.Value, env []value) (results []reflect.Value) {
+	fr := &frame{
+		interp: i,
+		caller: caller, // for panic/recover
+		pfn:    i.funcs[fn],
+	}
+	if caller != nil {
+		fr.deferid = caller.deferid
+	}
+	fr.stack = append([]value{}, fr.pfn.stack...)
+	fr.block = fr.pfn.Fn.Blocks[0]
+	var ip = 0
+	for i := range fn.Params {
+		fr.stack[ip] = args[i].Interface()
+		ip++
+	}
+	for i := range fn.FreeVars {
+		fr.stack[ip] = env[i]
+		ip++
+	}
+	fr.run()
+	n := len(fr.results)
+	if n > 0 {
+		results = make([]reflect.Value, n, n)
+		for i := 0; i < n; i++ {
+			v := fr.stack[fr.results[i]]
+			if v == nil {
+				results[i] = reflect.New(typ.Out(i)).Elem()
+			} else {
+				results[i] = reflect.ValueOf(v)
+			}
+		}
 	}
 	fr.stack = nil
 	return
