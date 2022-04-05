@@ -102,6 +102,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 	pfn := &Function{
 		Interp:           visit.intp,
 		Fn:               fn,
+		Main:             fn.Blocks[0],
 		mapUnderscoreKey: make(map[types.Type]bool),
 		index:            make(map[ssa.Value]uint32),
 	}

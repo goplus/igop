@@ -74,14 +74,6 @@ func init() {
 	}
 }
 
-type continuation = int
-
-const (
-	kNext continuation = iota
-	kReturn
-	kJump
-)
-
 type plainError string
 
 func (e plainError) Error() string {
@@ -144,80 +136,21 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	typ := fn.Type().(*types.Signature).Recv().Type()
 	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 		return func(args []reflect.Value) []reflect.Value {
-			iargs := make([]value, len(args))
-			for i := 0; i < len(args); i++ {
-				iargs[i] = args[i].Interface()
-			}
-			r := i.callFunction(i.tryDeferFrame(), f, iargs, nil)
-			switch mtyp.NumOut() {
-			case 0:
-				return nil
-			case 1:
-				if r == nil {
-					return []reflect.Value{reflect.New(mtyp.Out(0)).Elem()}
-				} else {
-					return []reflect.Value{reflect.ValueOf(r)}
-				}
-			default:
-				v, ok := r.(tuple)
-				if !ok {
-					panic(fmt.Errorf("result type must tuple: %T", v))
-				}
-				res := make([]reflect.Value, len(v))
-				for j := 0; j < len(v); j++ {
-					if v[j] == nil {
-						res[j] = reflect.New(mtyp.Out(j)).Elem()
-					} else {
-						res[j] = reflect.ValueOf(v[j])
-					}
-				}
-				return res
-			}
+			return i.callFunctionByReflect(i.tryDeferFrame(), mtyp, f, args, nil)
 		}
 	}
 	name := fn.FullName()
-	//	pkgPath := fn.Pkg().Path()
 	if v, ok := externValues[name]; ok && v.Kind() == reflect.Func {
 		return func(args []reflect.Value) []reflect.Value {
 			return v.Call(args)
 		}
 	}
-	// if pkg, ok := i.installed(pkgPath); ok {
-	// 	if ext, ok := pkg.Methods[name]; ok {
-	// 		return func(args []reflect.Value) []reflect.Value {
-	// 			return ext.Call(args)
-	// 		}
-	// 	}
-	// }
-	panic(fmt.Sprintf("Not found func %v", fn))
-	return nil
+	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
 func (i *Interp) makeFunc(typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-		iargs := make([]value, len(args))
-		for i := 0; i < len(args); i++ {
-			iargs[i] = args[i].Interface()
-		}
-		r := i.callFunction(i.tryDeferFrame(), fn, iargs, env)
-		if v, ok := r.(tuple); ok {
-			res := make([]reflect.Value, len(v))
-			for i := 0; i < len(v); i++ {
-				if v[i] == nil {
-					res[i] = reflect.New(typ.Out(i)).Elem()
-				} else {
-					res[i] = reflect.ValueOf(v[i])
-				}
-			}
-			return res
-		} else if typ.NumOut() == 1 {
-			if r != nil {
-				return []reflect.Value{reflect.ValueOf(r)}
-			} else {
-				return []reflect.Value{reflect.New(typ.Out(0)).Elem()}
-			}
-		}
-		return nil
+		return i.callFunctionByReflect(i.tryDeferFrame(), typ, fn, args, env)
 	})
 }
 
@@ -480,7 +413,7 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 		fr.deferid = caller.deferid
 	}
 	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Fn.Blocks[0]
+	fr.block = fr.pfn.Main
 	var ip = 0
 	for i := range fn.Params {
 		fr.stack[ip] = args[i]
@@ -505,6 +438,43 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 	return
 }
 
+func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, fn *ssa.Function, args []reflect.Value, env []value) (results []reflect.Value) {
+	fr := &frame{
+		interp: i,
+		caller: caller, // for panic/recover
+		pfn:    i.funcs[fn],
+	}
+	if caller != nil {
+		fr.deferid = caller.deferid
+	}
+	fr.stack = append([]value{}, fr.pfn.stack...)
+	fr.block = fr.pfn.Main
+	var ip = 0
+	for i := range fn.Params {
+		fr.stack[ip] = args[i].Interface()
+		ip++
+	}
+	for i := range fn.FreeVars {
+		fr.stack[ip] = env[i]
+		ip++
+	}
+	fr.run()
+	n := len(fr.results)
+	if n > 0 {
+		results = make([]reflect.Value, n, n)
+		for i := 0; i < n; i++ {
+			v := fr.stack[fr.results[i]]
+			if v == nil {
+				results[i] = reflect.New(typ.Out(i)).Elem()
+			} else {
+				results[i] = reflect.ValueOf(v)
+			}
+		}
+	}
+	fr.stack = nil
+	return
+}
+
 func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, args []value, env []value) {
 	fr := &frame{
 		interp: i,
@@ -515,7 +485,7 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, arg
 		fr.deferid = caller.deferid
 	}
 	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Fn.Blocks[0]
+	fr.block = fr.pfn.Main
 	var ip = 0
 	for i := range fn.Params {
 		fr.stack[ip] = args[i]
@@ -537,7 +507,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 		deferid: caller.deferid,
 	}
 	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Fn.Blocks[0]
+	fr.block = pfn.Main
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
@@ -563,11 +533,11 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 		deferid: caller.deferid,
 	}
 	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Fn.Blocks[0]
+	fr.block = pfn.Main
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
-	for fr.pc >= 0 {
+	for fr.pc != -1 {
 		fn := fr.pfn.Instrs[fr.pc]
 		fr.pc++
 		fn(fr)
@@ -739,7 +709,7 @@ func (fr *frame) run() {
 		}()
 	}
 
-	for fr.pc >= 0 {
+	for fr.pc != -1 {
 		fn := fr.pfn.Instrs[fr.pc]
 		fr.pc++
 		fn(fr)
