@@ -150,8 +150,9 @@ func (i *Interp) tryDeferFrame() *frame {
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
 	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
+		pfn := i.loadFunction(f)
 		return func(args []reflect.Value) []reflect.Value {
-			return i.callFunctionByReflect(i.tryDeferFrame(), mtyp, f, args, nil)
+			return i.callFunctionByReflect(i.tryDeferFrame(), mtyp, pfn, args, nil)
 		}
 	}
 	name := fn.FullName()
@@ -163,9 +164,9 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
-func (i *Interp) makeFunc(typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
+func (i *Interp) makeFunc(typ reflect.Type, pfn *Function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-		return i.callFunctionByReflect(i.tryDeferFrame(), typ, fn, args, env)
+		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
 	})
 }
 
@@ -453,11 +454,11 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 	return
 }
 
-func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, fn *ssa.Function, args []reflect.Value, env []value) (results []reflect.Value) {
+func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Function, args []reflect.Value, env []value) (results []reflect.Value) {
 	fr := &frame{
 		interp: i,
 		caller: caller, // for panic/recover
-		pfn:    i.funcs[fn],
+		pfn:    pfn,
 	}
 	if caller != nil {
 		fr.deferid = caller.deferid
@@ -465,11 +466,11 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, fn *ssa.
 	fr.stack = append([]value{}, fr.pfn.stack...)
 	fr.block = fr.pfn.Main
 	var ip = 0
-	for i := range fn.Params {
+	for i := range args {
 		fr.stack[ip] = args[i].Interface()
 		ip++
 	}
-	for i := range fn.FreeVars {
+	for i := range env {
 		fr.stack[ip] = env[i]
 		ip++
 	}
@@ -936,7 +937,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.makeFunc(i.toType(fn.Type()), fn, nil).Interface(), true
+	return i.makeFunc(i.toType(fn.Type()), i.funcs[fn], nil).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {

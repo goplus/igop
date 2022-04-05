@@ -132,7 +132,8 @@ func (p *Function) regInstr(v ssa.Value) uint32 {
 	case *ssa.Function:
 		if v.Blocks != nil {
 			typ := p.Interp.preToType(v.Type())
-			vs = p.Interp.makeFunc(typ, v, nil).Interface()
+			pfn := p.Interp.loadFunction(v)
+			vs = p.Interp.makeFunc(typ, pfn, nil).Interface()
 			vk = kindFunction
 		}
 	}
@@ -364,13 +365,13 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		for i, v := range instr.Bindings {
 			ib[i] = pfn.regIndex(v)
 		}
+		pfn := interp.loadFunction(fn)
 		return func(fr *frame) {
 			var bindings []value
 			for i, _ := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			c := &closure{fn, bindings}
-			fr.setReg(ir, interp.makeFunc(typ, c.Fn, c.Env).Interface())
+			fr.setReg(ir, interp.makeFunc(typ, pfn, bindings).Interface())
 		}
 	case *ssa.MakeChan:
 		typ := interp.preToType(instr.Type())
