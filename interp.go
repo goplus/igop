@@ -144,53 +144,16 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	typ := fn.Type().(*types.Signature).Recv().Type()
 	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 		return func(args []reflect.Value) []reflect.Value {
-			iargs := make([]value, len(args))
-			for i := 0; i < len(args); i++ {
-				iargs[i] = args[i].Interface()
-			}
-			r := i.callFunction(i.tryDeferFrame(), f, iargs, nil)
-			switch mtyp.NumOut() {
-			case 0:
-				return nil
-			case 1:
-				if r == nil {
-					return []reflect.Value{reflect.New(mtyp.Out(0)).Elem()}
-				} else {
-					return []reflect.Value{reflect.ValueOf(r)}
-				}
-			default:
-				v, ok := r.(tuple)
-				if !ok {
-					panic(fmt.Errorf("result type must tuple: %T", v))
-				}
-				res := make([]reflect.Value, len(v))
-				for j := 0; j < len(v); j++ {
-					if v[j] == nil {
-						res[j] = reflect.New(mtyp.Out(j)).Elem()
-					} else {
-						res[j] = reflect.ValueOf(v[j])
-					}
-				}
-				return res
-			}
+			return i.callFunctionByReflect(i.tryDeferFrame(), mtyp, f, args, nil)
 		}
 	}
 	name := fn.FullName()
-	//	pkgPath := fn.Pkg().Path()
 	if v, ok := externValues[name]; ok && v.Kind() == reflect.Func {
 		return func(args []reflect.Value) []reflect.Value {
 			return v.Call(args)
 		}
 	}
-	// if pkg, ok := i.installed(pkgPath); ok {
-	// 	if ext, ok := pkg.Methods[name]; ok {
-	// 		return func(args []reflect.Value) []reflect.Value {
-	// 			return ext.Call(args)
-	// 		}
-	// 	}
-	// }
-	panic(fmt.Sprintf("Not found func %v", fn))
-	return nil
+	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
 func (i *Interp) makeFunc(typ reflect.Type, fn *ssa.Function, env []value) reflect.Value {
@@ -582,7 +545,7 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
-	for fr.pc >= 0 {
+	for fr.pc != -1 {
 		fn := fr.pfn.Instrs[fr.pc]
 		fr.pc++
 		fn(fr)
@@ -754,7 +717,7 @@ func (fr *frame) run() {
 		}()
 	}
 
-	for fr.pc >= 0 {
+	for fr.pc != -1 {
 		fn := fr.pfn.Instrs[fr.pc]
 		fr.pc++
 		fn(fr)
