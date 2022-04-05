@@ -76,6 +76,7 @@ const (
 type Function struct {
 	Interp           *Interp
 	Fn               *ssa.Function        // ssa function
+	Main             *ssa.BasicBlock      // Fn.Blocks[0]
 	Instrs           []func(fr *frame)    // main instrs
 	Recover          []func(fr *frame)    // recover instrs
 	Blocks           []int                // block offset

@@ -458,7 +458,7 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 		fr.deferid = caller.deferid
 	}
 	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Fn.Blocks[0]
+	fr.block = fr.pfn.Main
 	var ip = 0
 	for i := range fn.Params {
 		fr.stack[ip] = args[i]
@@ -493,7 +493,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, fn *ssa.
 		fr.deferid = caller.deferid
 	}
 	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Fn.Blocks[0]
+	fr.block = fr.pfn.Main
 	var ip = 0
 	for i := range fn.Params {
 		fr.stack[ip] = args[i].Interface()
@@ -530,7 +530,7 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, arg
 		fr.deferid = caller.deferid
 	}
 	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Fn.Blocks[0]
+	fr.block = fr.pfn.Main
 	var ip = 0
 	for i := range fn.Params {
 		fr.stack[ip] = args[i]
@@ -552,7 +552,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 		deferid: caller.deferid,
 	}
 	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Fn.Blocks[0]
+	fr.block = pfn.Main
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
@@ -578,7 +578,7 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 		deferid: caller.deferid,
 	}
 	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Fn.Blocks[0]
+	fr.block = pfn.Main
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
