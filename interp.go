@@ -74,14 +74,6 @@ func init() {
 	}
 }
 
-type continuation = int
-
-const (
-	kNext continuation = iota
-	kReturn
-	kJump
-)
-
 type plainError string
 
 func (e plainError) Error() string {
