@@ -157,3 +157,31 @@ func main() {
 		t.Fatalf("exit code %v, must -2", code)
 	}
 }
+
+func TestOpAlloc(t *testing.T) {
+	src := `package main
+
+type T struct {
+	n1 int
+	n2 int
+}
+
+func (t T) call() int {
+	return t.n1 * t.n2
+}
+
+func main() {
+	var n int
+	for i := 0; i < 3; i++ {
+		n += T{i,3}.call()
+	}
+	if n != 9 {
+		panic(n)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
