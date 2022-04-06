@@ -7,7 +7,6 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -27,8 +26,7 @@ const (
 	DisableRecover         Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
 	DisableUnexportMethods                  // Disable unexport methods
 	EnableTracing                           // Print a trace of all instructions as they are interpreted.
-	EnableDumpPackage                       // Print package
-	EnableDumpInstr                         // Print instr type & value
+	EnableDumpInstr                         // Print packages & SSA instruction code
 )
 
 // types loader interface
@@ -292,13 +290,13 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 			if !created[p] {
 				created[p] = true
 				if !p.Complete() {
-					if ctx.Mode&EnableDumpPackage != 0 {
-						log.Println("indirect", p)
+					if ctx.Mode&EnableDumpInstr != 0 {
+						fmt.Println("# indirect", p)
 					}
 					p.MarkComplete()
 				} else {
-					if ctx.Mode&EnableDumpPackage != 0 {
-						log.Println("imported", p)
+					if ctx.Mode&EnableDumpInstr != 0 {
+						fmt.Println("# imported", p)
 					}
 				}
 				prog.CreatePackage(p, nil, nil, true)
