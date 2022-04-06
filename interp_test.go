@@ -139,3 +139,21 @@ func main() {
 		t.Fatal("must panic 30")
 	}
 }
+
+func TestOsExit(t *testing.T) {
+	src := `package main
+
+import "os"
+
+func main() {
+	os.Exit(-2)
+}
+`
+	code, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != -2 {
+		t.Fatalf("exit code %v, must -2", code)
+	}
+}
