@@ -2,7 +2,6 @@ package gossa
 
 import (
 	"fmt"
-	"go/types"
 	"log"
 	"reflect"
 
@@ -99,20 +98,13 @@ func (visit *visitor) function(fn *ssa.Function) {
 		visit.intp.loadType(alloc.Type())
 		visit.intp.loadType(deref(alloc.Type()))
 	}
-	pfn := &Function{
-		Interp:           visit.intp,
-		Fn:               fn,
-		Main:             fn.Blocks[0],
-		mapUnderscoreKey: make(map[types.Type]bool),
-		index:            make(map[ssa.Value]uint32),
-	}
+	pfn := visit.intp.loadFunction(fn)
 	for _, p := range fn.Params {
 		pfn.regIndex(p)
 	}
 	for _, p := range fn.FreeVars {
 		pfn.regIndex(p)
 	}
-	visit.intp.funcs[fn] = pfn
 	var buf [32]*ssa.Value // avoid alloc in common case
 	for _, b := range fn.Blocks {
 		Instrs := make([]func(*frame), len(b.Instrs), len(b.Instrs))

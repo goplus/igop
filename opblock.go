@@ -120,23 +120,26 @@ func (p *Function) regInstr(v ssa.Value) uint32 {
 	if i, ok := p.index[v]; ok {
 		return i
 	}
-	i := uint32(len(p.stack))
+	var vs interface{}
+	var vk kind
 	switch v := v.(type) {
 	case *ssa.Const:
-		p.stack = append(p.stack, constToValue(p.Interp, v))
-		i |= uint32(kindConst << 24)
+		vs = constToValue(p.Interp, v)
+		vk = kindConst
 	case *ssa.Global:
-		g, _ := globalToValue(p.Interp, v)
-		p.stack = append(p.stack, g)
-		i |= uint32(kindGlobal << 24)
+		vs, _ = globalToValue(p.Interp, v)
+		vk = kindGlobal
 	case *ssa.Function:
-		typ := p.Interp.preToType(v.Type())
-		fn := p.Interp.makeFunc(typ, v, nil).Interface()
-		p.stack = append(p.stack, fn)
-		i |= uint32(kindFunction << 24)
-	default:
-		p.stack = append(p.stack, nil)
+		if v.Blocks != nil {
+			typ := p.Interp.preToType(v.Type())
+			pfn := p.Interp.loadFunction(v)
+			vs = p.Interp.makeFunc(typ, pfn, nil).Interface()
+			vk = kindFunction
+		}
 	}
+	i := uint32(len(p.stack))
+	i |= uint32(vk << 24)
+	p.stack = append(p.stack, vs)
 	p.index[v] = i
 	return i
 }
@@ -362,13 +365,13 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		for i, v := range instr.Bindings {
 			ib[i] = pfn.regIndex(v)
 		}
+		pfn := interp.loadFunction(fn)
 		return func(fr *frame) {
 			var bindings []value
 			for i, _ := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			c := &closure{fn, bindings}
-			fr.setReg(ir, interp.makeFunc(typ, c.Fn, c.Env).Interface())
+			fr.setReg(ir, interp.makeFunc(typ, pfn, bindings).Interface())
 		}
 	case *ssa.MakeChan:
 		typ := interp.preToType(instr.Type())
@@ -960,7 +963,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			interp.callBuiltinByStack(fr, fname, call.Args, ir, ia)
 		}
 	case *ssa.MakeClosure:
-		ifn := interp.funcs[fn.Fn.(*ssa.Function)]
+		ifn := interp.loadFunction(fn.Fn.(*ssa.Function))
 		ia = append(ia, ib...)
 		if ifn.Recover == nil {
 			return func(fr *frame) {
@@ -985,7 +988,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				interp.callExternalByStack(fr, ext, ir, ia)
 			}
 		}
-		ifn := interp.funcs[fn]
+		ifn := interp.loadFunction(fn)
 		if ifn.Recover == nil {
 			return func(fr *frame) {
 				interp.callFunctionByStackNoRecover(fr, ifn, ir, ia)
