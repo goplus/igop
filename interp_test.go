@@ -109,3 +109,33 @@ func printFailures(failures []string) {
 		}
 	}
 }
+
+func TestOverrideFunction(t *testing.T) {
+	ctx := gossa.NewContext(0)
+	ctx.SetOverrideFunction("main.call", func(i, j int) int {
+		return i * j
+	})
+	src := `package main
+
+func call(i, j int) int {
+	return i+j
+}
+
+func main() {
+	if n := call(10,20); n != 200 {
+		panic(n)
+	}
+}
+`
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// reset override func
+	ctx.SetOverrideFunction("main.call", nil)
+	_, err = ctx.RunFile("main.go", src, nil)
+	if err == nil || err.Error() != "30" {
+		t.Fatal("must panic 30")
+	}
+}
