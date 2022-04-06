@@ -37,11 +37,15 @@ var Cmd = &base.Command{
 }
 
 var (
-	flag = &Cmd.Flag
+	flag          = &Cmd.Flag
+	flagDumpInstr bool
+	flagTrace     bool
 )
 
 func init() {
 	Cmd.Run = runCmd
+	flag.BoolVar(&flagDumpInstr, "dump", false, "dump SSA instruction code")
+	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -55,7 +59,14 @@ func runCmd(cmd *base.Command, args []string) {
 	if err != nil {
 		log.Fatalln("input arg check failed:", err)
 	}
-	ctx := gossa.NewContext(0)
+	var mode gossa.Mode
+	if flagDumpInstr {
+		mode |= gossa.EnableDumpInstr
+	}
+	if flagTrace {
+		mode |= gossa.EnableTracing
+	}
+	ctx := gossa.NewContext(mode)
 	if isDir {
 		if containsExt(path, ".gop") {
 			data, err := gopbuild.BuildDir(ctx, path)

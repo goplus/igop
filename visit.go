@@ -154,7 +154,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			if ifn == nil {
 				continue
 			}
-			if visit.intp.mode&EnableDumpInstr != 0 {
+			if visit.intp.mode&EnableTracing != 0 {
 				pfn := ifn
 				ifn = func(fr *frame) {
 					if v, ok := instr.(ssa.Value); ok {
