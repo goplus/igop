@@ -59,6 +59,9 @@ func NewContext(mode Mode) *Context {
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		override:    make(map[string]reflect.Value),
 	}
+	if mode&EnableDumpInstr != 0 {
+		ctx.BuilderMode |= ssa.PrintFunctions
+	}
 	return ctx
 }
 
