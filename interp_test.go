@@ -250,10 +250,27 @@ func add(i, j int) int {
 	return i + j
 }
 
+type I interface{}
+
 func main() {
+	// static change type
 	fn := T(add)
 	if n := fn(10, 20); n != 30 {
 		panic(n)
+	}
+	var i interface{} = I(nil)
+	if i != nil {
+		panic("must nil")
+	}
+	// dynamic change type
+	var k interface{}
+	i = I(k)
+	if i != nil {
+		panic("must nil")
+	}
+	i = I(100)
+	if i == nil {
+		panic("must not nil")
 	}
 }
 `
