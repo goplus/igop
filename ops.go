@@ -83,18 +83,17 @@ func basicValue(c *ssa.Const, kind types.BasicKind) value {
 // constValue returns the value of the constant with the
 // dynamic type tag appropriate for c.Type().
 func constToValue(i *Interp, c *ssa.Const) value {
-	if c.IsNil() {
-		t := c.Type()
-		return reflect.Zero(i.preToType(t)).Interface()
-	}
 	typ := c.Type()
+	if c.IsNil() {
+		if basic, ok := typ.(*types.Basic); ok && basic.Kind() == types.UntypedNil {
+			return nil
+		}
+		return reflect.Zero(i.preToType(typ)).Interface()
+	}
 	if basic, ok := typ.(*types.Basic); ok {
 		return basicValue(c, basic.Kind())
 	} else if basic, ok := typ.Underlying().(*types.Basic); ok {
 		v := basicValue(c, basic.Kind())
-		if v == nil {
-			return v
-		}
 		nv := reflect.New(i.preToType(typ)).Elem()
 		SetValue(nv, reflect.ValueOf(v))
 		return nv.Interface()
