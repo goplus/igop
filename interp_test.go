@@ -298,3 +298,42 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestUnderscopeMap(t *testing.T) {
+	src := `package main
+
+type key struct {
+	_ int
+	x int
+}
+
+var (
+	s1 = "s1"
+	s2 = "s2"
+	s3 = "s3"
+	s4 = "s4"
+)
+
+func main() {
+	m := make(map[key]string)
+	m[key{0, 1}] = s1
+	m[key{0, 2}] = s2
+	m[key{0, 3}] = s3
+	m[key{1, 1}] = s4
+	m[key{1, 2}] = "s22"
+	if n := len(m); n != 3 {
+		panic(n)
+	}
+	if v := m[key{2, 2}]; v != "s22" {
+		panic(v)
+	}
+	if v, ok := m[key{1,4}]; ok {
+		panic(v)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
