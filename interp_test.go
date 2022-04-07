@@ -110,6 +110,23 @@ func printFailures(failures []string) {
 	}
 }
 
+func TestUntypedNil(t *testing.T) {
+	src := `package main
+
+type T func()
+
+func main() {
+	if T(nil) != nil {
+		panic("error")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestOverrideFunction(t *testing.T) {
 	ctx := gossa.NewContext(0)
 	ctx.SetOverrideFunction("main.call", func(i, j int) int {
