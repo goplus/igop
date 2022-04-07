@@ -508,6 +508,33 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 				fr.setReg(ir, reflect.ValueOf(v).String()[asInt(idx)])
 			}
 		case reflect.Map:
+			if pfn.mapUnderscoreKey[instr.X.Type()] {
+				return func(fr *frame) {
+					m := fr.reg(ix)
+					idx := fr.reg(ii)
+					vm := reflect.ValueOf(m)
+					vk := reflect.ValueOf(idx)
+					for _, vv := range vm.MapKeys() {
+						if equalStruct(vk, vv) {
+							vk = vv
+							break
+						}
+					}
+					v := vm.MapIndex(vk)
+					ok := v.IsValid()
+					var rv value
+					if ok {
+						rv = v.Interface()
+					} else {
+						rv = reflect.New(typ.Elem()).Elem().Interface()
+					}
+					if instr.CommaOk {
+						fr.setReg(ir, tuple{rv, ok})
+					} else {
+						fr.setReg(ir, rv)
+					}
+				}
+			}
 			return func(fr *frame) {
 				m := fr.reg(ix)
 				idx := fr.reg(ii)
