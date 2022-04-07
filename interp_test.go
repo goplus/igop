@@ -223,3 +223,25 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestOpChangeType(t *testing.T) {
+	src := `package main
+
+type T func(int, int) int
+
+func add(i, j int) int {
+	return i + j
+}
+
+func main() {
+	fn := T(add)
+	if n := fn(10, 20); n != 30 {
+		panic(n)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
