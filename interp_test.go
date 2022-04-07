@@ -126,3 +126,214 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestOverrideFunction(t *testing.T) {
+	ctx := gossa.NewContext(0)
+	ctx.SetOverrideFunction("main.call", func(i, j int) int {
+		return i * j
+	})
+	src := `package main
+
+func call(i, j int) int {
+	return i+j
+}
+
+func main() {
+	if n := call(10,20); n != 200 {
+		panic(n)
+	}
+}
+`
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// reset override func
+	ctx.SetOverrideFunction("main.call", nil)
+	_, err = ctx.RunFile("main.go", src, nil)
+	if err == nil || err.Error() != "30" {
+		t.Fatal("must panic 30")
+	}
+}
+
+func TestOsExit(t *testing.T) {
+	src := `package main
+
+import "os"
+
+func main() {
+	os.Exit(-2)
+}
+`
+	code, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != -2 {
+		t.Fatalf("exit code %v, must -2", code)
+	}
+}
+
+func TestOpAlloc(t *testing.T) {
+	src := `package main
+
+type T struct {
+	n1 int
+	n2 int
+}
+
+func (t T) call() int {
+	return t.n1 * t.n2
+}
+
+func main() {
+	var n int
+	for i := 0; i < 3; i++ {
+		n += T{i,3}.call()
+	}
+	if n != 9 {
+		panic(n)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOpBin(t *testing.T) {
+	src := `package main
+
+func main() {
+	a := 10 // 1010
+	b := 12 // 1100
+	n1 := a + b
+	n2 := a - b
+	n3 := a * b
+	n4 := a / b
+	n5 := a % b
+	n6 := a & b
+	n7 := a | b
+	n8 := a ^ b
+	n9 := a &^ b
+	n10 := a << 3
+	n11 := a >> 3
+	v1 := a > b
+	v2 := a < b
+	v3 := a >= b
+	v4 := a <= b
+	v5 := a == b
+	v6 := a != b
+	if n1 != 22 || n2 != -2 || n3 != 120 || n4 != 0 || n5 != 10 || n6 != 8 ||
+		n7 != 14 || n8 != 6 || n9 != 2 || n10 != 80 || n11 != 1 ||
+		v1 != false || v2 != true || v3 != false || v4 != true || v5 != false || v6 != true {
+		println(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11)
+		println(v1, v2, v3, v4, v5, v6)
+		panic("error")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOpChangeType(t *testing.T) {
+	src := `package main
+
+type T func(int, int) int
+
+func add(i, j int) int {
+	return i + j
+}
+
+type I interface{}
+
+func main() {
+	// static change type
+	fn := T(add)
+	if n := fn(10, 20); n != 30 {
+		panic(n)
+	}
+	var i interface{} = I(nil)
+	if i != nil {
+		panic("must nil")
+	}
+	// dynamic change type
+	var k interface{}
+	i = I(k)
+	if i != nil {
+		panic("must nil")
+	}
+	i = I(100)
+	if i == nil {
+		panic("must not nil")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOpIndex(t *testing.T) {
+	src := `package main
+
+func main() {
+	var n int
+	for _, v := range [3]int{1, 2, 4} {
+		n += v
+	}
+	if n != 7 {
+		panic(n)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUnderscopeMap(t *testing.T) {
+	src := `package main
+
+type key struct {
+	_ int
+	x int
+}
+
+var (
+	s1 = "s1"
+	s2 = "s2"
+	s3 = "s3"
+	s4 = "s4"
+)
+
+func main() {
+	m := make(map[key]string)
+	m[key{0, 1}] = s1
+	m[key{0, 2}] = s2
+	m[key{0, 3}] = s3
+	m[key{1, 1}] = s4
+	m[key{1, 2}] = "s22"
+	if n := len(m); n != 3 {
+		panic(n)
+	}
+	if v := m[key{2, 2}]; v != "s22" {
+		panic(v)
+	}
+	if v, ok := m[key{1,4}]; ok {
+		panic(v)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
