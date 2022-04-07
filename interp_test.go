@@ -279,3 +279,22 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestOpIndex(t *testing.T) {
+	src := `package main
+
+func main() {
+	var n int
+	for _, v := range [3]int{1, 2, 4} {
+		n += v
+	}
+	if n != 7 {
+		panic(n)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
