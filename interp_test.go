@@ -185,3 +185,41 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestOpBin(t *testing.T) {
+	src := `package main
+
+func main() {
+	a := 10 // 1010
+	b := 12 // 1100
+	n1 := a + b
+	n2 := a - b
+	n3 := a * b
+	n4 := a / b
+	n5 := a % b
+	n6 := a & b
+	n7 := a | b
+	n8 := a ^ b
+	n9 := a &^ b
+	n10 := a << 3
+	n11 := a >> 3
+	v1 := a > b
+	v2 := a < b
+	v3 := a >= b
+	v4 := a <= b
+	v5 := a == b
+	v6 := a != b
+	if n1 != 22 || n2 != -2 || n3 != 120 || n4 != 0 || n5 != 10 || n6 != 8 ||
+		n7 != 14 || n8 != 6 || n9 != 2 || n10 != 80 || n11 != 1 ||
+		v1 != false || v2 != true || v3 != false || v4 != true || v5 != false || v6 != true {
+		println(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11)
+		println(v1, v2, v3, v4, v5, v6)
+		panic("error")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
