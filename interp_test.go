@@ -337,3 +337,39 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestOpSend(t *testing.T) {
+	src := `package main
+
+import (
+	"fmt"
+)
+
+type T struct{}
+
+func main() {
+	ch := make(chan *T)
+	go func() {
+		ch <- nil
+	}()
+	v := <-ch
+	if v != nil {
+		panic("must nil")
+	}
+	if s := fmt.Sprintf("%T", v); s != "*main.T" {
+		panic(s)
+	}
+	go func() {
+		ch <- &T{}
+	}()
+	v = <-ch
+	if v == nil {
+		panic("must not nil")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
