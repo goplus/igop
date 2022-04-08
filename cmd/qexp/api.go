@@ -26,11 +26,11 @@ var reInterface = regexp.MustCompile(`^pkg (\S+)\s?(.*)?, type ([A-Z]\w*) interf
 
 type ApiInfo struct {
 	Name       string   // name key
-	Pkg        string   // pkgpath
+	Pkg        string   // pkg path
 	Kind       string   // var|const|func|type|method|
 	MethodType string   // type or empty
 	MethodName string   // name or empty
-	MethodPtr  string   // * or emtpy
+	MethodPtr  string   // * or empty
 	Tags       []string // (os-arch-cgo)
 	Ver        string   // go1.15 | go1.16 or empty
 }
