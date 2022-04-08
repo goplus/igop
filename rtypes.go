@@ -44,7 +44,7 @@ type TypesLoader struct {
 	mode      Mode
 }
 
-// install package and readonly
+// NewTypesLoader install package and readonly
 func NewTypesLoader(mode Mode) Loader {
 	r := &TypesLoader{
 		packages:  make(map[string]*types.Package),

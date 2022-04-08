@@ -29,7 +29,7 @@ const (
 	EnableDumpInstr                         // Print packages & SSA instruction code
 )
 
-// types loader interface
+// Loader types loader interface
 type Loader interface {
 	Import(path string) (*types.Package, error)
 	Installed(path string) (*Package, bool)
@@ -38,6 +38,7 @@ type Loader interface {
 	LookupTypes(typ reflect.Type) (types.Type, bool)
 }
 
+// Context ssa context
 type Context struct {
 	Loader      Loader                   // types loader
 	Mode        Mode                     // mode
@@ -49,6 +50,7 @@ type Context struct {
 	override    map[string]reflect.Value // override function
 }
 
+// NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
 		Loader:      NewTypesLoader(mode),
@@ -94,18 +96,18 @@ func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package
 }
 
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
-	sourceProcesser[ext] = fn
+	sourceProcessor[ext] = fn
 }
 
 type SourceProcessFunc func(ctx *Context, filename string, src interface{}) ([]byte, error)
 
 var (
-	sourceProcesser = make(map[string]SourceProcessFunc)
+	sourceProcessor = make(map[string]SourceProcessFunc)
 )
 
 func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}) (*ssa.Package, error) {
 	if ext := filepath.Ext(filename); ext != "" {
-		if fn, ok := sourceProcesser[ext]; ok {
+		if fn, ok := sourceProcessor[ext]; ok {
 			data, err := fn(c, filename, src)
 			if err != nil {
 				return nil, err

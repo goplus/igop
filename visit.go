@@ -36,7 +36,7 @@ type visitor struct {
 
 func (visit *visitor) program() {
 	chks := make(map[string]bool)
-	chks[""] = true // anonymous struct embbed named type
+	chks[""] = true // anonymous struct embed named type
 	for pkg := range visit.pkgs {
 		chks[pkg.Pkg.Path()] = true
 		for _, mem := range pkg.Members {
@@ -62,7 +62,7 @@ func (visit *visitor) program() {
 		for i, n := 0, mset.Len(); i < n; i++ {
 			sel := mset.At(i)
 			obj := sel.Obj()
-			// skip embbed extern type method
+			// skip embed extern type method
 			if !chks[obj.Pkg().Path()] {
 				continue
 			}
