@@ -32,7 +32,7 @@ jobs:
       run: go install -v ./cmd/gossa
 
     - name: Go Test
-      run: GOARCH=amd64 go test -v .
+      run: GOARCH=amd64 go test -race -v .
 
     - name: Test $GOROOT/test
       run: GOARCH=amd64 go run ./cmd/gossatest
@@ -61,7 +61,7 @@ jobs:
       run: go install -v ./cmd/gossa
 
     - name: Go Test amd64
-      run: GOARCH=amd64 go test -v .
+      run: GOARCH=amd64 go test -race -v .
 
     - name: Test $GOROOT/test
       run: GOARCH=amd64 go run ./cmd/gossatest
@@ -92,7 +92,7 @@ jobs:
     - name: Go Test amd64
       run: |
         set GOARCH=amd64
-        go test -v .
+        go test -race -v .
 
     - name: Test $GOROOT/test amd64
       run: |
