@@ -427,3 +427,26 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestConvertUnsafePointer(t *testing.T) {
+	src := `package main
+
+import (
+	"unsafe"
+)
+
+func main() {
+	a := [4]int{0, 1, 2, 3}
+	p := unsafe.Pointer(&a)
+	p2 := unsafe.Pointer(uintptr(p) + 2*unsafe.Sizeof(a[0]))
+	*(*int)(p2) = 4
+	if a != [4]int{0, 1, 4, 3} {
+		panic("error")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
