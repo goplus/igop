@@ -337,3 +337,116 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestOpSend(t *testing.T) {
+	src := `package main
+
+import (
+	"fmt"
+)
+
+type T struct{}
+
+func main() {
+	ch := make(chan *T)
+	go func() {
+		ch <- nil
+	}()
+	v := <-ch
+	if v != nil {
+		panic("must nil")
+	}
+	if s := fmt.Sprintf("%T", v); s != "*main.T" {
+		panic(s)
+	}
+	go func() {
+		ch <- &T{}
+	}()
+	v = <-ch
+	if v == nil {
+		panic("must not nil")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestShadowedMethod(t *testing.T) {
+	src := `// run
+
+// Copyright 2018 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// When computing method sets with shadowed methods, make sure we
+// compute whether a method promotion involved a pointer traversal
+// based on the promoted method, not the shadowed method.
+
+package main
+
+import (
+	"bytes"
+	"fmt"
+)
+
+type mystruct struct {
+	f int
+}
+
+func (t mystruct) String() string {
+	return "FAIL"
+}
+
+func main() {
+	type deep struct {
+		mystruct
+	}
+	s := struct {
+		deep
+		*bytes.Buffer
+	}{
+		deep{},
+		bytes.NewBufferString("ok"),
+	}
+
+	if got := s.String(); got != "ok" {
+		panic(got)
+	}
+
+	var i fmt.Stringer = s
+	if got := i.String(); got != "ok" {
+		panic(got)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConvertUnsafePointer(t *testing.T) {
+	src := `package main
+
+import (
+	"unsafe"
+)
+
+func main() {
+	a := [4]int{0, 1, 2, 3}
+	p := unsafe.Pointer(&a)
+	p2 := unsafe.Pointer(uintptr(p) + 2*unsafe.Sizeof(a[0]))
+	*(*int)(p2) = 4
+	if a != [4]int{0, 1, 4, 3} {
+		panic("error")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
