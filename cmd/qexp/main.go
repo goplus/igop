@@ -20,7 +20,7 @@ var (
 func init() {
 	flag.StringVar(&flagExportDir, "outdir", "", "set export pkg path")
 	//flag.BoolVar(&flagUseGoApi, "api", false, "export by $GOROOT/api")
-	flag.StringVar(&flagBuildContext, "contexts", "", "set custome build contexts goos_goarch list. eg \"drawin_amd64 darwin_arm64\"")
+	flag.StringVar(&flagBuildContext, "contexts", "", "set customer build contexts goos_goarch list. eg \"drawin_amd64 darwin_arm64\"")
 	flag.StringVar(&flagCustomTags, "addtags", "", "add custom tags, split by ;")
 	flag.StringVar(&flagExportFileName, "filename", "export", "set export file name")
 }
