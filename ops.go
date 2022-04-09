@@ -10,10 +10,8 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"os"
 	"reflect"
 	"strings"
-	"sync"
 	"unsafe"
 
 	"github.com/goplus/reflectx"
@@ -1420,29 +1418,6 @@ func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface
 	// return v
 }
 
-// If CapturedOutput is non-nil, all writes by the interpreted program
-// to file descriptors 1 and 2 will also be written to CapturedOutput.
-//
-// (The $GOROOT/test system requires that the test be considered a
-// failure if "BUG" appears in the combined stdout/stderr output, even
-// if it exits zero.  This is a global variable shared by all
-// interpreters in the same process.)
-//
-var CapturedOutput *bytes.Buffer
-var capturedOutputMu sync.Mutex
-
-// write writes bytes b to the target program's standard output.
-// The print/println built-ins and the write() system call funnel
-// through here so they can be captured by the test driver.
-func print(b []byte) (int, error) {
-	if CapturedOutput != nil {
-		capturedOutputMu.Lock()
-		CapturedOutput.Write(b) // ignore errors
-		capturedOutputMu.Unlock()
-	}
-	return os.Stdout.Write(b)
-}
-
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
 func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
@@ -1494,7 +1469,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		if ln {
 			buf.WriteRune('\n')
 		}
-		print(buf.Bytes())
+		inter.ctx.writeOutput(buf.Bytes())
 		return nil
 
 	case "len":
@@ -1619,7 +1594,7 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 		if ln {
 			buf.WriteRune('\n')
 		}
-		print(buf.Bytes())
+		inter.ctx.writeOutput(buf.Bytes())
 
 	case "len":
 		panic("discards result of " + fnName)
@@ -1730,7 +1705,7 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 		if ln {
 			buf.WriteRune('\n')
 		}
-		print(buf.Bytes())
+		inter.ctx.writeOutput(buf.Bytes())
 
 	case "len":
 		arg0 := caller.reg(ia[0])

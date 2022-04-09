@@ -1,12 +1,14 @@
 package gossa
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"go/types"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -47,6 +49,7 @@ type Context struct {
 	Sizes       types.Sizes              // types size for package unsafe
 	debugFunc   func(*DebugInfo)         // debug func
 	override    map[string]reflect.Value // override function
+	output      io.Writer                // capture print/println output
 }
 
 func NewContext(mode Mode) *Context {
@@ -76,6 +79,18 @@ func (c *Context) SetOverrideFunction(key string, fn interface{}) {
 	} else {
 		c.override[key] = reflect.ValueOf(fn)
 	}
+}
+
+// set builtin print/println captured output
+func (c *Context) SetPrintOutput(output *bytes.Buffer) {
+	c.output = output
+}
+
+func (c *Context) writeOutput(data []byte) (n int, err error) {
+	if c.output != nil {
+		return c.output.Write(data)
+	}
+	return os.Stdout.Write(data)
 }
 
 func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package, first error) {
