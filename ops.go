@@ -10,10 +10,8 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"os"
 	"reflect"
 	"strings"
-	"sync"
 	"unsafe"
 
 	"github.com/goplus/reflectx"
@@ -26,7 +24,9 @@ type targetPanic struct {
 }
 
 func (p targetPanic) Error() string {
-	return toString(p.v)
+	var buf bytes.Buffer
+	writeany(&buf, p.v)
+	return buf.String()
 }
 
 // If the target program calls exit, the interpreter panics with this type.
@@ -1420,29 +1420,6 @@ func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface
 	// return v
 }
 
-// If CapturedOutput is non-nil, all writes by the interpreted program
-// to file descriptors 1 and 2 will also be written to CapturedOutput.
-//
-// (The $GOROOT/test system requires that the test be considered a
-// failure if "BUG" appears in the combined stdout/stderr output, even
-// if it exits zero.  This is a global variable shared by all
-// interpreters in the same process.)
-//
-var CapturedOutput *bytes.Buffer
-var capturedOutputMu sync.Mutex
-
-// write writes bytes b to the target program's standard output.
-// The print/println built-ins and the write() system call funnel
-// through here so they can be captured by the test driver.
-func print(b []byte) (int, error) {
-	if CapturedOutput != nil {
-		capturedOutputMu.Lock()
-		CapturedOutput.Write(b) // ignore errors
-		capturedOutputMu.Unlock()
-	}
-	return os.Stdout.Write(b)
-}
-
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
 func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
@@ -1485,16 +1462,16 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 			if len(ssaArgs) > i {
 				typ := inter.toType(ssaArgs[i].Type())
 				if typ.Kind() == reflect.Interface {
-					buf.WriteString(toInterface(arg))
+					writeinterface(&buf, arg)
 					continue
 				}
 			}
-			buf.WriteString(toString(arg))
+			writevalue(&buf, arg)
 		}
 		if ln {
 			buf.WriteRune('\n')
 		}
-		print(buf.Bytes())
+		inter.ctx.writeOutput(buf.Bytes())
 		return nil
 
 	case "len":
@@ -1610,16 +1587,16 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 			if len(ssaArgs) > i {
 				typ := inter.toType(ssaArgs[i].Type())
 				if typ.Kind() == reflect.Interface {
-					buf.WriteString(toInterface(arg))
+					writeinterface(&buf, arg)
 					continue
 				}
 			}
-			buf.WriteString(toString(arg))
+			writevalue(&buf, arg)
 		}
 		if ln {
 			buf.WriteRune('\n')
 		}
-		print(buf.Bytes())
+		inter.ctx.writeOutput(buf.Bytes())
 
 	case "len":
 		panic("discards result of " + fnName)
@@ -1721,16 +1698,16 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 			if len(ssaArgs) > i {
 				typ := inter.toType(ssaArgs[i].Type())
 				if typ.Kind() == reflect.Interface {
-					buf.WriteString(toInterface(arg))
+					writeinterface(&buf, arg)
 					continue
 				}
 			}
-			buf.WriteString(toString(arg))
+			writevalue(&buf, arg)
 		}
 		if ln {
 			buf.WriteRune('\n')
 		}
-		print(buf.Bytes())
+		inter.ctx.writeOutput(buf.Bytes())
 
 	case "len":
 		arg0 := caller.reg(ia[0])
@@ -1829,24 +1806,6 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 	default:
 		panic("unknown built-in: " + fn)
 	}
-}
-
-func rangeIter(x value, t types.Type) iter {
-	switch x := x.(type) {
-	case string:
-		return &stringIter{Reader: strings.NewReader(x)}
-	default:
-		return &mapIter{iter: reflect.ValueOf(x).MapRange()}
-	}
-	// switch x := x.(type) {
-	// case map[value]value:
-	// 	return &mapIter{iter: reflect.ValueOf(x).MapRange()}
-	// case *hashmap:
-	// 	return &hashmapIter{iter: reflect.ValueOf(x.entries()).MapRange()}
-	// case string:
-	// 	return &stringIter{Reader: strings.NewReader(x)}
-	// }
-	// panic(fmt.Sprintf("cannot range over %T", x))
 }
 
 // widen widens a basic typed value x to the widest type of its
@@ -1948,16 +1907,4 @@ func convert(x interface{}, typ reflect.Type) interface{} {
 		}
 	}
 	return v.Convert(typ).Interface()
-}
-
-// checkInterface checks that the method set of x implements the
-// interface itype.
-// On success it returns "", on failure, an error message.
-//
-func checkInterface(i *Interp, itype *types.Interface, x iface) string {
-	if meth, _ := types.MissingMethod(x.t, itype, true); meth != nil {
-		return fmt.Sprintf("interface conversion: %v is not %v: missing method %s",
-			x.t, itype, meth.Name())
-	}
-	return "" // ok
 }
