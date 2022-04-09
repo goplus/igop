@@ -554,3 +554,32 @@ true
 		t.Fatal("error")
 	}
 }
+
+type panicinfo struct {
+	src string
+	err string
+}
+
+func TestPanicInfo(t *testing.T) {
+	infos := []panicinfo{
+		{`panic(100)`, `100`},
+		{`panic(100.0)`, `+1.000000e+002`},
+		{`panic("hello")`, `hello`},
+		{`panic((*interface{})(nil))`, `(*interface {}) 0x0`},
+		{`type T int; panic(T(100))`, `main.T(100)`},
+		{`type T float64; panic(T(100.0))`, `main.T(+1.000000e+002)`},
+		{`type T string; panic(T("hello"))`, `main.T("hello")`},
+		{`type T struct{}; panic((*T)(nil))`, `(*main.T) 0x0`},
+	}
+	ctx := gossa.NewContext(0)
+	for _, info := range infos {
+		src := fmt.Sprintf("package main;func main(){%v}", info.src)
+		code, err := ctx.RunFile("main.go", src, nil)
+		if code != 2 || err == nil {
+			t.Fatalf("%v must panic", info.src)
+		}
+		if s := err.Error(); s != info.err {
+			t.Fatalf("%v err is %v, want %v", info.src, s, info.err)
+		}
+	}
+}

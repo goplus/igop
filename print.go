@@ -173,7 +173,8 @@ func writeany(buf *bytes.Buffer, v interface{}) {
 			writecomplex(buf, i.Complex())
 			buf.WriteByte(')')
 		default:
-			fmt.Fprintf(buf, "(%v)%p", typ, v)
+			eface := *(*emptyInterface)(unsafe.Pointer(&i))
+			fmt.Fprintf(buf, "(%v) %p", typ, eface.word)
 		}
 	}
 }
