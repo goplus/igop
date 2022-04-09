@@ -32,7 +32,7 @@ func writevalue(buf *bytes.Buffer, v interface{}) {
 			if i > 0 {
 				buf.WriteString(", ")
 			}
-			writeValue(buf, e)
+			writevalue(buf, e)
 		}
 		buf.WriteString(")")
 	default:
@@ -141,4 +141,39 @@ func writefloat(out *bytes.Buffer, v float64) {
 	buf[n+5] = byte(e/10)%10 + '0'
 	buf[n+6] = byte(e%10) + '0'
 	out.Write(buf[:])
+}
+
+// write argument pass to panic
+func writeany(buf *bytes.Buffer, v interface{}) {
+	switch v := v.(type) {
+	case nil, bool, int, int8, int16, int32, int64,
+		float32, float64, complex64, complex128,
+		uint, uint8, uint16, uint32, uint64, uintptr,
+		string:
+		writevalue(buf, v)
+	case *ssa.Function, *ssa.Builtin, *closure:
+		fmt.Fprintf(buf, "%p", v) // (an address)
+	default:
+		i := reflect.ValueOf(v)
+		typ := i.Type()
+		switch i.Kind() {
+		case reflect.String:
+			fmt.Fprintf(buf, "%v(%q)", typ, i)
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			fmt.Fprintf(buf, "%v(%v)", typ, i)
+		case reflect.Float32, reflect.Float64:
+			buf.WriteString(typ.String())
+			buf.WriteByte('(')
+			writefloat(buf, i.Float())
+			buf.WriteByte(')')
+		case reflect.Complex64, reflect.Complex128:
+			buf.WriteString(typ.String())
+			buf.WriteByte('(')
+			writecomplex(buf, i.Complex())
+			buf.WriteByte(')')
+		default:
+			fmt.Fprintf(buf, "(%v)%p", typ, v)
+		}
+	}
 }

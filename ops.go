@@ -24,7 +24,9 @@ type targetPanic struct {
 }
 
 func (p targetPanic) Error() string {
-	return toString(p.v)
+	var buf bytes.Buffer
+	writeany(&buf, p.v)
+	return buf.String()
 }
 
 // If the target program calls exit, the interpreter panics with this type.
@@ -1806,24 +1808,6 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 	}
 }
 
-func rangeIter(x value, t types.Type) iter {
-	switch x := x.(type) {
-	case string:
-		return &stringIter{Reader: strings.NewReader(x)}
-	default:
-		return &mapIter{iter: reflect.ValueOf(x).MapRange()}
-	}
-	// switch x := x.(type) {
-	// case map[value]value:
-	// 	return &mapIter{iter: reflect.ValueOf(x).MapRange()}
-	// case *hashmap:
-	// 	return &hashmapIter{iter: reflect.ValueOf(x.entries()).MapRange()}
-	// case string:
-	// 	return &stringIter{Reader: strings.NewReader(x)}
-	// }
-	// panic(fmt.Sprintf("cannot range over %T", x))
-}
-
 // widen widens a basic typed value x to the widest type of its
 // category, one of:
 //   bool, int64, uint64, float64, complex128, string.
@@ -1923,16 +1907,4 @@ func convert(x interface{}, typ reflect.Type) interface{} {
 		}
 	}
 	return v.Convert(typ).Interface()
-}
-
-// checkInterface checks that the method set of x implements the
-// interface itype.
-// On success it returns "", on failure, an error message.
-//
-func checkInterface(i *Interp, itype *types.Interface, x iface) string {
-	if meth, _ := types.MissingMethod(x.t, itype, true); meth != nil {
-		return fmt.Sprintf("interface conversion: %v is not %v: missing method %s",
-			x.t, itype, meth.Name())
-	}
-	return "" // ok
 }
