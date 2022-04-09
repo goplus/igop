@@ -1485,11 +1485,11 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 			if len(ssaArgs) > i {
 				typ := inter.toType(ssaArgs[i].Type())
 				if typ.Kind() == reflect.Interface {
-					buf.WriteString(toInterface(arg))
+					writeinterface(&buf, arg)
 					continue
 				}
 			}
-			buf.WriteString(toString(arg))
+			writevalue(&buf, arg)
 		}
 		if ln {
 			buf.WriteRune('\n')
@@ -1610,11 +1610,11 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 			if len(ssaArgs) > i {
 				typ := inter.toType(ssaArgs[i].Type())
 				if typ.Kind() == reflect.Interface {
-					buf.WriteString(toInterface(arg))
+					writeinterface(&buf, arg)
 					continue
 				}
 			}
-			buf.WriteString(toString(arg))
+			writevalue(&buf, arg)
 		}
 		if ln {
 			buf.WriteRune('\n')
@@ -1721,11 +1721,11 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 			if len(ssaArgs) > i {
 				typ := inter.toType(ssaArgs[i].Type())
 				if typ.Kind() == reflect.Interface {
-					buf.WriteString(toInterface(arg))
+					writeinterface(&buf, arg)
 					continue
 				}
 			}
-			buf.WriteString(toString(arg))
+			writevalue(&buf, arg)
 		}
 		if ln {
 			buf.WriteRune('\n')
