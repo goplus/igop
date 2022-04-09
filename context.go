@@ -73,14 +73,15 @@ func (c *Context) SetDebug(fn func(*DebugInfo)) {
 	c.debugFunc = fn
 }
 
-// register external function to override function.
+// SetOverrideFunction register external function to override function.
 // match func fullname and signature
 func (c *Context) SetOverrideFunction(key string, fn interface{}) {
-	if fn == nil {
-		delete(c.override, key)
-	} else {
-		c.override[key] = reflect.ValueOf(fn)
-	}
+	c.override[key] = reflect.ValueOf(fn)
+}
+
+// ClearOverrideFunction reset override function
+func (c *Context) ClearOverrideFunction(key string) {
+	delete(c.override, key)
 }
 
 // set builtin print/println captured output

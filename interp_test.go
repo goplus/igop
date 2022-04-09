@@ -151,7 +151,7 @@ func main() {
 	}
 
 	// reset override func
-	ctx.SetOverrideFunction("main.call", nil)
+	ctx.ClearOverrideFunction("main.call")
 	_, err = ctx.RunFile("main.go", src, nil)
 	if err == nil || err.Error() != "30" {
 		t.Fatal("must panic 30")
