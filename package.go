@@ -18,7 +18,7 @@ func LookupPackage(name string) (pkg *Package, ok bool) {
 // RegisterPackage register pkg
 func RegisterPackage(pkg *Package) {
 	if p, ok := registerPkgs[pkg.Path]; ok {
-		p.Merge(pkg)
+		p.merge(pkg)
 		return
 	}
 	registerPkgs[pkg.Path] = pkg
@@ -55,8 +55,8 @@ type Package struct {
 	methods       map[string]reflect.Value // methods cached
 }
 
-// Merge same package
-func (p *Package) Merge(same *Package) {
+// merge same package
+func (p *Package) merge(same *Package) {
 	for k, v := range same.Interfaces {
 		p.Interfaces[k] = v
 	}
