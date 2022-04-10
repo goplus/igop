@@ -42,7 +42,7 @@ func writevalue(buf *bytes.Buffer, v interface{}, enableAny bool) {
 			if enableAny {
 				fmt.Fprintf(buf, "%v", v)
 			} else {
-				panic(fmt.Errorf("illegal types for operand: print %T", v))
+				panic(fmt.Sprintf("illegal types for operand: print\n\t%T", v))
 			}
 		default:
 			fmt.Fprintf(buf, "%v", v)

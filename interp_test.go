@@ -583,3 +583,35 @@ func TestPanicInfo(t *testing.T) {
 		}
 	}
 }
+
+func TestEnablePrintAny(t *testing.T) {
+	src := `package main
+
+type T struct {
+	X int
+	Y int
+}
+func main() {
+	println([2]int{100,200})
+	println(T{100,200})
+}
+`
+	ctx := gossa.NewContext(0)
+	var buf bytes.Buffer
+	ctx.SetPrintOutput(&buf)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err == nil {
+		t.Fatal("must panic")
+	}
+	if s := err.Error(); s != "illegal types for operand: print\n\t[2]int" {
+		t.Fatal(s)
+	}
+	ctx.Mode |= gossa.EnablePrintAny
+	_, err = ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := buf.String(); s != "[100 200]\n{100 200}\n" {
+		t.Fatal(s)
+	}
+}
