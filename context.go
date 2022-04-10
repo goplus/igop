@@ -29,6 +29,7 @@ const (
 	DisableUnexportMethods                  // Disable unexport methods
 	EnableTracing                           // Print a trace of all instructions as they are interpreted.
 	EnableDumpInstr                         // Print packages & SSA instruction code
+	EnablePrintAny                          // Enable builtin print for any type ( struct/array )
 )
 
 // Loader types loader interface
