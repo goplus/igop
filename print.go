@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"reflect"
 	"unsafe"
-
-	"golang.org/x/tools/go/ssa"
 )
 
-func writevalue(buf *bytes.Buffer, v interface{}) {
+//  writevalue for write argument pass to print
+func writevalue(buf *bytes.Buffer, v interface{}, enableAny bool) {
 	switch v := v.(type) {
 	case float64:
 		writefloat(buf, v)
@@ -23,18 +22,6 @@ func writevalue(buf *bytes.Buffer, v interface{}) {
 		uint, uint8, uint16, uint32, uint64, uintptr,
 		string:
 		fmt.Fprintf(buf, "%v", v)
-	case *ssa.Function, *ssa.Builtin, *closure:
-		fmt.Fprintf(buf, "%p", v) // (an address)
-	case tuple:
-		// Unreachable in well-formed Go programs
-		buf.WriteString("(")
-		for i, e := range v {
-			if i > 0 {
-				buf.WriteString(", ")
-			}
-			writevalue(buf, e)
-		}
-		buf.WriteString(")")
 	default:
 		i := reflect.ValueOf(v)
 		switch i.Kind() {
@@ -52,7 +39,11 @@ func writevalue(buf *bytes.Buffer, v interface{}) {
 			eface := *(*emptyInterface)(unsafe.Pointer(&i))
 			fmt.Fprintf(buf, "(%p,%p)", eface.typ, eface.word)
 		case reflect.Struct, reflect.Array:
-			panic(fmt.Errorf("illegal types for operand: print %T", v))
+			if enableAny {
+				fmt.Fprintf(buf, "%v", v)
+			} else {
+				panic(fmt.Sprintf("illegal types for operand: print\n\t%T", v))
+			}
 		default:
 			fmt.Fprintf(buf, "%v", v)
 		}
@@ -143,16 +134,14 @@ func writefloat(out *bytes.Buffer, v float64) {
 	out.Write(buf[:])
 }
 
-// write argument pass to panic
+// writeany for write argument pass to panic
 func writeany(buf *bytes.Buffer, v interface{}) {
 	switch v := v.(type) {
 	case nil, bool, int, int8, int16, int32, int64,
 		float32, float64, complex64, complex128,
 		uint, uint8, uint16, uint32, uint64, uintptr,
 		string:
-		writevalue(buf, v)
-	case *ssa.Function, *ssa.Builtin, *closure:
-		fmt.Fprintf(buf, "%p", v) // (an address)
+		writevalue(buf, v, true)
 	default:
 		i := reflect.ValueOf(v)
 		typ := i.Type()

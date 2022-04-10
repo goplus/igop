@@ -1466,7 +1466,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 					continue
 				}
 			}
-			writevalue(&buf, arg)
+			writevalue(&buf, arg, inter.mode&EnablePrintAny != 0)
 		}
 		if ln {
 			buf.WriteRune('\n')
@@ -1591,7 +1591,7 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 					continue
 				}
 			}
-			writevalue(&buf, arg)
+			writevalue(&buf, arg, inter.mode&EnablePrintAny != 0)
 		}
 		if ln {
 			buf.WriteRune('\n')
@@ -1702,7 +1702,7 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 					continue
 				}
 			}
-			writevalue(&buf, arg)
+			writevalue(&buf, arg, inter.mode&EnablePrintAny != 0)
 		}
 		if ln {
 			buf.WriteRune('\n')
