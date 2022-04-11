@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 
@@ -84,6 +85,46 @@ type Function struct {
 	ssaInstrs        []ssa.Instruction    // org ssa instr
 	index            map[ssa.Value]uint32 // stack index
 	mapUnderscoreKey map[types.Type]bool
+	pool             *sync.Pool
+}
+
+func (p *Function) initPool() {
+	p.pool = &sync.Pool{}
+	p.pool.New = func() interface{} {
+		fr := &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr.stack = append([]value{}, p.stack...)
+		return fr
+	}
+}
+
+func (p *Function) allocFrame(caller *frame) *frame {
+	var fr *frame
+	if p.pool != nil {
+		fr = p.pool.Get().(*frame)
+	} else {
+		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr.stack = append([]value{}, p.stack...)
+	}
+	fr.caller = caller
+	if caller != nil {
+		fr.deferid = caller.deferid
+	}
+	if fr.cached {
+		fr.block = p.Main
+		fr.defers = nil
+		fr.panicking = nil
+		fr.pc = 0
+		fr.pred = 0
+	}
+	return fr
+}
+
+func (p *Function) deleteFrame(fr *frame) {
+	if p.pool != nil {
+		fr.cached = true
+		p.pool.Put(fr)
+	}
+	fr = nil
 }
 
 func (p *Function) InstrForPC(pc int) ssa.Instruction {

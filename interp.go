@@ -190,6 +190,7 @@ type frame struct {
 	deferid   int64
 	stack     []value
 	results   []int
+	cached    bool
 }
 
 func (fr *frame) setReg(index int, v value) {
@@ -420,16 +421,8 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 }
 
 func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env []value) (result value) {
-	fr := &frame{
-		interp: i,
-		caller: caller, // for panic/recover
-		pfn:    i.funcs[fn],
-	}
-	if caller != nil {
-		fr.deferid = caller.deferid
-	}
-	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Main
+	pfn := i.funcs[fn]
+	fr := pfn.allocFrame(caller)
 	var ip = 0
 	for i := range fn.Params {
 		fr.stack[ip] = args[i]
@@ -450,21 +443,12 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 		}
 		result = tuple(res)
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 	return
 }
 
 func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Function, args []reflect.Value, env []value) (results []reflect.Value) {
-	fr := &frame{
-		interp: i,
-		caller: caller, // for panic/recover
-		pfn:    pfn,
-	}
-	if caller != nil {
-		fr.deferid = caller.deferid
-	}
-	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Main
+	fr := pfn.allocFrame(caller)
 	var ip = 0
 	for i := range args {
 		fr.stack[ip] = args[i].Interface()
@@ -487,21 +471,13 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Fun
 			}
 		}
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 	return
 }
 
 func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, args []value, env []value) {
-	fr := &frame{
-		interp: i,
-		caller: caller, // for panic/recover
-		pfn:    i.funcs[fn],
-	}
-	if caller != nil {
-		fr.deferid = caller.deferid
-	}
-	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Main
+	pfn := i.funcs[fn]
+	fr := pfn.allocFrame(caller)
 	var ip = 0
 	for i := range fn.Params {
 		fr.stack[ip] = args[i]
@@ -512,18 +488,11 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, arg
 		ip++
 	}
 	fr.run()
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []int) {
-	fr := &frame{
-		interp:  i,
-		caller:  caller, // for panic/recover
-		pfn:     pfn,
-		deferid: caller.deferid,
-	}
-	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Main
+	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
@@ -538,18 +507,11 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 		}
 		caller.setReg(ir, tuple(res))
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir int, ia []int) {
-	fr := &frame{
-		interp:  i,
-		caller:  caller, // for panic/recover
-		pfn:     pfn,
-		deferid: caller.deferid,
-	}
-	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Main
+	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
@@ -568,7 +530,7 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 		}
 		caller.setReg(ir, tuple(res))
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env []value) value {

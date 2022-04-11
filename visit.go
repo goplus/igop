@@ -209,4 +209,10 @@ func (visit *visitor) function(fn *ssa.Function) {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
+	switch fn.Name() {
+	case "init":
+	case "main":
+	default:
+		pfn.initPool()
+	}
 }
