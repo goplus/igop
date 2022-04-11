@@ -1082,7 +1082,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		case *ssa.Function:
 			interp.callFunctionByStack(fr, interp.funcs[fn], ir, ia)
 		case *closure:
-			interp.callFunctionByStack(fr, interp.funcs[fn.Fn], ir, ia)
+			interp.callFunctionByStack(fr, fn.pfn, ir, ia)
 		case *ssa.Builtin:
 			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:

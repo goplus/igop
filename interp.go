@@ -340,7 +340,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, 
 			for i, _ := range f.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			fv = &closure{f.Fn.(*ssa.Function), bindings}
+			fv = &closure{i.funcs[f.Fn.(*ssa.Function)], bindings}
 		default:
 			fv = fr.reg(iv)
 		}
@@ -381,9 +381,9 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, 
 func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value) value {
 	switch fn := fn.(type) {
 	case *ssa.Function:
-		return i.callFunction(caller, fn, args, nil)
+		return i.callFunction(caller, i.funcs[fn], args, nil)
 	case *closure:
-		return i.callFunction(caller, fn.Fn, args, fn.Env)
+		return i.callFunction(caller, fn.pfn, args, fn.env)
 	case *ssa.Builtin:
 		return i.callBuiltin(caller, fn, args, ssaArgs)
 	case reflect.Value:
@@ -401,9 +401,9 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaArgs []ssa.Value) {
 	switch fn := fn.(type) {
 	case *ssa.Function:
-		i.callFunctionDiscardsResult(caller, fn, args, nil)
+		i.callFunctionDiscardsResult(caller, i.funcs[fn], args, nil)
 	case *closure:
-		i.callFunctionDiscardsResult(caller, fn.Fn, args, fn.Env)
+		i.callFunctionDiscardsResult(caller, fn.pfn, args, fn.env)
 	case *ssa.Builtin:
 		i.callBuiltinDiscardsResult(caller, fn, args, ssaArgs)
 	case reflect.Value:
@@ -413,24 +413,15 @@ func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaAr
 	}
 }
 
-func loc(fset *token.FileSet, pos token.Pos) string {
-	if pos == token.NoPos {
-		return ""
-	}
-	return " at " + fset.Position(pos).String()
-}
-
-func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env []value) (result value) {
-	pfn := i.funcs[fn]
+func (i *Interp) callFunction(caller *frame, pfn *Function, args []value, env []value) (result value) {
 	fr := pfn.allocFrame(caller)
-	var ip = 0
-	for i := range fn.Params {
-		fr.stack[ip] = args[i]
-		ip++
+	na := len(args)
+	for i := 0; i < na; i++ {
+		fr.stack[i] = args[i]
 	}
-	for i := range fn.FreeVars {
-		fr.stack[ip] = env[i]
-		ip++
+	ne := len(env)
+	for i := 0; i < ne; i++ {
+		fr.stack[na+i] = env[i]
 	}
 	fr.run()
 	n := len(fr.results)
@@ -449,14 +440,13 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 
 func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Function, args []reflect.Value, env []value) (results []reflect.Value) {
 	fr := pfn.allocFrame(caller)
-	var ip = 0
-	for i := range args {
-		fr.stack[ip] = args[i].Interface()
-		ip++
+	na := len(args)
+	for i := 0; i < na; i++ {
+		fr.stack[i] = args[i].Interface()
 	}
-	for i := range env {
-		fr.stack[ip] = env[i]
-		ip++
+	ne := len(env)
+	for i := 0; i < ne; i++ {
+		fr.stack[na+i] = env[i]
 	}
 	fr.run()
 	n := len(fr.results)
@@ -475,17 +465,15 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Fun
 	return
 }
 
-func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, args []value, env []value) {
-	pfn := i.funcs[fn]
+func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *Function, args []value, env []value) {
 	fr := pfn.allocFrame(caller)
-	var ip = 0
-	for i := range fn.Params {
-		fr.stack[ip] = args[i]
-		ip++
+	na := len(args)
+	for i := 0; i < na; i++ {
+		fr.stack[i] = args[i]
 	}
-	for i := range fn.FreeVars {
-		fr.stack[ip] = env[i]
-		ip++
+	ne := len(env)
+	for i := 0; i < ne; i++ {
+		fr.stack[na+i] = env[i]
 	}
 	fr.run()
 	pfn.deleteFrame(fr)

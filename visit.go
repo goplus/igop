@@ -2,6 +2,7 @@ package gossa
 
 import (
 	"fmt"
+	"go/token"
 	"log"
 	"reflect"
 
@@ -215,4 +216,11 @@ func (visit *visitor) function(fn *ssa.Function) {
 	default:
 		pfn.initPool()
 	}
+}
+
+func loc(fset *token.FileSet, pos token.Pos) string {
+	if pos == token.NoPos {
+		return ""
+	}
+	return " at " + fset.Position(pos).String()
 }
