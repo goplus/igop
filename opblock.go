@@ -128,8 +128,9 @@ func (p *Function) deleteFrame(fr *frame) {
 		p.pool.Put(fr)
 	}
 	// release closure env for gc
-	for _, id := range fr.rfuns {
-		p.Interp.rfuns.Delete(id)
+	n := len(fr.rfuns)
+	for i := 0; i < n; i++ {
+		p.Interp.rfuns.Delete(fr.rfuns[i])
 	}
 	fr = nil
 }
@@ -1062,6 +1063,15 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 					return nil
 				}
 				panic(fmt.Errorf("no code for function: %v", fn))
+			}
+			if fn.String() == "runtime.SetFinalizer" {
+				// delete closure from rfuns for gc
+				return func(fr *frame) {
+					v := fr.reg(ia[1])
+					fn := reflect.ValueOf(v)
+					interp.rfuns.Delete(toUserFuncId(&fn))
+					interp.callExternalByStack(fr, ext, ir, ia)
+				}
 			}
 			return func(fr *frame) {
 				interp.callExternalByStack(fr, ext, ir, ia)
