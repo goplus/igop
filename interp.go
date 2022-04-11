@@ -106,6 +106,7 @@ type Interp struct {
 	typesMutex   sync.RWMutex
 	funcs        map[*ssa.Function]*Function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
+	rfuns        sync.Map                                    // closure to user defined func id => closure
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -192,7 +193,8 @@ type frame struct {
 	deferid   int64
 	stack     []value
 	results   []int
-	cached    bool
+	rfuns     []uintptr // closure to user defined func id
+	cached    bool      // function pool put cached or new
 }
 
 func (fr *frame) setReg(index int, v value) {
@@ -504,6 +506,28 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 		fr.pc++
 		fn(fr)
 	}
+	n := len(fr.results)
+	if n == 1 {
+		caller.setReg(ir, fr.stack[fr.results[0]])
+	} else if n > 1 {
+		res := make([]value, n, n)
+		for i := 0; i < n; i++ {
+			res[i] = fr.reg(fr.results[i])
+		}
+		caller.setReg(ir, tuple(res))
+	}
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir int, ia []int, env []value) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i] = caller.reg(ia[i])
+	}
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
+	}
+	fr.run()
 	n := len(fr.results)
 	if n == 1 {
 		caller.setReg(ir, fr.stack[fr.results[0]])

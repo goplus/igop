@@ -117,6 +117,7 @@ func (p *Function) allocFrame(caller *frame) *frame {
 		fr.panicking = nil
 		fr.pc = 0
 		fr.pred = 0
+		fr.rfuns = nil
 	}
 	return fr
 }
@@ -125,6 +126,10 @@ func (p *Function) deleteFrame(fr *frame) {
 	if p.pool != nil {
 		fr.cached = true
 		p.pool.Put(fr)
+	}
+	// release closure env for gc
+	for _, id := range fr.rfuns {
+		p.Interp.rfuns.Delete(id)
 	}
 	fr = nil
 }
@@ -414,7 +419,11 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			for i, _ := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			fr.setReg(ir, interp.makeFunc(typ, pfn, bindings).Interface())
+			v := interp.makeFunc(typ, pfn, bindings)
+			id := toUserFuncId(&v)
+			fr.rfuns = append(fr.rfuns, id)
+			interp.rfuns.Store(id, &closure{pfn, bindings})
+			fr.setReg(ir, v.Interface())
 		}
 	case *ssa.MakeChan:
 		typ := interp.preToType(instr.Type())
@@ -1088,7 +1097,14 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		case *ssa.Builtin:
 			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:
-			interp.callExternalByStack(fr, reflect.ValueOf(fn), ir, ia)
+			v := reflect.ValueOf(fn)
+			// check user defined func
+			if f, ok := interp.rfuns.Load(toUserFuncId(&v)); ok {
+				c := f.(*closure)
+				interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
+			} else {
+				interp.callExternalByStack(fr, v, ir, ia)
+			}
 		}
 	}
 }

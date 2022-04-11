@@ -1849,6 +1849,10 @@ func toUnsafePointer(v reflect.Value) unsafe.Pointer {
 	return unsafe.Pointer(uintptr(v.Uint()))
 }
 
+func toUserFuncId(v *reflect.Value) uintptr {
+	return uintptr((*reflectValue)(unsafe.Pointer(v)).ptr)
+}
+
 type reflectValue struct {
 	typ  unsafe.Pointer
 	ptr  unsafe.Pointer
