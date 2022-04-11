@@ -86,6 +86,8 @@ type Function struct {
 	index            map[ssa.Value]uint32 // stack index
 	mapUnderscoreKey map[types.Type]bool
 	pool             *sync.Pool
+	narg             int
+	nenv             int
 }
 
 func (p *Function) initPool() {

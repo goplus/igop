@@ -123,6 +123,8 @@ func (i *Interp) loadFunction(fn *ssa.Function) *Function {
 		Main:             fn.Blocks[0],
 		mapUnderscoreKey: make(map[types.Type]bool),
 		index:            make(map[ssa.Value]uint32),
+		narg:             len(fn.Params),
+		nenv:             len(fn.FreeVars),
 	}
 	i.funcs[fn] = pfn
 	return pfn
@@ -415,13 +417,11 @@ func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaAr
 
 func (i *Interp) callFunction(caller *frame, pfn *Function, args []value, env []value) (result value) {
 	fr := pfn.allocFrame(caller)
-	na := len(args)
-	for i := 0; i < na; i++ {
+	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = args[i]
 	}
-	ne := len(env)
-	for i := 0; i < ne; i++ {
-		fr.stack[na+i] = env[i]
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
 	n := len(fr.results)
@@ -440,13 +440,11 @@ func (i *Interp) callFunction(caller *frame, pfn *Function, args []value, env []
 
 func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Function, args []reflect.Value, env []value) (results []reflect.Value) {
 	fr := pfn.allocFrame(caller)
-	na := len(args)
-	for i := 0; i < na; i++ {
+	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = args[i].Interface()
 	}
-	ne := len(env)
-	for i := 0; i < ne; i++ {
-		fr.stack[na+i] = env[i]
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
 	n := len(fr.results)
@@ -467,13 +465,11 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Fun
 
 func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *Function, args []value, env []value) {
 	fr := pfn.allocFrame(caller)
-	na := len(args)
-	for i := 0; i < na; i++ {
+	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = args[i]
 	}
-	ne := len(env)
-	for i := 0; i < ne; i++ {
-		fr.stack[na+i] = env[i]
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
 	pfn.deleteFrame(fr)
