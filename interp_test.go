@@ -70,6 +70,7 @@ var testdataTests = []string{
 	"recover2.go",
 	"static.go",
 	"issue23536.go",
+	"tinyfin.go",
 }
 
 func runInput(t *testing.T, input string) bool {
