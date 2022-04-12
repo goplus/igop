@@ -210,12 +210,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
-	switch fn.Name() {
-	case "init":
-	case "main":
-	default:
-		pfn.initPool()
-	}
+	pfn.initPool()
 }
 
 func loc(fset *token.FileSet, pos token.Pos) string {

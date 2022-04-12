@@ -52,6 +52,7 @@ type Context struct {
 	debugFunc   func(*DebugInfo)         // debug func
 	override    map[string]reflect.Value // override function
 	output      io.Writer                // capture print/println output
+	callForPool int                      // least call count for enable function pool
 }
 
 // NewContext create a new Context
@@ -62,11 +63,17 @@ func NewContext(mode Mode) *Context {
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		override:    make(map[string]reflect.Value),
+		callForPool: 64,
 	}
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
 	return ctx
+}
+
+// SetLeastCallForEnablePool set least call count for enable function pool, default 64
+func (c *Context) SetLeastCallForEnablePool(count int) {
+	c.callForPool = count
 }
 
 func (c *Context) SetDebug(fn func(*DebugInfo)) {

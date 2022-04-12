@@ -88,6 +88,8 @@ type Function struct {
 	pool             *sync.Pool
 	narg             int
 	nenv             int
+	used             int  // function used count
+	cached           bool // enable cached by pool
 }
 
 func (p *Function) initPool() {
@@ -101,9 +103,13 @@ func (p *Function) initPool() {
 
 func (p *Function) allocFrame(caller *frame) *frame {
 	var fr *frame
-	if p.pool != nil {
+	if p.cached {
 		fr = p.pool.Get().(*frame)
 	} else {
+		p.used++
+		if p.used > p.Interp.ctx.callForPool {
+			p.cached = true
+		}
 		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 	}
@@ -123,7 +129,7 @@ func (p *Function) allocFrame(caller *frame) *frame {
 }
 
 func (p *Function) deleteFrame(fr *frame) {
-	if p.pool != nil {
+	if p.cached {
 		fr.cached = true
 		p.pool.Put(fr)
 	}
