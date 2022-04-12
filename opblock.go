@@ -88,8 +88,8 @@ type Function struct {
 	pool             *sync.Pool
 	narg             int
 	nenv             int
-	used             int  // function used count
-	cached           bool // enable cached by pool
+	used             int32 // function used count
+	cached           int32 // enable cached by pool
 }
 
 func (p *Function) initPool() {
@@ -103,12 +103,11 @@ func (p *Function) initPool() {
 
 func (p *Function) allocFrame(caller *frame) *frame {
 	var fr *frame
-	if p.cached {
+	if atomic.LoadInt32(&p.cached) == 1 {
 		fr = p.pool.Get().(*frame)
 	} else {
-		p.used++
-		if p.used > p.Interp.ctx.callForPool {
-			p.cached = true
+		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
+			atomic.CompareAndSwapInt32(&p.cached, 0, 1)
 		}
 		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
@@ -129,14 +128,14 @@ func (p *Function) allocFrame(caller *frame) *frame {
 }
 
 func (p *Function) deleteFrame(fr *frame) {
-	if p.cached {
-		fr.cached = true
-		p.pool.Put(fr)
-	}
 	// release closure env for gc
 	n := len(fr.rfuns)
 	for i := 0; i < n; i++ {
 		p.Interp.rfuns.Delete(fr.rfuns[i])
+	}
+	if atomic.LoadInt32(&p.cached) == 1 {
+		fr.cached = true
+		p.pool.Put(fr)
 	}
 	fr = nil
 }
