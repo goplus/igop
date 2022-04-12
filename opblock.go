@@ -1072,9 +1072,10 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			if fn.String() == "runtime.SetFinalizer" {
 				// delete closure from rfuns for gc
 				return func(fr *frame) {
-					v := fr.reg(ia[1])
-					fn := reflect.ValueOf(v)
-					interp.rfuns.Delete(toUserFuncId(&fn))
+					if v := fr.reg(ia[1]); v != nil {
+						fn := reflect.ValueOf(v)
+						interp.rfuns.Delete(toUserFuncId(&fn))
+					}
 					interp.callExternalByStack(fr, ext, ir, ia)
 				}
 			}
