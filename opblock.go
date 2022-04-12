@@ -107,7 +107,7 @@ func (p *Function) allocFrame(caller *frame) *frame {
 		fr = p.pool.Get().(*frame)
 	} else {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
-			atomic.CompareAndSwapInt32(&p.cached, 0, 1)
+			atomic.StoreInt32(&p.cached, 1)
 		}
 		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
