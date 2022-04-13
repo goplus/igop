@@ -233,7 +233,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	return
 }
 
-func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *frame) {
+func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction, flag int) func(fr *frame) {
 	switch instr := instr.(type) {
 	case *ssa.Alloc:
 		if instr.Heap {
@@ -420,15 +420,25 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			ib[i] = pfn.regIndex(v)
 		}
 		pfn := interp.loadFunction(fn)
+		if flag == closureLoop || flag == closureLoopMaybe {
+			return func(fr *frame) {
+				var bindings []value
+				for i, _ := range instr.Bindings {
+					bindings = append(bindings, fr.reg(ib[i]))
+				}
+				v := interp.makeFunc(typ, pfn, bindings)
+				fr.setReg(ir, v.Interface())
+				id := toUserFuncId(&v)
+				fr.rfuns = append(fr.rfuns, id)
+				interp.rfuns.Store(id, &closure{pfn, bindings})
+			}
+		}
 		return func(fr *frame) {
 			var bindings []value
 			for i, _ := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
 			v := interp.makeFunc(typ, pfn, bindings)
-			id := toUserFuncId(&v)
-			fr.rfuns = append(fr.rfuns, id)
-			interp.rfuns.Store(id, &closure{pfn, bindings})
 			fr.setReg(ir, v.Interface())
 		}
 	case *ssa.MakeChan:
