@@ -106,7 +106,6 @@ type Interp struct {
 	typesMutex   sync.RWMutex
 	funcs        map[*ssa.Function]*Function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
-	rfuns        sync.Map                                    // closure to user defined func id => closure
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -193,8 +192,7 @@ type frame struct {
 	deferid   int64
 	stack     []value
 	results   []int
-	rfuns     []uintptr // closure to user defined func id
-	cached    bool      // function pool put cached or new
+	cached    bool // function pool put cached or new
 }
 
 func (fr *frame) setReg(index int, v value) {

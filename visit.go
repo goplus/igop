@@ -3,7 +3,6 @@ package gossa
 import (
 	"fmt"
 	"go/token"
-	"go/types"
 	"log"
 	"reflect"
 
@@ -116,7 +115,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 		for i := 0; i < n; i++ {
 			instr := b.Instrs[i]
 			ops := instr.Operands(buf[:0])
-			var flag int
 			switch instr := instr.(type) {
 			case *ssa.Alloc:
 				visit.intp.loadType(instr.Type())
@@ -143,12 +141,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 				visit.intp.loadType(instr.Type())
 			case *ssa.MakeInterface:
 				visit.intp.loadType(instr.Type())
-			case *ssa.MakeClosure:
-				if i+1 < n {
-					if next, ok := b.Instrs[i+1].(*ssa.Store); ok {
-						flag = checkClosureFlag(instr, next)
-					}
-				}
 			}
 			for _, op := range ops {
 				switch v := (*op).(type) {
@@ -160,7 +152,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 					visit.intp.loadType(v.Type())
 				}
 			}
-			ifn := makeInstr(visit.intp, pfn, instr, flag)
+			ifn := makeInstr(visit.intp, pfn, instr)
 			if ifn == nil {
 				continue
 			}
@@ -227,37 +219,4 @@ func loc(fset *token.FileSet, pos token.Pos) string {
 		return ""
 	}
 	return " at " + fset.Position(pos).String()
-}
-
-const (
-	closureLoop      = 1
-	closureLoopMaybe = 2
-)
-
-func checkClosureFlag(instr *ssa.MakeClosure, next *ssa.Store) int {
-	if next.Val != instr {
-		return 0
-	}
-	// t0 = new func(n int) int (fib)                         *func(n int) int
-	// t1 = make closure main$1 [t0]                           func(n int) int
-	// *t0 = t1
-	for _, b := range instr.Bindings {
-		if b == next.Addr {
-			return closureLoop
-		}
-	}
-	// t0 = new func(n int) int (fib)                         *func(n int) int
-	// t1 = new func(n int) int (fib1)                        *func(n int) int
-	// t2 = make closure main$1 [t0]                           func(n int) int
-	// *t1 = t2
-	for _, b := range instr.Bindings {
-		if alloc, ok := b.(*ssa.Alloc); ok {
-			if ptr, ok := alloc.Type().(*types.Pointer); ok {
-				if _, ok := ptr.Elem().(*types.Signature); ok {
-					return closureLoopMaybe
-				}
-			}
-		}
-	}
-	return 0
 }

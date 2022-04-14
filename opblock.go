@@ -122,17 +122,12 @@ func (p *Function) allocFrame(caller *frame) *frame {
 		fr.panicking = nil
 		fr.pc = 0
 		fr.pred = 0
-		fr.rfuns = nil
 	}
 	return fr
 }
 
 func (p *Function) deleteFrame(fr *frame) {
 	// release closure env for gc
-	n := len(fr.rfuns)
-	for i := 0; i < n; i++ {
-		p.Interp.rfuns.Delete(fr.rfuns[i])
-	}
 	if atomic.LoadInt32(&p.cached) == 1 {
 		fr.cached = true
 		p.pool.Put(fr)
@@ -233,7 +228,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	return
 }
 
-func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction, flag int) func(fr *frame) {
+func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *frame) {
 	switch instr := instr.(type) {
 	case *ssa.Alloc:
 		if instr.Heap {
@@ -420,19 +415,6 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction, flag int) f
 			ib[i] = pfn.regIndex(v)
 		}
 		pfn := interp.loadFunction(fn)
-		if flag == closureLoop || flag == closureLoopMaybe {
-			return func(fr *frame) {
-				var bindings []value
-				for i, _ := range instr.Bindings {
-					bindings = append(bindings, fr.reg(ib[i]))
-				}
-				v := interp.makeFunc(typ, pfn, bindings)
-				fr.setReg(ir, v.Interface())
-				id := toUserFuncId(&v)
-				fr.rfuns = append(fr.rfuns, id)
-				interp.rfuns.Store(id, &closure{pfn, bindings})
-			}
-		}
 		return func(fr *frame) {
 			var bindings []value
 			for i, _ := range instr.Bindings {
@@ -1079,16 +1061,6 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 				}
 				panic(fmt.Errorf("no code for function: %v", fn))
 			}
-			if fn.String() == "runtime.SetFinalizer" {
-				// delete closure from rfuns for gc
-				return func(fr *frame) {
-					if v := fr.reg(ia[1]); v != nil {
-						fn := reflect.ValueOf(v)
-						interp.rfuns.Delete(toUserFuncId(&fn))
-					}
-					interp.callExternalByStack(fr, ext, ir, ia)
-				}
-			}
 			return func(fr *frame) {
 				interp.callExternalByStack(fr, ext, ir, ia)
 			}
@@ -1124,13 +1096,7 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:
 			v := reflect.ValueOf(fn)
-			// check user defined func
-			if f, ok := interp.rfuns.Load(toUserFuncId(&v)); ok {
-				c := f.(*closure)
-				interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
-			} else {
-				interp.callExternalByStack(fr, v, ir, ia)
-			}
+			interp.callExternalByStack(fr, v, ir, ia)
 		}
 	}
 }
