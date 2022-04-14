@@ -9,30 +9,16 @@ var (
 	registerPkgs = make(map[string]*Package)
 )
 
-// lookup register pkgs
+// LookupPackage lookup register pkgs
 func LookupPackage(name string) (pkg *Package, ok bool) {
 	pkg, ok = registerPkgs[name]
 	return
 }
 
-// register pkg
+// RegisterPackage register pkg
 func RegisterPackage(pkg *Package) {
 	if p, ok := registerPkgs[pkg.Path]; ok {
-		for k, v := range pkg.Interfaces {
-			p.Interfaces[k] = v
-		}
-		for k, v := range pkg.NamedTypes {
-			p.NamedTypes[k] = v
-		}
-		for k, v := range pkg.Vars {
-			p.Vars[k] = v
-		}
-		for k, v := range pkg.Funcs {
-			p.Funcs[k] = v
-		}
-		for k, v := range pkg.UntypedConsts {
-			p.UntypedConsts[k] = v
-		}
+		p.merge(pkg)
 		return
 	}
 	registerPkgs[pkg.Path] = pkg
@@ -67,6 +53,25 @@ type Package struct {
 	UntypedConsts map[string]UntypedConst
 	Deps          map[string]string
 	methods       map[string]reflect.Value // methods cached
+}
+
+// merge same package
+func (p *Package) merge(same *Package) {
+	for k, v := range same.Interfaces {
+		p.Interfaces[k] = v
+	}
+	for k, v := range same.NamedTypes {
+		p.NamedTypes[k] = v
+	}
+	for k, v := range same.Vars {
+		p.Vars[k] = v
+	}
+	for k, v := range same.Funcs {
+		p.Funcs[k] = v
+	}
+	for k, v := range same.UntypedConsts {
+		p.UntypedConsts[k] = v
+	}
 }
 
 var (
