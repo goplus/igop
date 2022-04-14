@@ -9,8 +9,6 @@ import (
 	"reflect"
 	"strings"
 	"unsafe"
-
-	"golang.org/x/tools/go/ssa"
 )
 
 type Value = value
@@ -21,8 +19,8 @@ type value = interface{}
 type tuple []value
 
 type closure struct {
-	Fn  *ssa.Function
-	Env []value
+	pfn *Function
+	env []value
 }
 
 // emptyInterface is the header for an interface{} value.

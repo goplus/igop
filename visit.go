@@ -2,6 +2,7 @@ package gossa
 
 import (
 	"fmt"
+	"go/token"
 	"log"
 	"reflect"
 
@@ -110,7 +111,8 @@ func (visit *visitor) function(fn *ssa.Function) {
 		Instrs := make([]func(*frame), len(b.Instrs), len(b.Instrs))
 		ssaInstrs := make([]ssa.Instruction, len(b.Instrs), len(b.Instrs))
 		var index int
-		for i := 0; i < len(b.Instrs); i++ {
+		n := len(b.Instrs)
+		for i := 0; i < n; i++ {
 			instr := b.Instrs[i]
 			ops := instr.Operands(buf[:0])
 			switch instr := instr.(type) {
@@ -209,4 +211,12 @@ func (visit *visitor) function(fn *ssa.Function) {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
+	pfn.initPool()
+}
+
+func loc(fset *token.FileSet, pos token.Pos) string {
+	if pos == token.NoPos {
+		return ""
+	}
+	return " at " + fset.Position(pos).String()
 }

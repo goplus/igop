@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 
@@ -84,6 +85,54 @@ type Function struct {
 	ssaInstrs        []ssa.Instruction    // org ssa instr
 	index            map[ssa.Value]uint32 // stack index
 	mapUnderscoreKey map[types.Type]bool
+	pool             *sync.Pool
+	narg             int
+	nenv             int
+	used             int32 // function used count
+	cached           int32 // enable cached by pool
+}
+
+func (p *Function) initPool() {
+	p.pool = &sync.Pool{}
+	p.pool.New = func() interface{} {
+		fr := &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr.stack = append([]value{}, p.stack...)
+		return fr
+	}
+}
+
+func (p *Function) allocFrame(caller *frame) *frame {
+	var fr *frame
+	if atomic.LoadInt32(&p.cached) == 1 {
+		fr = p.pool.Get().(*frame)
+	} else {
+		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
+			atomic.StoreInt32(&p.cached, 1)
+		}
+		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr.stack = append([]value{}, p.stack...)
+	}
+	fr.caller = caller
+	if caller != nil {
+		fr.deferid = caller.deferid
+	}
+	if fr.cached {
+		fr.block = p.Main
+		fr.defers = nil
+		fr.panicking = nil
+		fr.pc = 0
+		fr.pred = 0
+	}
+	return fr
+}
+
+func (p *Function) deleteFrame(fr *frame) {
+	// release closure env for gc
+	if atomic.LoadInt32(&p.cached) == 1 {
+		fr.cached = true
+		p.pool.Put(fr)
+	}
+	fr = nil
 }
 
 func (p *Function) InstrForPC(pc int) ssa.Instruction {
@@ -371,7 +420,8 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 			for i, _ := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			fr.setReg(ir, interp.makeFunc(typ, pfn, bindings).Interface())
+			v := interp.makeFunc(typ, pfn, bindings)
+			fr.setReg(ir, v.Interface())
 		}
 	case *ssa.MakeChan:
 		typ := interp.preToType(instr.Type())
@@ -1041,11 +1091,12 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		case *ssa.Function:
 			interp.callFunctionByStack(fr, interp.funcs[fn], ir, ia)
 		case *closure:
-			interp.callFunctionByStack(fr, interp.funcs[fn.Fn], ir, ia)
+			interp.callFunctionByStack(fr, fn.pfn, ir, ia)
 		case *ssa.Builtin:
 			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:
-			interp.callExternalByStack(fr, reflect.ValueOf(fn), ir, ia)
+			v := reflect.ValueOf(fn)
+			interp.callExternalByStack(fr, v, ir, ia)
 		}
 	}
 }

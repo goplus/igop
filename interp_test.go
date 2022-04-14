@@ -70,6 +70,7 @@ var testdataTests = []string{
 	"recover2.go",
 	"static.go",
 	"issue23536.go",
+	"tinyfin.go",
 }
 
 func runInput(t *testing.T, input string) bool {
@@ -613,5 +614,74 @@ func main() {
 	}
 	if s := buf.String(); s != "[100 200]\n{100 200}\n" {
 		t.Fatal(s)
+	}
+}
+
+func TestFib(t *testing.T) {
+	src := `package main
+
+import (
+	"sync"
+)
+
+func fib(n int) int {
+	if n < 2 {
+		return n
+	}
+	return fib(n-2) + fib(n-1)
+}
+
+func main() {
+	var wg sync.WaitGroup
+	const N = 10
+	for i := 0; i < N; i++ {
+		wg.Add(1)
+		go func() {
+			if fib(20) != 6765 {
+				panic("error")
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestFibv(t *testing.T) {
+	src := `package main
+
+import "sync"
+
+func main() {
+	var fib func(n int) int
+	fib = func(n int) int {
+		if n < 2 {
+			return n
+		}
+		return fib(n-2) + fib(n-1)
+	}
+
+	var wg sync.WaitGroup
+	const N = 10
+	for i := 0; i < N; i++ {
+		wg.Add(1)
+		go func() {
+			if fib(20) != 6765 {
+				panic("error")
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
 	}
 }

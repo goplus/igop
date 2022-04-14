@@ -123,6 +123,8 @@ func (i *Interp) loadFunction(fn *ssa.Function) *Function {
 		Main:             fn.Blocks[0],
 		mapUnderscoreKey: make(map[types.Type]bool),
 		index:            make(map[ssa.Value]uint32),
+		narg:             len(fn.Params),
+		nenv:             len(fn.FreeVars),
 	}
 	i.funcs[fn] = pfn
 	return pfn
@@ -190,6 +192,7 @@ type frame struct {
 	deferid   int64
 	stack     []value
 	results   []int
+	cached    bool // function pool put cached or new
 }
 
 func (fr *frame) setReg(index int, v value) {
@@ -339,7 +342,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, 
 			for i, _ := range f.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			fv = &closure{f.Fn.(*ssa.Function), bindings}
+			fv = &closure{i.funcs[f.Fn.(*ssa.Function)], bindings}
 		default:
 			fv = fr.reg(iv)
 		}
@@ -380,9 +383,9 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, 
 func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value) value {
 	switch fn := fn.(type) {
 	case *ssa.Function:
-		return i.callFunction(caller, fn, args, nil)
+		return i.callFunction(caller, i.funcs[fn], args, nil)
 	case *closure:
-		return i.callFunction(caller, fn.Fn, args, fn.Env)
+		return i.callFunction(caller, fn.pfn, args, fn.env)
 	case *ssa.Builtin:
 		return i.callBuiltin(caller, fn, args, ssaArgs)
 	case reflect.Value:
@@ -400,9 +403,9 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaArgs []ssa.Value) {
 	switch fn := fn.(type) {
 	case *ssa.Function:
-		i.callFunctionDiscardsResult(caller, fn, args, nil)
+		i.callFunctionDiscardsResult(caller, i.funcs[fn], args, nil)
 	case *closure:
-		i.callFunctionDiscardsResult(caller, fn.Fn, args, fn.Env)
+		i.callFunctionDiscardsResult(caller, fn.pfn, args, fn.env)
 	case *ssa.Builtin:
 		i.callBuiltinDiscardsResult(caller, fn, args, ssaArgs)
 	case reflect.Value:
@@ -412,32 +415,13 @@ func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaAr
 	}
 }
 
-func loc(fset *token.FileSet, pos token.Pos) string {
-	if pos == token.NoPos {
-		return ""
+func (i *Interp) callFunction(caller *frame, pfn *Function, args []value, env []value) (result value) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i] = args[i]
 	}
-	return " at " + fset.Position(pos).String()
-}
-
-func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env []value) (result value) {
-	fr := &frame{
-		interp: i,
-		caller: caller, // for panic/recover
-		pfn:    i.funcs[fn],
-	}
-	if caller != nil {
-		fr.deferid = caller.deferid
-	}
-	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Main
-	var ip = 0
-	for i := range fn.Params {
-		fr.stack[ip] = args[i]
-		ip++
-	}
-	for i := range fn.FreeVars {
-		fr.stack[ip] = env[i]
-		ip++
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
 	n := len(fr.results)
@@ -450,29 +434,17 @@ func (i *Interp) callFunction(caller *frame, fn *ssa.Function, args []value, env
 		}
 		result = tuple(res)
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 	return
 }
 
 func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Function, args []reflect.Value, env []value) (results []reflect.Value) {
-	fr := &frame{
-		interp: i,
-		caller: caller, // for panic/recover
-		pfn:    pfn,
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i] = args[i].Interface()
 	}
-	if caller != nil {
-		fr.deferid = caller.deferid
-	}
-	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Main
-	var ip = 0
-	for i := range args {
-		fr.stack[ip] = args[i].Interface()
-		ip++
-	}
-	for i := range env {
-		fr.stack[ip] = env[i]
-		ip++
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
 	n := len(fr.results)
@@ -487,43 +459,24 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Fun
 			}
 		}
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 	return
 }
 
-func (i *Interp) callFunctionDiscardsResult(caller *frame, fn *ssa.Function, args []value, env []value) {
-	fr := &frame{
-		interp: i,
-		caller: caller, // for panic/recover
-		pfn:    i.funcs[fn],
+func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *Function, args []value, env []value) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i] = args[i]
 	}
-	if caller != nil {
-		fr.deferid = caller.deferid
-	}
-	fr.stack = append([]value{}, fr.pfn.stack...)
-	fr.block = fr.pfn.Main
-	var ip = 0
-	for i := range fn.Params {
-		fr.stack[ip] = args[i]
-		ip++
-	}
-	for i := range fn.FreeVars {
-		fr.stack[ip] = env[i]
-		ip++
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []int) {
-	fr := &frame{
-		interp:  i,
-		caller:  caller, // for panic/recover
-		pfn:     pfn,
-		deferid: caller.deferid,
-	}
-	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Main
+	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
@@ -538,18 +491,11 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 		}
 		caller.setReg(ir, tuple(res))
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir int, ia []int) {
-	fr := &frame{
-		interp:  i,
-		caller:  caller, // for panic/recover
-		pfn:     pfn,
-		deferid: caller.deferid,
-	}
-	fr.stack = append([]value{}, pfn.stack...)
-	fr.block = pfn.Main
+	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
@@ -568,7 +514,29 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 		}
 		caller.setReg(ir, tuple(res))
 	}
-	fr.stack = nil
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir int, ia []int, env []value) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i] = caller.reg(ia[i])
+	}
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
+	}
+	fr.run()
+	n := len(fr.results)
+	if n == 1 {
+		caller.setReg(ir, fr.stack[fr.results[0]])
+	} else if n > 1 {
+		res := make([]value, n, n)
+		for i := 0; i < n; i++ {
+			res[i] = fr.reg(fr.results[i])
+		}
+		caller.setReg(ir, tuple(res))
+	}
+	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env []value) value {
