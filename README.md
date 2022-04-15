@@ -1,10 +1,10 @@
 # gossa - Golang SSA interpreter
 
-[![Go1.14](https://github.com/goplus/gossa/workflows/Go1.14/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.14)
-[![Go1.15](https://github.com/goplus/gossa/workflows/Go1.15/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.15)
-[![Go1.16](https://github.com/goplus/gossa/workflows/Go1.16/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.16)
-[![Go1.17](https://github.com/goplus/gossa/workflows/Go1.17/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.17)
-[![Go1.18](https://github.com/goplus/gossa/workflows/Go1.18/badge.svg)](https://github.com/goplus/gossa/actions?query=workflow%3AGo1.18)
+[![Go1.14](https://github.com/goplus/gossa/workflows/Go1.14/badge.svg)](https://github.com/goplus/gossa/actions/workflows/go114.yml)
+[![Go1.15](https://github.com/goplus/gossa/workflows/Go1.15/badge.svg)](https://github.com/goplus/gossa/actions/workflows/go115.yml)
+[![Go1.16](https://github.com/goplus/gossa/workflows/Go1.16/badge.svg)](https://github.com/goplus/gossa/actions/workflows/go116.yml)
+[![Go1.17](https://github.com/goplus/gossa/workflows/Go1.17/badge.svg)](https://github.com/goplus/gossa/actions/workflows/go117.yml)
+[![Go1.18](https://github.com/goplus/gossa/workflows/Go1.18/badge.svg)](https://github.com/goplus/gossa/actions/workflows/go118.yml)
 
 ### ABI
 
