@@ -12,6 +12,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/reflectx"
+	"github.com/visualfc/funcval"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -1095,10 +1096,29 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		case *ssa.Builtin:
 			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
 		default:
-			v := reflect.ValueOf(fn)
-			interp.callExternalByStack(fr, v, ir, ia)
+			if fv, n := funcval.Get(fn); n == 1 {
+				c := (*makeFuncVal)(unsafe.Pointer(fv))
+				interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
+			} else {
+				v := reflect.ValueOf(fn)
+				interp.callExternalByStack(fr, v, ir, ia)
+			}
 		}
 	}
+}
+
+// makeFuncVal sync with Interp.makeFunc
+// func (i *Interp) makeFunc(typ reflect.Type, pfn *Function, env []value) reflect.Value {
+// 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
+// 		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
+// 	})
+// }
+type makeFuncVal struct {
+	funcval.FuncVal
+	interp *Interp
+	typ    reflect.Type
+	pfn    *Function
+	env    []interface{}
 }
 
 var (

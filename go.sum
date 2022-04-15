@@ -8,6 +8,8 @@ github.com/petermattis/goid v0.0.0-20220302125637-5f11c28912df h1:/B1Q9E4W1cmiwP
 github.com/petermattis/goid v0.0.0-20220302125637-5f11c28912df/go.mod h1:pxMtw7cyUw6B2bRH0ZBANSPg+AoSud1I1iyJHI69jH4=
 github.com/qiniu/x v1.11.5 h1:TYr5cl4g2yoHAZeDK4MTjKF6CMoG+IHlCDvvM5qym6U=
 github.com/qiniu/x v1.11.5/go.mod h1:03Ni9tj+N2h2aKnAz+6N0Xfl8FwMEDRC2PAlxekASDs=
+github.com/visualfc/funcval v0.1.1 h1:WXHRAznV4CaXkL5ssd79LHG5W5C5zTJ6Az52Mii+sS4=
+github.com/visualfc/funcval v0.1.1/go.mod h1:3Izv+irhArmrTvy+lmL6pIq16gSOzx73CIka51J9eR0=
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
