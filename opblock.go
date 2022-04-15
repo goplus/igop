@@ -1089,7 +1089,11 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		fn := fr.reg(iv)
 		if fv, n := funcval.Get(fn); n == 1 {
 			c := (*makeFuncVal)(unsafe.Pointer(fv))
-			interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
+			if c.pfn.Recover == nil {
+				interp.callFunctionByStackNoRecoverWithEnv(fr, c.pfn, ir, ia, c.env)
+			} else {
+				interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
+			}
 		} else {
 			v := reflect.ValueOf(fn)
 			interp.callExternalByStack(fr, v, ir, ia)
