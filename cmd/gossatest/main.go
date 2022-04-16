@@ -70,6 +70,7 @@ func init() {
 	//gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
 	//gorootTestSkips["atomicload.go"] = "slow, 0.5"
 	gorootTestSkips["chan/select5.go"] = "bug, select case expr call order"
+	gorootTestSkips["fixedbugs/issue21879.go"] = "runtime.Callers"
 
 	// fixedbugs/issue7740.go
 	// const ulp = (1.0 + (2.0 / 3.0)) - (5.0 / 3.0)
@@ -129,7 +130,7 @@ func init() {
 	}
 }
 
-func runCommand(input string) bool {
+func runCommand(input string, chkout bool) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
 	cmd := exec.Command(gossaCmd, "run", input)
@@ -137,6 +138,14 @@ func runCommand(input string) bool {
 	if len(data) > 0 {
 		fmt.Println(string(data))
 	}
+	if chkout {
+		if chk, e := ioutil.ReadFile(input[:len(input)-3] + ".out"); e == nil {
+			if bytes.Compare(data, chk) != 0 {
+				err = fmt.Errorf("-- output check error --\n%v", string(chk))
+			}
+		}
+	}
+
 	sec := time.Since(start).Seconds()
 	if err != nil || bytes.Contains(data, []byte("BUG")) {
 		fmt.Println(err)
@@ -156,8 +165,13 @@ func printFailures(failures []string) {
 	}
 }
 
+type runfile struct {
+	filePath string // go source file path
+	checkOut bool   // check output file.out
+}
+
 // $GOROOT/test/*.go runs
-func getGorootTestRuns() (dir string, run []string, runoutput []string) {
+func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 	dir = filepath.Join(build.Default.GOROOT, "test")
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -175,6 +189,9 @@ func getGorootTestRuns() (dir string, run []string, runoutput []string) {
 			}
 			return nil
 		}
+		if filepath.Ext(path) != ".go" {
+			return nil
+		}
 		data, err := ioutil.ReadFile(path)
 		if err != nil {
 			fmt.Printf("read %v error: %v\n", path, err)
@@ -184,7 +201,11 @@ func getGorootTestRuns() (dir string, run []string, runoutput []string) {
 		if len(lines) > 0 {
 			line := strings.TrimSpace(lines[0])
 			if line == "// run" {
-				run = append(run, path)
+				rf := runfile{filePath: path}
+				if s, err := os.Stat(path[:len(path)-3] + ".out"); err == nil && !s.IsDir() {
+					rf.checkOut = true
+				}
+				run = append(run, rf)
 			} else if line == "// runoutput" {
 				runoutput = append(runoutput, path)
 			}
@@ -213,13 +234,13 @@ func main() {
 	var failures []string
 	start := time.Now()
 	for _, input := range runs {
-		f := input[len(dir)+1:]
+		f := input.filePath[len(dir)+1:]
 		if info, ok := gorootTestSkips[f]; ok {
-			fmt.Println("Skip:", input, info)
+			fmt.Println("Skip:", input.filePath, info)
 			continue
 		}
-		if !runCommand(input) {
-			failures = append(failures, input)
+		if !runCommand(input.filePath, input.checkOut) {
+			failures = append(failures, input.filePath)
 		}
 	}
 	for _, input := range runoutput {
@@ -234,7 +255,7 @@ func main() {
 			fmt.Printf("go run %v error, %v\n", input, err)
 			continue
 		}
-		if !runCommand(file) {
+		if !runCommand(file, false) {
 			failures = append(failures, input)
 		}
 	}

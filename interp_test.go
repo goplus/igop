@@ -26,32 +26,18 @@ import (
 
 	"github.com/goplus/gossa"
 	_ "github.com/goplus/gossa/pkg/bytes"
-	_ "github.com/goplus/gossa/pkg/context"
-	_ "github.com/goplus/gossa/pkg/crypto/md5"
-	_ "github.com/goplus/gossa/pkg/encoding/binary"
 	_ "github.com/goplus/gossa/pkg/errors"
-	_ "github.com/goplus/gossa/pkg/flag"
 	_ "github.com/goplus/gossa/pkg/fmt"
-	_ "github.com/goplus/gossa/pkg/go/ast"
-	_ "github.com/goplus/gossa/pkg/io"
-	_ "github.com/goplus/gossa/pkg/io/ioutil"
-	_ "github.com/goplus/gossa/pkg/log"
 	_ "github.com/goplus/gossa/pkg/math"
-	_ "github.com/goplus/gossa/pkg/math/rand"
 	_ "github.com/goplus/gossa/pkg/os"
 	_ "github.com/goplus/gossa/pkg/reflect"
 	_ "github.com/goplus/gossa/pkg/runtime"
-	_ "github.com/goplus/gossa/pkg/runtime/debug"
-	_ "github.com/goplus/gossa/pkg/strconv"
 	_ "github.com/goplus/gossa/pkg/strings"
 	_ "github.com/goplus/gossa/pkg/sync"
-	_ "github.com/goplus/gossa/pkg/sync/atomic"
-	_ "github.com/goplus/gossa/pkg/syscall"
-	_ "github.com/goplus/gossa/pkg/testing"
 	_ "github.com/goplus/gossa/pkg/time"
 )
 
-// These are files in go.tools/go/ssa/interp/testdata/.
+// These are files in github.com/goplus/gossa/testdata/.
 var testdataTests = []string{
 	"boundmeth.go",
 	"complit.go",
