@@ -539,6 +539,32 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir int
 	pfn.deleteFrame(fr)
 }
 
+func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *Function, ir int, ia []int, env []value) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i] = caller.reg(ia[i])
+	}
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i] = env[i]
+	}
+	for fr.pc != -1 {
+		fn := fr.pfn.Instrs[fr.pc]
+		fr.pc++
+		fn(fr)
+	}
+	n := len(fr.results)
+	if n == 1 {
+		caller.setReg(ir, fr.stack[fr.results[0]])
+	} else if n > 1 {
+		res := make([]value, n, n)
+		for i := 0; i < n; i++ {
+			res[i] = fr.reg(fr.results[i])
+		}
+		caller.setReg(ir, tuple(res))
+	}
+	pfn.deleteFrame(fr)
+}
+
 func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env []value) value {
 	if caller != nil && caller.deferid != 0 {
 		i.deferMap.Store(caller.deferid, caller)

@@ -1085,24 +1085,18 @@ func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	if typ.Kind() != reflect.Func {
 		panic("unsupport")
 	}
-	ia = append(ia, ib...)
 	return func(fr *frame) {
 		fn := fr.reg(iv)
-		switch fn := fn.(type) {
-		case *ssa.Function:
-			interp.callFunctionByStack(fr, interp.funcs[fn], ir, ia)
-		case *closure:
-			interp.callFunctionByStack(fr, fn.pfn, ir, ia)
-		case *ssa.Builtin:
-			interp.callBuiltinByStack(fr, fn.Name(), call.Args, ir, ia)
-		default:
-			if fv, n := funcval.Get(fn); n == 1 {
-				c := (*makeFuncVal)(unsafe.Pointer(fv))
-				interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
+		if fv, n := funcval.Get(fn); n == 1 {
+			c := (*makeFuncVal)(unsafe.Pointer(fv))
+			if c.pfn.Recover == nil {
+				interp.callFunctionByStackNoRecoverWithEnv(fr, c.pfn, ir, ia, c.env)
 			} else {
-				v := reflect.ValueOf(fn)
-				interp.callExternalByStack(fr, v, ir, ia)
+				interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
 			}
+		} else {
+			v := reflect.ValueOf(fn)
+			interp.callExternalByStack(fr, v, ir, ia)
 		}
 	}
 }
