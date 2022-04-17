@@ -122,7 +122,7 @@ func (i *Interp) loadFunction(fn *ssa.Function) *Function {
 		Fn:               fn,
 		Main:             fn.Blocks[0],
 		mapUnderscoreKey: make(map[types.Type]bool),
-		index:            make(map[ssa.Value]uint32),
+		index:            make(map[ssa.Value]Register),
 		narg:             len(fn.Params),
 		nenv:             len(fn.FreeVars),
 	}
@@ -191,20 +191,20 @@ type frame struct {
 	pred      int
 	deferid   int64
 	stack     []value
-	results   []int
+	results   []Register
 	cached    bool // function pool put cached or new
 }
 
-func (fr *frame) setReg(index int, v value) {
-	fr.stack[index] = v
+func (fr *frame) setReg(index Register, v value) {
+	index.Set(fr, v)
 }
 
-func (fr *frame) reg(index int) value {
-	return fr.stack[index]
+func (fr *frame) reg(index Register) value {
+	return index.Get(fr)
 }
 
-func (fr *frame) copyReg(dst int, src int) {
-	fr.stack[dst] = fr.stack[src]
+func (fr *frame) copyReg(dst Register, src Register) {
+	dst.Set(fr, src.Get(fr))
 }
 
 type panicking struct {
@@ -316,7 +316,7 @@ func (i *DebugInfo) AsFunc() (*types.Func, bool) {
 // function call in a Call, Go or Defer instruction, performing
 // interface method lookup if needed.
 //
-func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv int, ia []int, ib []int) (fv value, args []value) {
+func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv Register, ia []Register, ib []Register) (fv value, args []value) {
 	if call.Method == nil {
 		switch f := call.Value.(type) {
 		case *ssa.Builtin:
@@ -426,7 +426,7 @@ func (i *Interp) callFunction(caller *frame, pfn *Function, args []value, env []
 	fr.run()
 	n := len(fr.results)
 	if n == 1 {
-		result = fr.stack[fr.results[0]]
+		result = fr.reg(fr.results[0])
 	} else if n > 1 {
 		res := make([]value, n, n)
 		for i := 0; i < n; i++ {
@@ -451,7 +451,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Fun
 	if n > 0 {
 		results = make([]reflect.Value, n, n)
 		for i := 0; i < n; i++ {
-			v := fr.stack[fr.results[i]]
+			v := fr.reg(fr.results[i])
 			if v == nil {
 				results[i] = reflect.New(typ.Out(i)).Elem()
 			} else {
@@ -475,7 +475,7 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *Function, args [
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []int) {
+func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir Register, ia []Register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -483,7 +483,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 	fr.run()
 	n := len(fr.results)
 	if n == 1 {
-		caller.setReg(ir, fr.stack[fr.results[0]])
+		caller.setReg(ir, fr.reg(fr.results[0]))
 	} else if n > 1 {
 		res := make([]value, n, n)
 		for i := 0; i < n; i++ {
@@ -494,7 +494,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir int, ia []
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir int, ia []int) {
+func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir Register, ia []Register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -506,7 +506,7 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 	}
 	n := len(fr.results)
 	if n == 1 {
-		caller.setReg(ir, fr.stack[fr.results[0]])
+		caller.setReg(ir, fr.reg(fr.results[0]))
 	} else if n > 1 {
 		res := make([]value, n, n)
 		for i := 0; i < n; i++ {
@@ -517,7 +517,7 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir i
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir int, ia []int, env []value) {
+func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir Register, ia []Register, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -528,7 +528,7 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir int
 	fr.run()
 	n := len(fr.results)
 	if n == 1 {
-		caller.setReg(ir, fr.stack[fr.results[0]])
+		caller.setReg(ir, fr.reg(fr.results[0]))
 	} else if n > 1 {
 		res := make([]value, n, n)
 		for i := 0; i < n; i++ {
@@ -539,7 +539,7 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir int
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *Function, ir int, ia []int, env []value) {
+func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *Function, ir Register, ia []Register, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -554,7 +554,7 @@ func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *Functio
 	}
 	n := len(fr.results)
 	if n == 1 {
-		caller.setReg(ir, fr.stack[fr.results[0]])
+		caller.setReg(ir, fr.reg(fr.results[0]))
 	} else if n > 1 {
 		res := make([]value, n, n)
 		for i := 0; i < n; i++ {
@@ -640,7 +640,7 @@ func (i *Interp) callExternalDiscardsResult(caller *frame, fn reflect.Value, arg
 	}
 }
 
-func (i *Interp) callExternalByStack(caller *frame, fn reflect.Value, ir int, ia []int) {
+func (i *Interp) callExternalByStack(caller *frame, fn reflect.Value, ir Register, ia []Register) {
 	if caller.deferid != 0 {
 		i.deferMap.Store(caller.deferid, caller)
 	}

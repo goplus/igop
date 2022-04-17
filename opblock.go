@@ -75,16 +75,34 @@ const (
 	kindFunction
 )
 
+type Register uint32
+
+func (i Register) Set(fr *frame, v value) {
+	fr.stack[i&0xffffff] = v
+}
+
+func (i Register) Get(fr *frame) value {
+	return fr.stack[i&0xffffff]
+}
+
+func (i Register) Kind() kind {
+	return kind(i >> 24)
+}
+
+func (i Register) Index() int {
+	return int(i & 0xffffff)
+}
+
 type Function struct {
 	Interp           *Interp
-	Fn               *ssa.Function        // ssa function
-	Main             *ssa.BasicBlock      // Fn.Blocks[0]
-	Instrs           []func(fr *frame)    // main instrs
-	Recover          []func(fr *frame)    // recover instrs
-	Blocks           []int                // block offset
-	stack            []value              // stack
-	ssaInstrs        []ssa.Instruction    // org ssa instr
-	index            map[ssa.Value]uint32 // stack index
+	Fn               *ssa.Function          // ssa function
+	Main             *ssa.BasicBlock        // Fn.Blocks[0]
+	Instrs           []func(fr *frame)      // main instrs
+	Recover          []func(fr *frame)      // recover instrs
+	Blocks           []int                  // block offset
+	stack            []value                // stack
+	ssaInstrs        []ssa.Instruction      // org ssa instr
+	index            map[ssa.Value]Register // stack index
 	mapUnderscoreKey map[types.Type]bool
 	pool             *sync.Pool
 	narg             int
@@ -150,23 +168,12 @@ func (p *Function) PosForPC(pc int) token.Pos {
 	return token.NoPos
 }
 
-func (p *Function) regIndex(v ssa.Value) int {
-	instr := p.regInstr(v)
-	return int(instr & 0xffffff)
+func (p *Function) regIndex3(v ssa.Value) (Register, kind, value) {
+	instr := p.regIndex(v)
+	return instr, instr.Kind(), p.stack[instr.Index()]
 }
 
-func (p *Function) regIndex2(v ssa.Value) (int, kind) {
-	instr := p.regInstr(v)
-	return int(instr & 0xffffff), kind(instr >> 24)
-}
-
-func (p *Function) regIndex3(v ssa.Value) (int, kind, value) {
-	instr := p.regInstr(v)
-	index := int(instr & 0xffffff)
-	return index, kind(instr >> 24), p.stack[index]
-}
-
-func (p *Function) regInstr(v ssa.Value) uint32 {
+func (p *Function) regIndex(v ssa.Value) Register {
 	if i, ok := p.index[v]; ok {
 		return i
 	}
@@ -187,8 +194,7 @@ func (p *Function) regInstr(v ssa.Value) uint32 {
 			vk = kindFunction
 		}
 	}
-	i := uint32(len(p.stack))
-	i |= uint32(vk << 24)
+	i := Register(len(p.stack) | int(vk<<24))
 	p.stack = append(p.stack, vs)
 	p.index[v] = i
 	return i
@@ -252,7 +258,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		}
 	case *ssa.Phi:
 		ir := pfn.regIndex(instr)
-		ie := make([]int, len(instr.Edges))
+		ie := make([]Register, len(instr.Edges))
 		for i, v := range instr.Edges {
 			ie[i] = pfn.regIndex(v)
 		}
@@ -411,7 +417,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		fn := instr.Fn.(*ssa.Function)
 		typ := interp.preToType(fn.Type())
 		ir := pfn.regIndex(instr)
-		ib := make([]int, len(instr.Bindings))
+		ib := make([]Register, len(instr.Bindings))
 		for i, v := range instr.Bindings {
 			ib[i] = pfn.regIndex(v)
 		}
@@ -609,8 +615,8 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		}
 	case *ssa.Select:
 		ir := pfn.regIndex(instr)
-		ic := make([]int, len(instr.States))
-		is := make([]int, len(instr.States))
+		ic := make([]Register, len(instr.States))
+		is := make([]Register, len(instr.States))
 		for i, state := range instr.States {
 			ic[i] = pfn.regIndex(state.Chan)
 			if state.Send != nil {
@@ -772,11 +778,11 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 		case 1:
 			ir := pfn.regIndex(instr.Results[0])
 			return func(fr *frame) {
-				fr.results = []int{ir}
+				fr.results = []Register{ir}
 				fr.pc = -1
 			}
 		default:
-			ir := make([]int, n, n)
+			ir := make([]Register, n, n)
 			for i, v := range instr.Results {
 				ir[i] = pfn.regIndex(v)
 			}
@@ -930,14 +936,14 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	}
 }
 
-func getCallIndex(pfn *Function, call *ssa.CallCommon) (iv int, ia []int, ib []int) {
+func getCallIndex(pfn *Function, call *ssa.CallCommon) (iv Register, ia []Register, ib []Register) {
 	iv = pfn.regIndex(call.Value)
-	ia = make([]int, len(call.Args), len(call.Args))
+	ia = make([]Register, len(call.Args), len(call.Args))
 	for i, v := range call.Args {
 		ia[i] = pfn.regIndex(v)
 	}
 	if f, ok := call.Value.(*ssa.MakeClosure); ok {
-		ib = make([]int, len(f.Bindings), len(f.Bindings))
+		ib = make([]Register, len(f.Bindings), len(f.Bindings))
 		for i, binding := range f.Bindings {
 			ib[i] = pfn.regIndex(binding)
 		}
@@ -1150,9 +1156,9 @@ func (i *Interp) findMethod(typ reflect.Type, mname string) (fn *ssa.Function, o
 	return
 }
 
-func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, ir int, iv int, ia []int) func(fr *frame) {
+func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, ir Register, iv Register, ia []Register) func(fr *frame) {
 	mname := call.Method.Name()
-	ia = append([]int{iv}, ia...)
+	ia = append([]Register{iv}, ia...)
 	var found bool
 	var ext reflect.Value
 	return func(fr *frame) {

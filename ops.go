@@ -218,7 +218,7 @@ func asUint64(x value) uint64 {
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
-func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool, ix, ih, il, im int) reflect.Value {
+func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool, ix, ih, il, im Register) reflect.Value {
 	// x := fr.get(instr.X)
 	x := fr.reg(ix)
 	var Len, Cap int
@@ -1651,7 +1651,7 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
-func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.Value, ir int, ia []int) {
+func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.Value, ir Register, ia []Register) {
 	switch fn {
 	case "append":
 		if len(ia) == 1 {
