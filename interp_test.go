@@ -671,3 +671,48 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestFibi(t *testing.T) {
+	src := `package main
+
+import "sync"
+
+type I interface {
+	fib(i I, n int) int
+}
+
+type T struct {
+}
+
+func (t *T) fib(i I, n int) int {
+	if n < 2 {
+		return n
+	}
+	return i.fib(i, n-2) + i.fib(i, n-1)
+}
+
+func fib(n int) int {
+	t := &T{}
+	return t.fib(t, n)
+}
+
+func main() {
+	var wg sync.WaitGroup
+	const N = 10
+	for i := 0; i < N; i++ {
+		wg.Add(1)
+		go func() {
+			if fib(20) != 6765 {
+				panic("error")
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
