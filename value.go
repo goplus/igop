@@ -11,18 +11,6 @@ import (
 	"unsafe"
 )
 
-type Value = value
-type Tuple = tuple
-
-type value = interface{}
-
-type tuple []value
-
-type closure struct {
-	pfn *Function
-	env []value
-}
-
 // emptyInterface is the header for an interface{} value.
 type emptyInterface struct {
 	typ  unsafe.Pointer

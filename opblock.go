@@ -75,9 +75,19 @@ const (
 	kindFunction
 )
 
-type register int
+type Value = value
+type Tuple = tuple
 
-type Function struct {
+type register int
+type value = interface{}
+type tuple []value
+
+type closure struct {
+	pfn *function
+	env []value
+}
+
+type function struct {
 	Interp           *Interp
 	Fn               *ssa.Function        // ssa function
 	Main             *ssa.BasicBlock      // Fn.Blocks[0]
@@ -95,7 +105,7 @@ type Function struct {
 	cached           int32 // enable cached by pool
 }
 
-func (p *Function) initPool() {
+func (p *function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
 		fr := &frame{interp: p.Interp, pfn: p, block: p.Main}
@@ -104,7 +114,7 @@ func (p *Function) initPool() {
 	}
 }
 
-func (p *Function) allocFrame(caller *frame) *frame {
+func (p *function) allocFrame(caller *frame) *frame {
 	var fr *frame
 	if atomic.LoadInt32(&p.cached) == 1 {
 		fr = p.pool.Get().(*frame)
@@ -129,39 +139,39 @@ func (p *Function) allocFrame(caller *frame) *frame {
 	return fr
 }
 
-func (p *Function) deleteFrame(fr *frame) {
+func (p *function) deleteFrame(fr *frame) {
 	if atomic.LoadInt32(&p.cached) == 1 {
 		p.pool.Put(fr)
 	}
 	fr = nil
 }
 
-func (p *Function) InstrForPC(pc int) ssa.Instruction {
+func (p *function) InstrForPC(pc int) ssa.Instruction {
 	if pc >= 0 && pc < len(p.ssaInstrs) {
 		return p.ssaInstrs[pc]
 	}
 	return nil
 }
 
-func (p *Function) PosForPC(pc int) token.Pos {
+func (p *function) PosForPC(pc int) token.Pos {
 	if instr := p.InstrForPC(pc); instr != nil {
 		return instr.Pos()
 	}
 	return token.NoPos
 }
 
-func (p *Function) regIndex3(v ssa.Value) (register, kind, value) {
+func (p *function) regIndex3(v ssa.Value) (register, kind, value) {
 	instr := p.regInstr(v)
 	index := int(instr & 0xffffff)
 	return register(index), kind(instr >> 24), p.stack[index]
 }
 
-func (p *Function) regIndex(v ssa.Value) register {
+func (p *function) regIndex(v ssa.Value) register {
 	instr := p.regInstr(v)
 	return register(instr & 0xffffff)
 }
 
-func (p *Function) regInstr(v ssa.Value) uint32 {
+func (p *function) regInstr(v ssa.Value) uint32 {
 	if i, ok := p.index[v]; ok {
 		return i
 	}
@@ -223,7 +233,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	return
 }
 
-func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *frame) {
+func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *frame) {
 	switch instr := instr.(type) {
 	case *ssa.Alloc:
 		if instr.Heap {
@@ -924,7 +934,7 @@ func makeInstr(interp *Interp, pfn *Function, instr ssa.Instruction) func(fr *fr
 	}
 }
 
-func getCallIndex(pfn *Function, call *ssa.CallCommon) (iv register, ia []register, ib []register) {
+func getCallIndex(pfn *function, call *ssa.CallCommon) (iv register, ia []register, ib []register) {
 	iv = pfn.regIndex(call.Value)
 	ia = make([]register, len(call.Args), len(call.Args))
 	for i, v := range call.Args {
@@ -939,7 +949,7 @@ func getCallIndex(pfn *Function, call *ssa.CallCommon) (iv register, ia []regist
 	return
 }
 
-func makeConvertInstr(pfn *Function, interp *Interp, instr *ssa.Convert) func(fr *frame) {
+func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr *frame) {
 	typ := interp.preToType(instr.Type())
 	xtyp := interp.preToType(instr.X.Type())
 	vk := xtyp.Kind()
@@ -1025,7 +1035,7 @@ func makeConvertInstr(pfn *Function, interp *Interp, instr *ssa.Convert) func(fr
 	}
 }
 
-func makeCallInstr(pfn *Function, interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame) {
+func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame) {
 	ir := pfn.regIndex(instr)
 	iv, ia, ib := getCallIndex(pfn, call)
 	switch fn := call.Value.(type) {
@@ -1105,7 +1115,7 @@ type makeFuncVal struct {
 	funcval.FuncVal
 	interp *Interp
 	typ    reflect.Type
-	pfn    *Function
+	pfn    *function
 	env    []interface{}
 }
 

@@ -104,7 +104,7 @@ type Interp struct {
 	loader       Loader
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
-	funcs        map[*ssa.Function]*Function
+	funcs        map[*ssa.Function]*function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
 }
 
@@ -113,11 +113,11 @@ func (i *Interp) installed(path string) (pkg *Package, ok bool) {
 	return
 }
 
-func (i *Interp) loadFunction(fn *ssa.Function) *Function {
+func (i *Interp) loadFunction(fn *ssa.Function) *function {
 	if pfn, ok := i.funcs[fn]; ok {
 		return pfn
 	}
-	pfn := &Function{
+	pfn := &function{
 		Interp:           i,
 		Fn:               fn,
 		Main:             fn.Blocks[0],
@@ -166,7 +166,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
-func (i *Interp) makeFunc(typ reflect.Type, pfn *Function, env []value) reflect.Value {
+func (i *Interp) makeFunc(typ reflect.Type, pfn *function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
 	})
@@ -183,7 +183,7 @@ type deferred struct {
 type frame struct {
 	interp    *Interp
 	caller    *frame
-	pfn       *Function
+	pfn       *function
 	defers    *deferred
 	panicking *panicking
 	block     *ssa.BasicBlock
@@ -414,7 +414,7 @@ func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaAr
 	}
 }
 
-func (i *Interp) callFunction(caller *frame, pfn *Function, args []value, env []value) (result value) {
+func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []value) (result value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = args[i]
@@ -437,7 +437,7 @@ func (i *Interp) callFunction(caller *frame, pfn *Function, args []value, env []
 	return
 }
 
-func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Function, args []reflect.Value, env []value) (results []reflect.Value) {
+func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *function, args []reflect.Value, env []value) (results []reflect.Value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = args[i].Interface()
@@ -462,7 +462,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *Fun
 	return
 }
 
-func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *Function, args []value, env []value) {
+func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *function, args []value, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = args[i]
@@ -474,7 +474,7 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *Function, args [
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir register, ia []register) {
+func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, ia []register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -493,7 +493,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *Function, ir register, 
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir register, ia []register) {
+func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *function, ir register, ia []register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -516,7 +516,7 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *Function, ir r
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir register, ia []register, env []value) {
+func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -538,7 +538,7 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *Function, ir reg
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *Function, ir register, ia []register, env []value) {
+func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -791,7 +791,7 @@ func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 		loader:       ctx.Loader,
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
-		funcs:        make(map[*ssa.Function]*Function),
+		funcs:        make(map[*ssa.Function]*function),
 		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
 	}
 	i.record = NewTypesRecord(i.loader, i)
