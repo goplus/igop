@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -1177,4 +1178,36 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 		}
 		interp.callExternalByStack(fr, ext, ir, ia)
 	}
+}
+
+type stringIter struct {
+	*strings.Reader
+	i int
+}
+
+func (it *stringIter) next() tuple {
+	okv := make(tuple, 3)
+	ch, n, err := it.ReadRune()
+	ok := err != io.EOF
+	okv[0] = ok
+	if ok {
+		okv[1] = it.i
+		okv[2] = ch
+	}
+	it.i += n
+	return okv
+}
+
+type mapIter struct {
+	iter *reflect.MapIter
+	ok   bool
+}
+
+func (it *mapIter) next() tuple {
+	it.ok = it.iter.Next()
+	if !it.ok {
+		return []value{false, nil, nil}
+	}
+	k, v := it.iter.Key().Interface(), it.iter.Value().Interface()
+	return []value{true, k, v}
 }
