@@ -194,7 +194,6 @@ type frame struct {
 	deferid   int64
 	stack     []value
 	results   []Register
-	cached    bool // function pool put cached or new
 }
 
 func (fr *frame) setReg(index Register, v value) {

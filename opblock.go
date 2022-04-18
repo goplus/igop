@@ -142,7 +142,7 @@ func (p *Function) allocFrame(caller *frame) *frame {
 	if caller != nil {
 		fr.deferid = caller.deferid
 	}
-	if fr.cached {
+	if fr.pc == -1 {
 		fr.block = p.Main
 		fr.defers = nil
 		fr.panicking = nil
@@ -155,7 +155,6 @@ func (p *Function) allocFrame(caller *frame) *frame {
 func (p *Function) deleteFrame(fr *frame) {
 	// release closure env for gc
 	if atomic.LoadInt32(&p.cached) == 1 {
-		fr.cached = true
 		p.pool.Put(fr)
 	}
 	fr = nil
