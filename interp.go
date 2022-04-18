@@ -192,15 +192,14 @@ type frame struct {
 	deferid   int64
 	stack     []value
 	results   []register
-	cached    bool // function pool put cached or new
 }
 
-func (fr *frame) setReg(index register, v value) {
-	fr.stack[index] = v
+func (fr *frame) setReg(ir register, v value) {
+	fr.stack[ir] = v
 }
 
-func (fr *frame) reg(index register) value {
-	return fr.stack[index]
+func (fr *frame) reg(ir register) value {
+	return fr.stack[ir]
 }
 
 func (fr *frame) copyReg(dst register, src register) {
