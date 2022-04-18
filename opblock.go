@@ -108,10 +108,10 @@ type Function struct {
 	Recover          []func(fr *frame)      // recover instrs
 	Blocks           []int                  // block offset
 	ssaInstrs        []ssa.Instruction      // org ssa instr
-	stack            []value                // data stack
 	stackIndex       map[ssa.Value]Register // data stack index
 	mapUnderscoreKey map[types.Type]bool
 	pool             *sync.Pool
+	nstack           int
 	narg             int
 	nenv             int
 	used             int32 // function used count
@@ -122,7 +122,7 @@ func (p *Function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
 		fr := &frame{interp: p.Interp, pfn: p, block: p.Main}
-		fr.stack = append([]value{}, p.stack...)
+		fr.stack = make([]value, p.nstack, p.nstack)
 		return fr
 	}
 }
@@ -136,7 +136,7 @@ func (p *Function) allocFrame(caller *frame) *frame {
 			atomic.StoreInt32(&p.cached, 1)
 		}
 		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
-		fr.stack = append([]value{}, p.stack...)
+		fr.stack = make([]value, p.nstack, p.nstack)
 	}
 	fr.caller = caller
 	if caller != nil {
@@ -213,8 +213,8 @@ func (p *Function) regIndex(v ssa.Value) (reg Register) {
 		p.Interp.stack = append(p.Interp.stack, vs)
 		p.Interp.stackIndex[v] = reg
 	} else {
-		reg = Register(len(p.stack))
-		p.stack = append(p.stack, nil)
+		reg = Register(p.nstack)
+		p.nstack++
 		p.stackIndex[v] = reg
 	}
 	return
