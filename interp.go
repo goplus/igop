@@ -104,6 +104,8 @@ type Interp struct {
 	loader       Loader
 	record       *TypesRecord
 	typesMutex   sync.RWMutex
+	stack        []value                // static const/global/function stack
+	stackIndex   map[ssa.Value]Register // static stack index
 	funcs        map[*ssa.Function]*Function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
 }
@@ -122,7 +124,7 @@ func (i *Interp) loadFunction(fn *ssa.Function) *Function {
 		Fn:               fn,
 		Main:             fn.Blocks[0],
 		mapUnderscoreKey: make(map[types.Type]bool),
-		index:            make(map[ssa.Value]Register),
+		stackIndex:       make(map[ssa.Value]Register),
 		narg:             len(fn.Params),
 		nenv:             len(fn.FreeVars),
 	}
@@ -794,6 +796,7 @@ func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*Function),
 		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
+		stackIndex:   make(map[ssa.Value]Register),
 	}
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)

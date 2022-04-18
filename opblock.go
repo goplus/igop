@@ -78,11 +78,18 @@ const (
 type Register uint32
 
 func (i Register) Set(fr *frame, v value) {
-	fr.stack[i&0xffffff] = v
+	if i>>24 == 0 {
+		fr.stack[i] = v
+	} else {
+		fr.interp.stack[i&0xffffff] = v
+	}
 }
 
 func (i Register) Get(fr *frame) value {
-	return fr.stack[i&0xffffff]
+	if i>>24 == 0 {
+		return fr.stack[i]
+	}
+	return fr.interp.stack[i&0xffffff]
 }
 
 func (i Register) Kind() kind {
@@ -100,9 +107,9 @@ type Function struct {
 	Instrs           []func(fr *frame)      // main instrs
 	Recover          []func(fr *frame)      // recover instrs
 	Blocks           []int                  // block offset
-	stack            []value                // stack
 	ssaInstrs        []ssa.Instruction      // org ssa instr
-	index            map[ssa.Value]Register // stack index
+	stack            []value                // data stack
+	stackIndex       map[ssa.Value]Register // data stack index
 	mapUnderscoreKey map[types.Type]bool
 	pool             *sync.Pool
 	narg             int
@@ -168,13 +175,20 @@ func (p *Function) PosForPC(pc int) token.Pos {
 	return token.NoPos
 }
 
-func (p *Function) regIndex3(v ssa.Value) (Register, kind, value) {
-	instr := p.regIndex(v)
-	return instr, instr.Kind(), p.stack[instr.Index()]
+func (p *Function) regIndex3(v ssa.Value) (ir Register, ik kind, iv value) {
+	ir = p.regIndex(v)
+	ik = ir.Kind()
+	if ik != 0 {
+		iv = p.Interp.stack[ir.Index()]
+	}
+	return
 }
 
-func (p *Function) regIndex(v ssa.Value) Register {
-	if i, ok := p.index[v]; ok {
+func (p *Function) regIndex(v ssa.Value) (reg Register) {
+	if i, ok := p.Interp.stackIndex[v]; ok {
+		return i
+	}
+	if i, ok := p.stackIndex[v]; ok {
 		return i
 	}
 	var vs interface{}
@@ -194,10 +208,16 @@ func (p *Function) regIndex(v ssa.Value) Register {
 			vk = kindFunction
 		}
 	}
-	i := Register(len(p.stack) | int(vk<<24))
-	p.stack = append(p.stack, vs)
-	p.index[v] = i
-	return i
+	if vk != 0 {
+		reg = Register(len(p.Interp.stack) | int(vk<<24))
+		p.Interp.stack = append(p.Interp.stack, vs)
+		p.Interp.stackIndex[v] = reg
+	} else {
+		reg = Register(len(p.stack))
+		p.stack = append(p.stack, nil)
+		p.stackIndex[v] = reg
+	}
+	return
 }
 
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
