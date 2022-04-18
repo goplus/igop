@@ -50,6 +50,12 @@ func writevalue(buf *bytes.Buffer, v interface{}, enableAny bool) {
 	}
 }
 
+// emptyInterface is the header for an interface{} value.
+type emptyInterface struct {
+	typ  unsafe.Pointer
+	word unsafe.Pointer
+}
+
 func writeinterface(out *bytes.Buffer, i interface{}) {
 	eface := *(*emptyInterface)(unsafe.Pointer(&i))
 	fmt.Fprintf(out, "(%p,%p)", eface.typ, eface.word)
