@@ -277,40 +277,38 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		iy := pfn.regIndex(instr.Y)
 		switch instr.Op {
 		case token.ADD:
-			return func(fr *frame) {
-				fr.setReg(ir, opADD(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpADD(pfn, instr)
 		case token.SUB:
-			return func(fr *frame) {
-				fr.setReg(ir, opSUB(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpSUB(pfn, instr)
 		case token.MUL:
-			return func(fr *frame) {
-				fr.setReg(ir, opMUL(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpMUL(pfn, instr)
 		case token.QUO:
-			return func(fr *frame) {
-				fr.setReg(ir, opQuo(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpQUO(pfn, instr)
 		case token.REM:
-			return func(fr *frame) {
-				fr.setReg(ir, opREM(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpREM(pfn, instr)
 		case token.AND:
-			return func(fr *frame) {
-				fr.setReg(ir, opAND(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpAND(pfn, instr)
 		case token.OR:
-			return func(fr *frame) {
-				fr.setReg(ir, opOR(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpOR(pfn, instr)
 		case token.XOR:
-			return func(fr *frame) {
-				fr.setReg(ir, opXOR(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpXOR(pfn, instr)
 		case token.AND_NOT:
+			return makeBinOpANDNOT(pfn, instr)
+		case token.LSS:
+			return makeBinOpLSS(pfn, instr)
+		case token.LEQ:
+			return makeBinOpLEQ(pfn, instr)
+		case token.GTR:
+			return makeBinOpGTR(pfn, instr)
+		case token.GEQ:
+			return makeBinOpGEQ(pfn, instr)
+		case token.EQL:
 			return func(fr *frame) {
-				fr.setReg(ir, opANDNOT(fr.reg(ix), fr.reg(iy)))
+				fr.setReg(ir, opEQL(instr, fr.reg(ix), fr.reg(iy)))
+			}
+		case token.NEQ:
+			return func(fr *frame) {
+				fr.setReg(ir, !opEQL(instr, fr.reg(ix), fr.reg(iy)))
 			}
 		case token.SHL:
 			return func(fr *frame) {
@@ -320,32 +318,8 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			return func(fr *frame) {
 				fr.setReg(ir, opSHR(fr.reg(ix), fr.reg(iy)))
 			}
-		case token.LSS:
-			return func(fr *frame) {
-				fr.setReg(ir, opLSS(fr.reg(ix), fr.reg(iy)))
-			}
-		case token.LEQ:
-			return func(fr *frame) {
-				fr.setReg(ir, opLEQ(fr.reg(ix), fr.reg(iy)))
-			}
-		case token.EQL:
-			return func(fr *frame) {
-				fr.setReg(ir, opEQL(instr, fr.reg(ix), fr.reg(iy)))
-			}
-		case token.NEQ:
-			return func(fr *frame) {
-				fr.setReg(ir, !opEQL(instr, fr.reg(ix), fr.reg(iy)))
-			}
-		case token.GTR:
-			return func(fr *frame) {
-				fr.setReg(ir, opGTR(fr.reg(ix), fr.reg(iy)))
-			}
-		case token.GEQ:
-			return func(fr *frame) {
-				fr.setReg(ir, opGEQ(fr.reg(ix), fr.reg(iy)))
-			}
 		default:
-			panic(fmt.Errorf("unreachable %v", instr.Op))
+			panic("unreachable")
 		}
 	case *ssa.UnOp:
 		ir := pfn.regIndex(instr)
