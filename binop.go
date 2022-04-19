@@ -640,7 +640,6 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(complex128)-fr.reg(iy).(complex128))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -737,7 +736,6 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -990,7 +988,6 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(complex128)*fr.reg(iy).(complex128))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -1087,7 +1084,6 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -1340,7 +1336,6 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(complex128)/fr.reg(iy).(complex128))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -1437,7 +1432,6 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -1626,7 +1620,6 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(uintptr)%fr.reg(iy).(uintptr))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -1677,7 +1670,6 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -1866,7 +1858,6 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(uintptr)&fr.reg(iy).(uintptr))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -1917,7 +1908,6 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -2106,7 +2096,6 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(uintptr)|fr.reg(iy).(uintptr))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -2157,7 +2146,6 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -2346,7 +2334,6 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(uintptr)^fr.reg(iy).(uintptr))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -2397,7 +2384,6 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -2586,7 +2572,6 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(uintptr)&^fr.reg(iy).(uintptr))
 				}
 			}
-
 		}
 	} else {
 		r := reflect.New(typ).Elem()
@@ -2637,7 +2622,6 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, r.Interface())
 				}
 			}
-
 		}
 	}
 	panic("unreachable")
@@ -2858,7 +2842,6 @@ func makeBinOpLSS(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(float64) < fr.reg(iy).(float64))
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := vx.(string)
@@ -2877,29 +2860,25 @@ func makeBinOpLSS(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		r := reflect.New(typ).Elem()
 		switch typ.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).Int()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Int()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			}
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
@@ -2907,22 +2886,19 @@ func makeBinOpLSS(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Uint()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Uint()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			}
 		case reflect.Float32, reflect.Float64:
@@ -2930,46 +2906,39 @@ func makeBinOpLSS(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Float()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Float()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).String()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).String()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x < y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x < y)
 				}
 			}
 		}
@@ -3192,7 +3161,6 @@ func makeBinOpLEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(float64) <= fr.reg(iy).(float64))
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := vx.(string)
@@ -3211,29 +3179,25 @@ func makeBinOpLEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		r := reflect.New(typ).Elem()
 		switch typ.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).Int()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Int()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			}
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
@@ -3241,22 +3205,19 @@ func makeBinOpLEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Uint()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Uint()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			}
 		case reflect.Float32, reflect.Float64:
@@ -3264,46 +3225,39 @@ func makeBinOpLEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Float()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Float()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).String()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).String()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x <= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x <= y)
 				}
 			}
 		}
@@ -3526,7 +3480,6 @@ func makeBinOpGTR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(float64) > fr.reg(iy).(float64))
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := vx.(string)
@@ -3545,29 +3498,25 @@ func makeBinOpGTR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		r := reflect.New(typ).Elem()
 		switch typ.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).Int()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Int()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			}
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
@@ -3575,22 +3524,19 @@ func makeBinOpGTR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Uint()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Uint()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			}
 		case reflect.Float32, reflect.Float64:
@@ -3598,46 +3544,39 @@ func makeBinOpGTR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Float()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Float()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).String()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).String()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x > y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x > y)
 				}
 			}
 		}
@@ -3860,7 +3799,6 @@ func makeBinOpGEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					fr.setReg(ir, fr.reg(ix).(float64) >= fr.reg(iy).(float64))
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := vx.(string)
@@ -3879,29 +3817,25 @@ func makeBinOpGEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		r := reflect.New(typ).Elem()
 		switch typ.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).Int()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Int()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Int()
 					y := reflect.ValueOf(fr.reg(iy)).Int()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			}
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
@@ -3909,22 +3843,19 @@ func makeBinOpGEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Uint()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Uint()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Uint()
 					y := reflect.ValueOf(fr.reg(iy)).Uint()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			}
 		case reflect.Float32, reflect.Float64:
@@ -3932,46 +3863,39 @@ func makeBinOpGEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := reflect.ValueOf(vx).Float()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).Float()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).Float()
 					y := reflect.ValueOf(fr.reg(iy)).Float()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			}
-
 		case reflect.String:
 			if kx == kindConst {
 				x := reflect.ValueOf(vx).String()
 				return func(fr *frame) {
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else if ky == kindConst {
 				y := reflect.ValueOf(vy).String()
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			} else {
 				return func(fr *frame) {
 					x := reflect.ValueOf(fr.reg(ix)).String()
 					y := reflect.ValueOf(fr.reg(iy)).String()
-					r.SetBool(x >= y)
-					fr.setReg(ir, r.Interface())
+					fr.setReg(ir, x >= y)
 				}
 			}
 		}
