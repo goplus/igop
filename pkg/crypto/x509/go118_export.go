@@ -59,7 +59,7 @@ func init() {
 		},
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]gossa.NamedType{
-			"CertPool":                   {reflect.TypeOf((*q.CertPool)(nil)).Elem(), "", "AddCert,AppendCertsFromPEM,Subjects,addCertFunc,cert,contains,copy,findPotentialParents,len"},
+			"CertPool":                   {reflect.TypeOf((*q.CertPool)(nil)).Elem(), "", "AddCert,AppendCertsFromPEM,Clone,Equal,Subjects,addCertFunc,cert,contains,findPotentialParents,len"},
 			"Certificate":                {reflect.TypeOf((*q.Certificate)(nil)).Elem(), "", "CheckCRLSignature,CheckSignature,CheckSignatureFrom,CreateCRL,Equal,Verify,VerifyHostname,buildChains,checkNameConstraints,getSANExtension,hasNameConstraints,hasSANExtension,isValid,systemVerify"},
 			"CertificateInvalidError":    {reflect.TypeOf((*q.CertificateInvalidError)(nil)).Elem(), "Error", ""},
 			"CertificateRequest":         {reflect.TypeOf((*q.CertificateRequest)(nil)).Elem(), "", "CheckSignature"},
@@ -71,7 +71,7 @@ func init() {
 			"KeyUsage":                   {reflect.TypeOf((*q.KeyUsage)(nil)).Elem(), "", ""},
 			"PEMCipher":                  {reflect.TypeOf((*q.PEMCipher)(nil)).Elem(), "", ""},
 			"PublicKeyAlgorithm":         {reflect.TypeOf((*q.PublicKeyAlgorithm)(nil)).Elem(), "String", ""},
-			"RevocationList":             {reflect.TypeOf((*q.RevocationList)(nil)).Elem(), "", ""},
+			"RevocationList":             {reflect.TypeOf((*q.RevocationList)(nil)).Elem(), "", "CheckSignatureFrom"},
 			"SignatureAlgorithm":         {reflect.TypeOf((*q.SignatureAlgorithm)(nil)).Elem(), "String,isRSAPSS", ""},
 			"SystemRootsError":           {reflect.TypeOf((*q.SystemRootsError)(nil)).Elem(), "Error,Unwrap", ""},
 			"UnhandledCriticalExtension": {reflect.TypeOf((*q.UnhandledCriticalExtension)(nil)).Elem(), "Error", ""},
@@ -106,6 +106,7 @@ func init() {
 			"ParsePKCS1PublicKey":      reflect.ValueOf(q.ParsePKCS1PublicKey),
 			"ParsePKCS8PrivateKey":     reflect.ValueOf(q.ParsePKCS8PrivateKey),
 			"ParsePKIXPublicKey":       reflect.ValueOf(q.ParsePKIXPublicKey),
+			"ParseRevocationList":      reflect.ValueOf(q.ParseRevocationList),
 			"SystemCertPool":           reflect.ValueOf(q.SystemCertPool),
 		},
 		TypedConsts: map[string]gossa.TypedConst{

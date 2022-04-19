@@ -27,7 +27,7 @@ func init() {
 		},
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]gossa.NamedType{
-			"Duration":   {reflect.TypeOf((*q.Duration)(nil)).Elem(), "Hours,Microseconds,Milliseconds,Minutes,Nanoseconds,Round,Seconds,String,Truncate", ""},
+			"Duration":   {reflect.TypeOf((*q.Duration)(nil)).Elem(), "Abs,Hours,Microseconds,Milliseconds,Minutes,Nanoseconds,Round,Seconds,String,Truncate", ""},
 			"Location":   {reflect.TypeOf((*q.Location)(nil)).Elem(), "", "String,firstZoneUsed,get,lookup,lookupFirstZone,lookupName"},
 			"Month":      {reflect.TypeOf((*q.Month)(nil)).Elem(), "String", ""},
 			"ParseError": {reflect.TypeOf((*q.ParseError)(nil)).Elem(), "", "Error"},

@@ -68,6 +68,7 @@ import (
 	_ "github.com/goplus/gossa/pkg/go/build/constraint"
 	_ "github.com/goplus/gossa/pkg/go/constant"
 	_ "github.com/goplus/gossa/pkg/go/doc"
+	_ "github.com/goplus/gossa/pkg/go/doc/comment"
 	_ "github.com/goplus/gossa/pkg/go/format"
 	_ "github.com/goplus/gossa/pkg/go/importer"
 	_ "github.com/goplus/gossa/pkg/go/parser"

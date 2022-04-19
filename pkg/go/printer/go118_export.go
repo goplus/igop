@@ -23,6 +23,7 @@ func init() {
 			"fmt":                 "fmt",
 			"go/ast":              "ast",
 			"go/build/constraint": "constraint",
+			"go/doc/comment":      "comment",
 			"go/token":            "token",
 			"io":                  "io",
 			"math":                "math",

@@ -29,7 +29,9 @@ func init() {
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
+			"Bytes":    reflect.ValueOf(q.Bytes),
 			"MakeSeed": reflect.ValueOf(q.MakeSeed),
+			"String":   reflect.ValueOf(q.String),
 		},
 		TypedConsts:   map[string]gossa.TypedConst{},
 		UntypedConsts: map[string]gossa.UntypedConst{},

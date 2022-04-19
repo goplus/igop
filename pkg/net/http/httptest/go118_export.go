@@ -41,7 +41,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]gossa.NamedType{
 			"ResponseRecorder": {reflect.TypeOf((*q.ResponseRecorder)(nil)).Elem(), "", "Flush,Header,Result,Write,WriteHeader,WriteString,writeHeader"},
-			"Server":           {reflect.TypeOf((*q.Server)(nil)).Elem(), "", "Certificate,Client,Close,CloseClientConnections,Start,StartTLS,closeConn,closeConnChan,forgetConn,goServe,logCloseHangDebugInfo,wrap"},
+			"Server":           {reflect.TypeOf((*q.Server)(nil)).Elem(), "", "Certificate,Client,Close,CloseClientConnections,Start,StartTLS,closeConn,closeConnChan,goServe,logCloseHangDebugInfo,wrap"},
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

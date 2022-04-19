@@ -19,6 +19,7 @@ func init() {
 		Path: "sort",
 		Deps: map[string]string{
 			"internal/reflectlite": "reflectlite",
+			"math/bits":            "bits",
 		},
 		Interfaces: map[string]reflect.Type{
 			"Interface": reflect.TypeOf((*q.Interface)(nil)).Elem(),
@@ -31,6 +32,7 @@ func init() {
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
+			"Find":              reflect.ValueOf(q.Find),
 			"Float64s":          reflect.ValueOf(q.Float64s),
 			"Float64sAreSorted": reflect.ValueOf(q.Float64sAreSorted),
 			"Ints":              reflect.ValueOf(q.Ints),

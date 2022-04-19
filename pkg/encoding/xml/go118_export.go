@@ -44,7 +44,7 @@ func init() {
 			"Attr":                 {reflect.TypeOf((*q.Attr)(nil)).Elem(), "", ""},
 			"CharData":             {reflect.TypeOf((*q.CharData)(nil)).Elem(), "Copy", ""},
 			"Comment":              {reflect.TypeOf((*q.Comment)(nil)).Elem(), "Copy", ""},
-			"Decoder":              {reflect.TypeOf((*q.Decoder)(nil)).Elem(), "", "Decode,DecodeElement,InputOffset,RawToken,Skip,Token,attrval,autoClose,getc,mustgetc,name,nsname,pop,popEOF,popElement,push,pushEOF,pushElement,pushNs,rawToken,readName,savedOffset,space,switchToReader,syntaxError,text,translate,ungetc,unmarshal,unmarshalAttr,unmarshalInterface,unmarshalPath,unmarshalTextInterface"},
+			"Decoder":              {reflect.TypeOf((*q.Decoder)(nil)).Elem(), "", "Decode,DecodeElement,InputOffset,InputPos,RawToken,Skip,Token,attrval,autoClose,getc,mustgetc,name,nsname,pop,popEOF,popElement,push,pushEOF,pushElement,pushNs,rawToken,readName,savedOffset,space,switchToReader,syntaxError,text,translate,ungetc,unmarshal,unmarshalAttr,unmarshalInterface,unmarshalPath,unmarshalTextInterface"},
 			"Directive":            {reflect.TypeOf((*q.Directive)(nil)).Elem(), "Copy", ""},
 			"Encoder":              {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode,EncodeElement,EncodeToken,Flush,Indent"},
 			"EndElement":           {reflect.TypeOf((*q.EndElement)(nil)).Elem(), "", ""},

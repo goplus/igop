@@ -42,7 +42,6 @@ func init() {
 			"CSS":       {reflect.TypeOf((*q.CSS)(nil)).Elem(), "", ""},
 			"Error":     {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error"},
 			"ErrorCode": {reflect.TypeOf((*q.ErrorCode)(nil)).Elem(), "", ""},
-			"FuncMap":   {reflect.TypeOf((*q.FuncMap)(nil)).Elem(), "", ""},
 			"HTML":      {reflect.TypeOf((*q.HTML)(nil)).Elem(), "", ""},
 			"HTMLAttr":  {reflect.TypeOf((*q.HTMLAttr)(nil)).Elem(), "", ""},
 			"JS":        {reflect.TypeOf((*q.JS)(nil)).Elem(), "", ""},
@@ -51,8 +50,10 @@ func init() {
 			"Template":  {reflect.TypeOf((*q.Template)(nil)).Elem(), "", "AddParseTree,Clone,DefinedTemplates,Delims,Execute,ExecuteTemplate,Funcs,Lookup,Name,New,Option,Parse,ParseFS,ParseFiles,ParseGlob,Templates,checkCanParse,escape,lookupAndEscapeTemplate,new"},
 			"URL":       {reflect.TypeOf((*q.URL)(nil)).Elem(), "", ""},
 		},
-		AliasTypes: map[string]reflect.Type{},
-		Vars:       map[string]reflect.Value{},
+		AliasTypes: map[string]reflect.Type{
+			"FuncMap": reflect.TypeOf((*q.FuncMap)(nil)).Elem(),
+		},
+		Vars: map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
 			"HTMLEscape":       reflect.ValueOf(q.HTMLEscape),
 			"HTMLEscapeString": reflect.ValueOf(q.HTMLEscapeString),

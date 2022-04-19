@@ -57,6 +57,7 @@ func init() {
 			"ErrInternalError":         {reflect.TypeOf(q.ErrInternalError), constant.MakeString(string(q.ErrInternalError))},
 			"ErrInvalidCharClass":      {reflect.TypeOf(q.ErrInvalidCharClass), constant.MakeString(string(q.ErrInvalidCharClass))},
 			"ErrInvalidCharRange":      {reflect.TypeOf(q.ErrInvalidCharRange), constant.MakeString(string(q.ErrInvalidCharRange))},
+			"ErrInvalidDepth":          {reflect.TypeOf(q.ErrInvalidDepth), constant.MakeString(string(q.ErrInvalidDepth))},
 			"ErrInvalidEscape":         {reflect.TypeOf(q.ErrInvalidEscape), constant.MakeString(string(q.ErrInvalidEscape))},
 			"ErrInvalidNamedCapture":   {reflect.TypeOf(q.ErrInvalidNamedCapture), constant.MakeString(string(q.ErrInvalidNamedCapture))},
 			"ErrInvalidPerlOp":         {reflect.TypeOf(q.ErrInvalidPerlOp), constant.MakeString(string(q.ErrInvalidPerlOp))},
