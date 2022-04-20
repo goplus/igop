@@ -261,4 +261,7 @@ func main() {
 	}
 	printFailures(failures)
 	fmt.Printf("time: %.3fs\n", time.Since(start).Seconds())
+	if failures != nil {
+		os.Exit(2)
+	}
 }
