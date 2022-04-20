@@ -587,6 +587,28 @@ func main() {
 	}
 }
 
+func TestPanicErrorRecover(t *testing.T) {
+	src := `package main
+import "errors"
+func main() {
+	defer func() {
+		err := recover()
+		if err == nil {
+			panic("must error")
+		}
+		if s := err.(error).Error(); s != "error info" {
+			panic(s)
+		}
+	}()
+	panic(errors.New("error info"))
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestEnablePrintAny(t *testing.T) {
 	src := `package main
 
