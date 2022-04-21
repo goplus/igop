@@ -750,7 +750,13 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				fr.pc = -1
 			}
 		case 1:
-			ir := pfn.regIndex(instr.Results[0])
+			ir, ik, iv := pfn.regIndex3(instr.Results[0])
+			if ik.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = iv
+					fr.pc = -1
+				}
+			}
 			return func(fr *frame) {
 				fr.stack[0] = fr.reg(ir)
 				fr.pc = -1
