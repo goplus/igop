@@ -762,7 +762,7 @@ func TestOpBinInt(t *testing.T) {
 
 import "fmt"
 
-type T int
+type T $int
 
 func main() {
 	// 0101 0110
@@ -826,7 +826,7 @@ func check(a, b T) {
 	}
 	for _, s := range types {
 		t.Log("test binop basic", s)
-		src := strings.Replace(tsrc, "int", "="+s, 1)
+		src := strings.Replace(tsrc, "$int", "="+s, 1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
@@ -834,7 +834,7 @@ func check(a, b T) {
 	}
 	for _, s := range types {
 		t.Log("test binop named", s)
-		src := strings.Replace(tsrc, "int", s, 1)
+		src := strings.Replace(tsrc, "$int", s, 1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
@@ -847,7 +847,7 @@ func TestOpBinFloat(t *testing.T) {
 
 import "fmt"
 
-type T float32
+type T $float
 
 func main() {
 	test(5.0, 6.5)
@@ -898,7 +898,7 @@ func check(a, b T) {
 	}
 	for _, s := range types {
 		t.Log("test binop basic", s)
-		src := strings.Replace(tsrc, "float32", "="+s, 1)
+		src := strings.Replace(tsrc, "$float", "="+s, 1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
@@ -906,7 +906,68 @@ func check(a, b T) {
 	}
 	for _, s := range types {
 		t.Log("test binop named", s)
-		src := strings.Replace(tsrc, "float32", s, 1)
+		src := strings.Replace(tsrc, "$float", s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestOpBinComplex(t *testing.T) {
+	tsrc := `package main
+
+import "fmt"
+
+type T $complex
+
+func main() {
+	test(1+2i, 3+4i)
+}
+
+func test(a, b T) {
+	check(a+1+2i, 2+4i)
+	check(1+a, 2+2i)
+	check(a+b, 4+6i)
+	check(a-1, 2i)
+	check(6-a, 5-2i)
+	check(b-a, 2+2i)
+	check(a*(2+3i), -4+7i)
+	check((2-3i)*a, 8+1i)
+	check(a*b, -5+10i)
+	check(a/2i, 1-0.5i)
+	check(10/a, 2-4i)
+	check(a/b, 0.44+0.08i)
+}
+
+func assert(t bool) {
+	if !t {
+		panic("error")
+	}
+}
+
+func check(a, b T) {
+	if a != b {
+		panic(fmt.Errorf("error %v != %v", a, b))
+	}
+}
+
+`
+	types := []string{
+		"complex64",
+		"complex128",
+	}
+	for _, s := range types {
+		t.Log("test binop basic", s)
+		src := strings.Replace(tsrc, "$complex", "="+s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range types {
+		t.Log("test binop named", s)
+		src := strings.Replace(tsrc, "$complex", s, 1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
