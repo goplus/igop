@@ -780,23 +780,26 @@ func test(a, b T) {
 	check(2*a, 10)
 	check(a*b, 30)
 	check(a/2, 2)
-	check(10/a, 2)
+	check(T(10)/a, 2)
 	check(a/b, 0)
 	check(a%2, 1)
-	check(10%5, 0)
+	check(10%a, 0)
+	check(b%a, 1)
 	check(a&4, 4)
 	check(1&a, 1)
 	check(a&b, 4)
 	check(a|4, 5)
 	check(2|a, 7)
+	check(a|b, 7)
 	check(a^2, 7)
 	check(7^a, 2)
+	check(a^b, 3)
 	check(a&^3, 4)
 	check(3&^a, 2)
 	check(a&^b, 1)
 	assert(a < 6)
-	assert(4 < 5)
-	assert(a < 6)
+	assert(4 < a)
+	assert(a < b)
 	assert(a <= 5)
 	assert(4 <= a)
 	assert(a <= b)
@@ -867,8 +870,8 @@ func test(a, b T) {
 	check(10/a, 2)
 	check(a/b, 5.0/6.5)
 	assert(a < 6)
-	assert(4 < 5)
-	assert(a < 6)
+	assert(4 < a)
+	assert(a < b)
 	assert(a <= 5)
 	assert(4 <= a)
 	assert(a <= b)
@@ -972,5 +975,59 @@ func check(a, b T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestOpBinString(t *testing.T) {
+	tsrc := `package main
+
+import "fmt"
+
+type T = string
+
+func main() {
+	test("go", "ssa")
+}
+
+func test(a, b T) {
+	check(a+"run", "gorun")
+	check("run"+a, "rungo")
+	check(a+b, "gossa")
+	assert(a < "go1")
+	assert("ao" < a)
+	assert(a < b)
+	assert(a <= "go")
+	assert("ao" <= a)
+	assert(a <= b)
+	assert(a > "ao")
+	assert("go1" > a)
+	assert(b > a)
+	assert(a >= "go")
+	assert("go1" >= a)
+	assert(b >= a)
+}
+
+func assert(t bool) {
+	if !t {
+		panic("error")
+	}
+}
+
+func check(a, b T) {
+	if a != b {
+		panic(fmt.Errorf("error %v != %v", a, b))
+	}
+}
+`
+	t.Log("test binop string")
+	_, err := gossa.RunFile("main.go", tsrc, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("test binop named string")
+	src := strings.Replace(tsrc, "= string", "string", 1)
+	_, err = gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
