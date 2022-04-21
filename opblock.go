@@ -752,7 +752,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		case 1:
 			ir := pfn.regIndex(instr.Results[0])
 			return func(fr *frame) {
-				fr.results = fr.reg(ir)
+				fr.stack[0] = fr.reg(ir)
 				fr.pc = -1
 			}
 		default:
@@ -765,7 +765,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				for i := 0; i < n; i++ {
 					res[i] = fr.reg(ir[i])
 				}
-				fr.results = tuple(res)
+				fr.stack[0] = tuple(res)
 				fr.pc = -1
 			}
 		}
