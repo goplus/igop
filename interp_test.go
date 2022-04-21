@@ -21,6 +21,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -750,6 +751,282 @@ func main() {
 }
 `
 	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOpBinInt(t *testing.T) {
+	// + - * / % & ^ &^ < <= > >=
+	tsrc := `package main
+
+import "fmt"
+
+type T $int
+
+func main() {
+	// 0101 0110
+	test(5, 6)
+}
+
+func test(a, b T) {
+	check(a+1, 6)
+	check(1+a, 6)
+	check(a+b, 11)
+	check(a-1, 4)
+	check(6-a, 1)
+	check(b-a, 1)
+	check(a*2, 10)
+	check(2*a, 10)
+	check(a*b, 30)
+	check(a/2, 2)
+	check(T(10)/a, 2)
+	check(a/b, 0)
+	check(a%2, 1)
+	check(10%a, 0)
+	check(b%a, 1)
+	check(a&4, 4)
+	check(1&a, 1)
+	check(a&b, 4)
+	check(a|4, 5)
+	check(2|a, 7)
+	check(a|b, 7)
+	check(a^2, 7)
+	check(7^a, 2)
+	check(a^b, 3)
+	check(a&^3, 4)
+	check(3&^a, 2)
+	check(a&^b, 1)
+	assert(a < 6)
+	assert(4 < a)
+	assert(a < b)
+	assert(a <= 5)
+	assert(4 <= a)
+	assert(a <= b)
+	assert(a > 4)
+	assert(6 > a)
+	assert(b > a)
+	assert(a >= 5)
+	assert(6 >= a)
+	assert(b >= a)
+}
+
+func assert(t bool) {
+	if !t {
+		panic("error")
+	}
+}
+
+func check(a, b T) {
+	if a != b {
+		panic(fmt.Errorf("error %v != %v", a, b))
+	}
+}
+`
+	types := []string{
+		"int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+	}
+	for _, s := range types {
+		t.Log("test binop basic", s)
+		src := strings.Replace(tsrc, "$int", "="+s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range types {
+		t.Log("test binop named", s)
+		src := strings.Replace(tsrc, "$int", s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestOpBinFloat(t *testing.T) {
+	tsrc := `package main
+
+import "fmt"
+
+type T $float
+
+func main() {
+	test(5.0, 6.5)
+}
+
+func test(a, b T) {
+	check(a+1, 6)
+	check(1+a, 6)
+	check(a+b, 11.5)
+	check(a-1, 4)
+	check(6-a, 1)
+	check(b-a, 1.5)
+	check(a*2, 10)
+	check(2*a, 10)
+	check(a*b, 32.5)
+	check(a/2, 2.5)
+	check(10/a, 2)
+	check(a/b, 5.0/6.5)
+	assert(a < 6)
+	assert(4 < a)
+	assert(a < b)
+	assert(a <= 5)
+	assert(4 <= a)
+	assert(a <= b)
+	assert(a > 4)
+	assert(6 > a)
+	assert(b > a)
+	assert(a >= 5)
+	assert(6 >= a)
+	assert(b >= a)
+}
+
+func assert(t bool) {
+	if !t {
+		panic("error")
+	}
+}
+
+func check(a, b T) {
+	if a != b {
+		panic(fmt.Errorf("error %v != %v", a, b))
+	}
+}
+`
+	types := []string{
+		"float32",
+		"float64",
+	}
+	for _, s := range types {
+		t.Log("test binop basic", s)
+		src := strings.Replace(tsrc, "$float", "="+s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range types {
+		t.Log("test binop named", s)
+		src := strings.Replace(tsrc, "$float", s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestOpBinComplex(t *testing.T) {
+	tsrc := `package main
+
+import "fmt"
+
+type T $complex
+
+func main() {
+	test(1+2i, 3+4i)
+}
+
+func test(a, b T) {
+	check(a+1+2i, 2+4i)
+	check(1+a, 2+2i)
+	check(a+b, 4+6i)
+	check(a-1, 2i)
+	check(6-a, 5-2i)
+	check(b-a, 2+2i)
+	check(a*(2+3i), -4+7i)
+	check((2-3i)*a, 8+1i)
+	check(a*b, -5+10i)
+	check(a/2i, 1-0.5i)
+	check(10/a, 2-4i)
+	check(a/b, 0.44+0.08i)
+}
+
+func assert(t bool) {
+	if !t {
+		panic("error")
+	}
+}
+
+func check(a, b T) {
+	if a != b {
+		panic(fmt.Errorf("error %v != %v", a, b))
+	}
+}
+
+`
+	types := []string{
+		"complex64",
+		"complex128",
+	}
+	for _, s := range types {
+		t.Log("test binop basic", s)
+		src := strings.Replace(tsrc, "$complex", "="+s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range types {
+		t.Log("test binop named", s)
+		src := strings.Replace(tsrc, "$complex", s, 1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestOpBinString(t *testing.T) {
+	tsrc := `package main
+
+import "fmt"
+
+type T = string
+
+func main() {
+	test("go", "ssa")
+}
+
+func test(a, b T) {
+	check(a+"run", "gorun")
+	check("run"+a, "rungo")
+	check(a+b, "gossa")
+	assert(a < "go1")
+	assert("ao" < a)
+	assert(a < b)
+	assert(a <= "go")
+	assert("ao" <= a)
+	assert(a <= b)
+	assert(a > "ao")
+	assert("go1" > a)
+	assert(b > a)
+	assert(a >= "go")
+	assert("go1" >= a)
+	assert(b >= a)
+}
+
+func assert(t bool) {
+	if !t {
+		panic("error")
+	}
+}
+
+func check(a, b T) {
+	if a != b {
+		panic(fmt.Errorf("error %v != %v", a, b))
+	}
+}
+`
+	t.Log("test binop string")
+	_, err := gossa.RunFile("main.go", tsrc, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("test binop named string")
+	src := strings.Replace(tsrc, "= string", "string", 1)
+	_, err = gossa.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
