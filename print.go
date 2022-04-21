@@ -148,6 +148,8 @@ func writeany(buf *bytes.Buffer, v interface{}) {
 		uint, uint8, uint16, uint32, uint64, uintptr,
 		string:
 		writevalue(buf, v, true)
+	case error:
+		fmt.Fprintf(buf, "%v", v)
 	default:
 		i := reflect.ValueOf(v)
 		typ := i.Type()
