@@ -126,6 +126,9 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		narg:             len(fn.Params),
 		nenv:             len(fn.FreeVars),
 	}
+	if res := fn.Signature.Results(); res != nil {
+		pfn.nres = res.Len()
+	}
 	i.funcs[fn] = pfn
 	return pfn
 }
@@ -191,7 +194,7 @@ type frame struct {
 	pred      int
 	deferid   int64
 	stack     []value
-	results   []register
+	results   value
 }
 
 func (fr *frame) setReg(ir register, v value) {
@@ -423,16 +426,7 @@ func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []
 		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
-	n := len(fr.results)
-	if n == 1 {
-		result = fr.reg(fr.results[0])
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		result = tuple(res)
-	}
+	result = fr.results
 	pfn.deleteFrame(fr)
 	return
 }
@@ -446,11 +440,17 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
-	n := len(fr.results)
-	if n > 0 {
-		results = make([]reflect.Value, n, n)
-		for i := 0; i < n; i++ {
-			v := fr.reg(fr.results[i])
+	if pfn.nres == 1 {
+		if fr.results == nil {
+			results = []reflect.Value{reflect.New(typ.Out(0)).Elem()}
+		} else {
+			results = []reflect.Value{reflect.ValueOf(fr.results)}
+		}
+	} else if pfn.nres > 1 {
+		results = make([]reflect.Value, pfn.nres, pfn.nres)
+		res := fr.results.(tuple)
+		for i := 0; i < pfn.nres; i++ {
+			v := res[i]
 			if v == nil {
 				results[i] = reflect.New(typ.Out(i)).Elem()
 			} else {
@@ -480,16 +480,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, 
 		fr.stack[i] = caller.reg(ia[i])
 	}
 	fr.run()
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
-	}
+	caller.setReg(ir, fr.results)
 	pfn.deleteFrame(fr)
 }
 
@@ -503,16 +494,7 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *function, ir r
 		fr.pc++
 		fn(fr)
 	}
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
-	}
+	caller.setReg(ir, fr.results)
 	pfn.deleteFrame(fr)
 }
 
@@ -525,16 +507,7 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir reg
 		fr.stack[pfn.narg+i] = env[i]
 	}
 	fr.run()
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
-	}
+	caller.setReg(ir, fr.results)
 	pfn.deleteFrame(fr)
 }
 
@@ -551,16 +524,7 @@ func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *functio
 		fr.pc++
 		fn(fr)
 	}
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
-	}
+	caller.setReg(ir, fr.results)
 	pfn.deleteFrame(fr)
 }
 

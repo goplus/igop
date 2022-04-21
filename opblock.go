@@ -102,6 +102,7 @@ type function struct {
 	pool             *sync.Pool
 	narg             int
 	nenv             int
+	nres             int
 	used             int32 // function used count
 	cached           int32 // enable cached by pool
 }
@@ -743,7 +744,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 	case *ssa.Return:
-		switch n := len(instr.Results); n {
+		switch n := pfn.nres; n {
 		case 0:
 			return func(fr *frame) {
 				fr.pc = -1
@@ -751,7 +752,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		case 1:
 			ir := pfn.regIndex(instr.Results[0])
 			return func(fr *frame) {
-				fr.results = []register{ir}
+				fr.results = fr.reg(ir)
 				fr.pc = -1
 			}
 		default:
@@ -760,7 +761,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				ir[i] = pfn.regIndex(v)
 			}
 			return func(fr *frame) {
-				fr.results = ir
+				res := make([]value, n, n)
+				for i := 0; i < n; i++ {
+					res[i] = fr.reg(ir[i])
+				}
+				fr.results = tuple(res)
 				fr.pc = -1
 			}
 		}
