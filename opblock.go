@@ -761,6 +761,29 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				fr.stack[0] = fr.reg(ir)
 				fr.pc = -1
 			}
+		case 2:
+			r1, k1, v1 := pfn.regIndex3(instr.Results[0])
+			r2, k2, v2 := pfn.regIndex3(instr.Results[1])
+			if k1.isStatic() && k2.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = tuple{v1, v2}
+					fr.pc = -1
+				}
+			} else if k1.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = tuple{v1, fr.reg(r2)}
+					fr.pc = -1
+				}
+			} else if k2.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = tuple{fr.reg(r1), v2}
+					fr.pc = -1
+				}
+			}
+			return func(fr *frame) {
+				fr.stack[0] = tuple{fr.reg(r1), fr.reg(r2)}
+				fr.pc = -1
+			}
 		default:
 			ir := make([]register, n, n)
 			for i, v := range instr.Results {
