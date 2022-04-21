@@ -43,7 +43,7 @@ func init() {
 	//gorootTestSkips["fixedbugs/issue22781.go"] = "slow, 1.4s"
 	gorootTestSkips["fixedbugs/issue16249.go"] = "slow, 5.8s"
 	gorootTestSkips["fixedbugs/issue13169.go"] = "slow, 7.8s"
-	gorootTestSkips["fixedbugs/bug261.go"] = "BUG, ssa slice[low|high] https://github.com/golang/tools/pull/341"
+	//gorootTestSkips["fixedbugs/bug261.go"] = "BUG, ssa slice[low|high] https://github.com/golang/tools/pull/341"
 	gorootTestSkips["fixedbugs/issue11656.go"] = "runtime.Caller"
 	gorootTestSkips["fixedbugs/issue15281.go"] = "runtime.ReadMemStats"
 	gorootTestSkips["fixedbugs/issue17381.go"] = "runtime.FuncForPC"
