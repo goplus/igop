@@ -92,24 +92,25 @@ type function struct {
 	Interp           *Interp
 	Fn               *ssa.Function        // ssa function
 	Main             *ssa.BasicBlock      // Fn.Blocks[0]
+	pool             *sync.Pool           // create frame pool
 	Instrs           []func(fr *frame)    // main instrs
 	Recover          []func(fr *frame)    // recover instrs
 	Blocks           []int                // block offset
-	stack            []value              // stack
+	stack            []value              // results args envs datas
 	ssaInstrs        []ssa.Instruction    // org ssa instr
 	index            map[ssa.Value]uint32 // stack index
-	mapUnderscoreKey map[types.Type]bool
-	pool             *sync.Pool
-	narg             int
-	nenv             int
-	used             int32 // function used count
-	cached           int32 // enable cached by pool
+	mapUnderscoreKey map[types.Type]bool  // struct has _ key
+	nres             int                  // results count
+	narg             int                  // arguments count
+	nenv             int                  // closure free vars count
+	used             int32                // function used count
+	cached           int32                // enable cached by pool
 }
 
 func (p *function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
-		fr := &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr := &frame{pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 		return fr
 	}
@@ -123,7 +124,7 @@ func (p *function) allocFrame(caller *frame) *frame {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
 			atomic.StoreInt32(&p.cached, 1)
 		}
-		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr = &frame{pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 	}
 	fr.caller = caller
@@ -743,15 +744,48 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 	case *ssa.Return:
-		switch n := len(instr.Results); n {
+		switch n := pfn.nres; n {
 		case 0:
 			return func(fr *frame) {
 				fr.pc = -1
 			}
 		case 1:
-			ir := pfn.regIndex(instr.Results[0])
+			ir, ik, iv := pfn.regIndex3(instr.Results[0])
+			if ik.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = iv
+					fr.pc = -1
+				}
+			}
 			return func(fr *frame) {
-				fr.results = []register{ir}
+				fr.stack[0] = fr.reg(ir)
+				fr.pc = -1
+			}
+		case 2:
+			r1, k1, v1 := pfn.regIndex3(instr.Results[0])
+			r2, k2, v2 := pfn.regIndex3(instr.Results[1])
+			if k1.isStatic() && k2.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = v1
+					fr.stack[1] = v2
+					fr.pc = -1
+				}
+			} else if k1.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = v1
+					fr.stack[1] = fr.reg(r2)
+					fr.pc = -1
+				}
+			} else if k2.isStatic() {
+				return func(fr *frame) {
+					fr.stack[0] = fr.reg(r1)
+					fr.stack[1] = v2
+					fr.pc = -1
+				}
+			}
+			return func(fr *frame) {
+				fr.stack[0] = fr.reg(r1)
+				fr.stack[1] = fr.reg(r2)
 				fr.pc = -1
 			}
 		default:
@@ -760,7 +794,9 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				ir[i] = pfn.regIndex(v)
 			}
 			return func(fr *frame) {
-				fr.results = ir
+				for i := 0; i < n; i++ {
+					fr.stack[i] = fr.reg(ir[i])
+				}
 				fr.pc = -1
 			}
 		}
@@ -1023,12 +1059,34 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		ifn := interp.loadFunction(fn.Fn.(*ssa.Function))
 		ia = append(ia, ib...)
 		if ifn.Recover == nil {
-			return func(fr *frame) {
-				interp.callFunctionByStackNoRecover(fr, ifn, ir, ia)
+			switch ifn.nres {
+			case 0:
+				return func(fr *frame) {
+					interp.callFunctionByStackNoRecover0(fr, ifn, ir, ia)
+				}
+			case 1:
+				return func(fr *frame) {
+					interp.callFunctionByStackNoRecover1(fr, ifn, ir, ia)
+				}
+			default:
+				return func(fr *frame) {
+					interp.callFunctionByStackNoRecoverN(fr, ifn, ir, ia)
+				}
 			}
 		}
-		return func(fr *frame) {
-			interp.callFunctionByStack(fr, ifn, ir, ia)
+		switch ifn.nres {
+		case 0:
+			return func(fr *frame) {
+				interp.callFunctionByStack0(fr, ifn, ir, ia)
+			}
+		case 1:
+			return func(fr *frame) {
+				interp.callFunctionByStack1(fr, ifn, ir, ia)
+			}
+		default:
+			return func(fr *frame) {
+				interp.callFunctionByStackN(fr, ifn, ir, ia)
+			}
 		}
 	case *ssa.Function:
 		// "static func/method call"
@@ -1047,12 +1105,34 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 		}
 		ifn := interp.loadFunction(fn)
 		if ifn.Recover == nil {
-			return func(fr *frame) {
-				interp.callFunctionByStackNoRecover(fr, ifn, ir, ia)
+			switch ifn.nres {
+			case 0:
+				return func(fr *frame) {
+					interp.callFunctionByStackNoRecover0(fr, ifn, ir, ia)
+				}
+			case 1:
+				return func(fr *frame) {
+					interp.callFunctionByStackNoRecover1(fr, ifn, ir, ia)
+				}
+			default:
+				return func(fr *frame) {
+					interp.callFunctionByStackNoRecoverN(fr, ifn, ir, ia)
+				}
 			}
 		}
-		return func(fr *frame) {
-			interp.callFunctionByStack(fr, ifn, ir, ia)
+		switch ifn.nres {
+		case 0:
+			return func(fr *frame) {
+				interp.callFunctionByStack0(fr, ifn, ir, ia)
+			}
+		case 1:
+			return func(fr *frame) {
+				interp.callFunctionByStack1(fr, ifn, ir, ia)
+			}
+		default:
+			return func(fr *frame) {
+				interp.callFunctionByStackN(fr, ifn, ir, ia)
+			}
 		}
 	}
 	// "dynamic method call" // ("invoke" mode)

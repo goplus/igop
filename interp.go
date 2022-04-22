@@ -126,6 +126,10 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		narg:             len(fn.Params),
 		nenv:             len(fn.FreeVars),
 	}
+	if res := fn.Signature.Results(); res != nil {
+		pfn.nres = res.Len()
+		pfn.stack = make([]value, pfn.nres)
+	}
 	i.funcs[fn] = pfn
 	return pfn
 }
@@ -181,7 +185,6 @@ type deferred struct {
 }
 
 type frame struct {
-	interp    *Interp
 	caller    *frame
 	pfn       *function
 	defers    *deferred
@@ -190,8 +193,7 @@ type frame struct {
 	pc        int
 	pred      int
 	deferid   int64
-	stack     []value
-	results   []register
+	stack     []value // result args env datas
 }
 
 func (fr *frame) setReg(ir register, v value) {
@@ -221,7 +223,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panicking = &panicking{recover()}
 		}
 	}()
-	fr.interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
+	fr.pfn.Interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -238,14 +240,15 @@ func (fr *frame) runDefer(d *deferred) {
 // runDefers returns normally.
 //
 func (fr *frame) runDefers() {
-	atomic.AddInt32(&fr.interp.deferCount, 1)
+	interp := fr.pfn.Interp
+	atomic.AddInt32(&interp.deferCount, 1)
 	fr.deferid = goid.Get()
-	fr.interp.deferMap.Store(fr.deferid, fr)
+	interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
-	fr.interp.deferMap.Delete(fr.deferid)
-	atomic.AddInt32(&fr.interp.deferCount, -1)
+	interp.deferMap.Delete(fr.deferid)
+	atomic.AddInt32(&interp.deferCount, -1)
 	fr.deferid = 0
 	// runtime.Goexit() fr.panic == nil
 	if fr.panicking != nil {
@@ -417,21 +420,16 @@ func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaAr
 func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []value) (result value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i] = args[i]
+		fr.stack[i+pfn.nres] = args[i]
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	n := len(fr.results)
-	if n == 1 {
-		result = fr.reg(fr.results[0])
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		result = tuple(res)
+	if pfn.nres == 1 {
+		result = fr.stack[0]
+	} else if pfn.nres > 1 {
+		result = tuple(fr.stack[0:pfn.nres])
 	}
 	pfn.deleteFrame(fr)
 	return
@@ -440,17 +438,16 @@ func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []
 func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *function, args []reflect.Value, env []value) (results []reflect.Value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i] = args[i].Interface()
+		fr.stack[i+pfn.nres] = args[i].Interface()
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	n := len(fr.results)
-	if n > 0 {
-		results = make([]reflect.Value, n, n)
-		for i := 0; i < n; i++ {
-			v := fr.reg(fr.results[i])
+	if pfn.nres > 0 {
+		results = make([]reflect.Value, pfn.nres, pfn.nres)
+		for i := 0; i < pfn.nres; i++ {
+			v := fr.stack[i]
 			if v == nil {
 				results[i] = reflect.New(typ.Out(i)).Elem()
 			} else {
@@ -465,35 +462,59 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *function, args []value, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i] = args[i]
+		fr.stack[i+pfn.nres] = args[i]
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i] = caller.reg(ia[i])
+	}
+	fr.run()
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i+1] = caller.reg(ia[i])
+	}
+	fr.run()
+	caller.setReg(ir, fr.stack[0])
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
+	}
+	fr.run()
+	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, ia []register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
-		fr.stack[i] = caller.reg(ia[i])
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
 	}
 	fr.run()
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
+	if pfn.nres == 1 {
+		caller.setReg(ir, fr.stack[0])
+	} else if pfn.nres > 1 {
+		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *function, ir register, ia []register) {
+func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir register, ia []register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
@@ -503,37 +524,50 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *function, ir r
 		fr.pc++
 		fn(fr)
 	}
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i+1] = caller.reg(ia[i])
 	}
+	for fr.pc != -1 {
+		fn := fr.pfn.Instrs[fr.pc]
+		fr.pc++
+		fn(fr)
+	}
+	caller.setReg(ir, fr.stack[0])
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
+	}
+	for fr.pc != -1 {
+		fn := fr.pfn.Instrs[fr.pc]
+		fr.pc++
+		fn(fr)
+	}
+	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i] = caller.reg(ia[i])
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
+	if pfn.nres == 1 {
+		caller.setReg(ir, fr.stack[0])
+	} else if pfn.nres > 1 {
+		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
 	pfn.deleteFrame(fr)
 }
@@ -541,25 +575,20 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir reg
 func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i] = caller.reg(ia[i])
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	for fr.pc != -1 {
 		fn := fr.pfn.Instrs[fr.pc]
 		fr.pc++
 		fn(fr)
 	}
-	n := len(fr.results)
-	if n == 1 {
-		caller.setReg(ir, fr.reg(fr.results[0]))
-	} else if n > 1 {
-		res := make([]value, n, n)
-		for i := 0; i < n; i++ {
-			res[i] = fr.reg(fr.results[i])
-		}
-		caller.setReg(ir, tuple(res))
+	if pfn.nres == 1 {
+		caller.setReg(ir, fr.stack[0])
+	} else if pfn.nres > 1 {
+		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
 	pfn.deleteFrame(fr)
 }
@@ -731,8 +760,8 @@ func doRecover(caller *frame) value {
 	// function (two levels beneath the panicking function) to
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
-	if caller.interp.mode&DisableRecover == 0 &&
-		caller != nil && caller.panicking == nil &&
+	if caller.pfn.Interp.mode&DisableRecover == 0 &&
+		caller.panicking == nil &&
 		caller.caller != nil && caller.caller.panicking != nil {
 		p := caller.caller.panicking.value
 		caller.caller.panicking = nil
