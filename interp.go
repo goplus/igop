@@ -185,7 +185,6 @@ type deferred struct {
 }
 
 type frame struct {
-	interp    *Interp
 	caller    *frame
 	pfn       *function
 	defers    *deferred
@@ -224,7 +223,7 @@ func (fr *frame) runDefer(d *deferred) {
 			fr.panicking = &panicking{recover()}
 		}
 	}()
-	fr.interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
+	fr.pfn.Interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
 }
 
@@ -241,14 +240,15 @@ func (fr *frame) runDefer(d *deferred) {
 // runDefers returns normally.
 //
 func (fr *frame) runDefers() {
-	atomic.AddInt32(&fr.interp.deferCount, 1)
+	interp := fr.pfn.Interp
+	atomic.AddInt32(&interp.deferCount, 1)
 	fr.deferid = goid.Get()
-	fr.interp.deferMap.Store(fr.deferid, fr)
+	interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
-	fr.interp.deferMap.Delete(fr.deferid)
-	atomic.AddInt32(&fr.interp.deferCount, -1)
+	interp.deferMap.Delete(fr.deferid)
+	atomic.AddInt32(&interp.deferCount, -1)
 	fr.deferid = 0
 	// runtime.Goexit() fr.panic == nil
 	if fr.panicking != nil {
@@ -760,8 +760,8 @@ func doRecover(caller *frame) value {
 	// function (two levels beneath the panicking function) to
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
-	if caller.interp.mode&DisableRecover == 0 &&
-		caller != nil && caller.panicking == nil &&
+	if caller.pfn.Interp.mode&DisableRecover == 0 &&
+		caller.panicking == nil &&
 		caller.caller != nil && caller.caller.panicking != nil {
 		p := caller.caller.panicking.value
 		caller.caller.panicking = nil

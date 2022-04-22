@@ -92,25 +92,25 @@ type function struct {
 	Interp           *Interp
 	Fn               *ssa.Function        // ssa function
 	Main             *ssa.BasicBlock      // Fn.Blocks[0]
+	pool             *sync.Pool           // create frame pool
 	Instrs           []func(fr *frame)    // main instrs
 	Recover          []func(fr *frame)    // recover instrs
 	Blocks           []int                // block offset
-	stack            []value              // stack
+	stack            []value              // results args envs datas
 	ssaInstrs        []ssa.Instruction    // org ssa instr
 	index            map[ssa.Value]uint32 // stack index
-	mapUnderscoreKey map[types.Type]bool
-	pool             *sync.Pool
-	narg             int
-	nenv             int
-	nres             int
-	used             int32 // function used count
-	cached           int32 // enable cached by pool
+	mapUnderscoreKey map[types.Type]bool  // struct has _ key
+	nres             int                  // results count
+	narg             int                  // arguments count
+	nenv             int                  // closure free vars count
+	used             int32                // function used count
+	cached           int32                // enable cached by pool
 }
 
 func (p *function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
-		fr := &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr := &frame{pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 		return fr
 	}
@@ -124,7 +124,7 @@ func (p *function) allocFrame(caller *frame) *frame {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
 			atomic.StoreInt32(&p.cached, 1)
 		}
-		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
+		fr = &frame{pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 	}
 	fr.caller = caller

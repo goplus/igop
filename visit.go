@@ -177,7 +177,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 				if index == 0 && b.Index == 0 {
 					pfn := ifn
 					ifn = func(fr *frame) {
-						log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.interp.fset, fr.pfn.Fn.Pos()))
+						log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.pfn.Interp.fset, fr.pfn.Fn.Pos()))
 						pfn(fr)
 					}
 				}
@@ -193,7 +193,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 							log.Printf("Leaving %v.\n", fr.pfn.Fn)
 						} else {
 							log.Printf("Leaving %v, resuming %v call %v%v.\n",
-								fr.pfn.Fn, fr.caller.pfn.Fn, caller, loc(fr.interp.fset, caller.Pos()))
+								fr.pfn.Fn, fr.caller.pfn.Fn, caller, loc(fr.pfn.Interp.fset, caller.Pos()))
 						}
 					}
 				}
