@@ -100,7 +100,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 		visit.intp.loadType(deref(alloc.Type()))
 	}
 	pfn := visit.intp.loadFunction(fn)
-	pfn.stack = append(pfn.stack, nil)
 	for _, p := range fn.Params {
 		pfn.regIndex(p)
 	}

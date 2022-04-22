@@ -128,6 +128,7 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 	}
 	if res := fn.Signature.Results(); res != nil {
 		pfn.nres = res.Len()
+		pfn.stack = make([]value, pfn.nres)
 	}
 	i.funcs[fn] = pfn
 	return pfn
@@ -419,13 +420,17 @@ func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaAr
 func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []value) (result value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i+1] = args[i]
+		fr.stack[i+pfn.nres] = args[i]
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i+1] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	result = fr.stack[0]
+	if pfn.nres == 1 {
+		result = fr.stack[0]
+	} else if pfn.nres > 1 {
+		result = tuple(fr.stack[0:pfn.nres])
+	}
 	pfn.deleteFrame(fr)
 	return
 }
@@ -433,23 +438,16 @@ func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []
 func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *function, args []reflect.Value, env []value) (results []reflect.Value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i+1] = args[i].Interface()
+		fr.stack[i+pfn.nres] = args[i].Interface()
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i+1] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	if pfn.nres == 1 {
-		if fr.stack[0] == nil {
-			results = []reflect.Value{reflect.New(typ.Out(0)).Elem()}
-		} else {
-			results = []reflect.Value{reflect.ValueOf(fr.stack[0])}
-		}
-	} else if pfn.nres > 1 {
+	if pfn.nres > 0 {
 		results = make([]reflect.Value, pfn.nres, pfn.nres)
-		res := fr.stack[0].(tuple)
 		for i := 0; i < pfn.nres; i++ {
-			v := res[i]
+			v := fr.stack[i]
 			if v == nil {
 				results[i] = reflect.New(typ.Out(i)).Elem()
 			} else {
@@ -464,26 +462,72 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *function, args []value, env []value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i+1] = args[i]
+		fr.stack[i+pfn.nres] = args[i]
 	}
 	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i+1] = env[i]
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i] = caller.reg(ia[i])
+	}
+	fr.run()
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i+1] = caller.reg(ia[i])
+	}
+	fr.run()
+	caller.setReg(ir, fr.stack[0])
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
+	}
+	fr.run()
+	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	pfn.deleteFrame(fr)
 }
 
 func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, ia []register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
-		fr.stack[i+1] = caller.reg(ia[i])
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
 	}
 	fr.run()
-	caller.setReg(ir, fr.stack[0])
+	if pfn.nres == 1 {
+		caller.setReg(ir, fr.stack[0])
+	} else if pfn.nres > 1 {
+		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
+	}
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *function, ir register, ia []register) {
+func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir register, ia []register) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i] = caller.reg(ia[i])
+	}
+	for fr.pc != -1 {
+		fn := fr.pfn.Instrs[fr.pc]
+		fr.pc++
+		fn(fr)
+	}
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir register, ia []register) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i+1] = caller.reg(ia[i])
@@ -497,33 +541,55 @@ func (i *Interp) callFunctionByStackNoRecover(caller *frame, pfn *function, ir r
 	pfn.deleteFrame(fr)
 }
 
-func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
+func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir register, ia []register) {
 	fr := pfn.allocFrame(caller)
-	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i+1] = caller.reg(ia[i])
-	}
-	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i+1] = env[i]
-	}
-	fr.run()
-	caller.setReg(ir, fr.stack[0])
-	pfn.deleteFrame(fr)
-}
-
-func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
-	fr := pfn.allocFrame(caller)
-	for i := 0; i < pfn.narg; i++ {
-		fr.stack[i+1] = caller.reg(ia[i])
-	}
-	for i := 0; i < pfn.nenv; i++ {
-		fr.stack[pfn.narg+i+1] = env[i]
+	for i := 0; i < len(ia); i++ {
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
 	}
 	for fr.pc != -1 {
 		fn := fr.pfn.Instrs[fr.pc]
 		fr.pc++
 		fn(fr)
 	}
-	caller.setReg(ir, fr.stack[0])
+	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
+	}
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
+	}
+	fr.run()
+	if pfn.nres == 1 {
+		caller.setReg(ir, fr.stack[0])
+	} else if pfn.nres > 1 {
+		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
+	}
+	pfn.deleteFrame(fr)
+}
+
+func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
+	fr := pfn.allocFrame(caller)
+	for i := 0; i < pfn.narg; i++ {
+		fr.stack[i+pfn.nres] = caller.reg(ia[i])
+	}
+	for i := 0; i < pfn.nenv; i++ {
+		fr.stack[pfn.narg+i+pfn.nres] = env[i]
+	}
+	for fr.pc != -1 {
+		fn := fr.pfn.Instrs[fr.pc]
+		fr.pc++
+		fn(fr)
+	}
+	if pfn.nres == 1 {
+		caller.setReg(ir, fr.stack[0])
+	} else if pfn.nres > 1 {
+		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
+	}
 	pfn.deleteFrame(fr)
 }
 
