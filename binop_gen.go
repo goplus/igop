@@ -61,12 +61,22 @@ func makeFuncOp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 	if typ.PkgPath() == "" {
 		switch typ.Kind() {
 `)
+	var div_case1 string
+	var div_case2 string
+	if op == "/" {
+		div_case1 = get_func_case1_div()
+		div_case2 = get_func_case2_div()
+	}
 	for _, kind := range kinds {
 		r := strings.NewReplacer(
 			"Int", strings.Title(kind),
 			"int", kind,
 			"+", op)
-		r.WriteString(buf, func_case1)
+		if op == "/" && strings.Contains(kind, "int") {
+			r.WriteString(buf, div_case1)
+		} else {
+			r.WriteString(buf, func_case1)
+		}
 	}
 	buf.WriteString(`}
 	} else {
@@ -77,7 +87,11 @@ func makeFuncOp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 		r := strings.NewReplacer(
 			"Int", strings.Title(kind),
 			"+", op)
-		r.WriteString(buf, func_case2)
+		if op == "/" && strings.Contains(kind, "int") {
+			r.WriteString(buf, div_case2)
+		} else {
+			r.WriteString(buf, func_case2)
+		}
 	}
 	buf.WriteString(`}
 	}
@@ -140,6 +154,19 @@ func $NAME(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 	typ := pfn.Interp.preToType(instr.X.Type())
 `
 
+func get_func_case1_div() string {
+	return strings.Replace(func_case1,
+		"v := vx.(int)+vy.(int)",
+		`x := vx.(int)
+	y := vy.(int)
+	if y == 0 {
+		return func(fr *frame) {
+			fr.setReg(ir, x/y)
+		}
+	}
+	v := x/y`, 1)
+}
+
 var func_case1 = `case reflect.Int:
 if kx == kindConst && ky == kindConst {
 	v := vx.(int)+vy.(int)
@@ -167,11 +194,22 @@ if kx == kindConst && ky == kindConst {
 }
 `
 
+func get_func_case2_div() string {
+	return strings.Replace(func_case2,
+		"v := basic.Make(t,basic.Int(vx)+basic.Int(vy))",
+		`x := basic.Int(vx)
+		y := basic.Int(vy)
+		if y == 0 {
+		return func(fr *frame) {
+			fr.setReg(ir, basic.Make(t,x/y))
+		}
+	}
+	v := basic.Make(t,x/y)`, 1)
+}
+
 var func_case2 = `case reflect.Int:
 if kx == kindConst && ky == kindConst {
-	x := basic.Int(vx)
-	y := basic.Int(vy)
-	v := basic.Make(t,x+y)
+	v := basic.Make(t,basic.Int(vx)+basic.Int(vy))
 	return func(fr *frame) {
 		fr.setReg(ir, v)
 	}	

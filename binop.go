@@ -421,9 +421,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Int(vx)+basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -448,9 +446,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Int8(vx)+basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -475,9 +471,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Int16(vx)+basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -502,9 +496,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Int32(vx)+basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -529,9 +521,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Int64(vx)+basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -556,9 +546,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Uint(vx)+basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -583,9 +571,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Uint8(vx)+basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -610,9 +596,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Uint16(vx)+basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -637,9 +621,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Uint32(vx)+basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -664,9 +646,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Uint64(vx)+basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -691,9 +671,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Uintptr(vx)+basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -718,9 +696,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float32(vx)
-				y := basic.Float32(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Float32(vx)+basic.Float32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -745,9 +721,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float64(vx)
-				y := basic.Float64(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Float64(vx)+basic.Float64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -772,9 +746,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex64(vx)
-				y := basic.Complex64(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Complex64(vx)+basic.Complex64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -799,9 +771,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex128(vx)
-				y := basic.Complex128(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.Complex128(vx)+basic.Complex128(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -826,9 +796,7 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.String:
 			if kx == kindConst && ky == kindConst {
-				x := basic.String(vx)
-				y := basic.String(vy)
-				v := basic.Make(t, x+y)
+				v := basic.Make(t, basic.String(vx)+basic.String(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1244,9 +1212,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Int(vx)-basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1271,9 +1237,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Int8(vx)-basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1298,9 +1262,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Int16(vx)-basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1325,9 +1287,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Int32(vx)-basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1352,9 +1312,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Int64(vx)-basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1379,9 +1337,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Uint(vx)-basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1406,9 +1362,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Uint8(vx)-basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1433,9 +1387,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Uint16(vx)-basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1460,9 +1412,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Uint32(vx)-basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1487,9 +1437,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Uint64(vx)-basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1514,9 +1462,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Uintptr(vx)-basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1541,9 +1487,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float32(vx)
-				y := basic.Float32(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Float32(vx)-basic.Float32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1568,9 +1512,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float64(vx)
-				y := basic.Float64(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Float64(vx)-basic.Float64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1595,9 +1537,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex64(vx)
-				y := basic.Complex64(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Complex64(vx)-basic.Complex64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -1622,9 +1562,7 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex128(vx)
-				y := basic.Complex128(vy)
-				v := basic.Make(t, x-y)
+				v := basic.Make(t, basic.Complex128(vx)-basic.Complex128(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2040,9 +1978,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Int(vx)*basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2067,9 +2003,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Int8(vx)*basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2094,9 +2028,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Int16(vx)*basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2121,9 +2053,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Int32(vx)*basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2148,9 +2078,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Int64(vx)*basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2175,9 +2103,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Uint(vx)*basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2202,9 +2128,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Uint8(vx)*basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2229,9 +2153,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Uint16(vx)*basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2256,9 +2178,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Uint32(vx)*basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2283,9 +2203,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Uint64(vx)*basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2310,9 +2228,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Uintptr(vx)*basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2337,9 +2253,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float32(vx)
-				y := basic.Float32(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Float32(vx)*basic.Float32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2364,9 +2278,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float64(vx)
-				y := basic.Float64(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Float64(vx)*basic.Float64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2391,9 +2303,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex64(vx)
-				y := basic.Complex64(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Complex64(vx)*basic.Complex64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2418,9 +2328,7 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex128(vx)
-				y := basic.Complex128(vy)
-				v := basic.Make(t, x*y)
+				v := basic.Make(t, basic.Complex128(vx)*basic.Complex128(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2457,7 +2365,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(int) / vy.(int)
+				x := vx.(int)
+				y := vy.(int)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2482,7 +2397,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(int8) / vy.(int8)
+				x := vx.(int8)
+				y := vy.(int8)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2507,7 +2429,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(int16) / vy.(int16)
+				x := vx.(int16)
+				y := vy.(int16)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2532,7 +2461,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(int32) / vy.(int32)
+				x := vx.(int32)
+				y := vy.(int32)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2557,7 +2493,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(int64) / vy.(int64)
+				x := vx.(int64)
+				y := vy.(int64)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2582,7 +2525,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(uint) / vy.(uint)
+				x := vx.(uint)
+				y := vy.(uint)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2607,7 +2557,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(uint8) / vy.(uint8)
+				x := vx.(uint8)
+				y := vy.(uint8)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2632,7 +2589,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(uint16) / vy.(uint16)
+				x := vx.(uint16)
+				y := vy.(uint16)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2657,7 +2621,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(uint32) / vy.(uint32)
+				x := vx.(uint32)
+				y := vy.(uint32)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2682,7 +2653,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(uint64) / vy.(uint64)
+				x := vx.(uint64)
+				y := vy.(uint64)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2707,7 +2685,14 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := vx.(uintptr) / vy.(uintptr)
+				x := vx.(uintptr)
+				y := vy.(uintptr)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, x/y)
+					}
+				}
+				v := x / y
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -2838,6 +2823,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Int(vx)
 				y := basic.Int(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -2865,6 +2855,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Int8(vx)
 				y := basic.Int8(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -2892,6 +2887,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Int16(vx)
 				y := basic.Int16(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -2919,6 +2919,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Int32(vx)
 				y := basic.Int32(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -2946,6 +2951,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Int64(vx)
 				y := basic.Int64(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -2973,6 +2983,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Uint(vx)
 				y := basic.Uint(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -3000,6 +3015,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Uint8(vx)
 				y := basic.Uint8(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -3027,6 +3047,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Uint16(vx)
 				y := basic.Uint16(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -3054,6 +3079,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Uint32(vx)
 				y := basic.Uint32(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -3081,6 +3111,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Uint64(vx)
 				y := basic.Uint64(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -3108,6 +3143,11 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			if kx == kindConst && ky == kindConst {
 				x := basic.Uintptr(vx)
 				y := basic.Uintptr(vy)
+				if y == 0 {
+					return func(fr *frame) {
+						fr.setReg(ir, basic.Make(t, x/y))
+					}
+				}
 				v := basic.Make(t, x/y)
 				return func(fr *frame) {
 					fr.setReg(ir, v)
@@ -3133,9 +3173,7 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float32(vx)
-				y := basic.Float32(vy)
-				v := basic.Make(t, x/y)
+				v := basic.Make(t, basic.Float32(vx)/basic.Float32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3160,9 +3198,7 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Float64(vx)
-				y := basic.Float64(vy)
-				v := basic.Make(t, x/y)
+				v := basic.Make(t, basic.Float64(vx)/basic.Float64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3187,9 +3223,7 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex64(vx)
-				y := basic.Complex64(vy)
-				v := basic.Make(t, x/y)
+				v := basic.Make(t, basic.Complex64(vx)/basic.Complex64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3214,9 +3248,7 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Complex128(vx)
-				y := basic.Complex128(vy)
-				v := basic.Make(t, x/y)
+				v := basic.Make(t, basic.Complex128(vx)/basic.Complex128(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3532,9 +3564,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Int(vx)%basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3559,9 +3589,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Int8(vx)%basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3586,9 +3614,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Int16(vx)%basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3613,9 +3639,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Int32(vx)%basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3640,9 +3664,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Int64(vx)%basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3667,9 +3689,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Uint(vx)%basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3694,9 +3714,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Uint8(vx)%basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3721,9 +3739,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Uint16(vx)%basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3748,9 +3764,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Uint32(vx)%basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3775,9 +3789,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Uint64(vx)%basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -3802,9 +3814,7 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x%y)
+				v := basic.Make(t, basic.Uintptr(vx)%basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4120,9 +4130,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Int(vx)&basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4147,9 +4155,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Int8(vx)&basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4174,9 +4180,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Int16(vx)&basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4201,9 +4205,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Int32(vx)&basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4228,9 +4230,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Int64(vx)&basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4255,9 +4255,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Uint(vx)&basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4282,9 +4280,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Uint8(vx)&basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4309,9 +4305,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Uint16(vx)&basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4336,9 +4330,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Uint32(vx)&basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4363,9 +4355,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Uint64(vx)&basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4390,9 +4380,7 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x&y)
+				v := basic.Make(t, basic.Uintptr(vx)&basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4708,9 +4696,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Int(vx)|basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4735,9 +4721,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Int8(vx)|basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4762,9 +4746,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Int16(vx)|basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4789,9 +4771,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Int32(vx)|basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4816,9 +4796,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Int64(vx)|basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4843,9 +4821,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Uint(vx)|basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4870,9 +4846,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Uint8(vx)|basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4897,9 +4871,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Uint16(vx)|basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4924,9 +4896,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Uint32(vx)|basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4951,9 +4921,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Uint64(vx)|basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -4978,9 +4946,7 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x|y)
+				v := basic.Make(t, basic.Uintptr(vx)|basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5296,9 +5262,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Int(vx)^basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5323,9 +5287,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Int8(vx)^basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5350,9 +5312,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Int16(vx)^basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5377,9 +5337,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Int32(vx)^basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5404,9 +5362,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Int64(vx)^basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5431,9 +5387,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Uint(vx)^basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5458,9 +5412,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Uint8(vx)^basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5485,9 +5437,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Uint16(vx)^basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5512,9 +5462,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Uint32(vx)^basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5539,9 +5487,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Uint64(vx)^basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5566,9 +5512,7 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x^y)
+				v := basic.Make(t, basic.Uintptr(vx)^basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5884,9 +5828,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Int(vx)&^basic.Int(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5911,9 +5853,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Int8(vx)&^basic.Int8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5938,9 +5878,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Int16(vx)&^basic.Int16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5965,9 +5903,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Int32(vx)&^basic.Int32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -5992,9 +5928,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Int64(vx)&^basic.Int64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -6019,9 +5953,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Uint(vx)&^basic.Uint(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -6046,9 +5978,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Uint8(vx)&^basic.Uint8(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -6073,9 +6003,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Uint16(vx)&^basic.Uint16(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -6100,9 +6028,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Uint32(vx)&^basic.Uint32(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -6127,9 +6053,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Uint64(vx)&^basic.Uint64(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
@@ -6154,9 +6078,7 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
-				v := basic.Make(t, x&^y)
+				v := basic.Make(t, basic.Uintptr(vx)&^basic.Uintptr(vy))
 				return func(fr *frame) {
 					fr.setReg(ir, v)
 				}
