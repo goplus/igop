@@ -141,7 +141,12 @@ func $NAME(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 `
 
 var func_case1 = `case reflect.Int:
-if kx == kindConst {
+if kx == kindConst && ky == kindConst {
+	v := vx.(int)+vy.(int)
+	return func(fr *frame) {
+		fr.setReg(ir, v)
+	}
+} else if kx == kindConst {
 	x := vx.(int)
 	return func(fr *frame) {
 		y := fr.reg(iy).(int)
@@ -163,7 +168,14 @@ if kx == kindConst {
 `
 
 var func_case2 = `case reflect.Int:
-if kx == kindConst {
+if kx == kindConst && ky == kindConst {
+	x := basic.Int(vx)
+	y := basic.Int(vy)
+	v := basic.Make(t,x+y)
+	return func(fr *frame) {
+		fr.setReg(ir, v)
+	}	
+} else if kx == kindConst {
 	x := basic.Int(vx)
 	return func(fr *frame) {
 		y := basic.Int(fr.reg(iy))
@@ -185,7 +197,12 @@ if kx == kindConst {
 `
 
 var func_case2_cmp = `case reflect.Int:
-if kx == kindConst {
+if kx == kindConst && ky == kindConst {
+	v := basic.Int(vx)<basic.Int(vy)
+	return func(fr *frame) {
+		fr.setReg(ir, v)
+	}
+} else if kx == kindConst {
 	x := basic.Int(vx)
 	return func(fr *frame) {
 		y := basic.Int(fr.reg(iy))
