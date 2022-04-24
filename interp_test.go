@@ -767,6 +767,37 @@ type T $int
 func main() {
 	// 0101 0110
 	test(5, 6)
+	testConst()
+	testDivideZero()
+}
+
+func testConst() {
+	var a T = 4
+	var b T = 2
+	check(a+b,6)
+	check(a-b,2)
+	check(a*b,8)
+	check(a/b,2)
+	check(a%b,0)
+	check(a&b,0)
+	check(a|b,6)
+	check(a^b,6)
+	check(a&^b,4)
+	assert(a>b)
+	assert(a>=b)
+	assert(b<a)
+	assert(a<=a)
+}
+
+func testDivideZero() {
+	defer func() {
+		if r := recover(); r == nil {
+			panic("must panic")
+		}
+	}()
+	var a T
+	var b T
+	_ = a/b
 }
 
 func test(a, b T) {
@@ -854,6 +885,20 @@ type T $float
 
 func main() {
 	test(5.0, 6.5)
+	testConst()
+}
+
+func testConst() {
+	var a T = 4.0
+	var b T = 2.0
+	check(a+b,6)
+	check(a-b,2)
+	check(a*b,8)
+	check(a/b,2)
+	assert(a>b)
+	assert(a>=b)
+	assert(b<a)
+	assert(a<=a)
 }
 
 func test(a, b T) {
@@ -926,6 +971,16 @@ type T $complex
 
 func main() {
 	test(1+2i, 3+4i)
+	testConst()
+}
+
+func testConst() {
+	var a T = 4i
+	var b T = 2i
+	check(a+b,6i)
+	check(a-b,2i)
+	check(a*b,-8)
+	check(a/b,2)
 }
 
 func test(a, b T) {
@@ -987,6 +1042,17 @@ type T = string
 
 func main() {
 	test("go", "ssa")
+	testConst()
+}
+
+func testConst() {
+	var a T = "hello"
+	var b T = "world"
+	check(a+b,"helloworld")
+	assert(a < b)
+	assert(a <= b)
+	assert(b > a)
+	assert(b >= a)
 }
 
 func test(a, b T) {
