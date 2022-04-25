@@ -95,3 +95,147 @@ func Make(typ Type, i interface{}) interface{} {
 	p.typ = unsafe.Pointer(typ)
 	return i
 }
+
+func Not(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := !*(*bool)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegInt(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*int)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegInt8(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*int8)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegInt16(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*int16)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegInt32(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*int32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegInt64(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*int64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegUint(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*uint)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegUint8(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*uint8)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegUint16(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*uint16)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegUint32(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*uint32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegUint64(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*uint64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegUintptr(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*uintptr)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegFloat32(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*float32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegFloat64(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*float64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegComplex64(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*complex64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func NegComplex128(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := -*(*complex128)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
