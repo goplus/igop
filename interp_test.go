@@ -756,7 +756,7 @@ func main() {
 	}
 }
 
-func TestOpBinInt(t *testing.T) {
+func TestBinOpInt(t *testing.T) {
 	// + - * / % & ^ &^ < <= > >=
 	tsrc := `package main
 
@@ -876,7 +876,7 @@ func check(a, b T) {
 	}
 }
 
-func TestOpBinFloat(t *testing.T) {
+func TestBinOpFloat(t *testing.T) {
 	tsrc := `package main
 
 import "fmt"
@@ -962,7 +962,7 @@ func check(a, b T) {
 	}
 }
 
-func TestOpBinComplex(t *testing.T) {
+func TestBinOpComplex(t *testing.T) {
 	tsrc := `package main
 
 import "fmt"
@@ -1033,7 +1033,7 @@ func check(a, b T) {
 	}
 }
 
-func TestOpBinString(t *testing.T) {
+func TestBinOpString(t *testing.T) {
 	tsrc := `package main
 
 import "fmt"
