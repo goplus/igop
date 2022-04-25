@@ -319,6 +319,14 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			panic("unreachable")
 		}
 	case *ssa.UnOp:
+		switch instr.Op {
+		case token.NOT:
+			return makeUnOpNOT(pfn, instr)
+		case token.SUB:
+		case token.ARROW:
+		case token.MUL:
+		case token.XOR:
+		}
 		ir := pfn.regIndex(instr)
 		ix := pfn.regIndex(instr.X)
 		return func(fr *frame) {
