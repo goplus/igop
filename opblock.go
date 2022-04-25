@@ -323,9 +323,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		case token.NOT:
 			return makeUnOpNOT(pfn, instr)
 		case token.SUB:
+			return makeUnOpSUB(pfn, instr)
+		case token.XOR:
+			return makeUnOpXOR(pfn, instr)
 		case token.ARROW:
 		case token.MUL:
-		case token.XOR:
 		}
 		ir := pfn.regIndex(instr)
 		ix := pfn.regIndex(instr.X)
