@@ -239,3 +239,102 @@ func NegComplex128(i interface{}) interface{} {
 		word: unsafe.Pointer(&v),
 	}))
 }
+
+func XorInt(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*int)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorInt8(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*int8)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorInt16(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*int16)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorInt32(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*int32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorInt64(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*int64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorUint(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*uint)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorUint8(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*uint8)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorUint16(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*uint16)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorUint32(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*uint32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorUint64(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*uint64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func XorUintptr(i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := ^*(*uintptr)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  p.typ,
+		word: unsafe.Pointer(&v),
+	}))
+}
