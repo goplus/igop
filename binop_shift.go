@@ -144,7 +144,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int)
 				switch ykind {
@@ -269,8 +269,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -393,7 +393,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -666,7 +666,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int8)
 				switch ykind {
@@ -791,8 +791,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -915,7 +915,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int8)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -1188,7 +1188,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int16)
 				switch ykind {
@@ -1313,8 +1313,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -1437,7 +1437,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int16)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -1710,7 +1710,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int32)
 				switch ykind {
@@ -1835,8 +1835,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -1959,7 +1959,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int32)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -2232,7 +2232,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int64)
 				switch ykind {
@@ -2357,8 +2357,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -2481,7 +2481,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int64)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -2754,7 +2754,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint)
 				switch ykind {
@@ -2879,8 +2879,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -3003,7 +3003,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -3276,7 +3276,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint8)
 				switch ykind {
@@ -3401,8 +3401,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -3525,7 +3525,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint8)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -3798,7 +3798,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint16)
 				switch ykind {
@@ -3923,8 +3923,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -4047,7 +4047,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint16)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -4320,7 +4320,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint32)
 				switch ykind {
@@ -4445,8 +4445,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -4569,7 +4569,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint32)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -4842,7 +4842,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint64)
 				switch ykind {
@@ -4967,8 +4967,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -5091,7 +5091,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint64)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -5364,7 +5364,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uintptr)
 				switch ykind {
@@ -5489,8 +5489,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x<<y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -5613,7 +5613,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uintptr)
 						fr.setReg(ir, x<<y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -5890,7 +5890,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int(vx)
 				switch ykind {
@@ -6015,8 +6015,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -6139,7 +6139,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -6412,7 +6412,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int8(vx)
 				switch ykind {
@@ -6537,8 +6537,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -6661,7 +6661,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int8(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -6934,7 +6934,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int16(vx)
 				switch ykind {
@@ -7059,8 +7059,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -7183,7 +7183,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int16(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -7456,7 +7456,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int32(vx)
 				switch ykind {
@@ -7581,8 +7581,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -7705,7 +7705,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int32(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -7978,7 +7978,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int64(vx)
 				switch ykind {
@@ -8103,8 +8103,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -8227,7 +8227,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int64(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -8500,7 +8500,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint(vx)
 				switch ykind {
@@ -8625,8 +8625,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -8749,7 +8749,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -9022,7 +9022,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint8(vx)
 				switch ykind {
@@ -9147,8 +9147,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -9271,7 +9271,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint8(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -9544,7 +9544,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint16(vx)
 				switch ykind {
@@ -9669,8 +9669,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -9793,7 +9793,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint16(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -10066,7 +10066,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint32(vx)
 				switch ykind {
@@ -10191,8 +10191,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -10315,7 +10315,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint32(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -10588,7 +10588,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint64(vx)
 				switch ykind {
@@ -10713,8 +10713,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -10837,7 +10837,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint64(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -11110,7 +11110,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uintptr(vx)
 				switch ykind {
@@ -11235,8 +11235,8 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -11359,7 +11359,7 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uintptr(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x<<y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -11649,7 +11649,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int)
 				switch ykind {
@@ -11774,8 +11774,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -11898,7 +11898,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -12171,7 +12171,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int8)
 				switch ykind {
@@ -12296,8 +12296,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -12420,7 +12420,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int8)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -12693,7 +12693,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int16)
 				switch ykind {
@@ -12818,8 +12818,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -12942,7 +12942,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int16)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -13215,7 +13215,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int32)
 				switch ykind {
@@ -13340,8 +13340,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -13464,7 +13464,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int32)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -13737,7 +13737,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(int64)
 				switch ykind {
@@ -13862,8 +13862,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -13986,7 +13986,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(int64)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -14259,7 +14259,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint)
 				switch ykind {
@@ -14384,8 +14384,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -14508,7 +14508,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -14781,7 +14781,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint8)
 				switch ykind {
@@ -14906,8 +14906,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -15030,7 +15030,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint8)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -15303,7 +15303,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint16)
 				switch ykind {
@@ -15428,8 +15428,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -15552,7 +15552,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint16)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -15825,7 +15825,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint32)
 				switch ykind {
@@ -15950,8 +15950,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -16074,7 +16074,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint32)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -16347,7 +16347,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uint64)
 				switch ykind {
@@ -16472,8 +16472,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -16596,7 +16596,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uint64)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -16869,7 +16869,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := vx.(uintptr)
 				switch ykind {
@@ -16994,8 +16994,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, x>>y)
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -17118,7 +17118,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := fr.reg(ix).(uintptr)
 						fr.setReg(ir, x>>y)
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -17395,7 +17395,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int(vx)
 				switch ykind {
@@ -17520,8 +17520,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -17644,7 +17644,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -17917,7 +17917,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int8(vx)
 				switch ykind {
@@ -18042,8 +18042,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -18166,7 +18166,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int8(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -18439,7 +18439,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int16(vx)
 				switch ykind {
@@ -18564,8 +18564,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -18688,7 +18688,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int16(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -18961,7 +18961,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int32(vx)
 				switch ykind {
@@ -19086,8 +19086,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -19210,7 +19210,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int32(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -19483,7 +19483,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Int64(vx)
 				switch ykind {
@@ -19608,8 +19608,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -19732,7 +19732,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Int64(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -20005,7 +20005,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint(vx)
 				switch ykind {
@@ -20130,8 +20130,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -20254,7 +20254,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -20527,7 +20527,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint8(vx)
 				switch ykind {
@@ -20652,8 +20652,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -20776,7 +20776,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint8(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -21049,7 +21049,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint16(vx)
 				switch ykind {
@@ -21174,8 +21174,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -21298,7 +21298,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint16(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -21571,7 +21571,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint32(vx)
 				switch ykind {
@@ -21696,8 +21696,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -21820,7 +21820,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint32(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -22093,7 +22093,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uint64(vx)
 				switch ykind {
@@ -22218,8 +22218,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -22342,7 +22342,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uint64(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
@@ -22615,7 +22615,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
-				} // end ykind
+				}
 			} else if kx == kindConst {
 				x := basic.Uintptr(vx)
 				switch ykind {
@@ -22740,8 +22740,8 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						y := basic.Uintptr(fr.reg(iy))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} //end ykind
-			} else if ky == kindConst { // end kx == kindConst
+				}
+			} else if ky == kindConst {
 				switch ykind {
 				case reflect.Int:
 					var y int
@@ -22864,7 +22864,7 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 						x := basic.Uintptr(fr.reg(ix))
 						fr.setReg(ir, basic.Make(t, x>>y))
 					}
-				} // end ykind
+				}
 			} else {
 				switch ykind {
 				case reflect.Int:
