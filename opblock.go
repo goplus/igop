@@ -312,13 +312,9 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				fr.setReg(ir, !opEQL(instr, fr.reg(ix), fr.reg(iy)))
 			}
 		case token.SHL:
-			return func(fr *frame) {
-				fr.setReg(ir, opSHL(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpSHL(pfn, instr)
 		case token.SHR:
-			return func(fr *frame) {
-				fr.setReg(ir, opSHR(fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpSHR(pfn, instr)
 		default:
 			panic("unreachable")
 		}
