@@ -1097,3 +1097,70 @@ func check(a, b T) {
 		t.Fatal(err)
 	}
 }
+
+func TestBinOpShift(t *testing.T) {
+	tsrc := `package main
+type T1 $T1
+type T2 $T2
+
+func main() {
+	test(4, 2)
+}
+func test(a T1, b T2) {
+	assert(a << b == 16)
+	assert(a >> b == 1)
+	assert(a << T2(2) == 16)
+	assert(a >> T2(2) == 1)
+	assert(T1(4) << b == 16)
+	assert(T1(4) >> b == 1)
+	var c T1 = 4
+	var d T2 = 2
+	assert(c << d == 16)
+	assert(c >> d == 1)
+}
+func assert(t bool) {
+	if !t {
+		panic("error")
+	}
+}
+`
+	types := []string{
+		"int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+	}
+	for _, t1 := range types {
+		t.Log("test binop shift", t1)
+		for _, t2 := range types {
+			r := strings.NewReplacer("$T1", "="+t1, "$T2", "="+t2)
+			src := r.Replace(tsrc)
+			_, err := gossa.RunFile("main.go", src, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		for _, t2 := range types {
+			r := strings.NewReplacer("$T1", "="+t1, "$T2", t2)
+			src := r.Replace(tsrc)
+			_, err := gossa.RunFile("main.go", src, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		for _, t2 := range types {
+			r := strings.NewReplacer("$T1", t1, "$T2", "="+t2)
+			src := r.Replace(tsrc)
+			_, err := gossa.RunFile("main.go", src, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		for _, t2 := range types {
+			r := strings.NewReplacer("$T1", t1, "$T2", t2)
+			src := r.Replace(tsrc)
+			_, err := gossa.RunFile("main.go", src, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+}
