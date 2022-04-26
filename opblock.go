@@ -328,6 +328,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			return makeUnOpXOR(pfn, instr)
 		case token.ARROW:
 		case token.MUL:
+			return makeUnOpMUL(pfn, instr)
 		}
 		ir := pfn.regIndex(instr)
 		ix := pfn.regIndex(instr.X)
