@@ -133,7 +133,7 @@ var pkg_head = `package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/basic"
+	"github.com/goplus/gossa/internal/basic"
 	"golang.org/x/tools/go/ssa"
 )
 `
