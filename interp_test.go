@@ -1384,3 +1384,89 @@ func testConst() {
 		}
 	}
 }
+
+func TestUnOpXorInt(t *testing.T) {
+	tsrc := `package main
+
+type T $int
+
+func main() {
+	test(10, 11)
+	testConst()
+}
+
+func test(a $int, b T) {
+	if r := ^a; r != -11 {
+		panic(r)
+	}
+	if r := ^b; r != -12 {
+		panic(r)
+	}
+}
+func testConst() {
+	var a $int = 10
+	var b T = 11
+	if r := ^a; r != -11 {
+		panic(r)
+	}
+	if r := ^b; r != -12 {
+		panic(r)
+	}
+}
+`
+	types := []string{
+		"int", "int8", "int16", "int32", "int64",
+	}
+
+	for _, s := range types {
+		t.Log("test unop xor", s)
+		src := strings.Replace(tsrc, "$int", s, -1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestUnOpXorUint(t *testing.T) {
+	tsrc := `package main
+
+type T $uint
+
+func main() {
+	test(0b1010, 0b1011)
+	testConst()
+}
+
+func test(a $uint, b T) {
+	if r := ^a; r&0xff != 0b11110101 {
+		panic(r)
+	}
+	if r := ^b; r&0xff != 0b11110100 {
+		panic(r)
+	}
+}
+func testConst() {
+	var a $uint = 0b1010
+	var b T = 0b1011
+	if r := ^a; r&0xff != 0b11110101 {
+		panic(r)
+	}
+	if r := ^b; r&0xff != 0b11110100 {
+		panic(r)
+	}
+}
+`
+	types := []string{
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+	}
+
+	for _, s := range types {
+		t.Log("test unop xor", s)
+		src := strings.Replace(tsrc, "$uint", s, -1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
