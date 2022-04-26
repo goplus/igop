@@ -57,3 +57,46 @@ func makeUnOpMUL(pfn *function, instr *ssa.UnOp) func(fr *frame) {
 		fr.setReg(ir, elem.Interface())
 	}
 }
+
+func makeUnOpARROW(pfn *function, instr *ssa.UnOp) func(fr *frame) {
+	ir := pfn.regIndex(instr)
+	ix, kx, vx := pfn.regIndex3(instr.X)
+	typ := pfn.Interp.preToType(instr.X.Type()).Elem()
+	if kx == kindGlobal {
+		x := reflect.ValueOf(vx)
+		if instr.CommaOk {
+			return func(fr *frame) {
+				v, ok := x.Recv()
+				if !ok {
+					v = reflect.New(typ).Elem()
+				}
+				fr.setReg(ir, tuple{v.Interface(), ok})
+			}
+		}
+		return func(fr *frame) {
+			v, ok := x.Recv()
+			if !ok {
+				v = reflect.New(typ).Elem()
+			}
+			fr.setReg(ir, v.Interface())
+		}
+	}
+	if instr.CommaOk {
+		return func(fr *frame) {
+			x := reflect.ValueOf(fr.reg(ix))
+			v, ok := x.Recv()
+			if !ok {
+				v = reflect.New(typ).Elem()
+			}
+			fr.setReg(ir, tuple{v.Interface(), ok})
+		}
+	}
+	return func(fr *frame) {
+		x := reflect.ValueOf(fr.reg(ix))
+		v, ok := x.Recv()
+		if !ok {
+			v = reflect.New(typ).Elem()
+		}
+		fr.setReg(ir, v.Interface())
+	}
+}

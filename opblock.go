@@ -327,13 +327,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		case token.XOR:
 			return makeUnOpXOR(pfn, instr)
 		case token.ARROW:
+			return makeUnOpARROW(pfn, instr)
 		case token.MUL:
 			return makeUnOpMUL(pfn, instr)
-		}
-		ir := pfn.regIndex(instr)
-		ix := pfn.regIndex(instr.X)
-		return func(fr *frame) {
-			fr.setReg(ir, unop(instr, fr.reg(ix)))
+		default:
+			panic("unreachable")
 		}
 	case *ssa.ChangeInterface:
 		ir := pfn.regIndex(instr)
