@@ -1164,3 +1164,35 @@ func assert(t bool) {
 		}
 	}
 }
+
+func TestUnOpNot(t *testing.T) {
+	src := `package main
+type T bool
+func main() {
+	test(false,false)
+	testConst()
+}
+func test(b1 bool, b2 T) {
+	if v := !b1; v != true {
+		panic("must true")
+	}
+	if v := !b2; v != true {
+		panic("must true")
+	}
+}
+func testConst() {
+	var b1 bool
+	var b2 T
+	if v := !b1; v != true {
+		panic("must true")
+	}
+	if v := !b2; v != true {
+		panic("must true")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
