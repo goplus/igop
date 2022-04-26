@@ -1300,3 +1300,87 @@ func testConst() {
 		}
 	}
 }
+
+func TestUnOpSubFloat(t *testing.T) {
+	tsrc := `package main
+
+type T $float
+
+func main() {
+	test(5.0, 6.5)
+	testConst()
+}
+
+func test(a $float, b T) {
+	if r := -a; r != -5.0 {
+		panic(r)
+	}
+	if r := -b; r != -6.5 {
+		panic(r)
+	}
+}
+func testConst() {
+	var a $float = 5.0
+	var b T = 6.5
+	if r := -a; r != -5.0 {
+		panic(r)
+	}
+	if r := -b; r != -6.5 {
+		panic(r)
+	}
+}
+`
+	types := []string{
+		"float32", "float64",
+	}
+	for _, s := range types {
+		t.Log("test unop sub", s)
+		src := strings.Replace(tsrc, "$float", s, -1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestUnOpSubComplex(t *testing.T) {
+	tsrc := `package main
+
+type T $complex
+
+func main() {
+	test(1+2i, 3+4i)
+	testConst()
+}
+
+func test(a $complex, b T) {
+	if r := -a; r != -1-2i {
+		panic(r)
+	}
+	if r := -b; r != -3-4i {
+		panic(r)
+	}
+}
+func testConst() {
+	var a $complex = 1+2i
+	var b T = 3+4i
+	if r := -a; r != -1-2i {
+		panic(r)
+	}
+	if r := -b; r != -3-4i {
+		panic(r)
+	}
+}
+`
+	types := []string{
+		"complex64", "complex128",
+	}
+	for _, s := range types {
+		t.Log("test unop sub", s)
+		src := strings.Replace(tsrc, "$complex", s, -1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
