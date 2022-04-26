@@ -1228,6 +1228,7 @@ func testConst() {
 	types := []string{
 		"int", "int8", "int16", "int32", "int64",
 	}
+
 	for _, s := range types {
 		t.Log("test unop sub", s)
 		src := strings.Replace(tsrc, "$int", s, -1)
@@ -1245,6 +1246,10 @@ import (
 	"math"
 )
 
+var (
+	_ = math.Pi
+)
+
 type T $uint
 
 func main() {
@@ -1254,7 +1259,7 @@ func main() {
 
 const (
 	r1 $uint = math.MaxUint - 9
-	r2 T    = math.MaxUint - 9
+	r2 T    = T(math.MaxUint - 9)
 )
 
 func test(a $uint, b T) {
@@ -1279,13 +1284,15 @@ func testConst() {
 	types := []string{
 		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
 	}
+	intSize := 32 << (^uint(0) >> 63)
 	for _, s := range types {
 		t.Log("test unop sub", s)
-		ts := strings.Title(s)
-		if s == "uintptr" {
-			ts = "Uint"
+		var r *strings.Replacer
+		if s == "uint" || s == "uintptr" {
+			r = strings.NewReplacer("$uint", s, "math.MaxUint", fmt.Sprintf("%v(%v)", s, uint(1<<intSize-1)))
+		} else {
+			r = strings.NewReplacer("$uint", s, "Uint", strings.Title(s))
 		}
-		r := strings.NewReplacer("$uint", s, "Uint", ts)
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
