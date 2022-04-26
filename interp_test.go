@@ -1196,3 +1196,100 @@ func testConst() {
 		t.Fatal(err)
 	}
 }
+
+func TestUnOpSubInt(t *testing.T) {
+	tsrc := `package main
+type T $int
+
+func main() {
+	test(10,10)
+	testConst()
+}
+
+func test(a $int, b T) {
+	if r := -a; r != -10 {
+		panic("must -10")
+	}
+	if r := -b; r != -10 {
+		panic("must -10")
+	}
+}
+func testConst() {
+	var a $int = 10
+	var b T = 10
+	if r := -a; r != -10 {
+		panic("must -10")
+	}
+	if r := -b; r != -10 {
+		panic("must -10")
+	}
+}
+`
+	types := []string{
+		"int", "int8", "int16", "int32", "int64",
+	}
+	for _, s := range types {
+		t.Log("test unop sub", s)
+		src := strings.Replace(tsrc, "$int", s, -1)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestUnOpSubUint(t *testing.T) {
+	tsrc := `package main
+
+import (
+	"math"
+)
+
+type T $uint
+
+func main() {
+	test(10, 10)
+	testConst()
+}
+
+const (
+	r1 $uint = math.MaxUint - 9
+	r2 T    = math.MaxUint - 9
+)
+
+func test(a $uint, b T) {
+	if r := -a; r != r1 {
+		panic(r)
+	}
+	if r := -b; r != r2 {
+		panic(r)
+	}
+}
+func testConst() {
+	var a $uint = 10
+	var b T = 10
+	if r := -a; r != r1 {
+		panic(r)
+	}
+	if r := -b; r != r2 {
+		panic(r)
+	}
+}
+`
+	types := []string{
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+	}
+	for _, s := range types {
+		t.Log("test unop sub", s)
+		ts := strings.Title(s)
+		if s == "uintptr" {
+			ts = "Uint"
+		}
+		r := strings.NewReplacer("$uint", s, "Uint", ts)
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
