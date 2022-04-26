@@ -1242,41 +1242,28 @@ func testConst() {
 func TestUnOpSubUint(t *testing.T) {
 	tsrc := `package main
 
-import (
-	"math"
-)
-
-var (
-	_ = math.Pi
-)
-
 type T $uint
 
 func main() {
-	test(10, 10)
+	test(0b1010, 0b1011)
 	testConst()
 }
 
-const (
-	r1 $uint = math.MaxUint - 9
-	r2 T    = T(math.MaxUint - 9)
-)
-
 func test(a $uint, b T) {
-	if r := -a; r != r1 {
+	if r := -a; r&0xff != 0b11110110 {
 		panic(r)
 	}
-	if r := -b; r != r2 {
+	if r := -b; r&0xff != 0b11110101 {
 		panic(r)
 	}
 }
 func testConst() {
-	var a $uint = 10
-	var b T = 10
-	if r := -a; r != r1 {
+	var a $uint = 0b1010
+	var b T = 0b1011
+	if r := -a; r&0xff != 0b11110110 {
 		panic(r)
 	}
-	if r := -b; r != r2 {
+	if r := -b; r&0xff != 0b11110101 {
 		panic(r)
 	}
 }
@@ -1284,16 +1271,8 @@ func testConst() {
 	types := []string{
 		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
 	}
-	intSize := 32 << (^uint(0) >> 63)
 	for _, s := range types {
-		t.Log("test unop sub", s)
-		var r *strings.Replacer
-		if s == "uint" || s == "uintptr" {
-			r = strings.NewReplacer("$uint", s, "math.MaxUint", fmt.Sprintf("%v(%v)", s, uint(1<<intSize-1)))
-		} else {
-			r = strings.NewReplacer("$uint", s, "Uint", strings.Title(s))
-		}
-		src := r.Replace(tsrc)
+		src := strings.Replace(tsrc, "$uint", s, -1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
