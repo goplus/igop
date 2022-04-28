@@ -774,6 +774,7 @@ func main() {
 func testConst() {
 	var a T = 4
 	var b T = 2
+	var c T = 4
 	check(a+b,6)
 	check(a-b,2)
 	check(a*b,8)
@@ -787,6 +788,8 @@ func testConst() {
 	assert(a>=b)
 	assert(b<a)
 	assert(a<=a)
+	assert(a==c)
+	assert(a!=b)
 }
 
 func testDivideZero() {
@@ -840,6 +843,12 @@ func test(a, b T) {
 	assert(a >= 5)
 	assert(6 >= a)
 	assert(b >= a)
+	assert(a == 5)
+	assert(5 == a)
+	assert(a != 6)
+	assert(6 != a)
+	assert(a != b)
+	assert(a+1 == b)
 }
 
 func assert(t bool) {
@@ -891,6 +900,7 @@ func main() {
 func testConst() {
 	var a T = 4.0
 	var b T = 2.0
+	var c T = 4.0
 	check(a+b,6)
 	check(a-b,2)
 	check(a*b,8)
@@ -899,6 +909,8 @@ func testConst() {
 	assert(a>=b)
 	assert(b<a)
 	assert(a<=a)
+	assert(a==c)
+	assert(a!=b)
 }
 
 func test(a, b T) {
@@ -926,6 +938,12 @@ func test(a, b T) {
 	assert(a >= 5)
 	assert(6 >= a)
 	assert(b >= a)
+	assert(a == 5)
+	assert(5 == a)
+	assert(a != 6)
+	assert(6 != a)
+	assert(a != b)
+	assert(a+1.5 == b)
 }
 
 func assert(t bool) {
@@ -977,10 +995,13 @@ func main() {
 func testConst() {
 	var a T = 4i
 	var b T = 2i
+	var c T = 4i
 	check(a+b,6i)
 	check(a-b,2i)
 	check(a*b,-8)
 	check(a/b,2)
+	assert(a == c)
+	assert(a != b)
 }
 
 func test(a, b T) {
@@ -996,6 +1017,12 @@ func test(a, b T) {
 	check(a/2i, 1-0.5i)
 	check(10/a, 2-4i)
 	check(a/b, 0.44+0.08i)
+	assert(a == 1+2i)
+	assert(1+2i == a)
+	assert(a != 2+2i)
+	assert(2+2i != a)
+	assert(a != b)
+	assert(a+2+2i == b)
 }
 
 func assert(t bool) {
@@ -1041,21 +1068,24 @@ import "fmt"
 type T = string
 
 func main() {
-	test("go", "ssa")
+	test("go", "ssa", "go")
 	testConst()
 }
 
 func testConst() {
 	var a T = "hello"
 	var b T = "world"
+	var c T = "hello"
 	check(a+b,"helloworld")
 	assert(a < b)
 	assert(a <= b)
 	assert(b > a)
 	assert(b >= a)
+	assert(a == c)
+	assert(a != b)
 }
 
-func test(a, b T) {
+func test(a, b, c T) {
 	check(a+"run", "gorun")
 	check("run"+a, "rungo")
 	check(a+b, "gossa")
@@ -1071,6 +1101,12 @@ func test(a, b T) {
 	assert(a >= "go")
 	assert("go1" >= a)
 	assert(b >= a)
+	assert(a == "go")
+	assert("go" == a)
+	assert(a != "go1")
+	assert("go1" != a)
+	assert(a != b)
+	assert(a == c)
 }
 
 func assert(t bool) {
