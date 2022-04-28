@@ -1488,3 +1488,96 @@ func testConst() {
 		}
 	}
 }
+
+func TestBinOpEQ(t *testing.T) {
+	src := `package main
+
+import "unsafe"
+
+type T struct {
+	a int
+	b int
+	_ int
+	_ int
+}
+
+func main() {
+	// array
+	ar1 := [2]int{10,20}
+	ar2 := [2]int{10,20}
+	if ar1 != ar2 {
+		panic("error array")
+	}
+	ar1[0] = 1
+	if ar1 == ar2 {
+		panic("error array")
+	}
+	// struct & interface{}
+	t1 := T{1,2,3,4}
+	t2 := T{1,2,7,8}
+	if t1 != t2 {
+		panic("error struct")
+	}
+	if (interface{})(t1) != (interface{})(t2) {
+		panic("error interface")
+	}
+	t1.a = 10
+	if t1 == t2 {
+		panic("error struct")
+	}
+	if (interface{})(t1) == (interface{})(t2) {
+		panic("error interface")
+	}
+	// ptr
+	ptr1 := &t1
+	ptr2 := &t2
+	if ptr1 == ptr2 {
+		panic("error ptr")
+	}
+	ptr2 = &t1
+	if ptr1 != ptr2 {
+		panic("error ptr")
+	}
+	// unsafe pointer
+	p1 := unsafe.Pointer(&t1)
+	p2 := unsafe.Pointer(&t2)
+	if p1 == p2 {
+		panic("error unsafe pointer")
+	}
+	p2 = unsafe.Pointer(ptr2)
+	if p1 != p2 {
+		panic("error unsafe pointer")
+	}
+	// chan
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	if ch1 == ch2 {
+		panic("error chan")
+	}
+	ch3 := ch1
+	if ch1 != ch3 {
+		panic("error chan")
+	}
+	ch4 := (<-chan int)(ch1)
+	ch5 := (chan<- int)(ch1)
+	if ch1 != ch4 {
+		panic("error chan")
+	}
+	if ch5 != ch1 {
+		panic("error chan")
+	}
+	ch6 := (<-chan int)(ch2)
+	ch7 := (chan<- int)(ch2)
+	if ch6 == ch1 {
+		panic("error chan")
+	}
+	if ch1 == ch7 {
+		panic("error chan")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
