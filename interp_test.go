@@ -108,6 +108,9 @@ func main() {
 	if T(nil) != nil {
 		panic("error")
 	}
+	if !(T(nil) == nil) {
+		panic("error")
+	}
 }
 `
 	_, err := gossa.RunFile("main.go", src, nil, 0)
