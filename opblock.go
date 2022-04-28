@@ -273,9 +273,6 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	case *ssa.Call:
 		return makeCallInstr(pfn, interp, instr, &instr.Call)
 	case *ssa.BinOp:
-		ir := pfn.regIndex(instr)
-		ix := pfn.regIndex(instr.X)
-		iy := pfn.regIndex(instr.Y)
 		switch instr.Op {
 		case token.ADD:
 			return makeBinOpADD(pfn, instr)
@@ -304,13 +301,9 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		case token.GEQ:
 			return makeBinOpGEQ(pfn, instr)
 		case token.EQL:
-			return func(fr *frame) {
-				fr.setReg(ir, opEQL(instr, fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpEQL(pfn, instr)
 		case token.NEQ:
-			return func(fr *frame) {
-				fr.setReg(ir, !opEQL(instr, fr.reg(ix), fr.reg(iy)))
-			}
+			return makeBinOpNEQ(pfn, instr)
 		case token.SHL:
 			return makeBinOpSHL(pfn, instr)
 		case token.SHR:

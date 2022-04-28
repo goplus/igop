@@ -108,6 +108,9 @@ func main() {
 	if T(nil) != nil {
 		panic("error")
 	}
+	if !(T(nil) == nil) {
+		panic("error")
+	}
 }
 `
 	_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -774,6 +777,7 @@ func main() {
 func testConst() {
 	var a T = 4
 	var b T = 2
+	var c T = 4
 	check(a+b,6)
 	check(a-b,2)
 	check(a*b,8)
@@ -787,6 +791,8 @@ func testConst() {
 	assert(a>=b)
 	assert(b<a)
 	assert(a<=a)
+	assert(a==c)
+	assert(a!=b)
 }
 
 func testDivideZero() {
@@ -840,6 +846,12 @@ func test(a, b T) {
 	assert(a >= 5)
 	assert(6 >= a)
 	assert(b >= a)
+	assert(a == 5)
+	assert(5 == a)
+	assert(a != 6)
+	assert(6 != a)
+	assert(a != b)
+	assert(a+1 == b)
 }
 
 func assert(t bool) {
@@ -891,6 +903,7 @@ func main() {
 func testConst() {
 	var a T = 4.0
 	var b T = 2.0
+	var c T = 4.0
 	check(a+b,6)
 	check(a-b,2)
 	check(a*b,8)
@@ -899,6 +912,8 @@ func testConst() {
 	assert(a>=b)
 	assert(b<a)
 	assert(a<=a)
+	assert(a==c)
+	assert(a!=b)
 }
 
 func test(a, b T) {
@@ -926,6 +941,12 @@ func test(a, b T) {
 	assert(a >= 5)
 	assert(6 >= a)
 	assert(b >= a)
+	assert(a == 5)
+	assert(5 == a)
+	assert(a != 6)
+	assert(6 != a)
+	assert(a != b)
+	assert(a+1.5 == b)
 }
 
 func assert(t bool) {
@@ -977,10 +998,13 @@ func main() {
 func testConst() {
 	var a T = 4i
 	var b T = 2i
+	var c T = 4i
 	check(a+b,6i)
 	check(a-b,2i)
 	check(a*b,-8)
 	check(a/b,2)
+	assert(a == c)
+	assert(a != b)
 }
 
 func test(a, b T) {
@@ -996,6 +1020,12 @@ func test(a, b T) {
 	check(a/2i, 1-0.5i)
 	check(10/a, 2-4i)
 	check(a/b, 0.44+0.08i)
+	assert(a == 1+2i)
+	assert(1+2i == a)
+	assert(a != 2+2i)
+	assert(2+2i != a)
+	assert(a != b)
+	assert(a+2+2i == b)
 }
 
 func assert(t bool) {
@@ -1041,21 +1071,24 @@ import "fmt"
 type T = string
 
 func main() {
-	test("go", "ssa")
+	test("go", "ssa", "go")
 	testConst()
 }
 
 func testConst() {
 	var a T = "hello"
 	var b T = "world"
+	var c T = "hello"
 	check(a+b,"helloworld")
 	assert(a < b)
 	assert(a <= b)
 	assert(b > a)
 	assert(b >= a)
+	assert(a == c)
+	assert(a != b)
 }
 
-func test(a, b T) {
+func test(a, b, c T) {
 	check(a+"run", "gorun")
 	check("run"+a, "rungo")
 	check(a+b, "gossa")
@@ -1071,6 +1104,12 @@ func test(a, b T) {
 	assert(a >= "go")
 	assert("go1" >= a)
 	assert(b >= a)
+	assert(a == "go")
+	assert("go" == a)
+	assert(a != "go1")
+	assert("go1" != a)
+	assert(a != b)
+	assert(a == c)
 }
 
 func assert(t bool) {
@@ -1447,5 +1486,98 @@ func testConst() {
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestBinOpEQ(t *testing.T) {
+	src := `package main
+
+import "unsafe"
+
+type T struct {
+	a int
+	b int
+	_ int
+	_ int
+}
+
+func main() {
+	// array
+	ar1 := [2]int{10,20}
+	ar2 := [2]int{10,20}
+	if ar1 != ar2 {
+		panic("error array")
+	}
+	ar1[0] = 1
+	if ar1 == ar2 {
+		panic("error array")
+	}
+	// struct & interface{}
+	t1 := T{1,2,3,4}
+	t2 := T{1,2,7,8}
+	if t1 != t2 {
+		panic("error struct")
+	}
+	if (interface{})(t1) != (interface{})(t2) {
+		panic("error interface")
+	}
+	t1.a = 10
+	if t1 == t2 {
+		panic("error struct")
+	}
+	if (interface{})(t1) == (interface{})(t2) {
+		panic("error interface")
+	}
+	// ptr
+	ptr1 := &t1
+	ptr2 := &t2
+	if ptr1 == ptr2 {
+		panic("error ptr")
+	}
+	ptr2 = &t1
+	if ptr1 != ptr2 {
+		panic("error ptr")
+	}
+	// unsafe pointer
+	p1 := unsafe.Pointer(&t1)
+	p2 := unsafe.Pointer(&t2)
+	if p1 == p2 {
+		panic("error unsafe pointer")
+	}
+	p2 = unsafe.Pointer(ptr2)
+	if p1 != p2 {
+		panic("error unsafe pointer")
+	}
+	// chan
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	if ch1 == ch2 {
+		panic("error chan")
+	}
+	ch3 := ch1
+	if ch1 != ch3 {
+		panic("error chan")
+	}
+	ch4 := (<-chan int)(ch1)
+	ch5 := (chan<- int)(ch1)
+	if ch1 != ch4 {
+		panic("error chan")
+	}
+	if ch5 != ch1 {
+		panic("error chan")
+	}
+	ch6 := (<-chan int)(ch2)
+	ch7 := (chan<- int)(ch2)
+	if ch6 == ch1 {
+		panic("error chan")
+	}
+	if ch1 == ch7 {
+		panic("error chan")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
