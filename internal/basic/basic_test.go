@@ -120,3 +120,39 @@ func TestXorUint8(t *testing.T) {
 		t.Fatal(r)
 	}
 }
+
+func TestConvertInt(t *testing.T) {
+	type T int
+	var n int = 100
+	typ := basic.TypeOf(T(0))
+	if r := basic.ConvertInt(typ, n); basic.Int(r) != n {
+		t.Fatal(r)
+	}
+}
+
+func TestConvertFloat32(t *testing.T) {
+	type T float32
+	var n float32 = 100.1
+	typ := basic.TypeOf(T(0))
+	if r := basic.ConvertFloat32(typ, n); basic.Float32(r) != n {
+		t.Fatal(r)
+	}
+}
+
+func TestConvertComplex64(t *testing.T) {
+	type T complex64
+	var n complex64 = 1 + 2i
+	typ := basic.TypeOf(T(0))
+	if r := basic.ConvertComplex64(typ, n); basic.Complex64(r) != n {
+		t.Fatal(r)
+	}
+}
+
+func TestConvertString(t *testing.T) {
+	type T string
+	var n string = "hello"
+	typ := basic.TypeOf(T(""))
+	if r := basic.ConvertString(typ, n); basic.String(r) != n {
+		t.Fatal(r)
+	}
+}
