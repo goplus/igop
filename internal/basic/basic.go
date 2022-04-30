@@ -96,6 +96,14 @@ func Make(typ Type, i interface{}) interface{} {
 	return i
 }
 
+func ConvertPtr(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: p.word,
+	}))
+}
+
 func ConvertBool(typ Type, i interface{}) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	v := *(*bool)(p.word)
