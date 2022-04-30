@@ -333,25 +333,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			fr.setReg(ir, fr.reg(ix))
 		}
 	case *ssa.ChangeType:
-		typ := interp.preToType(instr.Type())
-		ir := pfn.regIndex(instr)
-		ix, kx, vx := pfn.regIndex3(instr.X)
-		if kx.isStatic() {
-			if vx == nil {
-				vx = reflect.New(typ).Elem().Interface()
-			}
-			return func(fr *frame) {
-				fr.setReg(ir, vx)
-			}
-		}
-		return func(fr *frame) {
-			x := fr.reg(ix)
-			if x == nil {
-				fr.setReg(ir, reflect.New(typ).Elem().Interface())
-			} else {
-				fr.setReg(ir, reflect.ValueOf(x).Convert(typ).Interface())
-			}
-		}
+		return makeTypeChangeInstr(pfn, instr)
 	case *ssa.Convert:
 		return makeConvertInstr(pfn, interp, instr)
 	case *ssa.MakeInterface:
