@@ -30,6 +30,12 @@ func makeTypeChangeInstr(pfn *function, instr *ssa.ChangeType) func(fr *frame) {
 			x := fr.reg(ix)
 			fr.setReg(ir, basic.ConvertPtr(t, x))
 		}
+	case reflect.Struct, reflect.Array:
+		t := basic.TypeOfType(typ)
+		return func(fr *frame) {
+			x := fr.reg(ix)
+			fr.setReg(ir, basic.ConvertDirect(t, x))
+		}
 	}
 	isBasic := typ.PkgPath() == ""
 	if isBasic {

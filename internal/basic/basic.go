@@ -104,6 +104,23 @@ func ConvertPtr(typ Type, i interface{}) interface{} {
 	}))
 }
 
+//go:linkname typedmemmove reflect.typedmemmove
+func typedmemmove(t Type, dst unsafe.Pointer, src unsafe.Pointer)
+
+//go:linkname unsafe_New reflect.unsafe_New
+func unsafe_New(t Type) unsafe.Pointer
+
+// convert copy
+func ConvertDirect(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	c := unsafe_New(typ)
+	typedmemmove(typ, c, p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: c,
+	}))
+}
+
 func ConvertBool(typ Type, i interface{}) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	v := *(*bool)(p.word)
