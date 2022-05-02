@@ -1581,3 +1581,160 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestOpTypeChange2(t *testing.T) {
+	src := `package main
+
+import (
+	"bytes"
+	"fmt"
+)
+
+func main() {
+	testNil()
+	testConst()
+	testFunc()
+	testPtr()
+	testSlice()
+	testMap()
+	testStruct()
+	testArray()
+	testChan()
+	testInterface()
+}
+
+func testNil() {
+	var p *int
+	type Ptr *int
+	v := Ptr(p)
+	if s := fmt.Sprintf("%T %v", v, v); s != "main.Ptr <nil>" {
+		panic(s)
+	}
+}
+
+func testConst() {
+	var n int = 10
+	type T int
+	v := T(n)
+	if s := fmt.Sprintf("%T %v", v, v); s != "main.T 10" {
+		panic(s)
+	}
+}
+
+func myfunc(int) {}
+
+type Func func(int)
+
+func testFunc() {
+	v := Func(myfunc)
+	if s := fmt.Sprintf("%T %v", v, v == nil); s != "main.Func false" {
+		panic(s)
+	}
+}
+
+func testPtr() {
+	i := 10
+	p := &i
+	type T *int
+	v := T(p)
+	i = 20
+	if s := fmt.Sprintf("%T %v", v, *v); s != "main.T 20" {
+		panic(s)
+	}
+	p2 := (*int)(v)
+	i = 30
+	if s := fmt.Sprintf("%T %v", p2, *p2); s != "*int 30" {
+		panic(s)
+	}
+}
+
+func testSlice() {
+	i := []int{100, 200, 300}
+	type T []int
+	v := T(i)
+	if s := fmt.Sprintf("%T %v", v, v); s != "main.T [100 200 300]" {
+		panic(s)
+	}
+	p := []int(v)
+	v[0] = 1
+	if s := fmt.Sprintf("%T %v", p, p); s != "[]int [1 200 300]" {
+		panic(s)
+	}
+}
+
+func testMap() {
+	i := map[int]string{1: "hello", 2: "world"}
+	type T map[int]string
+	v := T(i)
+	if s := fmt.Sprintf("%T %v", v, v); s != "main.T map[1:hello 2:world]" {
+		panic(s)
+	}
+	type T2 map[int]string
+	v2 := T(v)
+	i[1] = "hello2"
+	if s := fmt.Sprintf("%T %v", v2, v2); s != "main.T map[1:hello2 2:world]" {
+		panic(s)
+	}
+}
+
+func testStruct() {
+	type Pt struct {
+		x int
+		y int
+	}
+	type T Pt
+	i := Pt{10, 20}
+	v := T(i)
+	i.x = 1
+	if s := fmt.Sprintf("%T %v", v, v); s != "main.T {10 20}" {
+		panic(s)
+	}
+}
+
+func testArray() {
+	ar := [3]int{100, 200, 300}
+	type T [3]int
+	v := T(ar)
+	ar[0] = 1
+	if s := fmt.Sprintf("%T %v", v, v); s != "main.T [100 200 300]" {
+		panic(s)
+	}
+}
+
+func testChan() {
+	ch := make(chan int)
+	v := (chan<- int)(ch)
+	if s := fmt.Sprintf("%T", v); s != "chan<- int" {
+		panic(s)
+	}
+	type T1 chan int
+	v1 := T1(ch)
+	if s := fmt.Sprintf("%T", v1); s != "main.T1" {
+		panic(s)
+	}
+	type T2 <-chan int
+	v2 := T2(ch)
+	if s := fmt.Sprintf("%T", v2); s != "main.T2" {
+		panic(s)
+	}
+	type T3 chan<- int
+	v3 := T3(ch)
+	if s := fmt.Sprintf("%T", v3); s != "main.T3" {
+		panic(s)
+	}
+}
+
+func testInterface() {
+	var buf fmt.Stringer = bytes.NewBufferString("hello")
+	type T fmt.Stringer
+	v := T(buf)
+	if s := fmt.Sprintf("%T %v", v, v.String()); s != "*bytes.Buffer hello" {
+		panic(s)
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
