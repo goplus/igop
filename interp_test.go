@@ -1582,7 +1582,7 @@ func main() {
 	}
 }
 
-func TestOpTypeChange2(t *testing.T) {
+func TestOpTypeChangeBasic(t *testing.T) {
 	src := `package main
 
 import (
@@ -1736,5 +1736,84 @@ func testInterface() {
 	_, err := gossa.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestOpTypeChange3(t *testing.T) {
+	tsrc := `package main
+import "fmt"
+type T $int
+type T2 $int
+func main() {
+	test($value)
+}
+func test(v $int) {
+	r := T(v)
+	if s := fmt.Sprintf("%T", r); s != "main.T" {
+		panic(s)
+	}
+	r2 := T2(r)
+	if s := fmt.Sprintf("%T", r2); s != "main.T2" {
+		panic(s)
+	}
+	n := $int(r2)
+	if s := fmt.Sprintf("%T", n); s != "$int" {
+		panic(s)
+	}
+	if n != v {
+		panic("error")
+	}
+}
+`
+	ints := []string{
+		"int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+	}
+	for _, s := range ints {
+		t.Log("test changetype basic", s)
+		r := strings.NewReplacer("$int", s, "$value", "10")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	floats := []string{"float32", "float64"}
+	for _, s := range floats {
+		t.Log("test changetype basic", s)
+		r := strings.NewReplacer("$int", s, "$value", "100.5")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	comps := []string{"complex64", "complex128"}
+	for _, s := range comps {
+		t.Log("test changetype basic", s)
+		r := strings.NewReplacer("$int", s, "$value", "1+2i")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	{
+		t.Log("test changetype basic", "bool")
+		r := strings.NewReplacer("$int", "bool", "$value", "true")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	{
+		t.Log("test changetype basic", "string")
+		r := strings.NewReplacer("$int", "string", "$value", `"hello"`)
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 }
