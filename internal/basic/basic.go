@@ -96,6 +96,184 @@ func Make(typ Type, i interface{}) interface{} {
 	return i
 }
 
+func ConvertPtr(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: p.word,
+	}))
+}
+
+//go:linkname typedmemmove reflect.typedmemmove
+func typedmemmove(t Type, dst unsafe.Pointer, src unsafe.Pointer)
+
+//go:linkname unsafe_New reflect.unsafe_New
+func unsafe_New(t Type) unsafe.Pointer
+
+// convert copy
+func ConvertDirect(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	c := unsafe_New(typ)
+	typedmemmove(typ, c, p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: c,
+	}))
+}
+
+func ConvertBool(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*bool)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertInt(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*int)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertInt8(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*int8)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertInt16(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*int16)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertInt32(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*int32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertInt64(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*int64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertUint(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*uint)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertUint8(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*uint8)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertUint16(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*uint16)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertUint32(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*uint32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertUint64(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*uint64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertUintptr(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*uintptr)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertFloat32(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*float32)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertFloat64(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*float64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertComplex64(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*complex64)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertComplex128(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*complex128)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func ConvertString(typ Type, i interface{}) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	v := *(*string)(p.word)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
 func Not(i interface{}) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	v := !*(*bool)(p.word)
