@@ -156,3 +156,19 @@ func TestConvertString(t *testing.T) {
 		t.Fatal(r)
 	}
 }
+
+func TestMakeInt(t *testing.T) {
+	type T int
+	typ := basic.TypeOf(T(0))
+	if r := basic.MakeInt(typ, 100); basic.Int(r) != 100 {
+		t.Fatal(r)
+	}
+}
+
+func TestMakeFloat32(t *testing.T) {
+	type T float32
+	typ := basic.TypeOf(T(0))
+	if r := basic.MakeFloat32(typ, 100.1); basic.Float32(r) != 100.1 {
+		t.Fatal(r)
+	}
+}
