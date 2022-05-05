@@ -2,6 +2,7 @@ package gossa
 
 import (
 	"reflect"
+	"unsafe"
 
 	"github.com/goplus/gossa/internal/basic"
 	"golang.org/x/tools/go/ssa"
@@ -268,4 +269,96 @@ func makeTypeChangeInstr(pfn *function, instr *ssa.ChangeType) func(fr *frame) {
 		}
 	}
 	panic("unreachable")
+}
+
+func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr *frame) {
+	typ := interp.preToType(instr.Type())
+	xtyp := interp.preToType(instr.X.Type())
+	vk := xtyp.Kind()
+	ir := pfn.regIndex(instr)
+	ix, kx, vx := pfn.regIndex3(instr.X)
+	switch typ.Kind() {
+	case reflect.UnsafePointer:
+		if vk == reflect.Uintptr {
+			return func(fr *frame) {
+				v := reflect.ValueOf(fr.reg(ix))
+				fr.setReg(ir, toUnsafePointer(v))
+			}
+		} else if vk == reflect.Ptr {
+			return func(fr *frame) {
+				v := reflect.ValueOf(fr.reg(ix))
+				fr.setReg(ir, unsafe.Pointer(v.Pointer()))
+			}
+		}
+	case reflect.Uintptr:
+		if vk == reflect.UnsafePointer {
+			return func(fr *frame) {
+				v := reflect.ValueOf(fr.reg(ix))
+				fr.setReg(ir, v.Pointer())
+			}
+		}
+	case reflect.Ptr:
+		if vk == reflect.UnsafePointer {
+			return func(fr *frame) {
+				v := reflect.ValueOf(fr.reg(ix))
+				fr.setReg(ir, reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface())
+			}
+		}
+	case reflect.Slice:
+		if vk == reflect.String {
+			elem := typ.Elem()
+			switch elem.Kind() {
+			case reflect.Uint8:
+				if elem.PkgPath() != "" {
+					return func(fr *frame) {
+						v := reflect.ValueOf(fr.reg(ix))
+						dst := reflect.New(typ).Elem()
+						dst.SetBytes([]byte(v.String()))
+						fr.setReg(ir, dst.Interface())
+					}
+				}
+			case reflect.Int32:
+				if elem.PkgPath() != "" {
+					return func(fr *frame) {
+						v := reflect.ValueOf(fr.reg(ix))
+						dst := reflect.New(typ).Elem()
+						*(*[]rune)((*reflectValue)(unsafe.Pointer(&dst)).ptr) = []rune(v.String())
+						fr.setReg(ir, dst.Interface())
+					}
+				}
+			}
+		}
+	case reflect.String:
+		if vk == reflect.Slice {
+			elem := xtyp.Elem()
+			switch elem.Kind() {
+			case reflect.Uint8:
+				if elem.PkgPath() != "" {
+					return func(fr *frame) {
+						v := reflect.ValueOf(fr.reg(ix))
+						v = reflect.ValueOf(string(v.Bytes()))
+						fr.setReg(ir, v.Convert(typ).Interface())
+					}
+				}
+			case reflect.Int32:
+				if elem.PkgPath() != "" {
+					return func(fr *frame) {
+						v := reflect.ValueOf(fr.reg(ix))
+						v = reflect.ValueOf(*(*[]rune)(((*reflectValue)(unsafe.Pointer(&v))).ptr))
+						fr.setReg(ir, v.Convert(typ).Interface())
+					}
+				}
+			}
+		}
+	}
+	if kx.isStatic() {
+		v := reflect.ValueOf(vx)
+		return func(fr *frame) {
+			fr.setReg(ir, v.Convert(typ).Interface())
+		}
+	}
+	return func(fr *frame) {
+		v := reflect.ValueOf(fr.reg(ix))
+		fr.setReg(ir, v.Convert(typ).Interface())
+	}
 }
