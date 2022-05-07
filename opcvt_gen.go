@@ -1,0 +1,188 @@
+//go:build ignore
+// +build ignore
+
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"go/format"
+	"io/ioutil"
+	"os"
+	"strings"
+)
+
+var (
+	ints = []string{"int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr"}
+	floats = []string{"float32", "float64"}
+	comps  = []string{"complex64", "complex128"}
+)
+
+func json(kinds ...[]string) (r []string) {
+	for _, kind := range kinds {
+		r = append(r, kind...)
+	}
+	return
+}
+
+func main() {
+	var buf bytes.Buffer
+	buf.WriteString(pkg_head)
+
+	for _, typ := range ints {
+		makeFuncOp(&buf, "cvt"+strings.Title(typ), typ)
+	}
+	for _, typ := range floats {
+		makeFuncOp(&buf, "cvt"+strings.Title(typ), typ)
+	}
+	for _, typ := range comps {
+		makeFuncOp2(&buf, "cvt"+strings.Title(typ), typ)
+	}
+
+	data, err := format.Source(buf.Bytes())
+	if err != nil {
+		fmt.Println("format error", err)
+		os.Exit(2)
+	}
+	ioutil.WriteFile("./opcvt.go", data, 0666)
+}
+
+func makeFuncOp(buf *bytes.Buffer, fnname string, typ string) {
+	r := strings.NewReplacer("cvtInt", fnname, "type T = int", "type T = "+typ)
+	r.WriteString(buf, cvt_func)
+}
+
+func makeFuncOp2(buf *bytes.Buffer, fnname string, typ string) {
+	r := strings.NewReplacer("cvtComplex64", fnname, "type T = complex64", "type T = "+typ)
+	r.WriteString(buf, cvt_func2)
+}
+
+var pkg_head = `package gossa
+
+import (
+	"reflect"
+
+	"github.com/goplus/gossa/internal/basic"
+)
+`
+
+var cvt_func = `func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
+	type T = int
+	t := basic.TypeOfType(typ)
+	isBasic := typ.PkgPath() == ""
+	if xtyp.PkgPath() == "" {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Int:
+				v = T(fr.reg(ix).(int))
+			case reflect.Int8:
+				v = T(fr.reg(ix).(int8))
+			case reflect.Int16:
+				v = T(fr.reg(ix).(int16))
+			case reflect.Int32:
+				v = T(fr.reg(ix).(int32))
+			case reflect.Int64:
+				v = T(fr.reg(ix).(int64))
+			case reflect.Uint:
+				v = T(fr.reg(ix).(uint))
+			case reflect.Uint8:
+				v = T(fr.reg(ix).(uint8))
+			case reflect.Uint16:
+				v = T(fr.reg(ix).(uint16))
+			case reflect.Uint32:
+				v = T(fr.reg(ix).(uint32))
+			case reflect.Uint64:
+				v = T(fr.reg(ix).(uint64))
+			case reflect.Uintptr:
+				v = T(fr.reg(ix).(uintptr))
+			case reflect.Float32:
+				v = T(fr.reg(ix).(float32))
+			case reflect.Float64:
+				v = T(fr.reg(ix).(float64))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	} else {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Int:
+				v = T(basic.Int(fr.reg(ix)))
+			case reflect.Int8:
+				v = T(basic.Int8(fr.reg(ix)))
+			case reflect.Int16:
+				v = T(basic.Int16(fr.reg(ix)))
+			case reflect.Int32:
+				v = T(basic.Int32(fr.reg(ix)))
+			case reflect.Int64:
+				v = T(basic.Int64(fr.reg(ix)))
+			case reflect.Uint:
+				v = T(basic.Uint(fr.reg(ix)))
+			case reflect.Uint8:
+				v = T(basic.Uint8(fr.reg(ix)))
+			case reflect.Uint16:
+				v = T(basic.Uint16(fr.reg(ix)))
+			case reflect.Uint32:
+				v = T(basic.Uint32(fr.reg(ix)))
+			case reflect.Uint64:
+				v = T(basic.Uint64(fr.reg(ix)))
+			case reflect.Uintptr:
+				v = T(basic.Uintptr(fr.reg(ix)))
+			case reflect.Float32:
+				v = T(basic.Float32(fr.reg(ix)))
+			case reflect.Float64:
+				v = T(basic.Float64(fr.reg(ix)))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	}
+}
+`
+
+var cvt_func2 = `func cvtComplex64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
+	type T = complex64
+	t := basic.TypeOfType(typ)
+	isBasic := typ.PkgPath() == ""
+	if xtyp.PkgPath() == "" {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Complex64:
+				v = T(fr.reg(ix).(complex64))
+			case reflect.Complex128:
+				v = T(fr.reg(ix).(complex128))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	} else {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Complex64:
+				v = T(basic.Complex64(fr.reg(ix)))
+			case reflect.Complex128:
+				v = T(basic.Complex128(fr.reg(ix)))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	}
+}
+`
