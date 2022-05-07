@@ -385,6 +385,10 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 		return cvtFloat32(ir, ix, xkind, xtyp, typ)
 	case reflect.Float64:
 		return cvtFloat64(ir, ix, xkind, xtyp, typ)
+	case reflect.Complex64:
+		return cvtComplex64(ir, ix, xkind, xtyp, typ)
+	case reflect.Complex128:
+		return cvtComplex128(ir, ix, xkind, xtyp, typ)
 	}
 	return func(fr *frame) {
 		v := reflect.ValueOf(fr.reg(ix))

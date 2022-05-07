@@ -86,7 +86,6 @@ func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.
 		}
 	}
 }
-
 func cvtInt8(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = int8
 	t := basic.TypeOfType(typ)
@@ -167,7 +166,6 @@ func cvtInt8(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect
 		}
 	}
 }
-
 func cvtInt16(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = int16
 	t := basic.TypeOfType(typ)
@@ -248,7 +246,6 @@ func cvtInt16(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflec
 		}
 	}
 }
-
 func cvtInt32(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = int32
 	t := basic.TypeOfType(typ)
@@ -329,7 +326,6 @@ func cvtInt32(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflec
 		}
 	}
 }
-
 func cvtInt64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = int64
 	t := basic.TypeOfType(typ)
@@ -410,7 +406,6 @@ func cvtInt64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflec
 		}
 	}
 }
-
 func cvtUint(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = uint
 	t := basic.TypeOfType(typ)
@@ -491,7 +486,6 @@ func cvtUint(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect
 		}
 	}
 }
-
 func cvtUint8(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = uint8
 	t := basic.TypeOfType(typ)
@@ -572,7 +566,6 @@ func cvtUint8(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflec
 		}
 	}
 }
-
 func cvtUint16(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = uint16
 	t := basic.TypeOfType(typ)
@@ -653,7 +646,6 @@ func cvtUint16(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ refle
 		}
 	}
 }
-
 func cvtUint32(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = uint32
 	t := basic.TypeOfType(typ)
@@ -734,7 +726,6 @@ func cvtUint32(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ refle
 		}
 	}
 }
-
 func cvtUint64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = uint64
 	t := basic.TypeOfType(typ)
@@ -815,7 +806,6 @@ func cvtUint64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ refle
 		}
 	}
 }
-
 func cvtUintptr(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = uintptr
 	t := basic.TypeOfType(typ)
@@ -896,7 +886,6 @@ func cvtUintptr(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ refl
 		}
 	}
 }
-
 func cvtFloat32(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = float32
 	t := basic.TypeOfType(typ)
@@ -977,7 +966,6 @@ func cvtFloat32(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ refl
 		}
 	}
 }
-
 func cvtFloat64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = float64
 	t := basic.TypeOfType(typ)
@@ -1049,6 +1037,78 @@ func cvtFloat64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ refl
 				v = T(basic.Float32(fr.reg(ix)))
 			case reflect.Float64:
 				v = T(basic.Float64(fr.reg(ix)))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	}
+}
+func cvtComplex64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
+	type T = complex64
+	t := basic.TypeOfType(typ)
+	isBasic := typ.PkgPath() == ""
+	if xtyp.PkgPath() == "" {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Complex64:
+				v = T(fr.reg(ix).(complex64))
+			case reflect.Complex128:
+				v = T(fr.reg(ix).(complex128))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	} else {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Complex64:
+				v = T(basic.Complex64(fr.reg(ix)))
+			case reflect.Complex128:
+				v = T(basic.Complex128(fr.reg(ix)))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	}
+}
+func cvtComplex128(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
+	type T = complex128
+	t := basic.TypeOfType(typ)
+	isBasic := typ.PkgPath() == ""
+	if xtyp.PkgPath() == "" {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Complex64:
+				v = T(fr.reg(ix).(complex64))
+			case reflect.Complex128:
+				v = T(fr.reg(ix).(complex128))
+			}
+			if isBasic {
+				fr.setReg(ir, v)
+			} else {
+				fr.setReg(ir, basic.Make(t, v))
+			}
+		}
+	} else {
+		return func(fr *frame) {
+			var v T
+			switch xkind {
+			case reflect.Complex64:
+				v = T(basic.Complex64(fr.reg(ix)))
+			case reflect.Complex128:
+				v = T(basic.Complex128(fr.reg(ix)))
 			}
 			if isBasic {
 				fr.setReg(ir, v)
