@@ -516,3 +516,122 @@ func XorUintptr(i interface{}) interface{} {
 		word: unsafe.Pointer(&v),
 	}))
 }
+
+func MakeBool(typ Type, v bool) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeInt(typ Type, v int) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeInt8(typ Type, v int8) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeInt16(typ Type, v int16) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeInt32(typ Type, v int32) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeInt64(typ Type, v int64) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeUint(typ Type, v uint) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeUint8(typ Type, v uint8) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeUint16(typ Type, v uint16) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeUint32(typ Type, v uint32) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeUint64(typ Type, v uint64) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeUintptr(typ Type, v uintptr) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeFloat32(typ Type, v float32) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeFloat64(typ Type, v float64) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeComplex64(typ Type, v complex64) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeComplex128(typ Type, v complex128) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
+
+func MakeString(typ Type, v string) interface{} {
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: unsafe.Pointer(&v),
+	}))
+}
