@@ -274,38 +274,39 @@ func makeTypeChangeInstr(pfn *function, instr *ssa.ChangeType) func(fr *frame) {
 func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr *frame) {
 	typ := interp.preToType(instr.Type())
 	xtyp := interp.preToType(instr.X.Type())
-	vk := xtyp.Kind()
+	kind := typ.Kind()
+	xkind := xtyp.Kind()
 	ir := pfn.regIndex(instr)
 	ix, kx, vx := pfn.regIndex3(instr.X)
-	switch typ.Kind() {
+	switch kind {
 	case reflect.UnsafePointer:
-		if vk == reflect.Uintptr {
+		if xkind == reflect.Uintptr {
 			return func(fr *frame) {
 				v := reflect.ValueOf(fr.reg(ix))
 				fr.setReg(ir, toUnsafePointer(v))
 			}
-		} else if vk == reflect.Ptr {
+		} else if xkind == reflect.Ptr {
 			return func(fr *frame) {
 				v := reflect.ValueOf(fr.reg(ix))
 				fr.setReg(ir, unsafe.Pointer(v.Pointer()))
 			}
 		}
 	case reflect.Uintptr:
-		if vk == reflect.UnsafePointer {
+		if xkind == reflect.UnsafePointer {
 			return func(fr *frame) {
 				v := reflect.ValueOf(fr.reg(ix))
 				fr.setReg(ir, v.Pointer())
 			}
 		}
 	case reflect.Ptr:
-		if vk == reflect.UnsafePointer {
+		if xkind == reflect.UnsafePointer {
 			return func(fr *frame) {
 				v := reflect.ValueOf(fr.reg(ix))
 				fr.setReg(ir, reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface())
 			}
 		}
 	case reflect.Slice:
-		if vk == reflect.String {
+		if xkind == reflect.String {
 			elem := typ.Elem()
 			switch elem.Kind() {
 			case reflect.Uint8:
@@ -329,7 +330,7 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 			}
 		}
 	case reflect.String:
-		if vk == reflect.Slice {
+		if xkind == reflect.Slice {
 			elem := xtyp.Elem()
 			switch elem.Kind() {
 			case reflect.Uint8:
@@ -356,6 +357,34 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 		return func(fr *frame) {
 			fr.setReg(ir, v.Convert(typ).Interface())
 		}
+	}
+	switch kind {
+	case reflect.Int:
+		return cvtInt(ir, ix, xkind, xtyp, typ)
+	case reflect.Int8:
+		return cvtInt8(ir, ix, xkind, xtyp, typ)
+	case reflect.Int16:
+		return cvtInt16(ir, ix, xkind, xtyp, typ)
+	case reflect.Int32:
+		return cvtInt32(ir, ix, xkind, xtyp, typ)
+	case reflect.Int64:
+		return cvtInt64(ir, ix, xkind, xtyp, typ)
+	case reflect.Uint:
+		return cvtUint(ir, ix, xkind, xtyp, typ)
+	case reflect.Uint8:
+		return cvtUint8(ir, ix, xkind, xtyp, typ)
+	case reflect.Uint16:
+		return cvtUint16(ir, ix, xkind, xtyp, typ)
+	case reflect.Uint32:
+		return cvtUint32(ir, ix, xkind, xtyp, typ)
+	case reflect.Uint64:
+		return cvtUint64(ir, ix, xkind, xtyp, typ)
+	case reflect.Uintptr:
+		return cvtUintptr(ir, ix, xkind, xtyp, typ)
+	case reflect.Float32:
+		return cvtFloat32(ir, ix, xkind, xtyp, typ)
+	case reflect.Float64:
+		return cvtFloat64(ir, ix, xkind, xtyp, typ)
 	}
 	return func(fr *frame) {
 		v := reflect.ValueOf(fr.reg(ix))
