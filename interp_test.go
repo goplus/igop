@@ -1817,3 +1817,214 @@ func test(v $int) {
 		}
 	}
 }
+
+func TestOpConvert(t *testing.T) {
+	tsrc := `package main
+
+type T = $int
+
+const (
+	V = $V
+	N = $N
+	F = $F
+)
+
+func main() {
+	test1(V)
+	test2(V)
+}
+
+func test1(n T) {
+	if int(n) != N {
+		panic("error")
+	}
+	if int8(n) != N {
+		panic("error")
+	}
+	if int16(n) != N {
+		panic("error")
+	}
+	if int32(n) != N {
+		panic("error")
+	}
+	if int64(n) != N {
+		panic("error")
+	}
+	if uint(n) != N {
+		panic("error")
+	}
+	if uint8(n) != N {
+		panic("error")
+	}
+	if uint16(n) != N {
+		panic("error")
+	}
+	if uint32(n) != N {
+		panic("error")
+	}
+	if uint64(n) != N {
+		panic("error")
+	}
+	if uintptr(n) != N {
+		panic("error")
+	}
+	if float32(n) != F {
+		panic("error")
+	}
+	if float64(n) != F {
+		panic("error")
+	}
+}
+
+type Int int
+type Int8 int8
+type Int16 int16
+type Int32 int32
+type Int64 int64
+type Uint uint
+type Uint8 uint8
+type Uint16 uint16
+type Uint32 uint32
+type Uint64 uint64
+type Uintptr uintptr
+type Float32 float32
+type Float64 float64
+
+func test2(n T) {
+	if Int(n) != N {
+		panic("error")
+	}
+	if Int8(n) != N {
+		panic("error")
+	}
+	if Int16(n) != N {
+		panic("error")
+	}
+	if Int32(n) != N {
+		panic("error")
+	}
+	if Int64(n) != N {
+		panic("error")
+	}
+	if Uint(n) != N {
+		panic("error")
+	}
+	if Uint8(n) != N {
+		panic("error")
+	}
+	if Uint16(n) != N {
+		panic("error")
+	}
+	if Uint32(n) != N {
+		panic("error")
+	}
+	if Uint64(n) != N {
+		panic("error")
+	}
+	if Uintptr(n) != N {
+		panic("error")
+	}
+	if Float32(n) != F {
+		panic("error")
+	}
+	if Float64(n) != F {
+		panic("error")
+	}
+}
+`
+	csrc := `package main
+
+type T = $complex
+
+const (
+	N = $N
+)
+
+func main() {
+	test1(N)
+	test2(N)
+}
+
+func test1(n T) {
+	if complex64(n) != N {
+		panic("error")
+	}
+	if complex128(n) != N {
+		panic("error")
+	}
+}
+
+type Complex64 complex64
+type Complex128 complex128
+
+
+func test2(n T) {
+	if Complex64(n) != N {
+		panic("error")
+	}
+	if Complex128(n) != N {
+		panic("error")
+	}
+}
+`
+	ints := []string{
+		"int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+	}
+	floats := []string{"float32", "float64"}
+	comps := []string{"complex64", "complex128"}
+	for _, s := range ints {
+		t.Log("test convert basic", s)
+		r := strings.NewReplacer("$int", s, "$V", "100", "$N", "100", "$F", "100")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range ints {
+		t.Log("test convert typed", s)
+		r := strings.NewReplacer("= $int", s, "$V", "100", "$N", "100", "$F", "100")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range floats {
+		t.Log("test convert basic", s)
+		r := strings.NewReplacer("$int", s, "$V", "100.5", "$N", "100", "$F", "100.5")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range floats {
+		t.Log("test convert typed", s)
+		r := strings.NewReplacer("= $int", s, "$V", "100.5", "$N", "100", "$F", "100.5")
+		src := r.Replace(tsrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range comps {
+		t.Log("test convert basic", s)
+		r := strings.NewReplacer("$complex", s, "$N", "1+2i")
+		src := r.Replace(csrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, s := range comps {
+		t.Log("test convert typed", s)
+		r := strings.NewReplacer("= $complex", s, "$N", "1+2i")
+		src := r.Replace(csrc)
+		_, err := gossa.RunFile("main.go", src, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
