@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/gossa/internal/basic"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
 	"golang.org/x/tools/go/ssa"
@@ -715,7 +716,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		default:
 			return func(fr *frame) {
 				fr.pred = fr.block.Index
-				if v := fr.reg(ic); reflect.ValueOf(v).Bool() {
+				if basic.Bool(fr.reg(ic)) {
 					fr.block = fr.block.Succs[0]
 				} else {
 					fr.block = fr.block.Succs[1]
