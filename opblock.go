@@ -701,7 +701,22 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			fr.pc = fr.pfn.Blocks[fr.block.Index]
 		}
 	case *ssa.If:
-		ic := pfn.regIndex(instr.Cond)
+		ic, kc, vc := pfn.regIndex3(instr.Cond)
+		if kc == kindConst {
+			if basic.Bool(vc) {
+				return func(fr *frame) {
+					fr.pred = fr.block.Index
+					fr.block = fr.block.Succs[0]
+					fr.pc = fr.pfn.Blocks[fr.block.Index]
+				}
+			} else {
+				return func(fr *frame) {
+					fr.pred = fr.block.Index
+					fr.block = fr.block.Succs[1]
+					fr.pc = fr.pfn.Blocks[fr.block.Index]
+				}
+			}
+		}
 		switch instr.Cond.Type().(type) {
 		case *types.Basic:
 			return func(fr *frame) {
