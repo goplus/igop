@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/gossa/internal/basic"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
 	"golang.org/x/tools/go/ssa"
@@ -700,7 +701,22 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			fr.pc = fr.pfn.Blocks[fr.block.Index]
 		}
 	case *ssa.If:
-		ic := pfn.regIndex(instr.Cond)
+		ic, kc, vc := pfn.regIndex3(instr.Cond)
+		if kc == kindConst {
+			if basic.Bool(vc) {
+				return func(fr *frame) {
+					fr.pred = fr.block.Index
+					fr.block = fr.block.Succs[0]
+					fr.pc = fr.pfn.Blocks[fr.block.Index]
+				}
+			} else {
+				return func(fr *frame) {
+					fr.pred = fr.block.Index
+					fr.block = fr.block.Succs[1]
+					fr.pc = fr.pfn.Blocks[fr.block.Index]
+				}
+			}
+		}
 		switch instr.Cond.Type().(type) {
 		case *types.Basic:
 			return func(fr *frame) {
@@ -715,7 +731,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		default:
 			return func(fr *frame) {
 				fr.pred = fr.block.Index
-				if v := fr.reg(ic); reflect.ValueOf(v).Bool() {
+				if basic.Bool(fr.reg(ic)) {
 					fr.block = fr.block.Succs[0]
 				} else {
 					fr.block = fr.block.Succs[1]
