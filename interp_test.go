@@ -2028,3 +2028,73 @@ func test2(n T) {
 		}
 	}
 }
+
+func TestOpIf(t *testing.T) {
+	src := `package main
+
+type Bool bool
+
+func main() {
+	test1(true)
+	test1(false)
+	test2(true)
+	test2(false)
+	testConst1()
+	testConst2()
+}
+
+func test1(b bool) {
+	if b {
+		println(true)
+	} else {
+		println(false)
+	}
+}
+func test2(b Bool) {
+	if b {
+		println(true)
+	} else {
+		println(false)
+	}
+}
+func testConst1() {
+	var b bool
+	if !b {
+		println(false)
+	}
+	b = true
+	if b {
+		println(true)
+	}
+}
+func testConst2() {
+	var b Bool
+	if !b {
+		println(false)
+	}
+	b = true
+	if b {
+		println(true)
+	}
+}
+`
+	out := `true
+false
+true
+false
+false
+true
+false
+true
+`
+	ctx := gossa.NewContext(0)
+	var buf bytes.Buffer
+	ctx.SetPrintOutput(&buf)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if buf.String() != out {
+		t.Fatal("error")
+	}
+}
