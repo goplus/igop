@@ -24,123 +24,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -546,123 +480,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int8)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -1068,123 +936,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int16)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -1590,123 +1392,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int32)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -2112,123 +1848,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int64)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -2634,123 +2304,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -3156,123 +2760,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint8)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -3678,123 +3216,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint16)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -4200,123 +3672,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint32)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -4722,123 +4128,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint64)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -5244,123 +4584,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uintptr)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x << y
+					v := x << basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x << y
+					v := x << basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x << y
+					v := x << basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x << y
+					v := x << basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x << y
+					v := x << basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x << y
+					v := x << basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x << y
+					v := x << basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x << y
+					v := x << basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x << y
+					v := x << basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x << y
+					v := x << basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x << y
+					v := x << basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -5770,123 +5044,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -6292,123 +5500,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int8(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -6814,123 +5956,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int16(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -7336,123 +6412,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int32(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -7858,123 +6868,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int64(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -8380,123 +7324,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -8902,123 +7780,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint8(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -9424,123 +8236,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint16(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -9946,123 +8692,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint32(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -10468,123 +9148,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint64(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -10990,123 +9604,57 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uintptr(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x<<y)
+					v := basic.Make(t, x<<basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -11529,123 +10077,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -12051,123 +10533,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int8)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -12573,123 +10989,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int16)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -13095,123 +11445,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int32)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -13617,123 +11901,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(int64)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -14139,123 +12357,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -14661,123 +12813,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint8)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -15183,123 +13269,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint16)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -15705,123 +13725,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint32)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -16227,123 +14181,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uint64)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -16749,123 +14637,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := vx.(uintptr)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Int64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint8(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint16(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint32(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uint64(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := x >> y
+					v := x >> basic.Uintptr(vy)
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -17275,123 +15097,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -17797,123 +15553,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int8(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -18319,123 +16009,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int16(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -18841,123 +16465,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int32(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -19363,123 +16921,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Int64(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -19885,123 +17377,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -20407,123 +17833,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint8(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -20929,123 +18289,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint16(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -21451,123 +18745,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint32(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -21973,123 +19201,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uint64(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
@@ -22495,123 +19657,57 @@ func makeBinOpSHR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 				x := basic.Uintptr(vx)
 				switch ykind {
 				case reflect.Int:
-					var y int
-					if yIsBasic {
-						y = vy.(int)
-					} else {
-						y = basic.Int(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int8:
-					var y int8
-					if yIsBasic {
-						y = vy.(int8)
-					} else {
-						y = basic.Int8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int16:
-					var y int16
-					if yIsBasic {
-						y = vy.(int16)
-					} else {
-						y = basic.Int16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int32:
-					var y int32
-					if yIsBasic {
-						y = vy.(int32)
-					} else {
-						y = basic.Int32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Int64:
-					var y int64
-					if yIsBasic {
-						y = vy.(int64)
-					} else {
-						y = basic.Int64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Int64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint:
-					var y uint
-					if yIsBasic {
-						y = vy.(uint)
-					} else {
-						y = basic.Uint(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint8:
-					var y uint8
-					if yIsBasic {
-						y = vy.(uint8)
-					} else {
-						y = basic.Uint8(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint8(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint16:
-					var y uint16
-					if yIsBasic {
-						y = vy.(uint16)
-					} else {
-						y = basic.Uint16(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint16(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint32:
-					var y uint32
-					if yIsBasic {
-						y = vy.(uint32)
-					} else {
-						y = basic.Uint32(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint32(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uint64:
-					var y uint64
-					if yIsBasic {
-						y = vy.(uint64)
-					} else {
-						y = basic.Uint64(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uint64(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
 				case reflect.Uintptr:
-					var y uintptr
-					if yIsBasic {
-						y = vy.(uintptr)
-					} else {
-						y = basic.Uintptr(vy)
-					}
-					v := basic.Make(t, x>>y)
+					v := basic.Make(t, x>>basic.Uintptr(vy))
 					return func(fr *frame) {
 						fr.setReg(ir, v)
 					}
