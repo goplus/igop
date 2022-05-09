@@ -55,6 +55,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/gossa/internal/basic"
 	"github.com/petermattis/goid"
 	"golang.org/x/tools/go/ssa"
 )
@@ -202,6 +203,54 @@ func (fr *frame) setReg(ir register, v value) {
 
 func (fr *frame) reg(ir register) value {
 	return fr.stack[ir]
+}
+
+func (fr *frame) bool(ir register) bool {
+	return basic.Bool(fr.stack[ir])
+}
+
+func (fr *frame) int(ir register) int {
+	return basic.Int(fr.stack[ir])
+}
+
+func (fr *frame) int8(ir register) int8 {
+	return basic.Int8(fr.stack[ir])
+}
+
+func (fr *frame) int16(ir register) int16 {
+	return basic.Int16(fr.stack[ir])
+}
+
+func (fr *frame) int32(ir register) int32 {
+	return basic.Int32(fr.stack[ir])
+}
+
+func (fr *frame) int64(ir register) int64 {
+	return basic.Int64(fr.stack[ir])
+}
+
+func (fr *frame) uint(ir register) uint {
+	return basic.Uint(fr.stack[ir])
+}
+
+func (fr *frame) uint8(ir register) uint8 {
+	return basic.Uint8(fr.stack[ir])
+}
+
+func (fr *frame) uint16(ir register) uint16 {
+	return basic.Uint16(fr.stack[ir])
+}
+
+func (fr *frame) uint32(ir register) uint32 {
+	return basic.Uint32(fr.stack[ir])
+}
+
+func (fr *frame) uint64(ir register) uint64 {
+	return basic.Uint64(fr.stack[ir])
+}
+
+func (fr *frame) uintptr(ir register) uintptr {
+	return basic.Uintptr(fr.stack[ir])
 }
 
 func (fr *frame) copyReg(dst register, src register) {
