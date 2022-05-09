@@ -97,13 +97,12 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-			var y %v
-			if yIsBasic { y = vy.(%v) } else { y = basic.%v(vy) }
+			y := basic.%v(vy)
 			return func(fr *frame) {
 				x := fr.reg(ix).(%v)
 				fr.setReg(ir,x<<y)
 			}
-			`, ky.kind, ky.typ, ky.typ, ky.kind, kx.typ))
+			`, ky.kind, ky.kind, kx.typ))
 		}
 		buf.WriteString(fmt.Sprintf("\t\t\t}\n"))
 
@@ -184,13 +183,12 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				var y %v
-				if yIsBasic { y = vy.(%v) } else { y = basic.%v(vy) }
+				y := basic.%v(vy)
 				return func(fr *frame) {
 					x := basic.%v(fr.reg(ix))
 					fr.setReg(ir,basic.Make(t,x<<y))
 				}
-				`, ky.kind, ky.typ, ky.typ, ky.kind, kx.kind))
+				`, ky.kind, ky.kind, kx.kind))
 		}
 		buf.WriteString(fmt.Sprintf("\t\t\t}\n"))
 
