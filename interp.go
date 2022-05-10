@@ -253,6 +253,26 @@ func (fr *frame) uintptr(ir register) uintptr {
 	return basic.Uintptr(fr.stack[ir])
 }
 
+func (fr *frame) float32(ir register) float32 {
+	return basic.Float32(fr.stack[ir])
+}
+
+func (fr *frame) float64(ir register) float64 {
+	return basic.Float64(fr.stack[ir])
+}
+
+func (fr *frame) complex64(ir register) complex64 {
+	return basic.Complex64(fr.stack[ir])
+}
+
+func (fr *frame) complex128(ir register) complex128 {
+	return basic.Complex128(fr.stack[ir])
+}
+
+func (fr *frame) string(ir register) string {
+	return basic.String(fr.stack[ir])
+}
+
 func (fr *frame) copyReg(dst register, src register) {
 	fr.stack[dst] = fr.stack[src]
 }

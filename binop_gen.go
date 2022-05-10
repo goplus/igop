@@ -57,8 +57,7 @@ func main() {
 
 func makeFuncOp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 	buf.WriteString(strings.Replace(func_head_op, "$NAME", fnname, 1))
-	buf.WriteString(`
-	if typ.PkgPath() == "" {
+	buf.WriteString(`if typ.PkgPath() == "" {
 		switch typ.Kind() {
 `)
 	var div_case1 string
@@ -86,6 +85,7 @@ func makeFuncOp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 	for _, kind := range kinds {
 		r := strings.NewReplacer(
 			"Int", strings.Title(kind),
+			"int", kind,
 			"+", op)
 		if op == "/" && strings.Contains(kind, "int") {
 			r.WriteString(buf, div_case2)
@@ -101,8 +101,7 @@ func makeFuncOp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 
 func makeFuncCmp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 	buf.WriteString(strings.Replace(func_head_cmp, "$NAME", fnname, 1))
-	buf.WriteString(`
-	if typ.PkgPath() == "" {
+	buf.WriteString(`if typ.PkgPath() == "" {
 		switch typ.Kind() {
 `)
 	for _, kind := range kinds {
@@ -119,6 +118,7 @@ func makeFuncCmp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 	for _, kind := range kinds {
 		r := strings.NewReplacer(
 			"Int", strings.Title(kind),
+			"int", kind,
 			"<", op)
 		r.WriteString(buf, func_case2_cmp)
 	}
@@ -160,9 +160,7 @@ func get_func_case1_div() string {
 		`x := vx.(int)
 	y := vy.(int)
 	if y == 0 {
-		return func(fr *frame) {
-			fr.setReg(ir, x/y)
-		}
+		return func(fr *frame) { fr.setReg(ir, x/y) }
 	}
 	v := x/y`, 1)
 }
@@ -170,27 +168,15 @@ func get_func_case1_div() string {
 var func_case1 = `case reflect.Int:
 if kx == kindConst && ky == kindConst {
 	v := vx.(int)+vy.(int)
-	return func(fr *frame) {
-		fr.setReg(ir, v)
-	}
+	return func(fr *frame) { fr.setReg(ir, v) }
 } else if kx == kindConst {
 	x := vx.(int)
-	return func(fr *frame) {
-		y := fr.reg(iy).(int)
-		fr.setReg(ir, x+y)
-	}
+	return func(fr *frame) { fr.setReg(ir, x+fr.reg(iy).(int)) }
 } else if ky == kindConst {
 	y := vy.(int)
-	return func(fr *frame) {
-		x := fr.reg(ix).(int)
-		fr.setReg(ir, x+y)
-	}
+	return func(fr *frame) { fr.setReg(ir, fr.reg(ix).(int)+y) }
 } else {
-	return func(fr *frame) {
-		x := fr.reg(ix).(int)
-		y := fr.reg(iy).(int)
-		fr.setReg(ir, x+y)
-	}
+	return func(fr *frame) { fr.setReg(ir, fr.reg(ix).(int)+fr.reg(iy).(int)) }
 }
 `
 
@@ -200,9 +186,7 @@ func get_func_case2_div() string {
 		`x := basic.Int(vx)
 		y := basic.Int(vy)
 		if y == 0 {
-		return func(fr *frame) {
-			fr.setReg(ir, basic.Make(t,x/y))
-		}
+		return func(fr *frame) { fr.setReg(ir, basic.Make(t,x/y)) }
 	}
 	v := basic.Make(t,x/y)`, 1)
 }
@@ -210,53 +194,29 @@ func get_func_case2_div() string {
 var func_case2 = `case reflect.Int:
 if kx == kindConst && ky == kindConst {
 	v := basic.Make(t,basic.Int(vx)+basic.Int(vy))
-	return func(fr *frame) {
-		fr.setReg(ir, v)
-	}	
+	return func(fr *frame) { fr.setReg(ir, v) }
 } else if kx == kindConst {
 	x := basic.Int(vx)
-	return func(fr *frame) {
-		y := basic.Int(fr.reg(iy))
-		fr.setReg(ir, basic.Make(t,x+y))
-	}
+	return func(fr *frame) { fr.setReg(ir, basic.Make(t,x+fr.int(iy))) }
 } else if ky == kindConst {
 	y := basic.Int(vy)
-	return func(fr *frame) {
-		x := basic.Int(fr.reg(ix))
-		fr.setReg(ir, basic.Make(t,x+y))
-	}
+	return func(fr *frame) { fr.setReg(ir, basic.Make(t,fr.int(ix)+y)) }
 } else {
-	return func(fr *frame) {
-		x := basic.Int(fr.reg(ix))
-		y := basic.Int(fr.reg(iy))
-		fr.setReg(ir, basic.Make(t,x+y))
-	}
+	return func(fr *frame) { fr.setReg(ir, basic.Make(t,fr.int(ix)+fr.int(iy))) }
 }
 `
 
 var func_case2_cmp = `case reflect.Int:
 if kx == kindConst && ky == kindConst {
 	v := basic.Int(vx)<basic.Int(vy)
-	return func(fr *frame) {
-		fr.setReg(ir, v)
-	}
+	return func(fr *frame) { fr.setReg(ir, v) }
 } else if kx == kindConst {
 	x := basic.Int(vx)
-	return func(fr *frame) {
-		y := basic.Int(fr.reg(iy))
-		fr.setReg(ir, x<y)
-	}
+	return func(fr *frame) { fr.setReg(ir, x<fr.int(iy)) }
 } else if ky == kindConst {
 	y := basic.Int(vy)
-	return func(fr *frame) {
-		x := basic.Int(fr.reg(ix))
-		fr.setReg(ir, x<y)
-	}
+	return func(fr *frame) { fr.setReg(ir, fr.int(ix)<y) }
 } else {
-	return func(fr *frame) {
-		x := basic.Int(fr.reg(ix))
-		y := basic.Int(fr.reg(iy))
-		fr.setReg(ir, x<y)
-	}
+	return func(fr *frame) { fr.setReg(ir, fr.int(ix)<fr.int(iy)) }
 }
 `
