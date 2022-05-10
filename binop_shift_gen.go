@@ -47,49 +47,46 @@ func main() {
 
 func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 	buf.WriteString(func_head_op)
+	// check x const && y const
+	buf.WriteString(`if kx == kindConst && ky == kindConst {
+	t := basic.TypeOfType(xtyp)
+	switch xkind {
+`)
+	for _, kx := range kinds {
+		buf.WriteString(fmt.Sprintf(`	case reflect.%v:
+		x := basic.%v(vx)
+		switch ykind {
+`, kx.kind, kx.kind))
+		for _, ky := range kinds {
+			buf.WriteString(fmt.Sprintf(`case reflect.%v:
+			v := basic.Make(t, x << basic.%v(vy))
+			return func(fr *frame) { fr.setReg(ir,v) }
+`, ky.kind, ky.kind))
+		}
+		// end switch ykind
+		buf.WriteString("}\n")
+	}
 
-	buf.WriteString("if xIsBasic {")
-	buf.WriteString(`
+	// end switch xkind
+	buf.WriteString("}\n")
+	// end x const && y const
+	buf.WriteString("}\n")
+
+	buf.WriteString(`if xtyp.PkgPath() == "" {
 	switch xkind {
 `)
 	for _, kx := range kinds {
 		buf.WriteString(fmt.Sprintf(`	case reflect.%v:
 `, kx.kind))
-		// if x const && y const
-		buf.WriteString(fmt.Sprintf(`if kx == kindConst && ky == kindConst {
-			x := vx.(%v)
-			switch ykind {
-`, kx.typ))
-		for _, ky := range kinds {
-			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-			var y %v
-			if yIsBasic { y = vy.(%v) } else { y = basic.%v(vy) }
-			v := x << y
-			return func(fr *frame) {
-				fr.setReg(ir,v)
-			}
-			`, ky.kind, ky.typ, ky.typ, ky.kind))
-		}
-		buf.WriteString(`		}
-`)
-		// else if x const
-		buf.WriteString(fmt.Sprintf(`	} else if kx == kindConst {
+		// if x const
+		buf.WriteString(fmt.Sprintf(`	if kx == kindConst {
 		x := vx.(%v)
 `, kx.typ))
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-			if yIsBasic {
-				return func(fr *frame) {
-					y := fr.reg(iy).(%v)
-					fr.setReg(ir,x<<y)
-				}
-			}
-			return func(fr *frame) {
-				y := basic.%v(fr.reg(iy))
-				fr.setReg(ir,x<<y)
-			}			
-			`, ky.kind, ky.typ, ky.kind))
+			return func(fr *frame) { fr.setReg(ir,x<<fr.%v(iy)) }
+`, ky.kind, ky.typ))
 		}
 
 		buf.WriteString(fmt.Sprintf("\t\t\t}\n"))
@@ -99,13 +96,9 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-			var y %v
-			if yIsBasic { y = vy.(%v) } else { y = basic.%v(vy) }
-			return func(fr *frame) {
-				x := fr.reg(ix).(%v)
-				fr.setReg(ir,x<<y)
-			}
-			`, ky.kind, ky.typ, ky.typ, ky.kind, kx.typ))
+			y := basic.%v(vy)
+			return func(fr *frame) { fr.setReg(ir,fr.reg(ix).(%v)<<y) }
+`, ky.kind, ky.kind, kx.typ))
 		}
 		buf.WriteString(fmt.Sprintf("\t\t\t}\n"))
 
@@ -115,20 +108,8 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-			if yIsBasic {
-				return func(fr *frame) {
-					x := fr.reg(ix).(%v)
-					y := fr.reg(iy).(%v)
-					fr.setReg(ir,x<<y)
-				}
-			} 
-			return func(fr *frame) {
-				x := fr.reg(ix).(%v)
-				y := basic.%v(fr.reg(iy))
-				fr.setReg(ir,x<<y)
-			}			
-			`, ky.kind, kx.typ, ky.typ,
-				kx.typ, ky.kind))
+			return func(fr *frame) { fr.setReg(ir,fr.reg(ix).(%v)<<fr.%v(iy)) }
+`, ky.kind, kx.typ, ky.typ))
 		}
 		buf.WriteString("}\n") // end swith ykind
 		buf.WriteString("}\n")
@@ -145,40 +126,15 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 	for _, kx := range kinds {
 		buf.WriteString(fmt.Sprintf(`	case reflect.%v:
 `, kx.kind))
-		// if x const && y const
-		buf.WriteString(fmt.Sprintf(`if kx == kindConst && ky == kindConst {
-				x := basic.%v(vx)
-				switch ykind {
-		`, kx.kind))
-		for _, ky := range kinds {
-			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				var y %v
-				if yIsBasic { y = vy.(%v) } else { y = basic.%v(vy) }
-				v := basic.Make(t,x << y)
-				return func(fr *frame) {
-					fr.setReg(ir,v)
-				}
-				`, ky.kind, ky.typ, ky.typ, ky.kind))
-		}
-		buf.WriteString("}\n")
-		// else if x const
-		buf.WriteString(fmt.Sprintf(`	} else if kx == kindConst {
+		// if x const
+		buf.WriteString(fmt.Sprintf(`	if kx == kindConst {
 			x := basic.%v(vx)
 	`, kx.kind))
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				if yIsBasic {
-					return func(fr *frame) {
-						y := fr.reg(iy).(%v)
-						fr.setReg(ir,basic.Make(t,x<<y))
-					}
-				}
-				return func(fr *frame) {
-					y := basic.%v(fr.reg(iy))
-					fr.setReg(ir,basic.Make(t,x<<y))
-				}
-				`, ky.kind, ky.typ, ky.kind))
+				return func(fr *frame) { fr.setReg(ir,basic.Make(t,x<<fr.%v(iy))) }
+`, ky.kind, ky.typ))
 		}
 
 		buf.WriteString(fmt.Sprintf("\t\t\t}\n"))
@@ -188,13 +144,9 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				var y %v
-				if yIsBasic { y = vy.(%v) } else { y = basic.%v(vy) }
-				return func(fr *frame) {
-					x := basic.%v(fr.reg(ix))
-					fr.setReg(ir,basic.Make(t,x<<y))
-				}
-				`, ky.kind, ky.typ, ky.typ, ky.kind, kx.kind))
+				y := basic.%v(vy)
+				return func(fr *frame) { fr.setReg(ir,basic.Make(t,fr.%v(ix)<<y)) }
+`, ky.kind, ky.kind, kx.typ))
 		}
 		buf.WriteString(fmt.Sprintf("\t\t\t}\n"))
 
@@ -204,20 +156,8 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				if yIsBasic {
-					return func(fr *frame) {
-						x := basic.%v(fr.reg(ix))
-						y := fr.reg(iy).(%v)
-						fr.setReg(ir,basic.Make(t,x<<y))
-					}
-				}
-				return func(fr *frame) {
-					x := basic.%v(fr.reg(ix))
-					y := basic.%v(fr.reg(iy))
-					fr.setReg(ir,basic.Make(t,x<<y))
-				}
-				`, ky.kind, kx.kind, ky.typ,
-				kx.kind, ky.kind))
+				return func(fr *frame) { fr.setReg(ir,basic.Make(t,fr.%v(ix)<<fr.%v(iy))) }
+`, ky.kind, kx.typ, ky.typ))
 		}
 		buf.WriteString("}\n") // end swith ykind
 		buf.WriteString("}\n")
@@ -248,6 +188,4 @@ func makeBinOpSHL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 	ytyp := pfn.Interp.preToType(instr.Y.Type())
 	xkind := xtyp.Kind()
 	ykind := ytyp.Kind()
-	xIsBasic := xtyp.PkgPath() == ""
-	yIsBasic := ytyp.PkgPath() == ""
 `

@@ -43,8 +43,7 @@ func main() {
 
 func makeFuncOp(buf *bytes.Buffer, fnname string, op string, neg string, kinds []string) {
 	buf.WriteString(strings.Replace(func_head_op, "$NAME", fnname, 1))
-	buf.WriteString(`
-	if typ.PkgPath() == "" {
+	buf.WriteString(`if typ.PkgPath() == "" {
 		switch typ.Kind() {
 `)
 	for _, kind := range kinds {
@@ -92,9 +91,7 @@ func $NAME(pfn *function, instr *ssa.UnOp) func(fr *frame) {
 var func_case1 = `case reflect.Int:
 if kx == kindConst {
 	v := -vx.(int)
-	return func(fr *frame) {
-		fr.setReg(ir, v)
-	}
+	return func(fr *frame) { fr.setReg(ir, v) }
 } else {
 	return func(fr *frame) {
 		v := -fr.reg(ix).(int)
@@ -106,9 +103,7 @@ if kx == kindConst {
 var func_case2 = `case reflect.Int:
 if kx == kindConst {
 	v := basic.NegInt(vx)
-	return func(fr *frame) {
-		fr.setReg(ir, v)
-	}
+	return func(fr *frame) { fr.setReg(ir, v) }
 } else {
 	return func(fr *frame) {
 		v := basic.NegInt(fr.reg(ix))
