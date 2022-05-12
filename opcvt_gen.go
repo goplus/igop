@@ -113,31 +113,31 @@ var cvt_func = `func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Ty
 			var v T
 			switch xkind {
 			case reflect.Int:
-				v = T(basic.Int(fr.reg(ix)))
+				v = T(fr.int(ix))
 			case reflect.Int8:
-				v = T(basic.Int8(fr.reg(ix)))
+				v = T(fr.int8(ix))
 			case reflect.Int16:
-				v = T(basic.Int16(fr.reg(ix)))
+				v = T(fr.int16(ix))
 			case reflect.Int32:
-				v = T(basic.Int32(fr.reg(ix)))
+				v = T(fr.int32(ix))
 			case reflect.Int64:
-				v = T(basic.Int64(fr.reg(ix)))
+				v = T(fr.int64(ix))
 			case reflect.Uint:
-				v = T(basic.Uint(fr.reg(ix)))
+				v = T(fr.uint(ix))
 			case reflect.Uint8:
-				v = T(basic.Uint8(fr.reg(ix)))
+				v = T(fr.uint8(ix))
 			case reflect.Uint16:
-				v = T(basic.Uint16(fr.reg(ix)))
+				v = T(fr.uint16(ix))
 			case reflect.Uint32:
-				v = T(basic.Uint32(fr.reg(ix)))
+				v = T(fr.uint32(ix))
 			case reflect.Uint64:
-				v = T(basic.Uint64(fr.reg(ix)))
+				v = T(fr.uint64(ix))
 			case reflect.Uintptr:
-				v = T(basic.Uintptr(fr.reg(ix)))
+				v = T(fr.uintptr(ix))
 			case reflect.Float32:
-				v = T(basic.Float32(fr.reg(ix)))
+				v = T(fr.float32(ix))
 			case reflect.Float64:
-				v = T(basic.Float64(fr.reg(ix)))
+				v = T(fr.float64(ix))
 			}
 			if isBasic {
 				fr.setReg(ir, v)
@@ -173,9 +173,9 @@ var cvt_func2 = `func cvtComplex64(ir, ix register, xkind reflect.Kind, xtyp ref
 			var v T
 			switch xkind {
 			case reflect.Complex64:
-				v = T(basic.Complex64(fr.reg(ix)))
+				v = T(fr.complex64(ix))
 			case reflect.Complex128:
-				v = T(basic.Complex128(fr.reg(ix)))
+				v = T(fr.complex128(ix))
 			}
 			if isBasic {
 				fr.setReg(ir, v)
