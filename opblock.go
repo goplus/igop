@@ -731,7 +731,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		default:
 			return func(fr *frame) {
 				fr.pred = fr.block.Index
-				if basic.Bool(fr.reg(ic)) {
+				if fr.bool(ic) {
 					fr.block = fr.block.Succs[0]
 				} else {
 					fr.block = fr.block.Succs[1]
