@@ -282,7 +282,7 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 	case reflect.UnsafePointer:
 		if xkind == reflect.Uintptr {
 			return func(fr *frame) {
-				v := reflect.ValueOf(fr.reg(ix))
+				v := fr.uintptr(ix)
 				fr.setReg(ir, toUnsafePointer(v))
 			}
 		} else if xkind == reflect.Ptr {
