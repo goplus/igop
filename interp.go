@@ -205,6 +205,14 @@ func (fr *frame) reg(ir register) value {
 	return fr.stack[ir]
 }
 
+func (fr *frame) bytes(ir register) []byte {
+	return basic.Bytes(fr.stack[ir])
+}
+
+func (fr *frame) runes(ir register) []rune {
+	return basic.Runes(fr.stack[ir])
+}
+
 func (fr *frame) bool(ir register) bool {
 	return basic.Bool(fr.stack[ir])
 }
