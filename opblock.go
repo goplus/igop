@@ -649,8 +649,8 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		switch typ.Kind() {
 		case reflect.String:
 			return func(fr *frame) {
-				v := fr.reg(ix)
-				fr.setReg(ir, &stringIter{Reader: strings.NewReader(reflect.ValueOf(v).String())})
+				v := fr.string(ix)
+				fr.setReg(ir, &stringIter{Reader: strings.NewReader(v)})
 			}
 		case reflect.Map:
 			return func(fr *frame) {
