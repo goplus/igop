@@ -102,6 +102,7 @@ func Pointer(i interface{}) unsafe.Pointer {
 	return (*eface)(unsafe.Pointer(&i)).word
 }
 
+// Make change interface type and return
 func Make(typ Type, i interface{}) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	p.typ = unsafe.Pointer(typ)
