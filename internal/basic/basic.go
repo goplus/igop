@@ -22,6 +22,14 @@ func TypeOfType(typ reflect.Type) Type {
 	return Type(e.word)
 }
 
+func Bytes(i interface{}) []byte {
+	return *(*[]byte)((*eface)(unsafe.Pointer(&i)).word)
+}
+
+func Runes(i interface{}) []rune {
+	return *(*[]rune)((*eface)(unsafe.Pointer(&i)).word)
+}
+
 func Bool(i interface{}) bool {
 	return *(*bool)((*eface)(unsafe.Pointer(&i)).word)
 }
@@ -90,6 +98,11 @@ func String(i interface{}) string {
 	return *(*string)((*eface)(unsafe.Pointer(&i)).word)
 }
 
+func Pointer(i interface{}) unsafe.Pointer {
+	return (*eface)(unsafe.Pointer(&i)).word
+}
+
+// Make change interface type and return
 func Make(typ Type, i interface{}) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	p.typ = unsafe.Pointer(typ)

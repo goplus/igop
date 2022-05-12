@@ -1845,8 +1845,8 @@ func widen(x value) value {
 }
 
 //go:nocheckptr
-func toUnsafePointer(v reflect.Value) unsafe.Pointer {
-	return unsafe.Pointer(uintptr(v.Uint()))
+func toUnsafePointer(v uintptr) unsafe.Pointer {
+	return unsafe.Pointer(v)
 }
 
 func toUserFuncId(v *reflect.Value) uintptr {
@@ -1865,7 +1865,7 @@ func convert(x interface{}, typ reflect.Type) interface{} {
 	switch typ.Kind() {
 	case reflect.UnsafePointer:
 		if vk == reflect.Uintptr {
-			return toUnsafePointer(v)
+			return toUnsafePointer(uintptr(v.Uint()))
 		} else if vk == reflect.Ptr {
 			return unsafe.Pointer(v.Pointer())
 		}

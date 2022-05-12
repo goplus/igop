@@ -205,6 +205,14 @@ func (fr *frame) reg(ir register) value {
 	return fr.stack[ir]
 }
 
+func (fr *frame) bytes(ir register) []byte {
+	return basic.Bytes(fr.stack[ir])
+}
+
+func (fr *frame) runes(ir register) []rune {
+	return basic.Runes(fr.stack[ir])
+}
+
 func (fr *frame) bool(ir register) bool {
 	return basic.Bool(fr.stack[ir])
 }
@@ -271,6 +279,10 @@ func (fr *frame) complex128(ir register) complex128 {
 
 func (fr *frame) string(ir register) string {
 	return basic.String(fr.stack[ir])
+}
+
+func (fr *frame) pointer(ir register) unsafe.Pointer {
+	return basic.Pointer(fr.stack[ir])
 }
 
 func (fr *frame) copyReg(dst register, src register) {

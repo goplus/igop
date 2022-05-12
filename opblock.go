@@ -649,8 +649,8 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		switch typ.Kind() {
 		case reflect.String:
 			return func(fr *frame) {
-				v := fr.reg(ix)
-				fr.setReg(ir, &stringIter{Reader: strings.NewReader(reflect.ValueOf(v).String())})
+				v := fr.string(ix)
+				fr.setReg(ir, &stringIter{Reader: strings.NewReader(v)})
 			}
 		case reflect.Map:
 			return func(fr *frame) {
@@ -731,7 +731,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		default:
 			return func(fr *frame) {
 				fr.pred = fr.block.Index
-				if basic.Bool(fr.reg(ic)) {
+				if fr.bool(ic) {
 					fr.block = fr.block.Succs[0]
 				} else {
 					fr.block = fr.block.Succs[1]

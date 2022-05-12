@@ -2,7 +2,6 @@ package gossa
 
 import (
 	"reflect"
-	"unsafe"
 
 	"github.com/goplus/gossa/internal/basic"
 	"golang.org/x/tools/go/ssa"
@@ -282,72 +281,61 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 	case reflect.UnsafePointer:
 		if xkind == reflect.Uintptr {
 			return func(fr *frame) {
-				v := reflect.ValueOf(fr.reg(ix))
+				v := fr.uintptr(ix)
 				fr.setReg(ir, toUnsafePointer(v))
 			}
 		} else if xkind == reflect.Ptr {
 			return func(fr *frame) {
-				v := reflect.ValueOf(fr.reg(ix))
-				fr.setReg(ir, unsafe.Pointer(v.Pointer()))
+				v := fr.pointer(ix)
+				fr.setReg(ir, v)
 			}
 		}
 	case reflect.Uintptr:
 		if xkind == reflect.UnsafePointer {
 			return func(fr *frame) {
-				v := reflect.ValueOf(fr.reg(ix))
-				fr.setReg(ir, v.Pointer())
+				v := fr.pointer(ix)
+				fr.setReg(ir, uintptr(v))
 			}
 		}
 	case reflect.Ptr:
 		if xkind == reflect.UnsafePointer {
+			t := basic.TypeOfType(typ)
 			return func(fr *frame) {
-				v := reflect.ValueOf(fr.reg(ix))
-				fr.setReg(ir, reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface())
+				v := fr.reg(ix)
+				fr.setReg(ir, basic.Make(t, v))
 			}
 		}
 	case reflect.Slice:
 		if xkind == reflect.String {
+			t := basic.TypeOfType(typ)
 			elem := typ.Elem()
 			switch elem.Kind() {
 			case reflect.Uint8:
-				if elem.PkgPath() != "" {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ix))
-						dst := reflect.New(typ).Elem()
-						dst.SetBytes([]byte(v.String()))
-						fr.setReg(ir, dst.Interface())
-					}
+				return func(fr *frame) {
+					v := fr.string(ix)
+					fr.setReg(ir, basic.Make(t, []byte(v)))
 				}
 			case reflect.Int32:
-				if elem.PkgPath() != "" {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ix))
-						dst := reflect.New(typ).Elem()
-						*(*[]rune)((*reflectValue)(unsafe.Pointer(&dst)).ptr) = []rune(v.String())
-						fr.setReg(ir, dst.Interface())
-					}
+				return func(fr *frame) {
+					v := fr.string(ix)
+					fr.setReg(ir, basic.Make(t, []rune(v)))
 				}
 			}
 		}
 	case reflect.String:
 		if xkind == reflect.Slice {
+			t := basic.TypeOfType(typ)
 			elem := xtyp.Elem()
 			switch elem.Kind() {
 			case reflect.Uint8:
-				if elem.PkgPath() != "" {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ix))
-						v = reflect.ValueOf(string(v.Bytes()))
-						fr.setReg(ir, v.Convert(typ).Interface())
-					}
+				return func(fr *frame) {
+					v := fr.bytes(ix)
+					fr.setReg(ir, basic.Make(t, string(v)))
 				}
 			case reflect.Int32:
-				if elem.PkgPath() != "" {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ix))
-						v = reflect.ValueOf(*(*[]rune)(((*reflectValue)(unsafe.Pointer(&v))).ptr))
-						fr.setReg(ir, v.Convert(typ).Interface())
-					}
+				return func(fr *frame) {
+					v := fr.runes(ix)
+					fr.setReg(ir, basic.Make(t, string(v)))
 				}
 			}
 		}
