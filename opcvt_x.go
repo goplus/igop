@@ -2,7 +2,6 @@ package gossa
 
 import (
 	"reflect"
-	"unsafe"
 
 	"github.com/goplus/gossa/internal/basic"
 	"golang.org/x/tools/go/ssa"
@@ -300,9 +299,10 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 		}
 	case reflect.Ptr:
 		if xkind == reflect.UnsafePointer {
+			t := basic.TypeOfType(typ)
 			return func(fr *frame) {
-				v := reflect.ValueOf(fr.reg(ix))
-				fr.setReg(ir, reflect.NewAt(typ.Elem(), unsafe.Pointer(v.Pointer())).Interface())
+				v := fr.reg(ix)
+				fr.setReg(ir, basic.Make(t, v))
 			}
 		}
 	case reflect.Slice:
