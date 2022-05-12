@@ -1,6 +1,8 @@
 package basic_test
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/goplus/gossa/internal/basic"
@@ -170,5 +172,47 @@ func TestMakeFloat32(t *testing.T) {
 	typ := basic.TypeOf(T(0))
 	if r := basic.MakeFloat32(typ, 100.1); basic.Float32(r) != 100.1 {
 		t.Fatal(r)
+	}
+}
+
+func TestAllocInt(t *testing.T) {
+	type T int
+	typ := basic.TypeOf(T(0))
+	r := basic.Alloc(typ)
+	if s := fmt.Sprintf("%T %#v", r, r); s != "basic_test.T 0" {
+		panic(s)
+	}
+}
+
+func TestAllocStruct(t *testing.T) {
+	type T struct {
+		X int
+		Y int
+	}
+	typ := basic.TypeOf(T{})
+	r := basic.Alloc(typ)
+	if s := fmt.Sprintf("%#v", r); s != "basic_test.T{X:0, Y:0}" {
+		panic(s)
+	}
+}
+
+func TestAllocPtr(t *testing.T) {
+	type T struct {
+		X int
+		Y int
+	}
+	typ := basic.TypeOf(&T{})
+	r := basic.Alloc(typ)
+	if s := fmt.Sprintf("%#v", r); s != "&basic_test.T{X:0, Y:0}" {
+		panic(s)
+	}
+}
+
+func TestAllocInterfce(t *testing.T) {
+	type T = fmt.Stringer
+	typ := basic.TypeOfType(reflect.TypeOf((*T)(nil)).Elem())
+	r := basic.Alloc(typ)
+	if s := fmt.Sprintf("%#v", r); s != "fmt.Stringer(nil)" {
+		panic(s)
 	}
 }

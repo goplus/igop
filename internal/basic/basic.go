@@ -648,3 +648,23 @@ func MakeString(typ Type, v string) interface{} {
 		word: unsafe.Pointer(&v),
 	}))
 }
+
+func Alloc(typ Type) interface{} {
+	ptr := unsafe_New(typ)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(typ),
+		word: ptr,
+	}))
+}
+
+func SetPointer(i interface{}, word unsafe.Pointer) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	p.word = word
+	return i
+}
+
+func SetType(i interface{}, typ Type) interface{} {
+	p := (*eface)(unsafe.Pointer(&i))
+	p.typ = unsafe.Pointer(typ)
+	return i
+}
