@@ -307,25 +307,18 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 		}
 	case reflect.Slice:
 		if xkind == reflect.String {
+			t := basic.TypeOfType(typ)
 			elem := typ.Elem()
 			switch elem.Kind() {
 			case reflect.Uint8:
-				if elem.PkgPath() != "" {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ix))
-						dst := reflect.New(typ).Elem()
-						dst.SetBytes([]byte(v.String()))
-						fr.setReg(ir, dst.Interface())
-					}
+				return func(fr *frame) {
+					v := fr.string(ix)
+					fr.setReg(ir, basic.Make(t, []byte(v)))
 				}
 			case reflect.Int32:
-				if elem.PkgPath() != "" {
-					return func(fr *frame) {
-						v := reflect.ValueOf(fr.reg(ix))
-						dst := reflect.New(typ).Elem()
-						*(*[]rune)((*reflectValue)(unsafe.Pointer(&dst)).ptr) = []rune(v.String())
-						fr.setReg(ir, dst.Interface())
-					}
+				return func(fr *frame) {
+					v := fr.string(ix)
+					fr.setReg(ir, basic.Make(t, []rune(v)))
 				}
 			}
 		}
