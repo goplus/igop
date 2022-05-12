@@ -98,6 +98,10 @@ func String(i interface{}) string {
 	return *(*string)((*eface)(unsafe.Pointer(&i)).word)
 }
 
+func Pointer(i interface{}) unsafe.Pointer {
+	return (*eface)(unsafe.Pointer(&i)).word
+}
+
 func Make(typ Type, i interface{}) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	p.typ = unsafe.Pointer(typ)
