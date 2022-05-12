@@ -657,6 +657,14 @@ func Alloc(typ Type) interface{} {
 	}))
 }
 
+func New(typ, ptrto Type) interface{} {
+	ptr := unsafe_New(typ)
+	return *(*interface{})(unsafe.Pointer(&eface{
+		typ:  unsafe.Pointer(ptrto),
+		word: ptr,
+	}))
+}
+
 func SetPointer(i interface{}, word unsafe.Pointer) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	p.word = word

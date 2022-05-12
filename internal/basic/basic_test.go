@@ -216,3 +216,39 @@ func TestAllocInterfce(t *testing.T) {
 		panic(s)
 	}
 }
+
+func TestNewInt(t *testing.T) {
+	type T int
+	v := T(0)
+	typ := basic.TypeOf(v)
+	ptrto := basic.TypeOf(&v)
+	r := basic.New(typ, ptrto)
+	if s := fmt.Sprintf("%T %#v", r, *(r.(*T))); s != "*basic_test.T 0" {
+		panic(s)
+	}
+}
+
+func TestNewStruct(t *testing.T) {
+	type T struct {
+		X int
+		Y int
+	}
+	var v T
+	typ := basic.TypeOf(v)
+	ptrto := basic.TypeOf(&v)
+	r := basic.New(typ, ptrto)
+	if s := fmt.Sprintf("%#v", r); s != "&basic_test.T{X:0, Y:0}" {
+		panic(s)
+	}
+}
+
+func TestNewInterfce(t *testing.T) {
+	type T = fmt.Stringer
+	rt := reflect.TypeOf((*T)(nil))
+	typ := basic.TypeOfType(rt.Elem())
+	ptrto := basic.TypeOfType(rt)
+	r := basic.New(typ, ptrto)
+	if s := fmt.Sprintf("%T %v", r, *(r.(*T))); s != "*fmt.Stringer <nil>" {
+		panic(s)
+	}
+}
