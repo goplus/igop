@@ -665,6 +665,10 @@ func New(typ, ptrto Type) interface{} {
 	}))
 }
 
+func NewPointer(typ Type) unsafe.Pointer {
+	return unsafe_New(typ)
+}
+
 func SetPointer(i interface{}, word unsafe.Pointer) interface{} {
 	p := (*eface)(unsafe.Pointer(&i))
 	p.word = word
