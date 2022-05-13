@@ -56,7 +56,7 @@ func emptyType(kind reflect.Kind) reflect.Type {
 	case reflect.Struct:
 		return tyEmptyStruct
 	default:
-		return basicTypes[kind]
+		return xtypeTypes[kind]
 	}
 	panic(fmt.Errorf("emptyType: unreachable kind %v", kind))
 }
@@ -66,7 +66,7 @@ func toMockType(typ types.Type) reflect.Type {
 	case *types.Basic:
 		kind := t.Kind()
 		if kind > types.Invalid && kind < types.UntypedNil {
-			return basicTypes[kind]
+			return xtypeTypes[kind]
 		}
 		panic(fmt.Errorf("toMockType: invalid type %v", typ))
 	case *types.Pointer:
@@ -114,7 +114,7 @@ func toMockType(typ types.Type) reflect.Type {
 	}
 }
 
-var basicTypes = [...]reflect.Type{
+var xtypeTypes = [...]reflect.Type{
 	types.Bool:          reflect.TypeOf(false),
 	types.Int:           reflect.TypeOf(0),
 	types.Int8:          reflect.TypeOf(int8(0)),
@@ -199,7 +199,7 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 	case *types.Basic:
 		kind := t.Kind()
 		if kind > types.Invalid && kind < types.UntypedNil {
-			rt = basicTypes[kind]
+			rt = xtypeTypes[kind]
 		}
 	case *types.Pointer:
 		elem := r.ToType(t.Elem())

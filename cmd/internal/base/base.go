@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-// Package base defines shared basic pieces of the gop command,
+// Package base defines shared xtype pieces of the gop command,
 // in particular logging and the Command structure.
 package base
 

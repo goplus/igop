@@ -3,7 +3,7 @@ package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -224,215 +224,215 @@ func makeBinOpADD(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)+basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)+xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)+y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)+fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)+fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)+basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)+xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)+y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)+fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)+fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)+basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)+xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)+y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)+fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)+fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)+basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)+xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)+y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)+fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)+fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)+basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)+xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)+y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)+fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)+fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)+basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)+xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)+y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)+fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)+fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)+basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)+xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)+y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)+fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)+fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)+basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)+xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)+y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)+fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)+fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)+basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)+xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)+y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)+fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)+fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)+basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)+xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)+y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)+fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)+fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)+basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)+xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)+y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)+fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)+fr.uintptr(iy))) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float32(vx)+basic.Float32(vy))
+				v := xtype.Make(t, xtype.Float32(vx)+xtype.Float32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.float32(iy))) }
+				x := xtype.Float32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.float32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)+y)) }
+				y := xtype.Float32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)+fr.float32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)+fr.float32(iy))) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float64(vx)+basic.Float64(vy))
+				v := xtype.Make(t, xtype.Float64(vx)+xtype.Float64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.float64(iy))) }
+				x := xtype.Float64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.float64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)+y)) }
+				y := xtype.Float64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)+fr.float64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)+fr.float64(iy))) }
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex64(vx)+basic.Complex64(vy))
+				v := xtype.Make(t, xtype.Complex64(vx)+xtype.Complex64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.complex64(iy))) }
+				x := xtype.Complex64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.complex64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)+y)) }
+				y := xtype.Complex64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)+fr.complex64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)+fr.complex64(iy))) }
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex128(vx)+basic.Complex128(vy))
+				v := xtype.Make(t, xtype.Complex128(vx)+xtype.Complex128(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex128(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.complex128(iy))) }
+				x := xtype.Complex128(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.complex128(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex128(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)+y)) }
+				y := xtype.Complex128(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)+fr.complex128(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)+fr.complex128(iy))) }
 			}
 		case reflect.String:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.String(vx)+basic.String(vy))
+				v := xtype.Make(t, xtype.String(vx)+xtype.String(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.String(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x+fr.string(iy))) }
+				x := xtype.String(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x+fr.string(iy))) }
 			} else if ky == kindConst {
-				y := basic.String(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.string(ix)+y)) }
+				y := xtype.String(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.string(ix)+y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.string(ix)+fr.string(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.string(ix)+fr.string(iy))) }
 			}
 		}
 	}
@@ -642,202 +642,202 @@ func makeBinOpSUB(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)-basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)-xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)-y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)-fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)-fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)-basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)-xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)-y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)-fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)-fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)-basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)-xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)-y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)-fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)-fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)-basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)-xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)-y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)-fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)-fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)-basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)-xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)-y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)-fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)-fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)-basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)-xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)-y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)-fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)-fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)-basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)-xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)-y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)-fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)-fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)-basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)-xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)-y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)-fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)-fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)-basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)-xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)-y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)-fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)-fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)-basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)-xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)-y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)-fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)-fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)-basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)-xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)-y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)-fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)-fr.uintptr(iy))) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float32(vx)-basic.Float32(vy))
+				v := xtype.Make(t, xtype.Float32(vx)-xtype.Float32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.float32(iy))) }
+				x := xtype.Float32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.float32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)-y)) }
+				y := xtype.Float32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)-fr.float32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)-fr.float32(iy))) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float64(vx)-basic.Float64(vy))
+				v := xtype.Make(t, xtype.Float64(vx)-xtype.Float64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.float64(iy))) }
+				x := xtype.Float64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.float64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)-y)) }
+				y := xtype.Float64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)-fr.float64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)-fr.float64(iy))) }
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex64(vx)-basic.Complex64(vy))
+				v := xtype.Make(t, xtype.Complex64(vx)-xtype.Complex64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.complex64(iy))) }
+				x := xtype.Complex64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.complex64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)-y)) }
+				y := xtype.Complex64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)-fr.complex64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)-fr.complex64(iy))) }
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex128(vx)-basic.Complex128(vy))
+				v := xtype.Make(t, xtype.Complex128(vx)-xtype.Complex128(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex128(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x-fr.complex128(iy))) }
+				x := xtype.Complex128(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x-fr.complex128(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex128(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)-y)) }
+				y := xtype.Complex128(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)-y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)-fr.complex128(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)-fr.complex128(iy))) }
 			}
 		}
 	}
@@ -1047,202 +1047,202 @@ func makeBinOpMUL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)*basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)*xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)*y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)*fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)*fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)*basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)*xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)*y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)*fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)*fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)*basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)*xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)*y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)*fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)*fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)*basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)*xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)*y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)*fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)*fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)*basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)*xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)*y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)*fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)*fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)*basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)*xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)*y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)*fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)*fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)*basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)*xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)*y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)*fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)*fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)*basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)*xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)*y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)*fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)*fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)*basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)*xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)*y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)*fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)*fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)*basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)*xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)*y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)*fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)*fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)*basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)*xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)*y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)*fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)*fr.uintptr(iy))) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float32(vx)*basic.Float32(vy))
+				v := xtype.Make(t, xtype.Float32(vx)*xtype.Float32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.float32(iy))) }
+				x := xtype.Float32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.float32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)*y)) }
+				y := xtype.Float32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)*fr.float32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)*fr.float32(iy))) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float64(vx)*basic.Float64(vy))
+				v := xtype.Make(t, xtype.Float64(vx)*xtype.Float64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.float64(iy))) }
+				x := xtype.Float64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.float64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)*y)) }
+				y := xtype.Float64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)*fr.float64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)*fr.float64(iy))) }
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex64(vx)*basic.Complex64(vy))
+				v := xtype.Make(t, xtype.Complex64(vx)*xtype.Complex64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.complex64(iy))) }
+				x := xtype.Complex64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.complex64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)*y)) }
+				y := xtype.Complex64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)*fr.complex64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)*fr.complex64(iy))) }
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex128(vx)*basic.Complex128(vy))
+				v := xtype.Make(t, xtype.Complex128(vx)*xtype.Complex128(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex128(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x*fr.complex128(iy))) }
+				x := xtype.Complex128(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x*fr.complex128(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex128(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)*y)) }
+				y := xtype.Complex128(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)*y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)*fr.complex128(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)*fr.complex128(iy))) }
 			}
 		}
 	}
@@ -1507,257 +1507,257 @@ func makeBinOpQUO(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int(vx)
-				y := basic.Int(vy)
+				x := xtype.Int(vx)
+				y := xtype.Int(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)/y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)/fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)/fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int8(vx)
-				y := basic.Int8(vy)
+				x := xtype.Int8(vx)
+				y := xtype.Int8(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)/y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)/fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)/fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int16(vx)
-				y := basic.Int16(vy)
+				x := xtype.Int16(vx)
+				y := xtype.Int16(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)/y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)/fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)/fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int32(vx)
-				y := basic.Int32(vy)
+				x := xtype.Int32(vx)
+				y := xtype.Int32(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)/y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)/fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)/fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Int64(vx)
-				y := basic.Int64(vy)
+				x := xtype.Int64(vx)
+				y := xtype.Int64(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)/y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)/fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)/fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint(vx)
-				y := basic.Uint(vy)
+				x := xtype.Uint(vx)
+				y := xtype.Uint(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)/y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)/fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)/fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint8(vx)
-				y := basic.Uint8(vy)
+				x := xtype.Uint8(vx)
+				y := xtype.Uint8(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)/y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)/fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)/fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint16(vx)
-				y := basic.Uint16(vy)
+				x := xtype.Uint16(vx)
+				y := xtype.Uint16(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)/y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)/fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)/fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint32(vx)
-				y := basic.Uint32(vy)
+				x := xtype.Uint32(vx)
+				y := xtype.Uint32(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)/y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)/fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)/fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uint64(vx)
-				y := basic.Uint64(vy)
+				x := xtype.Uint64(vx)
+				y := xtype.Uint64(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)/y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)/fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)/fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				x := basic.Uintptr(vx)
-				y := basic.Uintptr(vy)
+				x := xtype.Uintptr(vx)
+				y := xtype.Uintptr(vy)
 				if y == 0 {
-					return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/y)) }
+					return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/y)) }
 				}
-				v := basic.Make(t, x/y)
+				v := xtype.Make(t, x/y)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)/y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)/fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)/fr.uintptr(iy))) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float32(vx)/basic.Float32(vy))
+				v := xtype.Make(t, xtype.Float32(vx)/xtype.Float32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.float32(iy))) }
+				x := xtype.Float32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.float32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)/y)) }
+				y := xtype.Float32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float32(ix)/fr.float32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float32(ix)/fr.float32(iy))) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Float64(vx)/basic.Float64(vy))
+				v := xtype.Make(t, xtype.Float64(vx)/xtype.Float64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.float64(iy))) }
+				x := xtype.Float64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.float64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)/y)) }
+				y := xtype.Float64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.float64(ix)/fr.float64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.float64(ix)/fr.float64(iy))) }
 			}
 		case reflect.Complex64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex64(vx)/basic.Complex64(vy))
+				v := xtype.Make(t, xtype.Complex64(vx)/xtype.Complex64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.complex64(iy))) }
+				x := xtype.Complex64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.complex64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)/y)) }
+				y := xtype.Complex64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex64(ix)/fr.complex64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex64(ix)/fr.complex64(iy))) }
 			}
 		case reflect.Complex128:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Complex128(vx)/basic.Complex128(vy))
+				v := xtype.Make(t, xtype.Complex128(vx)/xtype.Complex128(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Complex128(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x/fr.complex128(iy))) }
+				x := xtype.Complex128(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x/fr.complex128(iy))) }
 			} else if ky == kindConst {
-				y := basic.Complex128(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)/y)) }
+				y := xtype.Complex128(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)/y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.complex128(ix)/fr.complex128(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.complex128(ix)/fr.complex128(iy))) }
 			}
 		}
 	}
@@ -1915,150 +1915,150 @@ func makeBinOpREM(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)%basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)%xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)%y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)%fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)%fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)%basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)%xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)%y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)%fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)%fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)%basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)%xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)%y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)%fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)%fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)%basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)%xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)%y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)%fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)%fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)%basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)%xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)%y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)%fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)%fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)%basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)%xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)%y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)%fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)%fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)%basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)%xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)%y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)%fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)%fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)%basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)%xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)%y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)%fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)%fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)%basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)%xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)%y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)%fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)%fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)%basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)%xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)%y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)%fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)%fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)%basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)%xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x%fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x%fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)%y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)%y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)%fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)%fr.uintptr(iy))) }
 			}
 		}
 	}
@@ -2216,150 +2216,150 @@ func makeBinOpAND(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)&basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)&xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)&y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)&fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)&fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)&basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)&xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)&y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)&fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)&fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)&basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)&xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)&y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)&fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)&fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)&basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)&xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)&y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)&fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)&fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)&basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)&xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)&y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)&fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)&fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)&basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)&xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)&y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)&fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)&fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)&basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)&xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)&y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)&fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)&fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)&basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)&xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)&y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)&fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)&fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)&basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)&xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)&y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)&fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)&fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)&basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)&xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)&y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)&fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)&fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)&basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)&xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)&y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)&y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)&fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)&fr.uintptr(iy))) }
 			}
 		}
 	}
@@ -2517,150 +2517,150 @@ func makeBinOpOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)|basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)|xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)|y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)|fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)|fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)|basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)|xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)|y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)|fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)|fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)|basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)|xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)|y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)|fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)|fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)|basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)|xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)|y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)|fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)|fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)|basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)|xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)|y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)|fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)|fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)|basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)|xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)|y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)|fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)|fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)|basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)|xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)|y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)|fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)|fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)|basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)|xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)|y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)|fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)|fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)|basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)|xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)|y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)|fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)|fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)|basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)|xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)|y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)|fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)|fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)|basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)|xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x|fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x|fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)|y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)|y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)|fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)|fr.uintptr(iy))) }
 			}
 		}
 	}
@@ -2818,150 +2818,150 @@ func makeBinOpXOR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)^basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)^xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)^y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)^fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)^fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)^basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)^xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)^y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)^fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)^fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)^basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)^xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)^y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)^fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)^fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)^basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)^xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)^y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)^fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)^fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)^basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)^xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)^y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)^fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)^fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)^basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)^xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)^y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)^fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)^fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)^basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)^xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)^y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)^fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)^fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)^basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)^xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)^y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)^fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)^fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)^basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)^xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)^y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)^fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)^fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)^basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)^xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)^y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)^fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)^fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)^basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)^xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x^fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x^fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)^y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)^fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)^fr.uintptr(iy))) }
 			}
 		}
 	}
@@ -3119,150 +3119,150 @@ func makeBinOpANDNOT(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 			}
 		}
 	} else {
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int(vx)&^basic.Int(vy))
+				v := xtype.Make(t, xtype.Int(vx)&^xtype.Int(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.int(iy))) }
+				x := xtype.Int(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.int(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)&^y)) }
+				y := xtype.Int(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int(ix)&^fr.int(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int(ix)&^fr.int(iy))) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int8(vx)&^basic.Int8(vy))
+				v := xtype.Make(t, xtype.Int8(vx)&^xtype.Int8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.int8(iy))) }
+				x := xtype.Int8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.int8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)&^y)) }
+				y := xtype.Int8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int8(ix)&^fr.int8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int8(ix)&^fr.int8(iy))) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int16(vx)&^basic.Int16(vy))
+				v := xtype.Make(t, xtype.Int16(vx)&^xtype.Int16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.int16(iy))) }
+				x := xtype.Int16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.int16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)&^y)) }
+				y := xtype.Int16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int16(ix)&^fr.int16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int16(ix)&^fr.int16(iy))) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int32(vx)&^basic.Int32(vy))
+				v := xtype.Make(t, xtype.Int32(vx)&^xtype.Int32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.int32(iy))) }
+				x := xtype.Int32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.int32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)&^y)) }
+				y := xtype.Int32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int32(ix)&^fr.int32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int32(ix)&^fr.int32(iy))) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Int64(vx)&^basic.Int64(vy))
+				v := xtype.Make(t, xtype.Int64(vx)&^xtype.Int64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.int64(iy))) }
+				x := xtype.Int64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.int64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)&^y)) }
+				y := xtype.Int64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.int64(ix)&^fr.int64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.int64(ix)&^fr.int64(iy))) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint(vx)&^basic.Uint(vy))
+				v := xtype.Make(t, xtype.Uint(vx)&^xtype.Uint(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.uint(iy))) }
+				x := xtype.Uint(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.uint(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)&^y)) }
+				y := xtype.Uint(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint(ix)&^fr.uint(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint(ix)&^fr.uint(iy))) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint8(vx)&^basic.Uint8(vy))
+				v := xtype.Make(t, xtype.Uint8(vx)&^xtype.Uint8(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.uint8(iy))) }
+				x := xtype.Uint8(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.uint8(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)&^y)) }
+				y := xtype.Uint8(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint8(ix)&^fr.uint8(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint8(ix)&^fr.uint8(iy))) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint16(vx)&^basic.Uint16(vy))
+				v := xtype.Make(t, xtype.Uint16(vx)&^xtype.Uint16(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.uint16(iy))) }
+				x := xtype.Uint16(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.uint16(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)&^y)) }
+				y := xtype.Uint16(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint16(ix)&^fr.uint16(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint16(ix)&^fr.uint16(iy))) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint32(vx)&^basic.Uint32(vy))
+				v := xtype.Make(t, xtype.Uint32(vx)&^xtype.Uint32(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.uint32(iy))) }
+				x := xtype.Uint32(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.uint32(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)&^y)) }
+				y := xtype.Uint32(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint32(ix)&^fr.uint32(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint32(ix)&^fr.uint32(iy))) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uint64(vx)&^basic.Uint64(vy))
+				v := xtype.Make(t, xtype.Uint64(vx)&^xtype.Uint64(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.uint64(iy))) }
+				x := xtype.Uint64(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.uint64(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)&^y)) }
+				y := xtype.Uint64(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uint64(ix)&^fr.uint64(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uint64(ix)&^fr.uint64(iy))) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Make(t, basic.Uintptr(vx)&^basic.Uintptr(vy))
+				v := xtype.Make(t, xtype.Uintptr(vx)&^xtype.Uintptr(vy))
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, x&^fr.uintptr(iy))) }
+				x := xtype.Uintptr(vx)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, x&^fr.uintptr(iy))) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)&^y)) }
+				y := xtype.Uintptr(vy)
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)&^y)) }
 			} else {
-				return func(fr *frame) { fr.setReg(ir, basic.Make(t, fr.uintptr(ix)&^fr.uintptr(iy))) }
+				return func(fr *frame) { fr.setReg(ir, xtype.Make(t, fr.uintptr(ix)&^fr.uintptr(iy))) }
 			}
 		}
 	}
@@ -3462,182 +3462,182 @@ func makeBinOpLSS(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int(vx) < basic.Int(vy)
+				v := xtype.Int(vx) < xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
+				x := xtype.Int(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.int(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
+				y := xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) < fr.int(iy)) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int8(vx) < basic.Int8(vy)
+				v := xtype.Int8(vx) < xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
+				x := xtype.Int8(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.int8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
+				y := xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) < fr.int8(iy)) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int16(vx) < basic.Int16(vy)
+				v := xtype.Int16(vx) < xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
+				x := xtype.Int16(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.int16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
+				y := xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) < fr.int16(iy)) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int32(vx) < basic.Int32(vy)
+				v := xtype.Int32(vx) < xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
+				x := xtype.Int32(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.int32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
+				y := xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) < fr.int32(iy)) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int64(vx) < basic.Int64(vy)
+				v := xtype.Int64(vx) < xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
+				x := xtype.Int64(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.int64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
+				y := xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) < fr.int64(iy)) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint(vx) < basic.Uint(vy)
+				v := xtype.Uint(vx) < xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
+				x := xtype.Uint(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.uint(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
+				y := xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) < fr.uint(iy)) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint8(vx) < basic.Uint8(vy)
+				v := xtype.Uint8(vx) < xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
+				x := xtype.Uint8(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.uint8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
+				y := xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) < fr.uint8(iy)) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint16(vx) < basic.Uint16(vy)
+				v := xtype.Uint16(vx) < xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
+				x := xtype.Uint16(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.uint16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
+				y := xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) < fr.uint16(iy)) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint32(vx) < basic.Uint32(vy)
+				v := xtype.Uint32(vx) < xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
+				x := xtype.Uint32(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.uint32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
+				y := xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) < fr.uint32(iy)) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint64(vx) < basic.Uint64(vy)
+				v := xtype.Uint64(vx) < xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
+				x := xtype.Uint64(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.uint64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
+				y := xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) < fr.uint64(iy)) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uintptr(vx) < basic.Uintptr(vy)
+				v := xtype.Uintptr(vx) < xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
+				x := xtype.Uintptr(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.uintptr(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
+				y := xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) < fr.uintptr(iy)) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float32(vx) < basic.Float32(vy)
+				v := xtype.Float32(vx) < xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
+				x := xtype.Float32(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.float32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
+				y := xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) < fr.float32(iy)) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float64(vx) < basic.Float64(vy)
+				v := xtype.Float64(vx) < xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
+				x := xtype.Float64(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.float64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
+				y := xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) < fr.float64(iy)) }
 			}
 		case reflect.String:
 			if kx == kindConst && ky == kindConst {
-				v := basic.String(vx) < basic.String(vy)
+				v := xtype.String(vx) < xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.String(vx)
+				x := xtype.String(vx)
 				return func(fr *frame) { fr.setReg(ir, x < fr.string(iy)) }
 			} else if ky == kindConst {
-				y := basic.String(vy)
+				y := xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) < y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) < fr.string(iy)) }
@@ -3840,182 +3840,182 @@ func makeBinOpLEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int(vx) <= basic.Int(vy)
+				v := xtype.Int(vx) <= xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
+				x := xtype.Int(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.int(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
+				y := xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) <= fr.int(iy)) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int8(vx) <= basic.Int8(vy)
+				v := xtype.Int8(vx) <= xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
+				x := xtype.Int8(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.int8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
+				y := xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) <= fr.int8(iy)) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int16(vx) <= basic.Int16(vy)
+				v := xtype.Int16(vx) <= xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
+				x := xtype.Int16(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.int16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
+				y := xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) <= fr.int16(iy)) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int32(vx) <= basic.Int32(vy)
+				v := xtype.Int32(vx) <= xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
+				x := xtype.Int32(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.int32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
+				y := xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) <= fr.int32(iy)) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int64(vx) <= basic.Int64(vy)
+				v := xtype.Int64(vx) <= xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
+				x := xtype.Int64(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.int64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
+				y := xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) <= fr.int64(iy)) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint(vx) <= basic.Uint(vy)
+				v := xtype.Uint(vx) <= xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
+				x := xtype.Uint(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.uint(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
+				y := xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) <= fr.uint(iy)) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint8(vx) <= basic.Uint8(vy)
+				v := xtype.Uint8(vx) <= xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
+				x := xtype.Uint8(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.uint8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
+				y := xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) <= fr.uint8(iy)) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint16(vx) <= basic.Uint16(vy)
+				v := xtype.Uint16(vx) <= xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
+				x := xtype.Uint16(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.uint16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
+				y := xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) <= fr.uint16(iy)) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint32(vx) <= basic.Uint32(vy)
+				v := xtype.Uint32(vx) <= xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
+				x := xtype.Uint32(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.uint32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
+				y := xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) <= fr.uint32(iy)) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint64(vx) <= basic.Uint64(vy)
+				v := xtype.Uint64(vx) <= xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
+				x := xtype.Uint64(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.uint64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
+				y := xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) <= fr.uint64(iy)) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uintptr(vx) <= basic.Uintptr(vy)
+				v := xtype.Uintptr(vx) <= xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
+				x := xtype.Uintptr(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.uintptr(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
+				y := xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) <= fr.uintptr(iy)) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float32(vx) <= basic.Float32(vy)
+				v := xtype.Float32(vx) <= xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
+				x := xtype.Float32(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.float32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
+				y := xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) <= fr.float32(iy)) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float64(vx) <= basic.Float64(vy)
+				v := xtype.Float64(vx) <= xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
+				x := xtype.Float64(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.float64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
+				y := xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) <= fr.float64(iy)) }
 			}
 		case reflect.String:
 			if kx == kindConst && ky == kindConst {
-				v := basic.String(vx) <= basic.String(vy)
+				v := xtype.String(vx) <= xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.String(vx)
+				x := xtype.String(vx)
 				return func(fr *frame) { fr.setReg(ir, x <= fr.string(iy)) }
 			} else if ky == kindConst {
-				y := basic.String(vy)
+				y := xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) <= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) <= fr.string(iy)) }
@@ -4218,182 +4218,182 @@ func makeBinOpGTR(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int(vx) > basic.Int(vy)
+				v := xtype.Int(vx) > xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
+				x := xtype.Int(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.int(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
+				y := xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) > fr.int(iy)) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int8(vx) > basic.Int8(vy)
+				v := xtype.Int8(vx) > xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
+				x := xtype.Int8(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.int8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
+				y := xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) > fr.int8(iy)) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int16(vx) > basic.Int16(vy)
+				v := xtype.Int16(vx) > xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
+				x := xtype.Int16(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.int16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
+				y := xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) > fr.int16(iy)) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int32(vx) > basic.Int32(vy)
+				v := xtype.Int32(vx) > xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
+				x := xtype.Int32(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.int32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
+				y := xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) > fr.int32(iy)) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int64(vx) > basic.Int64(vy)
+				v := xtype.Int64(vx) > xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
+				x := xtype.Int64(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.int64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
+				y := xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) > fr.int64(iy)) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint(vx) > basic.Uint(vy)
+				v := xtype.Uint(vx) > xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
+				x := xtype.Uint(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.uint(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
+				y := xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) > fr.uint(iy)) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint8(vx) > basic.Uint8(vy)
+				v := xtype.Uint8(vx) > xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
+				x := xtype.Uint8(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.uint8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
+				y := xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) > fr.uint8(iy)) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint16(vx) > basic.Uint16(vy)
+				v := xtype.Uint16(vx) > xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
+				x := xtype.Uint16(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.uint16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
+				y := xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) > fr.uint16(iy)) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint32(vx) > basic.Uint32(vy)
+				v := xtype.Uint32(vx) > xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
+				x := xtype.Uint32(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.uint32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
+				y := xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) > fr.uint32(iy)) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint64(vx) > basic.Uint64(vy)
+				v := xtype.Uint64(vx) > xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
+				x := xtype.Uint64(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.uint64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
+				y := xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) > fr.uint64(iy)) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uintptr(vx) > basic.Uintptr(vy)
+				v := xtype.Uintptr(vx) > xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
+				x := xtype.Uintptr(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.uintptr(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
+				y := xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) > fr.uintptr(iy)) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float32(vx) > basic.Float32(vy)
+				v := xtype.Float32(vx) > xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
+				x := xtype.Float32(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.float32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
+				y := xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) > fr.float32(iy)) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float64(vx) > basic.Float64(vy)
+				v := xtype.Float64(vx) > xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
+				x := xtype.Float64(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.float64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
+				y := xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) > fr.float64(iy)) }
 			}
 		case reflect.String:
 			if kx == kindConst && ky == kindConst {
-				v := basic.String(vx) > basic.String(vy)
+				v := xtype.String(vx) > xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.String(vx)
+				x := xtype.String(vx)
 				return func(fr *frame) { fr.setReg(ir, x > fr.string(iy)) }
 			} else if ky == kindConst {
-				y := basic.String(vy)
+				y := xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) > y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) > fr.string(iy)) }
@@ -4596,182 +4596,182 @@ func makeBinOpGEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int(vx) >= basic.Int(vy)
+				v := xtype.Int(vx) >= xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int(vx)
+				x := xtype.Int(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.int(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int(vy)
+				y := xtype.Int(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int(ix) >= fr.int(iy)) }
 			}
 		case reflect.Int8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int8(vx) >= basic.Int8(vy)
+				v := xtype.Int8(vx) >= xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int8(vx)
+				x := xtype.Int8(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.int8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int8(vy)
+				y := xtype.Int8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int8(ix) >= fr.int8(iy)) }
 			}
 		case reflect.Int16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int16(vx) >= basic.Int16(vy)
+				v := xtype.Int16(vx) >= xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int16(vx)
+				x := xtype.Int16(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.int16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int16(vy)
+				y := xtype.Int16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int16(ix) >= fr.int16(iy)) }
 			}
 		case reflect.Int32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int32(vx) >= basic.Int32(vy)
+				v := xtype.Int32(vx) >= xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int32(vx)
+				x := xtype.Int32(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.int32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int32(vy)
+				y := xtype.Int32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int32(ix) >= fr.int32(iy)) }
 			}
 		case reflect.Int64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Int64(vx) >= basic.Int64(vy)
+				v := xtype.Int64(vx) >= xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Int64(vx)
+				x := xtype.Int64(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.int64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Int64(vy)
+				y := xtype.Int64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.int64(ix) >= fr.int64(iy)) }
 			}
 		case reflect.Uint:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint(vx) >= basic.Uint(vy)
+				v := xtype.Uint(vx) >= xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint(vx)
+				x := xtype.Uint(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.uint(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint(vy)
+				y := xtype.Uint(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint(ix) >= fr.uint(iy)) }
 			}
 		case reflect.Uint8:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint8(vx) >= basic.Uint8(vy)
+				v := xtype.Uint8(vx) >= xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint8(vx)
+				x := xtype.Uint8(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.uint8(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint8(vy)
+				y := xtype.Uint8(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint8(ix) >= fr.uint8(iy)) }
 			}
 		case reflect.Uint16:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint16(vx) >= basic.Uint16(vy)
+				v := xtype.Uint16(vx) >= xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint16(vx)
+				x := xtype.Uint16(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.uint16(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint16(vy)
+				y := xtype.Uint16(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint16(ix) >= fr.uint16(iy)) }
 			}
 		case reflect.Uint32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint32(vx) >= basic.Uint32(vy)
+				v := xtype.Uint32(vx) >= xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint32(vx)
+				x := xtype.Uint32(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.uint32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint32(vy)
+				y := xtype.Uint32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint32(ix) >= fr.uint32(iy)) }
 			}
 		case reflect.Uint64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uint64(vx) >= basic.Uint64(vy)
+				v := xtype.Uint64(vx) >= xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uint64(vx)
+				x := xtype.Uint64(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.uint64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uint64(vy)
+				y := xtype.Uint64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uint64(ix) >= fr.uint64(iy)) }
 			}
 		case reflect.Uintptr:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Uintptr(vx) >= basic.Uintptr(vy)
+				v := xtype.Uintptr(vx) >= xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Uintptr(vx)
+				x := xtype.Uintptr(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.uintptr(iy)) }
 			} else if ky == kindConst {
-				y := basic.Uintptr(vy)
+				y := xtype.Uintptr(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.uintptr(ix) >= fr.uintptr(iy)) }
 			}
 		case reflect.Float32:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float32(vx) >= basic.Float32(vy)
+				v := xtype.Float32(vx) >= xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float32(vx)
+				x := xtype.Float32(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.float32(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float32(vy)
+				y := xtype.Float32(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float32(ix) >= fr.float32(iy)) }
 			}
 		case reflect.Float64:
 			if kx == kindConst && ky == kindConst {
-				v := basic.Float64(vx) >= basic.Float64(vy)
+				v := xtype.Float64(vx) >= xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.Float64(vx)
+				x := xtype.Float64(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.float64(iy)) }
 			} else if ky == kindConst {
-				y := basic.Float64(vy)
+				y := xtype.Float64(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.float64(ix) >= fr.float64(iy)) }
 			}
 		case reflect.String:
 			if kx == kindConst && ky == kindConst {
-				v := basic.String(vx) >= basic.String(vy)
+				v := xtype.String(vx) >= xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else if kx == kindConst {
-				x := basic.String(vx)
+				x := xtype.String(vx)
 				return func(fr *frame) { fr.setReg(ir, x >= fr.string(iy)) }
 			} else if ky == kindConst {
-				y := basic.String(vy)
+				y := xtype.String(vy)
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) >= y) }
 			} else {
 				return func(fr *frame) { fr.setReg(ir, fr.string(ix) >= fr.string(iy)) }

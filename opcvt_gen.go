@@ -63,13 +63,13 @@ var pkg_head = `package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 )
 `
 
 var cvt_func = `func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = int
-	t := basic.TypeOfType(typ)
+	t := xtype.TypeOfType(typ)
 	isBasic := typ.PkgPath() == ""
 	if xtyp.PkgPath() == "" {
 		return func(fr *frame) {
@@ -105,7 +105,7 @@ var cvt_func = `func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Ty
 			if isBasic {
 				fr.setReg(ir, v)
 			} else {
-				fr.setReg(ir, basic.Make(t, v))
+				fr.setReg(ir, xtype.Make(t, v))
 			}
 		}
 	} else {
@@ -142,7 +142,7 @@ var cvt_func = `func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Ty
 			if isBasic {
 				fr.setReg(ir, v)
 			} else {
-				fr.setReg(ir, basic.Make(t, v))
+				fr.setReg(ir, xtype.Make(t, v))
 			}
 		}
 	}
@@ -151,7 +151,7 @@ var cvt_func = `func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Ty
 
 var cvt_func2 = `func cvtComplex64(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {
 	type T = complex64
-	t := basic.TypeOfType(typ)
+	t := xtype.TypeOfType(typ)
 	isBasic := typ.PkgPath() == ""
 	if xtyp.PkgPath() == "" {
 		return func(fr *frame) {
@@ -165,7 +165,7 @@ var cvt_func2 = `func cvtComplex64(ir, ix register, xkind reflect.Kind, xtyp ref
 			if isBasic {
 				fr.setReg(ir, v)
 			} else {
-				fr.setReg(ir, basic.Make(t, v))
+				fr.setReg(ir, xtype.Make(t, v))
 			}
 		}
 	} else {
@@ -180,7 +180,7 @@ var cvt_func2 = `func cvtComplex64(ir, ix register, xkind reflect.Kind, xtyp ref
 			if isBasic {
 				fr.setReg(ir, v)
 			} else {
-				fr.setReg(ir, basic.Make(t, v))
+				fr.setReg(ir, xtype.Make(t, v))
 			}
 		}
 	}
