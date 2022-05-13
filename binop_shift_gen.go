@@ -49,17 +49,17 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 	buf.WriteString(func_head_op)
 	// check x const && y const
 	buf.WriteString(`if kx == kindConst && ky == kindConst {
-	t := basic.TypeOfType(xtyp)
+	t := xtype.TypeOfType(xtyp)
 	switch xkind {
 `)
 	for _, kx := range kinds {
 		buf.WriteString(fmt.Sprintf(`	case reflect.%v:
-		x := basic.%v(vx)
+		x := xtype.%v(vx)
 		switch ykind {
 `, kx.kind, kx.kind))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-			v := basic.Make(t, x << basic.%v(vy))
+			v := xtype.Make(t, x << xtype.%v(vy))
 			return func(fr *frame) { fr.setReg(ir,v) }
 `, ky.kind, ky.kind))
 		}
@@ -96,7 +96,7 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-			y := basic.%v(vy)
+			y := xtype.%v(vy)
 			return func(fr *frame) { fr.setReg(ir,fr.reg(ix).(%v)<<y) }
 `, ky.kind, ky.kind, kx.typ))
 		}
@@ -118,9 +118,9 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 
 	buf.WriteString("} else {") //end xtypIsBasic
 
-	// begin not basic
+	// begin not xtype
 	buf.WriteString(`
-		t := basic.TypeOfType(xtyp)
+		t := xtype.TypeOfType(xtyp)
 		switch xkind {
 	`)
 	for _, kx := range kinds {
@@ -128,12 +128,12 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 `, kx.kind))
 		// if x const
 		buf.WriteString(fmt.Sprintf(`	if kx == kindConst {
-			x := basic.%v(vx)
+			x := xtype.%v(vx)
 	`, kx.kind))
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				return func(fr *frame) { fr.setReg(ir,basic.Make(t,x<<fr.%v(iy))) }
+				return func(fr *frame) { fr.setReg(ir,xtype.Make(t,x<<fr.%v(iy))) }
 `, ky.kind, ky.typ))
 		}
 
@@ -144,8 +144,8 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 		buf.WriteString(fmt.Sprintf("\t\t\tswitch ykind {\n"))
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				y := basic.%v(vy)
-				return func(fr *frame) { fr.setReg(ir,basic.Make(t,fr.%v(ix)<<y)) }
+				y := xtype.%v(vy)
+				return func(fr *frame) { fr.setReg(ir,xtype.Make(t,fr.%v(ix)<<y)) }
 `, ky.kind, ky.kind, kx.typ))
 		}
 		buf.WriteString(fmt.Sprintf("\t\t\t}\n"))
@@ -156,7 +156,7 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 
 		for _, ky := range kinds {
 			buf.WriteString(fmt.Sprintf(`case reflect.%v:
-				return func(fr *frame) { fr.setReg(ir,basic.Make(t,fr.%v(ix)<<fr.%v(iy))) }
+				return func(fr *frame) { fr.setReg(ir,xtype.Make(t,fr.%v(ix)<<fr.%v(iy))) }
 `, ky.kind, kx.typ, ky.typ))
 		}
 		buf.WriteString("}\n") // end swith ykind
@@ -164,7 +164,7 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 	}
 	buf.WriteString("\t\t};") // end xkind
 
-	buf.WriteString("};") // end not basic
+	buf.WriteString("};") // end not xtype
 
 	buf.WriteString("\tpanic(\"unreachable\")\n}\n")
 }
@@ -174,7 +174,7 @@ var pkg_head = `package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 `

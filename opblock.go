@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
 	"golang.org/x/tools/go/ssa"
@@ -242,22 +242,22 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		if instr.Heap {
 			typ := interp.preToType(instr.Type())
 			ir := pfn.regIndex(instr)
-			t := basic.TypeOfType(typ.Elem())
-			pt := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ.Elem())
+			pt := xtype.TypeOfType(typ)
 			return func(fr *frame) {
-				fr.setReg(ir, basic.New(t, pt))
+				fr.setReg(ir, xtype.New(t, pt))
 			}
 		} else {
 			typ := interp.preToType(instr.Type())
 			ir := pfn.regIndex(instr)
-			t := basic.TypeOfType(typ.Elem())
-			pt := basic.TypeOfType(typ)
-			ptr := basic.NewPointer(t)
+			t := xtype.TypeOfType(typ.Elem())
+			pt := xtype.TypeOfType(typ)
+			ptr := xtype.NewPointer(t)
 			return func(fr *frame) {
 				if v := fr.reg(ir); v != nil {
-					basic.SetPointer(v, ptr)
+					xtype.SetPointer(v, ptr)
 				} else {
-					fr.setReg(ir, basic.New(t, pt))
+					fr.setReg(ir, xtype.New(t, pt))
 				}
 			}
 		}
@@ -707,7 +707,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	case *ssa.If:
 		ic, kc, vc := pfn.regIndex3(instr.Cond)
 		if kc == kindConst {
-			if basic.Bool(vc) {
+			if xtype.Bool(vc) {
 				return func(fr *frame) {
 					fr.pred = fr.block.Index
 					fr.block = fr.block.Succs[0]

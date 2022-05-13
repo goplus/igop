@@ -3,7 +3,7 @@ package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -24,13 +24,13 @@ func makeUnOpNOT(pfn *function, instr *ssa.UnOp) func(fr *frame) {
 		}
 	} else {
 		if kx == kindConst {
-			v := basic.Not(vx)
+			v := xtype.Not(vx)
 			return func(fr *frame) {
 				fr.setReg(ir, v)
 			}
 		}
 		return func(fr *frame) {
-			v := basic.Not(fr.reg(ix))
+			v := xtype.Not(fr.reg(ix))
 			fr.setReg(ir, v)
 		}
 	}

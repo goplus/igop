@@ -871,7 +871,7 @@ func check(a, b T) {
 		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
 	}
 	for _, s := range types {
-		t.Log("test binop basic", s)
+		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$int", "="+s, 1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
@@ -966,7 +966,7 @@ func check(a, b T) {
 		"float64",
 	}
 	for _, s := range types {
-		t.Log("test binop basic", s)
+		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$float", "="+s, 1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
@@ -1046,7 +1046,7 @@ func check(a, b T) {
 		"complex128",
 	}
 	for _, s := range types {
-		t.Log("test binop basic", s)
+		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$complex", "="+s, 1)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
 		if err != nil {
@@ -1770,7 +1770,7 @@ func test(v $int) {
 		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
 	}
 	for _, s := range ints {
-		t.Log("test changetype basic", s)
+		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "10")
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -1780,7 +1780,7 @@ func test(v $int) {
 	}
 	floats := []string{"float32", "float64"}
 	for _, s := range floats {
-		t.Log("test changetype basic", s)
+		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "100.5")
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -1790,7 +1790,7 @@ func test(v $int) {
 	}
 	comps := []string{"complex64", "complex128"}
 	for _, s := range comps {
-		t.Log("test changetype basic", s)
+		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "1+2i")
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -1799,7 +1799,7 @@ func test(v $int) {
 		}
 	}
 	{
-		t.Log("test changetype basic", "bool")
+		t.Log("test changetype xtype", "bool")
 		r := strings.NewReplacer("$int", "bool", "$value", "true")
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -1808,7 +1808,7 @@ func test(v $int) {
 		}
 	}
 	{
-		t.Log("test changetype basic", "string")
+		t.Log("test changetype xtype", "string")
 		r := strings.NewReplacer("$int", "string", "$value", `"hello"`)
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -1974,7 +1974,7 @@ func test2(n T) {
 	floats := []string{"float32", "float64"}
 	comps := []string{"complex64", "complex128"}
 	for _, s := range ints {
-		t.Log("test convert basic", s)
+		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$int", s, "$V", "100", "$N", "100", "$F", "100")
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -1992,7 +1992,7 @@ func test2(n T) {
 		}
 	}
 	for _, s := range floats {
-		t.Log("test convert basic", s)
+		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$int", s, "$V", "100.5", "$N", "100", "$F", "100.5")
 		src := r.Replace(tsrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)
@@ -2010,7 +2010,7 @@ func test2(n T) {
 		}
 	}
 	for _, s := range comps {
-		t.Log("test convert basic", s)
+		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$complex", s, "$N", "1+2i")
 		src := r.Replace(csrc)
 		_, err := gossa.RunFile("main.go", src, nil, 0)

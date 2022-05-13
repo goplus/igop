@@ -3,7 +3,7 @@ package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -168,151 +168,151 @@ func makeUnOpSUB(pfn *function, instr *ssa.UnOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst {
-				v := basic.NegInt(vx)
+				v := xtype.NegInt(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegInt(fr.reg(ix))
+					v := xtype.NegInt(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int8:
 			if kx == kindConst {
-				v := basic.NegInt8(vx)
+				v := xtype.NegInt8(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegInt8(fr.reg(ix))
+					v := xtype.NegInt8(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int16:
 			if kx == kindConst {
-				v := basic.NegInt16(vx)
+				v := xtype.NegInt16(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegInt16(fr.reg(ix))
+					v := xtype.NegInt16(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int32:
 			if kx == kindConst {
-				v := basic.NegInt32(vx)
+				v := xtype.NegInt32(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegInt32(fr.reg(ix))
+					v := xtype.NegInt32(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int64:
 			if kx == kindConst {
-				v := basic.NegInt64(vx)
+				v := xtype.NegInt64(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegInt64(fr.reg(ix))
+					v := xtype.NegInt64(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint:
 			if kx == kindConst {
-				v := basic.NegUint(vx)
+				v := xtype.NegUint(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegUint(fr.reg(ix))
+					v := xtype.NegUint(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint8:
 			if kx == kindConst {
-				v := basic.NegUint8(vx)
+				v := xtype.NegUint8(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegUint8(fr.reg(ix))
+					v := xtype.NegUint8(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint16:
 			if kx == kindConst {
-				v := basic.NegUint16(vx)
+				v := xtype.NegUint16(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegUint16(fr.reg(ix))
+					v := xtype.NegUint16(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint32:
 			if kx == kindConst {
-				v := basic.NegUint32(vx)
+				v := xtype.NegUint32(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegUint32(fr.reg(ix))
+					v := xtype.NegUint32(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint64:
 			if kx == kindConst {
-				v := basic.NegUint64(vx)
+				v := xtype.NegUint64(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegUint64(fr.reg(ix))
+					v := xtype.NegUint64(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uintptr:
 			if kx == kindConst {
-				v := basic.NegUintptr(vx)
+				v := xtype.NegUintptr(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegUintptr(fr.reg(ix))
+					v := xtype.NegUintptr(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Float32:
 			if kx == kindConst {
-				v := basic.NegFloat32(vx)
+				v := xtype.NegFloat32(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegFloat32(fr.reg(ix))
+					v := xtype.NegFloat32(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Float64:
 			if kx == kindConst {
-				v := basic.NegFloat64(vx)
+				v := xtype.NegFloat64(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegFloat64(fr.reg(ix))
+					v := xtype.NegFloat64(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Complex64:
 			if kx == kindConst {
-				v := basic.NegComplex64(vx)
+				v := xtype.NegComplex64(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegComplex64(fr.reg(ix))
+					v := xtype.NegComplex64(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Complex128:
 			if kx == kindConst {
-				v := basic.NegComplex128(vx)
+				v := xtype.NegComplex128(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.NegComplex128(fr.reg(ix))
+					v := xtype.NegComplex128(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
@@ -441,111 +441,111 @@ func makeUnOpXOR(pfn *function, instr *ssa.UnOp) func(fr *frame) {
 		switch typ.Kind() {
 		case reflect.Int:
 			if kx == kindConst {
-				v := basic.XorInt(vx)
+				v := xtype.XorInt(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorInt(fr.reg(ix))
+					v := xtype.XorInt(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int8:
 			if kx == kindConst {
-				v := basic.XorInt8(vx)
+				v := xtype.XorInt8(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorInt8(fr.reg(ix))
+					v := xtype.XorInt8(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int16:
 			if kx == kindConst {
-				v := basic.XorInt16(vx)
+				v := xtype.XorInt16(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorInt16(fr.reg(ix))
+					v := xtype.XorInt16(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int32:
 			if kx == kindConst {
-				v := basic.XorInt32(vx)
+				v := xtype.XorInt32(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorInt32(fr.reg(ix))
+					v := xtype.XorInt32(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Int64:
 			if kx == kindConst {
-				v := basic.XorInt64(vx)
+				v := xtype.XorInt64(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorInt64(fr.reg(ix))
+					v := xtype.XorInt64(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint:
 			if kx == kindConst {
-				v := basic.XorUint(vx)
+				v := xtype.XorUint(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorUint(fr.reg(ix))
+					v := xtype.XorUint(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint8:
 			if kx == kindConst {
-				v := basic.XorUint8(vx)
+				v := xtype.XorUint8(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorUint8(fr.reg(ix))
+					v := xtype.XorUint8(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint16:
 			if kx == kindConst {
-				v := basic.XorUint16(vx)
+				v := xtype.XorUint16(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorUint16(fr.reg(ix))
+					v := xtype.XorUint16(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint32:
 			if kx == kindConst {
-				v := basic.XorUint32(vx)
+				v := xtype.XorUint32(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorUint32(fr.reg(ix))
+					v := xtype.XorUint32(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uint64:
 			if kx == kindConst {
-				v := basic.XorUint64(vx)
+				v := xtype.XorUint64(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorUint64(fr.reg(ix))
+					v := xtype.XorUint64(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}
 		case reflect.Uintptr:
 			if kx == kindConst {
-				v := basic.XorUintptr(vx)
+				v := xtype.XorUintptr(vx)
 				return func(fr *frame) { fr.setReg(ir, v) }
 			} else {
 				return func(fr *frame) {
-					v := basic.XorUintptr(fr.reg(ix))
+					v := xtype.XorUintptr(fr.reg(ix))
 					fr.setReg(ir, v)
 				}
 			}

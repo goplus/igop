@@ -3,7 +3,7 @@ package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -25,16 +25,16 @@ func makeTypeChangeInstr(pfn *function, instr *ssa.ChangeType) func(fr *frame) {
 	kind := typ.Kind()
 	switch kind {
 	case reflect.Ptr, reflect.Chan, reflect.Map, reflect.Func, reflect.Slice:
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		return func(fr *frame) {
 			x := fr.reg(ix)
-			fr.setReg(ir, basic.ConvertPtr(t, x))
+			fr.setReg(ir, xtype.ConvertPtr(t, x))
 		}
 	case reflect.Struct, reflect.Array:
-		t := basic.TypeOfType(typ)
+		t := xtype.TypeOfType(typ)
 		return func(fr *frame) {
 			x := fr.reg(ix)
-			fr.setReg(ir, basic.ConvertDirect(t, x))
+			fr.setReg(ir, xtype.ConvertDirect(t, x))
 		}
 	case reflect.Interface:
 		return func(fr *frame) {
@@ -49,221 +49,221 @@ func makeTypeChangeInstr(pfn *function, instr *ssa.ChangeType) func(fr *frame) {
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Bool(x))
+				fr.setReg(ir, xtype.Bool(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertBool(t, x))
+				fr.setReg(ir, xtype.ConvertBool(t, x))
 			}
 		}
 	case reflect.Int:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Int(x))
+				fr.setReg(ir, xtype.Int(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertInt(t, x))
+				fr.setReg(ir, xtype.ConvertInt(t, x))
 			}
 		}
 	case reflect.Int8:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Int8(x))
+				fr.setReg(ir, xtype.Int8(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertInt8(t, x))
+				fr.setReg(ir, xtype.ConvertInt8(t, x))
 			}
 		}
 	case reflect.Int16:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Int16(x))
+				fr.setReg(ir, xtype.Int16(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertInt16(t, x))
+				fr.setReg(ir, xtype.ConvertInt16(t, x))
 			}
 		}
 	case reflect.Int32:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Int32(x))
+				fr.setReg(ir, xtype.Int32(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertInt32(t, x))
+				fr.setReg(ir, xtype.ConvertInt32(t, x))
 			}
 		}
 	case reflect.Int64:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Int64(x))
+				fr.setReg(ir, xtype.Int64(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertInt64(t, x))
+				fr.setReg(ir, xtype.ConvertInt64(t, x))
 			}
 		}
 	case reflect.Uint:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Uint(x))
+				fr.setReg(ir, xtype.Uint(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertUint(t, x))
+				fr.setReg(ir, xtype.ConvertUint(t, x))
 			}
 		}
 	case reflect.Uint8:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Uint8(x))
+				fr.setReg(ir, xtype.Uint8(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertUint8(t, x))
+				fr.setReg(ir, xtype.ConvertUint8(t, x))
 			}
 		}
 	case reflect.Uint16:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Uint16(x))
+				fr.setReg(ir, xtype.Uint16(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertUint16(t, x))
+				fr.setReg(ir, xtype.ConvertUint16(t, x))
 			}
 		}
 	case reflect.Uint32:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Uint32(x))
+				fr.setReg(ir, xtype.Uint32(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertUint32(t, x))
+				fr.setReg(ir, xtype.ConvertUint32(t, x))
 			}
 		}
 	case reflect.Uint64:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Uint64(x))
+				fr.setReg(ir, xtype.Uint64(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertUint64(t, x))
+				fr.setReg(ir, xtype.ConvertUint64(t, x))
 			}
 		}
 	case reflect.Uintptr:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Uintptr(x))
+				fr.setReg(ir, xtype.Uintptr(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertUintptr(t, x))
+				fr.setReg(ir, xtype.ConvertUintptr(t, x))
 			}
 		}
 	case reflect.Float32:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Float32(x))
+				fr.setReg(ir, xtype.Float32(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertFloat32(t, x))
+				fr.setReg(ir, xtype.ConvertFloat32(t, x))
 			}
 		}
 	case reflect.Float64:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Float64(x))
+				fr.setReg(ir, xtype.Float64(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertFloat64(t, x))
+				fr.setReg(ir, xtype.ConvertFloat64(t, x))
 			}
 		}
 	case reflect.Complex64:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Complex64(x))
+				fr.setReg(ir, xtype.Complex64(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertComplex64(t, x))
+				fr.setReg(ir, xtype.ConvertComplex64(t, x))
 			}
 		}
 	case reflect.Complex128:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.Complex128(x))
+				fr.setReg(ir, xtype.Complex128(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertComplex128(t, x))
+				fr.setReg(ir, xtype.ConvertComplex128(t, x))
 			}
 		}
 	case reflect.String:
 		if typ.PkgPath() == "" {
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.String(x))
+				fr.setReg(ir, xtype.String(x))
 			}
 		} else {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				x := fr.reg(ix)
-				fr.setReg(ir, basic.ConvertString(t, x))
+				fr.setReg(ir, xtype.ConvertString(t, x))
 			}
 		}
 	}
@@ -299,43 +299,43 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 		}
 	case reflect.Ptr:
 		if xkind == reflect.UnsafePointer {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				v := fr.reg(ix)
-				fr.setReg(ir, basic.Make(t, v))
+				fr.setReg(ir, xtype.Make(t, v))
 			}
 		}
 	case reflect.Slice:
 		if xkind == reflect.String {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			elem := typ.Elem()
 			switch elem.Kind() {
 			case reflect.Uint8:
 				return func(fr *frame) {
 					v := fr.string(ix)
-					fr.setReg(ir, basic.Make(t, []byte(v)))
+					fr.setReg(ir, xtype.Make(t, []byte(v)))
 				}
 			case reflect.Int32:
 				return func(fr *frame) {
 					v := fr.string(ix)
-					fr.setReg(ir, basic.Make(t, []rune(v)))
+					fr.setReg(ir, xtype.Make(t, []rune(v)))
 				}
 			}
 		}
 	case reflect.String:
 		if xkind == reflect.Slice {
-			t := basic.TypeOfType(typ)
+			t := xtype.TypeOfType(typ)
 			elem := xtyp.Elem()
 			switch elem.Kind() {
 			case reflect.Uint8:
 				return func(fr *frame) {
 					v := fr.bytes(ix)
-					fr.setReg(ir, basic.Make(t, string(v)))
+					fr.setReg(ir, xtype.Make(t, string(v)))
 				}
 			case reflect.Int32:
 				return func(fr *frame) {
 					v := fr.runes(ix)
-					fr.setReg(ir, basic.Make(t, string(v)))
+					fr.setReg(ir, xtype.Make(t, string(v)))
 				}
 			}
 		}

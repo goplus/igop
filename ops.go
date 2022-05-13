@@ -32,7 +32,7 @@ func (p targetPanic) Error() string {
 // If the target program calls exit, the interpreter panics with this type.
 type exitPanic int
 
-func basicValue(c *ssa.Const, kind types.BasicKind) value {
+func xtypeValue(c *ssa.Const, kind types.BasicKind) value {
 	switch kind {
 	case types.Bool, types.UntypedBool:
 		return constant.BoolVal(c.Value)
@@ -85,15 +85,15 @@ func basicValue(c *ssa.Const, kind types.BasicKind) value {
 func constToValue(i *Interp, c *ssa.Const) value {
 	typ := c.Type()
 	if c.IsNil() {
-		if basic, ok := typ.(*types.Basic); ok && basic.Kind() == types.UntypedNil {
+		if xtype, ok := typ.(*types.Basic); ok && xtype.Kind() == types.UntypedNil {
 			return nil
 		}
 		return reflect.Zero(i.preToType(typ)).Interface()
 	}
-	if basic, ok := typ.(*types.Basic); ok {
-		return basicValue(c, basic.Kind())
-	} else if basic, ok := typ.Underlying().(*types.Basic); ok {
-		v := basicValue(c, basic.Kind())
+	if xtype, ok := typ.(*types.Basic); ok {
+		return xtypeValue(c, xtype.Kind())
+	} else if xtype, ok := typ.Underlying().(*types.Basic); ok {
+		v := xtypeValue(c, xtype.Kind())
 		nv := reflect.New(i.preToType(typ)).Elem()
 		SetValue(nv, reflect.ValueOf(v))
 		return nv.Interface()
@@ -1808,7 +1808,7 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 	}
 }
 
-// widen widens a basic typed value x to the widest type of its
+// widen widens a xtype typed value x to the widest type of its
 // category, one of:
 //   bool, int64, uint64, float64, complex128, string.
 // This is inefficient but reduces the size of the cross-product of

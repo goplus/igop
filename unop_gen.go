@@ -76,7 +76,7 @@ var pkg_head = `package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 `
@@ -102,11 +102,11 @@ if kx == kindConst {
 
 var func_case2 = `case reflect.Int:
 if kx == kindConst {
-	v := basic.NegInt(vx)
+	v := xtype.NegInt(vx)
 	return func(fr *frame) { fr.setReg(ir, v) }
 } else {
 	return func(fr *frame) {
-		v := basic.NegInt(fr.reg(ix))
+		v := xtype.NegInt(fr.reg(ix))
 		fr.setReg(ir, v)
 	}
 }

@@ -4,7 +4,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Test of basic recover functionality.
+// Test of xtype recover functionality.
 
 package main
 
@@ -397,7 +397,7 @@ func test10reflect2() {
 	panic(10)
 }
 
-// tiny receiver, so basic wrapper in i.M()
+// tiny receiver, so xtype wrapper in i.M()
 type T3 struct{}
 
 func (T3) M() {
@@ -422,7 +422,7 @@ func test11reflect2() {
 	panic(11)
 }
 
-// tiny receiver, so basic wrapper in i.M()
+// tiny receiver, so xtype wrapper in i.M()
 type T3deeper struct{}
 
 func (T3deeper) M() {
@@ -465,7 +465,7 @@ func badstate() {
 	i.M()
 }
 
-// large receiver, so basic wrapper in i.M()
+// large receiver, so xtype wrapper in i.M()
 type T4 [2]string
 
 func (T4) M() {

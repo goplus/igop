@@ -79,7 +79,7 @@ func makeFuncOp(buf *bytes.Buffer, fnname string, op string, kinds []string) {
 	}
 	buf.WriteString(`}
 	} else {
-	t := basic.TypeOfType(typ)
+	t := xtype.TypeOfType(typ)
 	switch typ.Kind() {
 `)
 	for _, kind := range kinds {
@@ -133,7 +133,7 @@ var pkg_head = `package gossa
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/basic"
+	"github.com/goplus/gossa/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 `
@@ -182,39 +182,39 @@ if kx == kindConst && ky == kindConst {
 
 func get_func_case2_div() string {
 	return strings.Replace(func_case2,
-		"v := basic.Make(t,basic.Int(vx)+basic.Int(vy))",
-		`x := basic.Int(vx)
-		y := basic.Int(vy)
+		"v := xtype.Make(t,xtype.Int(vx)+xtype.Int(vy))",
+		`x := xtype.Int(vx)
+		y := xtype.Int(vy)
 		if y == 0 {
-		return func(fr *frame) { fr.setReg(ir, basic.Make(t,x/y)) }
+		return func(fr *frame) { fr.setReg(ir, xtype.Make(t,x/y)) }
 	}
-	v := basic.Make(t,x/y)`, 1)
+	v := xtype.Make(t,x/y)`, 1)
 }
 
 var func_case2 = `case reflect.Int:
 if kx == kindConst && ky == kindConst {
-	v := basic.Make(t,basic.Int(vx)+basic.Int(vy))
+	v := xtype.Make(t,xtype.Int(vx)+xtype.Int(vy))
 	return func(fr *frame) { fr.setReg(ir, v) }
 } else if kx == kindConst {
-	x := basic.Int(vx)
-	return func(fr *frame) { fr.setReg(ir, basic.Make(t,x+fr.int(iy))) }
+	x := xtype.Int(vx)
+	return func(fr *frame) { fr.setReg(ir, xtype.Make(t,x+fr.int(iy))) }
 } else if ky == kindConst {
-	y := basic.Int(vy)
-	return func(fr *frame) { fr.setReg(ir, basic.Make(t,fr.int(ix)+y)) }
+	y := xtype.Int(vy)
+	return func(fr *frame) { fr.setReg(ir, xtype.Make(t,fr.int(ix)+y)) }
 } else {
-	return func(fr *frame) { fr.setReg(ir, basic.Make(t,fr.int(ix)+fr.int(iy))) }
+	return func(fr *frame) { fr.setReg(ir, xtype.Make(t,fr.int(ix)+fr.int(iy))) }
 }
 `
 
 var func_case2_cmp = `case reflect.Int:
 if kx == kindConst && ky == kindConst {
-	v := basic.Int(vx)<basic.Int(vy)
+	v := xtype.Int(vx)<xtype.Int(vy)
 	return func(fr *frame) { fr.setReg(ir, v) }
 } else if kx == kindConst {
-	x := basic.Int(vx)
+	x := xtype.Int(vx)
 	return func(fr *frame) { fr.setReg(ir, x<fr.int(iy)) }
 } else if ky == kindConst {
-	y := basic.Int(vy)
+	y := xtype.Int(vy)
 	return func(fr *frame) { fr.setReg(ir, fr.int(ix)<y) }
 } else {
 	return func(fr *frame) { fr.setReg(ir, fr.int(ix)<fr.int(iy)) }
