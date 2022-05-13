@@ -240,20 +240,24 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	switch instr := instr.(type) {
 	case *ssa.Alloc:
 		if instr.Heap {
-			typ := interp.preToType(instr.Type()).Elem()
+			typ := interp.preToType(instr.Type())
 			ir := pfn.regIndex(instr)
+			t := basic.TypeOfType(typ.Elem())
+			pt := basic.TypeOfType(typ)
 			return func(fr *frame) {
-				fr.setReg(ir, reflect.New(typ).Interface())
+				fr.setReg(ir, basic.New(t, pt))
 			}
 		} else {
-			typ := interp.preToType(instr.Type()).Elem()
-			elem := reflect.New(typ).Elem()
+			typ := interp.preToType(instr.Type())
 			ir := pfn.regIndex(instr)
+			t := basic.TypeOfType(typ.Elem())
+			pt := basic.TypeOfType(typ)
+			ptr := basic.NewPointer(t)
 			return func(fr *frame) {
 				if v := fr.reg(ir); v != nil {
-					SetValue(reflect.ValueOf(v).Elem(), elem)
+					basic.SetPointer(v, ptr)
 				} else {
-					fr.setReg(ir, reflect.New(typ).Interface())
+					fr.setReg(ir, basic.New(t, pt))
 				}
 			}
 		}
