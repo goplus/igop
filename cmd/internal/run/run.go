@@ -18,14 +18,12 @@
 package run
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/goplus/gossa"
 	"github.com/goplus/gossa/cmd/internal/base"
-	"github.com/goplus/gossa/gopbuild"
 )
 
 // -----------------------------------------------------------------------------
@@ -68,12 +66,8 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	ctx := gossa.NewContext(mode)
 	if isDir {
-		if containsExt(path, ".gop") {
-			data, err := gopbuild.BuildDir(ctx, path)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			err = ioutil.WriteFile(filepath.Join(path, "gop_autogen.go"), data, 0666)
+		if fnGopBuildDir != nil && containsExt(path, ".gop") {
+			err := fnGopBuildDir(ctx, path)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -83,6 +77,8 @@ func runCmd(cmd *base.Command, args []string) {
 		runFile(ctx, path, args)
 	}
 }
+
+var fnGopBuildDir func(ctx *gossa.Context, path string) error
 
 // IsDir checks a target path is dir or not.
 func IsDir(target string) (bool, error) {

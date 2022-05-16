@@ -38,15 +38,15 @@ var test_big_go = `package main
 
 import (
 	fmt "fmt"
-	builtin "github.com/goplus/gop/builtin"
+	ng "github.com/goplus/gop/builtin/ng"
 	big "math/big"
 )
 
 func main() {
 //line main.gop:1
-	a := builtin.Gop_bigrat_Init__2(big.NewRat(1, 2))
+	a := ng.Bigrat_Init__2(big.NewRat(1, 2))
 //line main.gop:2
-	fmt.Println(a.Gop_Add(builtin.Gop_bigrat_Init__2(big.NewRat(1, 2))))
+	fmt.Println(a.Gop_Add(ng.Bigrat_Init__2(big.NewRat(1, 2))))
 }
 `
 

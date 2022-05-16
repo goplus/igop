@@ -1,5 +1,8 @@
 package gopbuild
 
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin/ng
+
 import (
 	"bytes"
 	"fmt"
@@ -16,6 +19,7 @@ import (
 
 	_ "github.com/goplus/gossa/pkg/fmt"
 	_ "github.com/goplus/gossa/pkg/github.com/goplus/gop/builtin"
+	_ "github.com/goplus/gossa/pkg/github.com/goplus/gop/builtin/ng"
 	_ "github.com/goplus/gossa/pkg/math/big"
 	_ "github.com/goplus/gossa/pkg/strconv"
 	_ "github.com/goplus/gossa/pkg/strings"
