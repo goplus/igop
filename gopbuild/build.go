@@ -101,14 +101,14 @@ type Package struct {
 
 func (p *Package) ToSource() ([]byte, error) {
 	var buf bytes.Buffer
-	if err := gox.WriteTo(&buf, p.Pkg, false); err != nil {
+	if err := gox.WriteTo(&buf, p.Pkg); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
 func (p *Package) ToAst() *goast.File {
-	return gox.ASTFile(p.Pkg, false)
+	return gox.ASTFile(p.Pkg)
 }
 
 type Context struct {
