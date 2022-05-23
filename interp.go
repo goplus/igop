@@ -929,11 +929,6 @@ func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 	if err != nil {
 		return i, err
 	}
-
-	_, err = i.Run("init")
-	if err != nil {
-		err = fmt.Errorf("init error: %w", err)
-	}
 	return i, err
 }
 

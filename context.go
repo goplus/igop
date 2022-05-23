@@ -182,6 +182,10 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exi
 	if err != nil {
 		return 2, err
 	}
+	_, err = interp.Run("init")
+	if err != nil {
+		return 2, fmt.Errorf("init error: %w", err)
+	}
 	return interp.Run("main")
 }
 
@@ -231,6 +235,12 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 		if err != nil {
 			failed = true
 			fmt.Printf("create interp failed: %v\n", err)
+			continue
+		}
+		_, err = interp.Run("init")
+		if err != nil {
+			failed = true
+			fmt.Printf("init error: %v\n", err)
 			continue
 		}
 		exitCode, _ := interp.Run("main")
