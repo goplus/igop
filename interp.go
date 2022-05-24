@@ -93,24 +93,24 @@ func (e runtimeError) Error() string {
 type Interp struct {
 	ctx          *Context
 	fset         *token.FileSet
-	prog         *ssa.Program        // the SSA program
-	mainpkg      *ssa.Package        // the SSA main package
-	globals      map[ssa.Value]value // addresses of global variables (immutable)
-	mode         Mode                // interpreter options
-	goroutines   int32               // atomically updated
-	deferCount   int32
-	preloadTypes map[types.Type]reflect.Type
-	deferMap     sync.Map
-	loader       Loader
-	record       *TypesRecord
-	typesMutex   sync.RWMutex
-	funcs        map[*ssa.Function]*function
+	prog         *ssa.Program                                // the SSA program
+	mainpkg      *ssa.Package                                // the SSA main package
+	globals      map[ssa.Value]value                         // addresses of global variables (immutable)
+	mode         Mode                                        // interpreter options
+	goroutines   int32                                       // atomically updated
+	deferCount   int32                                       // fast has defer check
+	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
+	deferMap     sync.Map                                    // defer goroutine id -> call frame
+	loader       Loader                                      // loader types
+	record       *TypesRecord                                // lookup type and ToType
+	typesMutex   sync.RWMutex                                // findType/toType mutex
+	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
-	mainid       int64
-	exitCode     int
-	chexit       chan int
-	goexited     bool // call runtime.Goexit
-	exited       bool // call os.Exit
+	mainid       int64                                       // main goroutine id
+	exitCode     int                                         // call os.Exit code
+	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
+	goexited     bool                                        // is call runtime.Goexit
+	exited       bool                                        // is call os.Exit
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -1020,48 +1020,6 @@ func (i *Interp) RunMain() (exitCode int, err error) {
 	}
 	return i.exitCode, err
 }
-
-// func (i *Interp) Run(entry string) (exitCode int, err error) {
-// 	// Top-level error handler.
-// 	i.exited = false
-// 	exitCode = 2
-// 	defer func() {
-// 		if i.exited {
-// 			return
-// 		}
-// 		if i.mode&DisableRecover != 0 {
-// 			return
-// 		}
-// 		switch p := recover().(type) {
-// 		case nil:
-// 			// nothing
-// 		case exitPanic:
-// 			i.exited = true
-// 			exitCode = int(p)
-// 		case goExitPanic:
-// 			i.exited = true
-// 			exitCode = <-i.chexit
-// 		case targetPanic:
-// 			err = p
-// 		case runtime.Error:
-// 			err = p
-// 		case string:
-// 			err = plainError(p)
-// 		case plainError:
-// 			err = p
-// 		default:
-// 			err = fmt.Errorf("unexpected type: %T: %v", p, p)
-// 		}
-// 	}()
-// 	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
-// 		i.call(nil, mainFn, nil, nil)
-// 		exitCode = 0
-// 	} else {
-// 		err = fmt.Errorf("no function %v", entry)
-// 		exitCode = 1
-// 	}
-// 	return
-// }
 
 func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	m, ok := i.mainpkg.Members[key]
