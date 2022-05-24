@@ -2098,3 +2098,36 @@ true
 		t.Fatal("error")
 	}
 }
+
+func TestGoexit(t *testing.T) {
+	src := `package main
+
+import (
+	"os"
+	"runtime"
+)
+
+func init() {
+	c := make(chan int, 1)
+	defer func() {
+		c <- 1
+	}()
+	go func() {
+		os.Exit(<-c)
+	}()
+	runtime.Goexit()
+	os.Exit(-1)
+}
+
+func main() {
+	os.Exit(-2)
+}
+`
+	code, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != 1 {
+		t.Fatalf("error exit code %v", code)
+	}
+}
