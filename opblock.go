@@ -5,8 +5,8 @@ import (
 	"go/token"
 	"go/types"
 	"io"
-	"os"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -205,10 +205,20 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	fnName := fn.String()
 	if fnName == "os.Exit" {
 		return reflect.ValueOf(func(code int) {
-			if interp.exited {
-				os.Exit(code)
+			if interp.goexited {
+				//os.Exit(code)
+				interp.chexit <- code
 			} else {
 				panic(exitPanic(code))
+			}
+		}), true
+	} else if fnName == "runtime.Goexit" {
+		return reflect.ValueOf(func() {
+			// main goroutine use panic
+			if goroutineId() == interp.mainid {
+				panic(goexitPanic(0))
+			} else {
+				runtime.Goexit()
 			}
 		}), true
 	}

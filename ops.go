@@ -32,6 +32,8 @@ func (p targetPanic) Error() string {
 // If the target program calls exit, the interpreter panics with this type.
 type exitPanic int
 
+type goexitPanic int
+
 func xtypeValue(c *ssa.Const, kind types.BasicKind) value {
 	switch kind {
 	case types.Bool, types.UntypedBool:

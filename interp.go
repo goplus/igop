@@ -99,7 +99,6 @@ type Interp struct {
 	mode         Mode                // interpreter options
 	goroutines   int32               // atomically updated
 	deferCount   int32
-	exited       bool
 	preloadTypes map[types.Type]reflect.Type
 	deferMap     sync.Map
 	loader       Loader
@@ -107,6 +106,11 @@ type Interp struct {
 	typesMutex   sync.RWMutex
 	funcs        map[*ssa.Function]*function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
+	mainid       int64
+	exitCode     int
+	chexit       chan int
+	goexited     bool // call runtime.Goexit
+	exited       bool // call os.Exit
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -147,7 +151,7 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 
 func (i *Interp) tryDeferFrame() *frame {
 	if atomic.LoadInt32(&i.deferCount) != 0 {
-		if f, ok := i.deferMap.Load(goid.Get()); ok {
+		if f, ok := i.deferMap.Load(goroutineId()); ok {
 			return f.(*frame)
 		}
 	}
@@ -323,7 +327,7 @@ func (fr *frame) runDefer(d *deferred) {
 func (fr *frame) runDefers() {
 	interp := fr.pfn.Interp
 	atomic.AddInt32(&interp.deferCount, 1)
-	fr.deferid = goid.Get()
+	fr.deferid = goroutineId()
 	interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
@@ -903,6 +907,8 @@ func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*function),
 		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
+		chexit:       make(chan int),
+		mainid:       goroutineId(),
 	}
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
@@ -966,7 +972,12 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		case nil:
 			// nothing
 		case exitPanic:
-			// nothing
+			i.exitCode = int(p)
+			i.exited = true
+		case goexitPanic:
+			i.goexited = true
+			i.exitCode = <-i.chexit
+			i.exited = true
 		case targetPanic:
 			err = p
 		case runtime.Error:
@@ -987,44 +998,70 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 	return
 }
 
-func (i *Interp) Run(entry string) (exitCode int, err error) {
-	// Top-level error handler.
+func (i *Interp) ExitCode() int {
+	return i.exitCode
+}
+
+func (i *Interp) RunInit() (err error) {
+	i.goexited = false
 	i.exited = false
-	exitCode = 2
-	defer func() {
-		if i.exited {
-			return
-		}
-		i.exited = true
-		if i.mode&DisableRecover != 0 {
-			return
-		}
-		switch p := recover().(type) {
-		case nil:
-			// nothing
-		case exitPanic:
-			exitCode = int(p)
-		case targetPanic:
-			err = p
-		case runtime.Error:
-			err = p
-		case string:
-			err = plainError(p)
-		case plainError:
-			err = p
-		default:
-			err = fmt.Errorf("unexpected type: %T: %v", p, p)
-		}
-	}()
-	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
-		i.call(nil, mainFn, nil, nil)
-		exitCode = 0
-	} else {
-		err = fmt.Errorf("no function %v", entry)
-		exitCode = 1
-	}
+	_, err = i.RunFunc("init")
 	return
 }
+
+func (i *Interp) RunMain() (exitCode int, err error) {
+	if i.exited {
+		return i.exitCode, nil
+	}
+	i.exitCode = 2
+	_, err = i.RunFunc("main")
+	if err == nil && !i.exited {
+		i.exitCode = 0
+	}
+	return i.exitCode, err
+}
+
+// func (i *Interp) Run(entry string) (exitCode int, err error) {
+// 	// Top-level error handler.
+// 	i.exited = false
+// 	exitCode = 2
+// 	defer func() {
+// 		if i.exited {
+// 			return
+// 		}
+// 		if i.mode&DisableRecover != 0 {
+// 			return
+// 		}
+// 		switch p := recover().(type) {
+// 		case nil:
+// 			// nothing
+// 		case exitPanic:
+// 			i.exited = true
+// 			exitCode = int(p)
+// 		case goExitPanic:
+// 			i.exited = true
+// 			exitCode = <-i.chexit
+// 		case targetPanic:
+// 			err = p
+// 		case runtime.Error:
+// 			err = p
+// 		case string:
+// 			err = plainError(p)
+// 		case plainError:
+// 			err = p
+// 		default:
+// 			err = fmt.Errorf("unexpected type: %T: %v", p, p)
+// 		}
+// 	}()
+// 	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
+// 		i.call(nil, mainFn, nil, nil)
+// 		exitCode = 0
+// 	} else {
+// 		err = fmt.Errorf("no function %v", entry)
+// 		exitCode = 1
+// 	}
+// 	return
+// }
 
 func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	m, ok := i.mainpkg.Members[key]
@@ -1082,4 +1119,8 @@ func deref(typ types.Type) types.Type {
 		return p.Elem()
 	}
 	return typ
+}
+
+func goroutineId() int64 {
+	return goid.Get()
 }
