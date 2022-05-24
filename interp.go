@@ -1005,6 +1005,7 @@ func (i *Interp) ExitCode() int {
 func (i *Interp) RunInit() (err error) {
 	i.goexited = false
 	i.exited = false
+	i.exitCode = 0
 	_, err = i.RunFunc("init")
 	return
 }
@@ -1013,12 +1014,14 @@ func (i *Interp) RunMain() (exitCode int, err error) {
 	if i.exited {
 		return i.exitCode, nil
 	}
-	i.exitCode = 2
 	_, err = i.RunFunc("main")
-	if err == nil && !i.exited {
-		i.exitCode = 0
+	if err != nil {
+		exitCode = 2
 	}
-	return i.exitCode, err
+	if i.exited {
+		exitCode = i.exitCode
+	}
+	return
 }
 
 func (i *Interp) GetFunc(key string) (interface{}, bool) {
