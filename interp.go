@@ -93,20 +93,24 @@ func (e runtimeError) Error() string {
 type Interp struct {
 	ctx          *Context
 	fset         *token.FileSet
-	prog         *ssa.Program        // the SSA program
-	mainpkg      *ssa.Package        // the SSA main package
-	globals      map[ssa.Value]value // addresses of global variables (immutable)
-	mode         Mode                // interpreter options
-	goroutines   int32               // atomically updated
-	deferCount   int32
-	exited       bool
-	preloadTypes map[types.Type]reflect.Type
-	deferMap     sync.Map
-	loader       Loader
-	record       *TypesRecord
-	typesMutex   sync.RWMutex
-	funcs        map[*ssa.Function]*function
+	prog         *ssa.Program                                // the SSA program
+	mainpkg      *ssa.Package                                // the SSA main package
+	globals      map[ssa.Value]value                         // addresses of global variables (immutable)
+	mode         Mode                                        // interpreter options
+	goroutines   int32                                       // atomically updated
+	deferCount   int32                                       // fast has defer check
+	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
+	deferMap     sync.Map                                    // defer goroutine id -> call frame
+	loader       Loader                                      // loader types
+	record       *TypesRecord                                // lookup type and ToType
+	typesMutex   sync.RWMutex                                // findType/toType mutex
+	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
+	mainid       int64                                       // main goroutine id
+	exitCode     int                                         // call os.Exit code
+	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
+	goexited     int32                                       // is call runtime.Goexit
+	exited       int32                                       // is call os.Exit
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -147,7 +151,7 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 
 func (i *Interp) tryDeferFrame() *frame {
 	if atomic.LoadInt32(&i.deferCount) != 0 {
-		if f, ok := i.deferMap.Load(goid.Get()); ok {
+		if f, ok := i.deferMap.Load(goroutineId()); ok {
 			return f.(*frame)
 		}
 	}
@@ -323,7 +327,7 @@ func (fr *frame) runDefer(d *deferred) {
 func (fr *frame) runDefers() {
 	interp := fr.pfn.Interp
 	atomic.AddInt32(&interp.deferCount, 1)
-	fr.deferid = goid.Get()
+	fr.deferid = goroutineId()
 	interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
@@ -903,6 +907,8 @@ func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*function),
 		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
+		chexit:       make(chan int),
+		mainid:       goroutineId(),
 	}
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
@@ -966,7 +972,17 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		case nil:
 			// nothing
 		case exitPanic:
-			// nothing
+			i.exitCode = int(p)
+			atomic.StoreInt32(&i.exited, 1)
+		case goexitPanic:
+			// check goroutines
+			if atomic.LoadInt32(&i.goroutines) == 1 {
+				err = ErrGoexitDeadlock
+			} else {
+				atomic.StoreInt32(&i.goexited, 1)
+				i.exitCode = <-i.chexit
+				atomic.StoreInt32(&i.exited, 1)
+			}
 		case targetPanic:
 			err = p
 		case runtime.Error:
@@ -987,41 +1003,28 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 	return
 }
 
-func (i *Interp) Run(entry string) (exitCode int, err error) {
-	// Top-level error handler.
-	i.exited = false
-	exitCode = 2
-	defer func() {
-		if i.exited {
-			return
-		}
-		i.exited = true
-		if i.mode&DisableRecover != 0 {
-			return
-		}
-		switch p := recover().(type) {
-		case nil:
-			// nothing
-		case exitPanic:
-			exitCode = int(p)
-		case targetPanic:
-			err = p
-		case runtime.Error:
-			err = p
-		case string:
-			err = plainError(p)
-		case plainError:
-			err = p
-		default:
-			err = fmt.Errorf("unexpected type: %T: %v", p, p)
-		}
-	}()
-	if mainFn := i.mainpkg.Func(entry); mainFn != nil {
-		i.call(nil, mainFn, nil, nil)
-		exitCode = 0
-	} else {
-		err = fmt.Errorf("no function %v", entry)
-		exitCode = 1
+func (i *Interp) ExitCode() int {
+	return i.exitCode
+}
+
+func (i *Interp) RunInit() (err error) {
+	i.goexited = 0
+	i.exitCode = 0
+	i.exited = 0
+	_, err = i.RunFunc("init")
+	return
+}
+
+func (i *Interp) RunMain() (exitCode int, err error) {
+	if atomic.LoadInt32(&i.exited) == 1 {
+		return i.exitCode, nil
+	}
+	_, err = i.RunFunc("main")
+	if err != nil {
+		exitCode = 2
+	}
+	if atomic.LoadInt32(&i.exited) == 1 {
+		exitCode = i.exitCode
 	}
 	return
 }
@@ -1082,4 +1085,8 @@ func deref(typ types.Type) types.Type {
 		return p.Elem()
 	}
 	return typ
+}
+
+func goroutineId() int64 {
+	return goid.Get()
 }
