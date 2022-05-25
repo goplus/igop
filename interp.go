@@ -109,8 +109,8 @@ type Interp struct {
 	mainid       int64                                       // main goroutine id
 	exitCode     int                                         // call os.Exit code
 	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
-	goexited     bool                                        // is call runtime.Goexit
-	exited       bool                                        // is call os.Exit
+	goexited     int32                                       // is call runtime.Goexit
+	exited       int32                                       // is call os.Exit
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
@@ -973,11 +973,16 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 			// nothing
 		case exitPanic:
 			i.exitCode = int(p)
-			i.exited = true
+			atomic.StoreInt32(&i.exited, 1)
 		case goexitPanic:
-			i.goexited = true
-			i.exitCode = <-i.chexit
-			i.exited = true
+			// check goroutines
+			if atomic.LoadInt32(&i.goroutines) == 1 {
+				err = plainError("fatal error: no goroutines (main called runtime.Goexit) - deadlock!")
+			} else {
+				atomic.StoreInt32(&i.goexited, 1)
+				i.exitCode = <-i.chexit
+				atomic.StoreInt32(&i.exited, 1)
+			}
 		case targetPanic:
 			err = p
 		case runtime.Error:
@@ -1003,22 +1008,22 @@ func (i *Interp) ExitCode() int {
 }
 
 func (i *Interp) RunInit() (err error) {
-	i.goexited = false
-	i.exited = false
+	i.goexited = 0
 	i.exitCode = 0
+	i.exited = 0
 	_, err = i.RunFunc("init")
 	return
 }
 
 func (i *Interp) RunMain() (exitCode int, err error) {
-	if i.exited {
+	if atomic.LoadInt32(&i.exited) == 1 {
 		return i.exitCode, nil
 	}
 	_, err = i.RunFunc("main")
 	if err != nil {
 		exitCode = 2
 	}
-	if i.exited {
+	if atomic.LoadInt32(&i.exited) == 1 {
 		exitCode = i.exitCode
 	}
 	return

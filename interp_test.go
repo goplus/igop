@@ -2101,7 +2101,6 @@ true
 
 func TestGoexit(t *testing.T) {
 	src := `package main
-
 import (
 	"os"
 	"runtime"

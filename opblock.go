@@ -205,7 +205,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	fnName := fn.String()
 	if fnName == "os.Exit" {
 		return reflect.ValueOf(func(code int) {
-			if interp.goexited {
+			if atomic.LoadInt32(&interp.goexited) == 1 {
 				//os.Exit(code)
 				interp.chexit <- code
 			} else {
