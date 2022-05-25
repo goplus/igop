@@ -2130,3 +2130,28 @@ func main() {
 		t.Fatalf("error exit code %v", code)
 	}
 }
+
+func TestGoexitDeadlock(t *testing.T) {
+	src := `package main
+import (
+	"os"
+	"runtime"
+)
+
+func init() {
+	runtime.Goexit()
+	os.Exit(-1)
+}
+
+func main() {
+	os.Exit(-2)
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err == nil {
+		t.Fatal("must panic")
+	}
+	if err.Error() != gossa.ErrGoexitDeadlock.Error() {
+		t.Fatal(err)
+	}
+}

@@ -183,7 +183,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exi
 		return 2, err
 	}
 	if err = interp.RunInit(); err != nil {
-		return 2, fmt.Errorf("init error: %w", err)
+		return 2, err
 	}
 	return interp.RunMain()
 }

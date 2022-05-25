@@ -977,7 +977,7 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		case goexitPanic:
 			// check goroutines
 			if atomic.LoadInt32(&i.goroutines) == 1 {
-				err = plainError("fatal error: no goroutines (main called runtime.Goexit) - deadlock!")
+				err = ErrGoexitDeadlock
 			} else {
 				atomic.StoreInt32(&i.goexited, 1)
 				i.exitCode = <-i.chexit
