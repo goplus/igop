@@ -51,6 +51,7 @@ type Context struct {
 	Sizes       types.Sizes              // types size for package unsafe
 	debugFunc   func(*DebugInfo)         // debug func
 	override    map[string]reflect.Value // override function
+	builtin     map[string]reflect.Value // builtin function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
 }
@@ -63,6 +64,7 @@ func NewContext(mode Mode) *Context {
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		override:    make(map[string]reflect.Value),
+		builtin:     make(map[string]reflect.Value),
 		callForPool: 64,
 	}
 	if mode&EnableDumpInstr != 0 {
@@ -117,6 +119,10 @@ func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package
 		}
 	}
 	return
+}
+
+func (c *Context) RegisterBuiltin(key string, fn interface{}) {
+	c.builtin[key] = reflect.ValueOf(fn)
 }
 
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
@@ -365,4 +371,38 @@ func RunTest(path string, args []string, mode Mode) error {
 	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.RunTest(path, args)
+}
+
+var (
+	builtinPkg = &Package{
+		Name:  "builtin",
+		Path:  "github.com/goplus/gossa/builtin",
+		Funcs: make(map[string]reflect.Value),
+		Deps:  make(map[string]string),
+	}
+)
+
+func init() {
+	RegisterPackage(builtinPkg)
+}
+
+func RegisterBuiltin(key string, fn interface{}) {
+	v := reflect.ValueOf(fn)
+	switch v.Kind() {
+	case reflect.Func:
+		builtinPkg.Funcs["Gossa_"+key] = v
+		typ := v.Type()
+		for i := 0; i < typ.NumIn(); i++ {
+			checkBuiltinDeps(typ.In(i))
+		}
+		for i := 0; i < typ.NumOut(); i++ {
+			checkBuiltinDeps(typ.Out(i))
+		}
+	}
+}
+
+func checkBuiltinDeps(typ reflect.Type) {
+	if typ.PkgPath() != "" {
+		builtinPkg.Deps[typ.Name()] = typ.PkgPath()
+	}
 }
