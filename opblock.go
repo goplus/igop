@@ -189,11 +189,20 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 		vs, _ = globalToValue(p.Interp, v)
 		vk = kindGlobal
 	case *ssa.Function:
+		vk = kindFunction
 		if v.Blocks != nil {
 			typ := p.Interp.preToType(v.Type())
 			pfn := p.Interp.loadFunction(v)
 			vs = p.Interp.makeFunc(typ, pfn, nil).Interface()
-			vk = kindFunction
+		} else {
+			ext, ok := findExternFunc(p.Interp, v)
+			if !ok {
+				if v.Name() != "init" {
+					panic(fmt.Errorf("no code for function: %v", v))
+				}
+			} else {
+				vs = ext.Interface()
+			}
 		}
 	}
 	i := uint32(len(p.stack) | int(vk<<24))
@@ -217,6 +226,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 		return reflect.ValueOf(func() {
 			// main goroutine use panic
 			if goroutineId() == interp.mainid {
+				atomic.StoreInt32(&interp.goexited, 1)
 				panic(goexitPanic(0))
 			} else {
 				runtime.Goexit()
