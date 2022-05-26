@@ -979,7 +979,6 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 			if atomic.LoadInt32(&i.goroutines) == 1 {
 				err = ErrGoexitDeadlock
 			} else {
-				atomic.StoreInt32(&i.goexited, 1)
 				i.exitCode = <-i.chexit
 				atomic.StoreInt32(&i.exited, 1)
 			}

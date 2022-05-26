@@ -225,6 +225,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 		return reflect.ValueOf(func() {
 			// main goroutine use panic
 			if goroutineId() == interp.mainid {
+				atomic.StoreInt32(&interp.goexited, 1)
 				panic(goexitPanic(0))
 			} else {
 				runtime.Goexit()
