@@ -2155,3 +2155,21 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestGlobalExtFunc(t *testing.T) {
+	src := `package main
+import "math"
+var (
+	max = math.Max
+)
+func main() {
+	if max(1,3) != 3 {
+		panic("error")
+	}
+}
+`
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
