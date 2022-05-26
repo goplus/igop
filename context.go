@@ -375,11 +375,18 @@ func RunTest(path string, args []string, mode Mode) error {
 
 var (
 	builtinPkg = &Package{
-		Name:  "builtin",
-		Path:  "github.com/goplus/gossa/builtin",
-		Funcs: make(map[string]reflect.Value),
-		Deps:  make(map[string]string),
+		Name:          "builtin",
+		Path:          "github.com/goplus/gossa/builtin",
+		Deps:          make(map[string]string),
+		Interfaces:    map[string]reflect.Type{},
+		NamedTypes:    map[string]NamedType{},
+		AliasTypes:    map[string]reflect.Type{},
+		Vars:          map[string]reflect.Value{},
+		Funcs:         map[string]reflect.Value{},
+		TypedConsts:   map[string]TypedConst{},
+		UntypedConsts: map[string]UntypedConst{},
 	}
+	builtinPrefix = "Builtin_"
 )
 
 func init() {
@@ -388,9 +395,12 @@ func init() {
 
 func RegisterBuiltin(key string, fn interface{}) {
 	v := reflect.ValueOf(fn)
+	if !strings.HasPrefix(key, builtinPrefix) {
+		key = builtinPrefix + key
+	}
 	switch v.Kind() {
 	case reflect.Func:
-		builtinPkg.Funcs["Gossa_"+key] = v
+		builtinPkg.Funcs[key] = v
 		typ := v.Type()
 		for i := 0; i < typ.NumIn(); i++ {
 			checkBuiltinDeps(typ.In(i))
