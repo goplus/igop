@@ -188,11 +188,20 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 		vs, _ = globalToValue(p.Interp, v)
 		vk = kindGlobal
 	case *ssa.Function:
+		vk = kindFunction
 		if v.Blocks != nil {
 			typ := p.Interp.preToType(v.Type())
 			pfn := p.Interp.loadFunction(v)
 			vs = p.Interp.makeFunc(typ, pfn, nil).Interface()
-			vk = kindFunction
+		} else {
+			ext, ok := findExternFunc(p.Interp, v)
+			if !ok {
+				if v.Name() != "init" {
+					panic(fmt.Errorf("no code for function: %v", v))
+				}
+			} else {
+				vs = ext.Interface()
+			}
 		}
 	}
 	i := uint32(len(p.stack) | int(vk<<24))
