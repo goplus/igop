@@ -6,7 +6,6 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"log"
 	"strings"
 
 	"golang.org/x/tools/go/loader"
@@ -203,12 +202,12 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 				if obj, ok := t.Object().(*types.TypeName); ok && obj.IsAlias() {
 					name := obj.Name()
 					switch typ := obj.Type().(type) {
-					case *types.Named:
-						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
 					case *types.Basic:
 						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", name, typ.Name()))
+					// case *types.Named:
+					// 	e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
 					default:
-						log.Panicln("error parser", typ)
+						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
 					}
 					continue
 				}
