@@ -51,6 +51,7 @@ type Context struct {
 	Sizes       types.Sizes              // types size for package unsafe
 	debugFunc   func(*DebugInfo)         // debug func
 	override    map[string]reflect.Value // override function
+	builtin     map[string]reflect.Value // builtin function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
 }
@@ -63,6 +64,7 @@ func NewContext(mode Mode) *Context {
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		override:    make(map[string]reflect.Value),
+		builtin:     make(map[string]reflect.Value),
 		callForPool: 64,
 	}
 	if mode&EnableDumpInstr != 0 {
@@ -119,6 +121,10 @@ func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package
 	return
 }
 
+func (c *Context) RegisterBuiltin(key string, fn interface{}) {
+	c.builtin[key] = reflect.ValueOf(fn)
+}
+
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
 	sourceProcessor[ext] = fn
 }
@@ -148,7 +154,11 @@ func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}
 
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
-	ssapkg, _, err := c.BuildPackage(fset, pkg, []*ast.File{file})
+	files := []*ast.File{file}
+	if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
+		files = append(files, f)
+	}
+	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +170,9 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	pkg := types.NewPackage(apkg.Name, "")
 	var files []*ast.File
 	for _, f := range apkg.Files {
+		files = append(files, f)
+	}
+	if f, err := parserBuiltin(fset, apkg.Name); err == nil {
 		files = append(files, f)
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
@@ -365,4 +378,75 @@ func RunTest(path string, args []string, mode Mode) error {
 	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.RunTest(path, args)
+}
+
+var (
+	builtinPkg = &Package{
+		Name:          "builtin",
+		Path:          "github.com/goplus/gossa/builtin",
+		Deps:          make(map[string]string),
+		Interfaces:    map[string]reflect.Type{},
+		NamedTypes:    map[string]NamedType{},
+		AliasTypes:    map[string]reflect.Type{},
+		Vars:          map[string]reflect.Value{},
+		Funcs:         map[string]reflect.Value{},
+		TypedConsts:   map[string]TypedConst{},
+		UntypedConsts: map[string]UntypedConst{},
+	}
+	builtinPrefix = "Builtin_"
+)
+
+func init() {
+	RegisterPackage(builtinPkg)
+}
+
+func RegisterBuiltin(key string, fn interface{}) error {
+	v := reflect.ValueOf(fn)
+	switch v.Kind() {
+	case reflect.Func:
+		if !strings.HasPrefix(key, builtinPrefix) {
+			key = builtinPrefix + key
+		}
+		builtinPkg.Funcs[key] = v
+		typ := v.Type()
+		for i := 0; i < typ.NumIn(); i++ {
+			checkBuiltinDeps(typ.In(i))
+		}
+		for i := 0; i < typ.NumOut(); i++ {
+			checkBuiltinDeps(typ.Out(i))
+		}
+		return nil
+	}
+	return ErrNoFunction
+}
+
+func checkBuiltinDeps(typ reflect.Type) {
+	if typ.PkgPath() != "" {
+		builtinPkg.Deps[typ.Name()] = typ.PkgPath()
+	}
+}
+
+var (
+	builtin_tmpl = `package main
+import "github.com/goplus/gossa/builtin"
+`
+)
+
+func parserBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
+	var list []string
+	for k, _ := range builtinPkg.Funcs {
+		if strings.HasPrefix(k, builtinPrefix) {
+			list = append(list, k[len(builtinPrefix):]+"=builtin."+k)
+		}
+	}
+	if len(list) == 0 {
+		return nil, os.ErrInvalid
+	}
+	src := fmt.Sprintf(`package %v
+import "github.com/goplus/gossa/builtin"
+var (
+	%v
+)
+`, pkg, strings.Join(list, "\n"))
+	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
 }
