@@ -154,7 +154,11 @@ func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}
 
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
-	ssapkg, _, err := c.BuildPackage(fset, pkg, []*ast.File{file})
+	files := []*ast.File{file}
+	if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
+		files = append(files, f)
+	}
+	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +170,9 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	pkg := types.NewPackage(apkg.Name, "")
 	var files []*ast.File
 	for _, f := range apkg.Files {
+		files = append(files, f)
+	}
+	if f, err := parserBuiltin(fset, apkg.Name); err == nil {
 		files = append(files, f)
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
@@ -415,4 +422,29 @@ func checkBuiltinDeps(typ reflect.Type) {
 	if typ.PkgPath() != "" {
 		builtinPkg.Deps[typ.Name()] = typ.PkgPath()
 	}
+}
+
+var (
+	builtin_tmpl = `package main
+import "github.com/goplus/gossa/builtin"
+`
+)
+
+func parserBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
+	var list []string
+	for k, _ := range builtinPkg.Funcs {
+		if strings.HasPrefix(k, builtinPrefix) {
+			list = append(list, k[len(builtinPrefix):]+"=builtin."+k)
+		}
+	}
+	if len(list) == 0 {
+		return nil, os.ErrInvalid
+	}
+	src := fmt.Sprintf(`package %v
+import "github.com/goplus/gossa/builtin"
+var (
+	%v
+)
+`, pkg, strings.Join(list, "\n"))
+	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
 }

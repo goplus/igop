@@ -5,7 +5,6 @@ import (
 	"go/token"
 	"go/types"
 	"io"
-	"log"
 	"reflect"
 	"runtime"
 	"strings"
@@ -1078,9 +1077,6 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	typ := interp.preToType(call.Value.Type())
 	if typ.Kind() != reflect.Func {
 		panic("unsupport")
-	}
-	if unop, ok := call.Value.(*ssa.UnOp); ok {
-		log.Printf("~~~~~~~ %T\n", unop.X)
 	}
 	return func(fr *frame) {
 		fn := fr.reg(iv)
