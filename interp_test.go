@@ -21,6 +21,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -2140,5 +2141,26 @@ func main() {
 	_, err := gossa.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestRegisterBuiltin(t *testing.T) {
+	src := `package main
+
+func main() {
+	dump_info(typeof("hello"))
+}
+`
+	gossa.RegisterBuiltin("typeof", reflect.TypeOf)
+	var info interface{}
+	gossa.RegisterBuiltin("dump_info", func(v interface{}) {
+		info = v
+	})
+	_, err := gossa.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		panic(err)
+	}
+	if info != reflect.TypeOf("hello") {
+		panic("error")
 	}
 }
