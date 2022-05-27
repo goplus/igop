@@ -400,13 +400,13 @@ func init() {
 	RegisterPackage(builtinPkg)
 }
 
-func RegisterBuiltin(key string, fn interface{}) {
+func RegisterBuiltin(key string, fn interface{}) error {
 	v := reflect.ValueOf(fn)
-	if !strings.HasPrefix(key, builtinPrefix) {
-		key = builtinPrefix + key
-	}
 	switch v.Kind() {
 	case reflect.Func:
+		if !strings.HasPrefix(key, builtinPrefix) {
+			key = builtinPrefix + key
+		}
 		builtinPkg.Funcs[key] = v
 		typ := v.Type()
 		for i := 0; i < typ.NumIn(); i++ {
@@ -415,7 +415,9 @@ func RegisterBuiltin(key string, fn interface{}) {
 		for i := 0; i < typ.NumOut(); i++ {
 			checkBuiltinDeps(typ.Out(i))
 		}
+		return nil
 	}
+	return ErrNoFunction
 }
 
 func checkBuiltinDeps(typ reflect.Type) {

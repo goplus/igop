@@ -10,4 +10,5 @@ var (
 	ErrNotFoundPackage  = errors.New("not found package")
 	ErrNotFoundImporter = errors.New("not found provider for types.Importer")
 	ErrGoexitDeadlock   = errors.New("fatal error: no goroutines (main called runtime.Goexit) - deadlock!")
+	ErrNoFunction       = errors.New("no function")
 )
