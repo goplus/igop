@@ -136,6 +136,14 @@ var (
 )
 
 func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}) (*ssa.Package, error) {
+	file, err := c.ParseFile(fset, filename, src)
+	if err != nil {
+		return nil, err
+	}
+	return c.LoadAstFile(fset, file)
+}
+
+func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{}) (*ast.File, error) {
 	if ext := filepath.Ext(filename); ext != "" {
 		if fn, ok := sourceProcessor[ext]; ok {
 			data, err := fn(c, filename, src)
@@ -145,11 +153,7 @@ func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}
 			src = data
 		}
 	}
-	file, err := parser.ParseFile(fset, filename, src, c.ParserMode)
-	if err != nil {
-		return nil, err
-	}
-	return c.LoadAstFile(fset, file)
+	return parser.ParseFile(fset, filename, src, c.ParserMode)
 }
 
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
