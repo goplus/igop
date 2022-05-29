@@ -895,6 +895,10 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 //
 
 func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
+	return newInterp(ctx, mainpkg, nil)
+}
+
+func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{}) (*Interp, error) {
 	i := &Interp{
 		ctx:          ctx,
 		fset:         mainpkg.Prog.Fset,
@@ -926,6 +930,13 @@ func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 			case *ssa.Global:
 				typ := i.preToType(deref(v.Type()))
 				i.globals[v] = reflect.New(typ).Interface()
+			}
+		}
+	}
+	if globals != nil {
+		for k, _ := range i.globals {
+			if fv, ok := globals[k.String()]; ok {
+				i.globals[k] = fv
 			}
 		}
 	}

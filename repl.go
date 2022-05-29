@@ -12,47 +12,83 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+/*
+package main
+
+import "fmt"
+
+const/var/type/func
+
+func main(){}
+*/
+
 type Repl struct {
-	ctx      *Context
-	fset     *token.FileSet
-	pkg      *ssa.Package
-	frame    *frame // last frame
-	pc       int    // last pc
-	imports  []string
-	lastExpr string
-	lastSrc  string
-	lastUsed []interface{}
+	ctx        *Context
+	fset       *token.FileSet
+	pkg        *ssa.Package
+	frame      *frame        // last frame
+	pc         int           // last pc
+	fsInit     *fnState      // func init
+	fsMain     *fnState      // func main
+	imports    []string      // import lines
+	globals    []string      // global var/func/type
+	infuncs    []string      // in main func
+	source     string        // all source
+	lastDump   []interface{} // last __gossa_repl_dump__
+	globalMap  map[string]interface{}
+	lastInterp *Interp
 }
 
 func NewRepl(ctx *Context) *Repl {
 	r := &Repl{
-		ctx:  ctx,
-		fset: token.NewFileSet(),
+		ctx:       ctx,
+		fset:      token.NewFileSet(),
+		globalMap: make(map[string]interface{}),
 	}
 	ctx.evalMode = true
-	ctx.SetOverrideFunction("main.__gossa_repl_used__", func(v interface{}) {
-		r.lastUsed = append(r.lastUsed, v)
+	ctx.SetOverrideFunction("main.__gossa_repl_dump__", func(v interface{}) {
+		r.lastDump = append(r.lastDump, v)
 	})
 	return r
 }
 
 func (r *Repl) Eval(expr string) (v interface{}, err error) {
-	r.lastUsed = nil
+	r.lastDump = nil
 	err = r.eval(expr)
-	return r.lastUsed, err
+	return r.lastDump, err
 }
 
 func (r *Repl) Source() string {
-	return r.lastSrc
+	return r.source
+}
+
+func (r *Repl) buildSource(globals string, infuncs string) string {
+	v1 := strings.Join(r.globals, "\n")
+	if globals != "" {
+		v1 += "\n" + globals
+	}
+	v2 := strings.Join(r.infuncs, "\n")
+	if infuncs != "" {
+		v2 += "\n" + infuncs
+	}
+	return fmt.Sprintf(`package main
+%v
+func __gossa_repl_dump__(v interface{}){}
+%v
+func main() {
+	%v
+}
+`, strings.Join(r.imports, "\n"), v1, v2)
 }
 
 func (r *Repl) eval(expr string) (err error) {
-	org := expr
 	tok := r.firstToken(expr)
 	var src string
+	var inMain bool
 	switch tok {
 	case token.PACKAGE:
-		// source
+		// skip package
+		return nil
 	case token.IMPORT:
 		src = "package main;" + expr
 		errors, err := r.check("main.gop", src)
@@ -65,12 +101,17 @@ func (r *Repl) eval(expr string) (err error) {
 		r.imports = append(r.imports, expr)
 		return nil
 	case token.CONST, token.FUNC, token.TYPE, token.VAR:
-		src = "package main;" + expr
-	default:
-		if r.lastExpr != "" {
-			expr = r.lastExpr + "\n" + expr
+		src = r.buildSource(expr, "")
+		errors, err := r.check("main.gop", src)
+		if err != nil {
+			return err
 		}
-		src = r.wrapInMain(expr)
+		if errors != nil {
+			return errors[0]
+		}
+	default:
+		inMain = true
+		src = r.buildSource("", expr)
 		errors, err := r.check("main.gop", src)
 		if err != nil {
 			return err
@@ -83,29 +124,34 @@ func (r *Repl) eval(expr string) (err error) {
 			}
 			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
-				fixed = append(fixed, "__gossa_repl_used__("+v+")")
+				fixed = append(fixed, "__gossa_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
-				org = "__gossa_repl_used__(" + org + ")"
+				expr = "__gossa_repl_dump__(" + expr + ")"
 			} else {
 				return e
 			}
 		}
-		expr = r.lastExpr + ";" + org + ";" + strings.Join(fixed, ";")
-		src = r.wrapInMain(expr)
+		if len(fixed) != 0 {
+			expr += "\n" + strings.Join(fixed, "\n")
+		}
+		src = r.buildSource("", expr)
 	}
 	dst, err := format.Source([]byte(src))
 	if err != nil {
 		return err
 	}
-	src = string(dst)
-	r.pkg, err = r.ctx.LoadFile(r.fset, "main.gop", src)
+	r.pkg, err = r.ctx.LoadFile(r.fset, "main.gop", dst)
 	if err != nil {
 		return err
 	}
 	err = r.run()
 	if err == nil {
-		r.lastSrc = src
-		r.lastExpr = expr
+		if inMain {
+			r.infuncs = append(r.infuncs, expr)
+		} else {
+			r.globals = append(r.globals, expr)
+		}
+		r.source = src
 	}
 	return err
 }
@@ -133,16 +179,6 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 	return
 }
 
-func (r *Repl) wrapInMain(src string) string {
-	return fmt.Sprintf(`package main
-%v
-func __gossa_repl_used__(v interface{}){}
-func main() {
-	%v
-}
-`, strings.Join(r.imports, "\n"), src)
-}
-
 func (r *Repl) firstToken(src string) token.Token {
 	var s scanner.Scanner
 	file := r.fset.AddFile("", r.fset.Base(), len(src))
@@ -152,27 +188,52 @@ func (r *Repl) firstToken(src string) token.Token {
 }
 
 func (repl *Repl) run() error {
-	i, err := NewInterp(repl.ctx, repl.pkg)
+	i, err := newInterp(repl.ctx, repl.pkg, repl.globalMap)
 	if err != nil {
 		return err
 	}
-	err = i.RunInit()
-	if err != nil {
-		return err
+	rinit, err := repl.runFunc(i, "init", repl.fsInit)
+	if err == nil {
+		repl.fsInit = rinit
 	}
-	fn := repl.pkg.Func("main")
+	rmain, err := repl.runFunc(i, "main", repl.fsMain)
+	if err == nil {
+		repl.fsMain = rmain
+		for k, v := range i.globals {
+			repl.globalMap[k.String()] = v
+		}
+	}
+	return nil
+}
+
+type fnState struct {
+	fr *frame
+	pc int
+}
+
+func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err error) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+	fn := r.pkg.Func(fnname)
+	if fn == nil {
+		return nil, fmt.Errorf("no function %v", fnname)
+	}
 	pfn := i.funcs[fn]
 	fr := pfn.allocFrame(nil)
-	if repl.frame != nil {
-		copy(fr.stack, repl.frame.stack)
-		fr.pc = repl.pc
+	if fs != nil {
+		copy(fr.stack, fs.fr.stack)
+		fr.pc = fs.pc
 	}
+	var pc int
 	for fr.pc != -1 {
 		fn := fr.pfn.Instrs[fr.pc]
-		repl.pc = fr.pc
+		pc = fr.pc
 		fr.pc++
 		fn(fr)
 	}
-	repl.frame = fr
-	return nil
+	return &fnState{fr: fr, pc: pc}, nil
 }
