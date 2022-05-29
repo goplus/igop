@@ -54,6 +54,7 @@ type Context struct {
 	builtin     map[string]reflect.Value // builtin function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
+	evalMode    bool
 }
 
 // NewContext create a new Context
@@ -325,6 +326,9 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 	tc := &types.Config{
 		Importer: NewImporter(ctx.Loader, ctx.External),
 		Sizes:    ctx.Sizes,
+	}
+	if ctx.evalMode {
+		tc.DisableUnusedImportCheck = true
 	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		return nil, nil, err
