@@ -58,3 +58,34 @@ func TestReplImports(t *testing.T) {
 		}
 	}
 }
+
+func TestReplClosure(t *testing.T) {
+	ctx := gossa.NewContext(0)
+	repl := gossa.NewRepl(ctx)
+	list := []string{
+		`a := 1`,
+		`b := 2`,
+		`fn := func() int { return a }`,
+		`d := fn()+b`,
+		`d`,
+	}
+	result := []string{
+		`1`,
+		`2`,
+		`-`,
+		`3`,
+		`3`,
+	}
+	for i, expr := range list {
+		v, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if result[i] == "-" {
+			continue
+		}
+		if fmt.Sprint(v) != result[i] {
+			t.Fatalf("%v", v)
+		}
+	}
+}
