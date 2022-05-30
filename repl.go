@@ -55,10 +55,14 @@ func NewRepl(ctx *Context) *Repl {
 func (r *Repl) Eval(expr string) (v interface{}, err error) {
 	r.lastDump = nil
 	err = r.eval(expr)
-	if len(r.lastDump) == 1 {
+	switch len(r.lastDump) {
+	case 0:
+		return nil, err
+	case 1:
 		return r.lastDump[0], err
+	default:
+		return r.lastDump, err
 	}
-	return r.lastDump, err
 }
 
 func (r *Repl) Source() string {
