@@ -157,7 +157,7 @@ func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package
 	files := []*ast.File{file}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
-			files = append(files, f)
+			files = []*ast.File{f, file}
 		}
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
@@ -176,7 +176,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := parserBuiltin(fset, apkg.Name); err == nil {
-			files = append(files, f)
+			files = append([]*ast.File{f}, files...)
 		}
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
