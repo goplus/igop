@@ -124,3 +124,44 @@ func TestReplVar(t *testing.T) {
 		}
 	}
 }
+
+func TestReplType(t *testing.T) {
+	ctx := gossa.NewContext(0)
+	repl := gossa.NewRepl(ctx)
+	list := []string{
+		`type T struct {
+	X int
+	Y int
+}`,
+		`v1 := &T{10,20}`,
+		`import "fmt"`,
+		`r1 := fmt.Sprint(v1)`,
+		`func (t *T) String() string {
+	return fmt.Sprintf("%v-%v",t.X,t.Y)
+}`,
+		`v2 := &T{10,20}`,
+		`r2 := fmt.Sprint(v2)`,
+	}
+	result := []string{
+		`-`,
+		`&{10 20}`,
+		`-`,
+		`&{10 20}`,
+		`-`,
+		`10-20`,
+		`10-20`,
+		``,
+	}
+	for i, expr := range list {
+		v, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if result[i] == "-" {
+			continue
+		}
+		if fmt.Sprint(v) != result[i] {
+			t.Fatalf("%v %v: %v", expr, v, repl.Source())
+		}
+	}
+}
