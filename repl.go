@@ -124,7 +124,7 @@ func (r *Repl) eval(expr string) (err error) {
 			}
 			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
-				fixed = append(fixed, "__gossa_repl_dump__("+v+")")
+				fixed = append(fixed, "func(){__gossa_repl_dump__("+v+")}()")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
 				expr = "__gossa_repl_dump__(" + expr + ")"
 			} else {
