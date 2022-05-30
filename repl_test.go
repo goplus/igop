@@ -91,7 +91,7 @@ func TestReplClosure(t *testing.T) {
 }
 
 func TestReplVar(t *testing.T) {
-	ctx := gossa.NewContext(0)
+	ctx := gossa.NewContext(gossa.DisableCustomBuiltin)
 	repl := gossa.NewRepl(ctx)
 	list := []string{
 		`a := 1`,

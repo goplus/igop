@@ -2151,9 +2151,9 @@ func main() {
 	dump_info(typeof("hello"))
 }
 `
-	gossa.RegisterBuiltin("typeof", reflect.TypeOf)
+	gossa.RegisterCustomBuiltin("typeof", reflect.TypeOf)
 	var info interface{}
-	gossa.RegisterBuiltin("dump_info", func(v interface{}) {
+	gossa.RegisterCustomBuiltin("dump_info", func(v interface{}) {
 		info = v
 	})
 	_, err := gossa.RunFile("main.go", src, nil, 0)

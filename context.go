@@ -26,6 +26,7 @@ type Mode uint
 
 const (
 	DisableRecover         Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	DisableCustomBuiltin                    // Disable load custom builtin func
 	DisableUnexportMethods                  // Disable unexport methods
 	EnableTracing                           // Print a trace of all instructions as they are interpreted.
 	EnableDumpInstr                         // Print packages & SSA instruction code
@@ -154,7 +155,7 @@ func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
 	files := []*ast.File{file}
-	if !c.evalMode {
+	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
 			files = append(files, f)
 		}
@@ -173,7 +174,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
-	if !c.evalMode {
+	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := parserBuiltin(fset, apkg.Name); err == nil {
 			files = append(files, f)
 		}
@@ -406,7 +407,7 @@ func init() {
 	RegisterPackage(builtinPkg)
 }
 
-func RegisterBuiltin(key string, fn interface{}) error {
+func RegisterCustomBuiltin(key string, fn interface{}) error {
 	v := reflect.ValueOf(fn)
 	switch v.Kind() {
 	case reflect.Func:
