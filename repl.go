@@ -195,6 +195,7 @@ func (repl *Repl) run() error {
 	rinit, err := repl.runFunc(i, "init", repl.fsInit)
 	if err == nil {
 		repl.fsInit = rinit
+		repl.fsInit.pc--
 	}
 	rmain, err := repl.runFunc(i, "main", repl.fsMain)
 	if err == nil {
