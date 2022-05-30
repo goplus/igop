@@ -51,7 +51,6 @@ type Context struct {
 	Sizes       types.Sizes              // types size for package unsafe
 	debugFunc   func(*DebugInfo)         // debug func
 	override    map[string]reflect.Value // override function
-	builtin     map[string]reflect.Value // builtin function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
 	evalMode    bool
@@ -65,7 +64,6 @@ func NewContext(mode Mode) *Context {
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		override:    make(map[string]reflect.Value),
-		builtin:     make(map[string]reflect.Value),
 		callForPool: 64,
 	}
 	if mode&EnableDumpInstr != 0 {
@@ -122,10 +120,6 @@ func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package
 	return
 }
 
-func (c *Context) RegisterBuiltin(key string, fn interface{}) {
-	c.builtin[key] = reflect.ValueOf(fn)
-}
-
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
 	sourceProcessor[ext] = fn
 }
@@ -160,8 +154,10 @@ func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
 	files := []*ast.File{file}
-	if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
-		files = append(files, f)
+	if !c.evalMode {
+		if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
+			files = append(files, f)
+		}
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
 	if err != nil {
@@ -177,8 +173,10 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
-	if f, err := parserBuiltin(fset, apkg.Name); err == nil {
-		files = append(files, f)
+	if !c.evalMode {
+		if f, err := parserBuiltin(fset, apkg.Name); err == nil {
+			files = append(files, f)
+		}
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
 	if err != nil {
