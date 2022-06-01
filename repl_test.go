@@ -26,7 +26,7 @@ func TestReplExpr(t *testing.T) {
 			t.Fatal(err)
 		}
 		if fmt.Sprint(v) != result[i] {
-			t.Fatalf("%v", v)
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
 		}
 	}
 }
@@ -54,7 +54,7 @@ func TestReplImports(t *testing.T) {
 			t.Fatal(err)
 		}
 		if fmt.Sprint(v) != result[i] {
-			t.Fatalf("%v", v)
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
 		}
 	}
 }
@@ -85,7 +85,7 @@ func TestReplClosure(t *testing.T) {
 			continue
 		}
 		if fmt.Sprint(v) != result[i] {
-			t.Fatalf("%v", v)
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
 		}
 	}
 }
@@ -120,7 +120,7 @@ func TestReplVar(t *testing.T) {
 			continue
 		}
 		if fmt.Sprint(v) != result[i] {
-			t.Fatalf("%v %v: %v", expr, v, repl.Source())
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
 		}
 	}
 }
@@ -161,7 +161,40 @@ func TestReplType(t *testing.T) {
 			continue
 		}
 		if fmt.Sprint(v) != result[i] {
-			t.Fatalf("%v %v: %v", expr, v, repl.Source())
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
+		}
+	}
+}
+
+func TestReplFunc(t *testing.T) {
+	ctx := gossa.NewContext(0)
+	repl := gossa.NewRepl(ctx)
+	list := []string{
+		`a := "hello"`,
+		`import "fmt"`,
+		`a`,
+		`fmt.Println(a)`,
+		`s := fmt.Sprint(a)`,
+		`fmt.Println(s)`,
+	}
+	result := []string{
+		`hello`,
+		`-`,
+		`hello`,
+		`[6 <nil>]`,
+		`hello`,
+		`[6 <nil>]`,
+	}
+	for i, expr := range list {
+		v, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if result[i] == "-" {
+			continue
+		}
+		if fmt.Sprint(v) != result[i] {
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
 		}
 	}
 }
