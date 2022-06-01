@@ -16,9 +16,9 @@ func TestReplExpr(t *testing.T) {
 		`a+b`,
 	}
 	result := []string{
-		`1`,
-		`2`,
-		`3`,
+		`[1]`,
+		`[2]`,
+		`[3]`,
 	}
 	for i, expr := range list {
 		v, err := repl.Eval(expr)
@@ -42,11 +42,11 @@ func TestReplImports(t *testing.T) {
 		`c`,
 	}
 	result := []string{
-		`1`,
-		`2`,
-		`<nil>`,
-		`1-2`,
-		`1-2`,
+		`[1]`,
+		`[2]`,
+		`[]`,
+		`[1-2]`,
+		`[1-2]`,
 	}
 	for i, expr := range list {
 		v, err := repl.Eval(expr)
@@ -70,11 +70,11 @@ func TestReplClosure(t *testing.T) {
 		`d`,
 	}
 	result := []string{
-		`1`,
-		`2`,
+		`[1]`,
+		`[2]`,
 		`-`,
-		`3`,
-		`3`,
+		`[3]`,
+		`[3]`,
 	}
 	for i, expr := range list {
 		v, err := repl.Eval(expr)
@@ -103,13 +103,13 @@ func TestReplVar(t *testing.T) {
 		`c`,
 	}
 	result := []string{
-		`1`,
-		`2`,
+		`[1]`,
+		`[2]`,
 		`-`,
 		`-`,
-		`103`,
-		`103`,
-		`100`,
+		`[103]`,
+		`[103]`,
+		`[100]`,
 	}
 	for i, expr := range list {
 		v, err := repl.Eval(expr)
@@ -144,13 +144,12 @@ func TestReplType(t *testing.T) {
 	}
 	result := []string{
 		`-`,
-		`&{10 20}`,
+		`[&{10 20}]`,
 		`-`,
-		`&{10 20}`,
+		`[&{10 20}]`,
 		`-`,
-		`10-20`,
-		`10-20`,
-		``,
+		`[10-20]`,
+		`[10-20]`,
 	}
 	for i, expr := range list {
 		v, err := repl.Eval(expr)
@@ -178,11 +177,11 @@ func TestReplFunc(t *testing.T) {
 		`fmt.Println(s)`,
 	}
 	result := []string{
-		`hello`,
+		`[hello]`,
 		`-`,
-		`hello`,
+		`[hello]`,
 		`[6 <nil>]`,
-		`hello`,
+		`[hello]`,
 		`[6 <nil>]`,
 	}
 	for i, expr := range list {

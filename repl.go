@@ -26,17 +26,24 @@ type Repl struct {
 	ctx        *Context
 	fset       *token.FileSet
 	pkg        *ssa.Package
-	frame      *frame        // last frame
-	pc         int           // last pc
-	fsInit     *fnState      // func init
-	fsMain     *fnState      // func main
-	imports    []string      // import lines
-	globals    []string      // global var/func/type
-	infuncs    []string      // in main func
-	source     string        // all source
-	lastDump   []interface{} // last __gossa_repl_dump__
+	frame      *frame   // last frame
+	pc         int      // last pc
+	fsInit     *fnState // func init
+	fsMain     *fnState // func main
+	imports    []string // import lines
+	globals    []string // global var/func/type
+	infuncs    []string // in main func
+	source     string   // all source
+	lastDump   []string // last __gossa_repl_dump__
 	globalMap  map[string]interface{}
 	lastInterp *Interp
+}
+
+func toDump(i []interface{}) (dump []string) {
+	for _, v := range i {
+		dump = append(dump, fmt.Sprintf("%v", v))
+	}
+	return
 }
 
 func NewRepl(ctx *Context) *Repl {
@@ -46,29 +53,23 @@ func NewRepl(ctx *Context) *Repl {
 		globalMap: make(map[string]interface{}),
 	}
 	ctx.evalMode = true
+
 	ctx.SetOverrideFunction("main.__gossa_repl_dump__", func(v ...interface{}) {
-		r.lastDump = v
+		r.lastDump = toDump(v)
 	})
 	ctx.evalCallFn = func(call *ssa.Call, res ...interface{}) {
 		if strings.HasPrefix(call.Call.Value.Name(), "__gossa_repl_") {
 			return
 		}
-		r.lastDump = res
+		r.lastDump = toDump(res)
 	}
 	return r
 }
 
-func (r *Repl) Eval(expr string) (v interface{}, err error) {
+func (r *Repl) Eval(expr string) (dump []string, err error) {
 	r.lastDump = nil
 	err = r.eval(expr)
-	switch len(r.lastDump) {
-	case 0:
-		return nil, err
-	case 1:
-		return r.lastDump[0], err
-	default:
-		return r.lastDump, err
-	}
+	return r.lastDump, err
 }
 
 func (r *Repl) Source() string {
