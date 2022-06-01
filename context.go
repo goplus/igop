@@ -55,6 +55,7 @@ type Context struct {
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
 	evalMode    bool
+	evalCallFn  func(call *ssa.Call, res ...interface{})
 }
 
 // NewContext create a new Context

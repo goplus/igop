@@ -46,9 +46,15 @@ func NewRepl(ctx *Context) *Repl {
 		globalMap: make(map[string]interface{}),
 	}
 	ctx.evalMode = true
-	ctx.SetOverrideFunction("main.__gossa_repl_dump__", func(v interface{}) {
-		r.lastDump = append(r.lastDump, v)
+	ctx.SetOverrideFunction("main.__gossa_repl_dump__", func(v ...interface{}) {
+		r.lastDump = v
 	})
+	ctx.evalCallFn = func(call *ssa.Call, res ...interface{}) {
+		if strings.HasPrefix(call.Call.Value.Name(), "__gossa_repl_") {
+			return
+		}
+		r.lastDump = res
+	}
 	return r
 }
 
@@ -80,7 +86,8 @@ func (r *Repl) buildSource(globals string, infuncs string) string {
 	}
 	return fmt.Sprintf(`package main
 %v
-func __gossa_repl_dump__(v interface{}){}
+func __gossa_repl_used__(v interface{}){}
+func __gossa_repl_dump__(v ...interface{}){}
 %v
 func main() {
 	%v
@@ -131,7 +138,8 @@ func (r *Repl) eval(expr string) (err error) {
 			}
 			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
-				fixed = append(fixed, "func(){__gossa_repl_dump__("+v+")}()")
+				fixed = append(fixed, "__gossa_repl_used__(&"+v+")")
+				fixed = append(fixed, "__gossa_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
 				expr = "__gossa_repl_dump__(" + expr + ")"
 			} else {
