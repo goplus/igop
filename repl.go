@@ -76,14 +76,17 @@ func (r *Repl) Source() string {
 	return r.source
 }
 
-func (r *Repl) buildSource(globals string, infuncs string) string {
+func (r *Repl) buildSource(expr string, tok token.Token) string {
+	v0 := strings.Join(r.imports, "\n")
 	v1 := strings.Join(r.globals, "\n")
-	if globals != "" {
-		v1 += "\n" + globals
-	}
 	v2 := strings.Join(r.infuncs, "\n")
-	if infuncs != "" {
-		v2 += "\n" + infuncs
+	switch tok {
+	case token.IMPORT:
+		v0 += "\n" + expr
+	case token.CONST, token.VAR, token.TYPE, token.FUNC:
+		v1 += "\n" + expr
+	default:
+		v2 += "\n" + expr
 	}
 	return fmt.Sprintf(`package main
 %v
@@ -93,7 +96,7 @@ func __gossa_repl_dump__(v ...interface{}){}
 func main() {
 	%v
 }
-`, strings.Join(r.imports, "\n"), v1, v2)
+`, v0, v1, v2)
 }
 
 func (r *Repl) eval(expr string) (err error) {
@@ -105,7 +108,7 @@ func (r *Repl) eval(expr string) (err error) {
 		// skip package
 		return nil
 	case token.IMPORT:
-		src = "package main;" + expr
+		src = r.buildSource(expr, tok)
 		errors, err := r.check("main.gop", src)
 		if err != nil {
 			return err
@@ -116,7 +119,7 @@ func (r *Repl) eval(expr string) (err error) {
 		r.imports = append(r.imports, expr)
 		return nil
 	case token.CONST, token.FUNC, token.TYPE, token.VAR:
-		src = r.buildSource(expr, "")
+		src = r.buildSource(expr, tok)
 		errors, err := r.check("main.gop", src)
 		if err != nil {
 			return err
@@ -126,7 +129,7 @@ func (r *Repl) eval(expr string) (err error) {
 		}
 	default:
 		inMain = true
-		src = r.buildSource("", expr)
+		src = r.buildSource(expr, tok)
 		errors, err := r.check("main.gop", src)
 		if err != nil {
 			return err
@@ -150,7 +153,7 @@ func (r *Repl) eval(expr string) (err error) {
 		if len(fixed) != 0 {
 			expr += "\n" + strings.Join(fixed, "\n")
 		}
-		src = r.buildSource("", expr)
+		src = r.buildSource(expr, tok)
 	}
 	dst, err := format.Source([]byte(src))
 	if err != nil {
