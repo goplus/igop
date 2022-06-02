@@ -3,7 +3,6 @@ package gossa
 import (
 	"fmt"
 	"go/ast"
-	"go/format"
 	"go/scanner"
 	"go/token"
 	"go/types"
@@ -155,11 +154,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		}
 		src = r.buildSource(expr, tok)
 	}
-	dst, err := format.Source([]byte(src))
-	if err != nil {
-		return err
-	}
-	r.pkg, err = r.ctx.LoadFile(r.fset, "main.gop", dst)
+	r.pkg, err = r.ctx.LoadFile(r.fset, "main.gop", src)
 	if err != nil {
 		return err
 	}
@@ -217,11 +212,12 @@ func (repl *Repl) run() error {
 		repl.fsInit.pc--
 	}
 	rmain, err := repl.runFunc(i, "main", repl.fsMain)
-	if err == nil {
-		repl.fsMain = rmain
-		for k, v := range i.globals {
-			repl.globalMap[k.String()] = v
-		}
+	if err != nil {
+		return err
+	}
+	repl.fsMain = rmain
+	for k, v := range i.globals {
+		repl.globalMap[k.String()] = v
 	}
 	return nil
 }
