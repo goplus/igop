@@ -66,10 +66,11 @@ func NewRepl(ctx *Context) *Repl {
 	return r
 }
 
-func (r *Repl) Eval(expr string) (dump []string, err error) {
+func (r *Repl) Eval(expr string) (tok token.Token, dump []string, err error) {
 	r.lastDump = nil
-	err = r.eval(expr)
-	return r.lastDump, err
+	tok = r.firstToken(expr)
+	err = r.eval(tok, expr)
+	return tok, r.lastDump, err
 }
 
 func (r *Repl) Source() string {
@@ -99,8 +100,7 @@ func main() {
 `, v0, v1, v2)
 }
 
-func (r *Repl) eval(expr string) (err error) {
-	tok := r.firstToken(expr)
+func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	var src string
 	var inMain bool
 	switch tok {

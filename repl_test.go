@@ -2,6 +2,7 @@ package gossa_test
 
 import (
 	"fmt"
+	"go/token"
 	"testing"
 
 	"github.com/goplus/gossa"
@@ -21,7 +22,7 @@ func TestReplExpr(t *testing.T) {
 		`[3]`,
 	}
 	for i, expr := range list {
-		v, err := repl.Eval(expr)
+		_, v, err := repl.Eval(expr)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -49,7 +50,7 @@ func TestReplImports(t *testing.T) {
 		`[1-2]`,
 	}
 	for i, expr := range list {
-		v, err := repl.Eval(expr)
+		_, v, err := repl.Eval(expr)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -77,7 +78,7 @@ func TestReplClosure(t *testing.T) {
 		`[3]`,
 	}
 	for i, expr := range list {
-		v, err := repl.Eval(expr)
+		_, v, err := repl.Eval(expr)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -112,7 +113,7 @@ func TestReplVar(t *testing.T) {
 		`[100]`,
 	}
 	for i, expr := range list {
-		v, err := repl.Eval(expr)
+		_, v, err := repl.Eval(expr)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -152,7 +153,7 @@ func TestReplType(t *testing.T) {
 		`[10-20]`,
 	}
 	for i, expr := range list {
-		v, err := repl.Eval(expr)
+		_, v, err := repl.Eval(expr)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -185,7 +186,7 @@ func TestReplFunc(t *testing.T) {
 		`[6 <nil>]`,
 	}
 	for i, expr := range list {
-		v, err := repl.Eval(expr)
+		_, v, err := repl.Eval(expr)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -194,6 +195,38 @@ func TestReplFunc(t *testing.T) {
 		}
 		if fmt.Sprint(v) != result[i] {
 			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
+		}
+	}
+}
+
+func TestReplTok(t *testing.T) {
+	ctx := gossa.NewContext(0)
+	repl := gossa.NewRepl(ctx)
+	list := []string{
+		`a := "hello"`,
+		`import "fmt"`,
+		`var c int`,
+		`const d = 100`,
+		`func test(v int) {}`,
+		`fmt.Println(a)`,
+		`type T int`,
+	}
+	toks := []token.Token{
+		token.IDENT,
+		token.IMPORT,
+		token.VAR,
+		token.CONST,
+		token.FUNC,
+		token.IDENT,
+		token.TYPE,
+	}
+	for i, expr := range list {
+		tok, _, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if tok != toks[i] {
+			t.Fatalf("expr:%v token:%v", expr, tok)
 		}
 	}
 }
