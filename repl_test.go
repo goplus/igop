@@ -230,3 +230,38 @@ func TestReplTok(t *testing.T) {
 		}
 	}
 }
+
+func TestReplInit(t *testing.T) {
+	ctx := gossa.NewContext(0)
+	repl := gossa.NewRepl(ctx)
+	list := []string{
+		`var i int = 10`,
+		`var j int = 20`,
+		`func init() { i++ }`,
+		`func init() { j++ }`,
+		`var c int`,
+		`i`,
+		`j`,
+	}
+	result := []string{
+		`-`,
+		`-`,
+		`-`,
+		`-`,
+		`-`,
+		`[11]`,
+		`[21]`,
+	}
+	for i, expr := range list {
+		_, v, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if result[i] == "-" {
+			continue
+		}
+		if fmt.Sprint(v) != result[i] {
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
+		}
+	}
+}

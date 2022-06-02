@@ -54,7 +54,8 @@ type Context struct {
 	override    map[string]reflect.Value // override function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
-	evalMode    bool
+	evalMode    bool                     // eval mode
+	evalInit    map[string]bool          // eval init check
 	evalCallFn  func(call *ssa.Call, res ...interface{})
 }
 

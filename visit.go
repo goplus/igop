@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"log"
 	"reflect"
+	"strings"
 
 	"golang.org/x/tools/go/ssa"
 )
@@ -156,10 +157,19 @@ func (visit *visitor) function(fn *ssa.Function) {
 			if ifn == nil {
 				continue
 			}
-			if visit.intp.ctx.evalCallFn != nil {
-				switch instr.(type) {
-				case *ssa.Call:
+			if visit.intp.ctx.evalMode && fn.String() == "main.init" {
+				if call, ok := instr.(*ssa.Call); ok {
+					key := call.String()
+					if strings.HasPrefix(key, "init#") {
+						if visit.intp.ctx.evalInit[key] {
+							ifn = func(fr *frame) {}
+						} else {
+							visit.intp.ctx.evalInit[key] = true
+						}
+					}
 				}
+			}
+			if visit.intp.ctx.evalCallFn != nil {
 				if call, ok := instr.(*ssa.Call); ok {
 					ir := pfn.regIndex(call)
 					results := call.Call.Signature().Results()

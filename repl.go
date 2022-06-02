@@ -53,6 +53,7 @@ func NewRepl(ctx *Context) *Repl {
 		globalMap: make(map[string]interface{}),
 	}
 	ctx.evalMode = true
+	ctx.evalInit = make(map[string]bool)
 
 	ctx.SetOverrideFunction("main.__gossa_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
