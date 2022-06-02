@@ -8,5 +8,5 @@ import (
 )
 
 func init() {
-	welcome = "Welcome to Go+ REPL!"
+	supportGoplus = true
 }

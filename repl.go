@@ -36,6 +36,7 @@ type Repl struct {
 	lastDump   []string // last __gossa_repl_dump__
 	globalMap  map[string]interface{}
 	lastInterp *Interp
+	fileName   string
 }
 
 func toDump(i []interface{}) (dump []string) {
@@ -63,6 +64,10 @@ func NewRepl(ctx *Context) *Repl {
 		r.lastDump = toDump(res)
 	}
 	return r
+}
+
+func (r *Repl) SetFileName(filename string) {
+	r.fileName = filename
 }
 
 func (r *Repl) Eval(expr string) (tok token.Token, dump []string, err error) {
@@ -108,7 +113,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		return nil
 	case token.IMPORT:
 		src = r.buildSource(expr, tok)
-		errors, err := r.check("main.gop", src)
+		errors, err := r.check(r.fileName, src)
 		if err != nil {
 			return err
 		}
@@ -119,7 +124,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		return nil
 	case token.CONST, token.FUNC, token.TYPE, token.VAR:
 		src = r.buildSource(expr, tok)
-		errors, err := r.check("main.gop", src)
+		errors, err := r.check(r.fileName, src)
 		if err != nil {
 			return err
 		}
@@ -129,7 +134,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	default:
 		inMain = true
 		src = r.buildSource(expr, tok)
-		errors, err := r.check("main.gop", src)
+		errors, err := r.check(r.fileName, src)
 		if err != nil {
 			return err
 		}
@@ -154,7 +159,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		}
 		src = r.buildSource(expr, tok)
 	}
-	r.pkg, err = r.ctx.LoadFile(r.fset, "main.gop", src)
+	r.pkg, err = r.ctx.LoadFile(r.fset, r.fileName, src)
 	if err != nil {
 		return err
 	}
@@ -176,7 +181,7 @@ const (
 )
 
 func (r *Repl) check(filename string, src interface{}) (errors []error, err error) {
-	file, err := r.ctx.ParseFile(r.fset, "main.gop", src)
+	file, err := r.ctx.ParseFile(r.fset, filename, src)
 	if err != nil {
 		return nil, err
 	}

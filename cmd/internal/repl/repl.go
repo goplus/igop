@@ -16,8 +16,15 @@ var Cmd = &base.Command{
 	Short:     "gossa repl mode",
 }
 
+var (
+	flag          = &Cmd.Flag
+	flagDumpInstr bool
+	flagGoplus    bool
+)
+
 func init() {
 	Cmd.Run = runCmd
+	flag.BoolVar(&flagGoplus, "gop", true, "support goplus")
 }
 
 // LinerUI implements repl.UI interface.
@@ -37,11 +44,22 @@ func (u *LinerUI) Printf(format string, a ...interface{}) {
 }
 
 var (
-	welcome string = "Welcome to Go REPL!"
+	welcomeGo  string = "Welcome to Go REPL!"
+	welcomeGop string = "Welcome to Go+ REPL!"
+)
+
+var (
+	supportGoplus bool
 )
 
 func runCmd(cmd *base.Command, args []string) {
-	fmt.Println(welcome)
+	flag.Parse(args)
+
+	if supportGoplus && flagGoplus {
+		fmt.Println(welcomeGop)
+	} else {
+		fmt.Println(welcomeGo)
+	}
 
 	state := liner.NewLiner()
 	defer state.Close()
@@ -51,6 +69,9 @@ func runCmd(cmd *base.Command, args []string) {
 	ui := &LinerUI{state: state}
 	r := repl.NewREPL()
 	r.SetUI(ui)
+	if supportGoplus && flagGoplus {
+		r.SetFileName("main.gop")
+	}
 	for {
 		line, err := ui.state.Prompt(ui.prompt)
 		if err != nil {

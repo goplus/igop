@@ -47,6 +47,10 @@ func (r *REPL) IsNormal() bool {
 	return r.more == ""
 }
 
+func (r *REPL) SetFileName(filename string) {
+	r.repl.SetFileName(filename)
+}
+
 func (r *REPL) Run(line string) {
 	var expr string
 	if r.more != "" {
