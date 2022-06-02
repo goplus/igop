@@ -50,7 +50,8 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 	if len(args) < 1 {
-		base.Usage()
+		//base.Usage()
+		args = []string{"repl"}
 	}
 
 	base.CmdName = args[0] // for error messages
