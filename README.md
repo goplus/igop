@@ -32,6 +32,13 @@ gossa run         # interpret package
 gossa test        # test package
 ```
 
+### gossa repl mode
+```
+gossa                       # run repl mode, support Go/Go+
+gossa repl                  # run repl mode, support Go/Go+
+gossa repl -gop=false       # run repl mode, disable Go+ syntax
+```
+
 ### gossa package
 
 **run go source**
