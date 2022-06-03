@@ -3,8 +3,8 @@ module github.com/goplus/gossa
 go 1.14
 
 require (
-	github.com/goplus/gop v1.1.0-rc1
-	github.com/goplus/gox v1.11.7
+	github.com/goplus/gop v1.1.0-alpha1.0.20220603113329-36a13b025cc0 // indirect
+	github.com/goplus/gox v1.11.8
 	github.com/goplus/reflectx v0.8.10
 	github.com/peterh/liner v1.2.2
 	github.com/petermattis/goid v0.0.0-20220331194723-8ee3e6ded87a

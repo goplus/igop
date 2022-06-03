@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/goplus/gossa"
 	"github.com/goplus/gossa/cmd/internal/base"
 	_ "github.com/goplus/gossa/pkg"
 	"github.com/goplus/gossa/repl"
@@ -18,13 +19,16 @@ var Cmd = &base.Command{
 
 var (
 	flag          = &Cmd.Flag
-	flagDumpInstr bool
 	flagGoplus    bool
+	flagDumpInstr bool
+	flagTrace     bool
 )
 
 func init() {
 	Cmd.Run = runCmd
 	flag.BoolVar(&flagGoplus, "gop", true, "support goplus")
+	flag.BoolVar(&flagDumpInstr, "dump", false, "dump SSA instruction code")
+	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
 }
 
 // LinerUI implements repl.UI interface.
@@ -54,7 +58,6 @@ var (
 
 func runCmd(cmd *base.Command, args []string) {
 	flag.Parse(args)
-
 	if supportGoplus && flagGoplus {
 		fmt.Println(welcomeGop)
 	} else {
@@ -67,7 +70,14 @@ func runCmd(cmd *base.Command, args []string) {
 	// state.SetCtrlCAborts(true)
 	state.SetMultiLineMode(true)
 	ui := &LinerUI{state: state}
-	r := repl.NewREPL()
+	var mode gossa.Mode
+	if flagDumpInstr {
+		mode |= gossa.EnableDumpInstr
+	}
+	if flagTrace {
+		mode |= gossa.EnableTracing
+	}
+	r := repl.NewREPL(mode)
 	r.SetUI(ui)
 	if supportGoplus && flagGoplus {
 		r.SetFileName("main.gop")

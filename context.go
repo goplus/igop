@@ -59,6 +59,10 @@ type Context struct {
 	evalCallFn  func(call *ssa.Call, res ...interface{})
 }
 
+func (c *Context) IsEvalMode() bool {
+	return c.evalMode
+}
+
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{

@@ -25,8 +25,8 @@ type REPL struct {
 	more string
 }
 
-func NewREPL() *REPL {
-	ctx := gossa.NewContext(0)
+func NewREPL(mode gossa.Mode) *REPL {
+	ctx := gossa.NewContext(mode)
 	repl := gossa.NewRepl(ctx)
 	return &REPL{
 		repl: repl,
