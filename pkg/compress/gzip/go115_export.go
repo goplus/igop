@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "gzip",
 		Path: "compress/gzip",
 		Deps: map[string]string{
@@ -28,7 +28,7 @@ func init() {
 			"time":            "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Header": {reflect.TypeOf((*q.Header)(nil)).Elem(), "", ""},
 			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Close,Multistream,Read,Reset,readHeader,readString"},
 			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Flush,Reset,Write,init,writeBytes,writeString"},
@@ -43,8 +43,8 @@ func init() {
 			"NewWriter":      reflect.ValueOf(q.NewWriter),
 			"NewWriterLevel": reflect.ValueOf(q.NewWriterLevel),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"BestCompression":    {"untyped int", constant.MakeInt64(int64(q.BestCompression))},
 			"BestSpeed":          {"untyped int", constant.MakeInt64(int64(q.BestSpeed))},
 			"DefaultCompression": {"untyped int", constant.MakeInt64(int64(q.DefaultCompression))},

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "testing",
 		Path: "testing",
 		Deps: map[string]string{
@@ -43,7 +43,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"TB": reflect.TypeOf((*q.TB)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"B":                 {reflect.TypeOf((*q.B)(nil)).Elem(), "", "ReportAllocs,ReportMetric,ResetTimer,Run,RunParallel,SetBytes,SetParallelism,StartTimer,StopTimer,add,doBench,launch,run,run1,runN,trimOutput"},
 			"BenchmarkResult":   {reflect.TypeOf((*q.BenchmarkResult)(nil)).Elem(), "AllocedBytesPerOp,AllocsPerOp,MemString,NsPerOp,String,mbPerSec", ""},
 			"Cover":             {reflect.TypeOf((*q.Cover)(nil)).Elem(), "", ""},
@@ -72,7 +72,7 @@ func init() {
 			"Short":         reflect.ValueOf(q.Short),
 			"Verbose":       reflect.ValueOf(q.Verbose),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

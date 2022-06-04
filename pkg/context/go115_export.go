@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "context",
 		Path: "context",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Context": reflect.TypeOf((*q.Context)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CancelFunc": {reflect.TypeOf((*q.CancelFunc)(nil)).Elem(), "", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -42,7 +42,7 @@ func init() {
 			"WithTimeout":  reflect.ValueOf(q.WithTimeout),
 			"WithValue":    reflect.ValueOf(q.WithValue),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

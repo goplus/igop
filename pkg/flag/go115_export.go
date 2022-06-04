@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "flag",
 		Path: "flag",
 		Deps: map[string]string{
@@ -32,7 +32,7 @@ func init() {
 			"Getter": reflect.TypeOf((*q.Getter)(nil)).Elem(),
 			"Value":  reflect.TypeOf((*q.Value)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ErrorHandling": {reflect.TypeOf((*q.ErrorHandling)(nil)).Elem(), "", ""},
 			"Flag":          {reflect.TypeOf((*q.Flag)(nil)).Elem(), "", ""},
 			"FlagSet":       {reflect.TypeOf((*q.FlagSet)(nil)).Elem(), "", "Arg,Args,Bool,BoolVar,Duration,DurationVar,ErrorHandling,Float64,Float64Var,Init,Int,Int64,Int64Var,IntVar,Lookup,NArg,NFlag,Name,Output,Parse,Parsed,PrintDefaults,Set,SetOutput,String,StringVar,Uint,Uint64,Uint64Var,UintVar,Var,Visit,VisitAll,defaultUsage,failf,parseOne,usage"},
@@ -75,11 +75,11 @@ func init() {
 			"Visit":         reflect.ValueOf(q.Visit),
 			"VisitAll":      reflect.ValueOf(q.VisitAll),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ContinueOnError": {reflect.TypeOf(q.ContinueOnError), constant.MakeInt64(int64(q.ContinueOnError))},
 			"ExitOnError":     {reflect.TypeOf(q.ExitOnError), constant.MakeInt64(int64(q.ExitOnError))},
 			"PanicOnError":    {reflect.TypeOf(q.PanicOnError), constant.MakeInt64(int64(q.PanicOnError))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

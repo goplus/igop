@@ -49,17 +49,17 @@ type Command struct {
 	Commands []*Command
 }
 
-// gossa command
-var Gossa = &Command{
-	UsageLine: "gossa",
-	Short:     `gossa is a SSA interpreter of Go source code.`,
+// igop command
+var Igop = &Command{
+	UsageLine: "igop",
+	Short:     `igop is a SSA interpreter of Go source code.`,
 	// Commands initialized in package main
 }
 
 // LongName returns the command's long name: all the words in the usage line between "gop" and a flag or argument,
 func (c *Command) LongName() string {
 	name := c.UsageLine
-	name = strings.TrimPrefix(name, "gossa ")
+	name = strings.TrimPrefix(name, "igop ")
 	if i := strings.Index(name, " "); i >= 0 {
 		name = name[:i]
 	}

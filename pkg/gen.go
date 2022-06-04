@@ -82,7 +82,7 @@ func main() {
 }
 
 func makepkg(fname string, tags []string, std []string) error {
-	//_ github.com/goplus/gossa/pkg
+	//_ github.com/goplus/igop/pkg
 	var pkgs []string
 	for _, v := range std {
 		if strings.HasPrefix(v, "testing") {
@@ -91,9 +91,9 @@ func makepkg(fname string, tags []string, std []string) error {
 		if v == "log/syslog" {
 			continue
 		}
-		pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/gossa/pkg/%v"`, v))
+		pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/igop/pkg/%v"`, v))
 	}
-	pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/gossa/pkg/syscall"`))
+	pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/igop/pkg/syscall"`))
 	r := strings.NewReplacer("$TAGS", strings.Join(tags, "\n"), "$PKGS", strings.Join(pkgs, "\t\n"))
 	src := r.Replace(tmpl)
 	data, err := format.Source([]byte(src))

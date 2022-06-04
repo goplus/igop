@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gossa_test
+package igop_test
 
 // This test runs the SSA interpreter over sample Go programs.
 // Because the interpreter requires intrinsics for assembly
@@ -26,20 +26,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goplus/gossa"
-	_ "github.com/goplus/gossa/pkg/bytes"
-	_ "github.com/goplus/gossa/pkg/errors"
-	_ "github.com/goplus/gossa/pkg/fmt"
-	_ "github.com/goplus/gossa/pkg/math"
-	_ "github.com/goplus/gossa/pkg/os"
-	_ "github.com/goplus/gossa/pkg/reflect"
-	_ "github.com/goplus/gossa/pkg/runtime"
-	_ "github.com/goplus/gossa/pkg/strings"
-	_ "github.com/goplus/gossa/pkg/sync"
-	_ "github.com/goplus/gossa/pkg/time"
+	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/pkg/bytes"
+	_ "github.com/goplus/igop/pkg/errors"
+	_ "github.com/goplus/igop/pkg/fmt"
+	_ "github.com/goplus/igop/pkg/math"
+	_ "github.com/goplus/igop/pkg/os"
+	_ "github.com/goplus/igop/pkg/reflect"
+	_ "github.com/goplus/igop/pkg/runtime"
+	_ "github.com/goplus/igop/pkg/strings"
+	_ "github.com/goplus/igop/pkg/sync"
+	_ "github.com/goplus/igop/pkg/time"
 )
 
-// These are files in github.com/goplus/gossa/testdata/.
+// These are files in github.com/goplus/igop/testdata/.
 var testdataTests = []string{
 	"boundmeth.go",
 	"complit.go",
@@ -65,7 +65,7 @@ var testdataTests = []string{
 func runInput(t *testing.T, input string) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
-	_, err := gossa.Run(input, nil, 0)
+	_, err := igop.Run(input, nil, 0)
 	sec := time.Since(start).Seconds()
 	if err != nil {
 		t.Error(err)
@@ -115,14 +115,14 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestOverrideFunction(t *testing.T) {
-	ctx := gossa.NewContext(0)
+	ctx := igop.NewContext(0)
 	ctx.SetOverrideFunction("main.call", func(i, j int) int {
 		return i * j
 	})
@@ -160,7 +160,7 @@ func main() {
 	os.Exit(-2)
 }
 `
-	code, err := gossa.RunFile("main.go", src, nil, 0)
+	code, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +229,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +268,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,7 +287,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -326,7 +326,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -362,7 +362,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -416,7 +416,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -439,7 +439,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -536,7 +536,7 @@ true
 (0x0,0x0)
 (0x0,0x0)
 `
-	ctx := gossa.NewContext(0)
+	ctx := igop.NewContext(0)
 	var buf bytes.Buffer
 	ctx.SetPrintOutput(&buf)
 	_, err := ctx.RunFile("main.go", src, nil)
@@ -564,7 +564,7 @@ func TestPanicInfo(t *testing.T) {
 		{`type T string; panic(T("hello"))`, `main.T("hello")`},
 		{`type T struct{}; panic((*T)(nil))`, `(*main.T) 0x0`},
 	}
-	ctx := gossa.NewContext(0)
+	ctx := igop.NewContext(0)
 	for _, info := range infos {
 		src := fmt.Sprintf("package main;func main(){%v}", info.src)
 		code, err := ctx.RunFile("main.go", src, nil)
@@ -584,7 +584,7 @@ func main() {
 	panic(errors.New("error info"))
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
@@ -609,7 +609,7 @@ func main() {
 	panic(errors.New("error info"))
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -627,7 +627,7 @@ func main() {
 	println(T{100,200})
 }
 `
-	ctx := gossa.NewContext(0)
+	ctx := igop.NewContext(0)
 	var buf bytes.Buffer
 	ctx.SetPrintOutput(&buf)
 	_, err := ctx.RunFile("main.go", src, nil)
@@ -637,7 +637,7 @@ func main() {
 	if s := err.Error(); s != "illegal types for operand: print\n\t[2]int" {
 		t.Fatal(s)
 	}
-	ctx.Mode |= gossa.EnablePrintAny
+	ctx.Mode |= igop.EnablePrintAny
 	_, err = ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -676,7 +676,7 @@ func main() {
 	wg.Wait()
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -710,7 +710,7 @@ func main() {
 	wg.Wait()
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -755,7 +755,7 @@ func main() {
 	wg.Wait()
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -875,7 +875,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$int", "="+s, 1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -883,7 +883,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop named", s)
 		src := strings.Replace(tsrc, "$int", s, 1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -970,7 +970,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$float", "="+s, 1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -978,7 +978,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop named", s)
 		src := strings.Replace(tsrc, "$float", s, 1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1050,7 +1050,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$complex", "="+s, 1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1058,7 +1058,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop named", s)
 		src := strings.Replace(tsrc, "$complex", s, 1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1127,13 +1127,13 @@ func check(a, b T) {
 }
 `
 	t.Log("test binop string")
-	_, err := gossa.RunFile("main.go", tsrc, nil, 0)
+	_, err := igop.RunFile("main.go", tsrc, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log("test binop named string")
 	src := strings.Replace(tsrc, "= string", "string", 1)
-	_, err = gossa.RunFile("main.go", src, nil, 0)
+	_, err = igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1174,7 +1174,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", "="+t1, "$T2", "="+t2)
 			src := r.Replace(tsrc)
-			_, err := gossa.RunFile("main.go", src, nil, 0)
+			_, err := igop.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1182,7 +1182,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", "="+t1, "$T2", t2)
 			src := r.Replace(tsrc)
-			_, err := gossa.RunFile("main.go", src, nil, 0)
+			_, err := igop.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1190,7 +1190,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", t1, "$T2", "="+t2)
 			src := r.Replace(tsrc)
-			_, err := gossa.RunFile("main.go", src, nil, 0)
+			_, err := igop.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1198,7 +1198,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", t1, "$T2", t2)
 			src := r.Replace(tsrc)
-			_, err := gossa.RunFile("main.go", src, nil, 0)
+			_, err := igop.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1232,7 +1232,7 @@ func testConst() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1273,7 +1273,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop sub", s)
 		src := strings.Replace(tsrc, "$int", s, -1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1314,7 +1314,7 @@ func testConst() {
 	}
 	for _, s := range types {
 		src := strings.Replace(tsrc, "$uint", s, -1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1356,7 +1356,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop sub", s)
 		src := strings.Replace(tsrc, "$float", s, -1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1398,7 +1398,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop sub", s)
 		src := strings.Replace(tsrc, "$complex", s, -1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1441,7 +1441,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop xor", s)
 		src := strings.Replace(tsrc, "$int", s, -1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1484,7 +1484,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop xor", s)
 		src := strings.Replace(tsrc, "$uint", s, -1)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1578,7 +1578,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1735,7 +1735,7 @@ func testInterface() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1775,7 +1775,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "10")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1785,7 +1785,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "100.5")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1795,7 +1795,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "1+2i")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1804,7 +1804,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", "bool")
 		r := strings.NewReplacer("$int", "bool", "$value", "true")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1813,7 +1813,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", "string")
 		r := strings.NewReplacer("$int", "string", "$value", `"hello"`)
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1979,7 +1979,7 @@ func test2(n T) {
 		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$int", s, "$V", "100", "$N", "100", "$F", "100")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1988,7 +1988,7 @@ func test2(n T) {
 		t.Log("test convert typed", s)
 		r := strings.NewReplacer("= $int", s, "$V", "100", "$N", "100", "$F", "100")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1997,7 +1997,7 @@ func test2(n T) {
 		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$int", s, "$V", "100.5", "$N", "100", "$F", "100.5")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2006,7 +2006,7 @@ func test2(n T) {
 		t.Log("test convert typed", s)
 		r := strings.NewReplacer("= $int", s, "$V", "100.5", "$N", "100", "$F", "100.5")
 		src := r.Replace(tsrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2015,7 +2015,7 @@ func test2(n T) {
 		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$complex", s, "$N", "1+2i")
 		src := r.Replace(csrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2024,7 +2024,7 @@ func test2(n T) {
 		t.Log("test convert typed", s)
 		r := strings.NewReplacer("= $complex", s, "$N", "1+2i")
 		src := r.Replace(csrc)
-		_, err := gossa.RunFile("main.go", src, nil, 0)
+		_, err := igop.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2089,7 +2089,7 @@ true
 false
 true
 `
-	ctx := gossa.NewContext(0)
+	ctx := igop.NewContext(0)
 	var buf bytes.Buffer
 	ctx.SetPrintOutput(&buf)
 	_, err := ctx.RunFile("main.go", src, nil)
@@ -2117,11 +2117,11 @@ func main() {
 	os.Exit(-2)
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
-	if err.Error() != gossa.ErrGoexitDeadlock.Error() {
+	if err.Error() != igop.ErrGoexitDeadlock.Error() {
 		t.Fatal(err)
 	}
 }
@@ -2138,7 +2138,7 @@ func main() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2151,12 +2151,12 @@ func main() {
 	dump_info(typeof("hello"))
 }
 `
-	gossa.RegisterCustomBuiltin("typeof", reflect.TypeOf)
+	igop.RegisterCustomBuiltin("typeof", reflect.TypeOf)
 	var info interface{}
-	gossa.RegisterCustomBuiltin("dump_info", func(v interface{}) {
+	igop.RegisterCustomBuiltin("dump_info", func(v interface{}) {
 		info = v
 	})
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		panic(err)
 	}

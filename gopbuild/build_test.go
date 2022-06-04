@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 var test_gop = `println "Go+"`
@@ -19,7 +19,7 @@ func main() {
 `
 
 func TestGop(t *testing.T) {
-	ctx := gossa.NewContext(0)
+	ctx := igop.NewContext(0)
 	data, err := BuildFile(ctx, "main.gop", test_gop)
 	if err != nil {
 		t.Fatalf("build gop error: %v", err)
@@ -51,7 +51,7 @@ func main() {
 `
 
 func TestBig(t *testing.T) {
-	ctx := gossa.NewContext(0)
+	ctx := igop.NewContext(0)
 	data, err := BuildFile(ctx, "main.gop", test_big)
 	if err != nil {
 		t.Fatalf("build gop error: %v", err)

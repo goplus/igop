@@ -7,12 +7,12 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/goplus/gossa"
-	"github.com/goplus/gossa/gopbuild"
+	"github.com/goplus/igop"
+	"github.com/goplus/igop/gopbuild"
 )
 
 func init() {
-	fnGopBuildDir = func(ctx *gossa.Context, path string) error {
+	fnGopBuildDir = func(ctx *igop.Context, path string) error {
 		data, err := gopbuild.BuildDir(ctx, path)
 		if err != nil {
 			return err

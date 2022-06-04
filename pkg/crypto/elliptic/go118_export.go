@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "elliptic",
 		Path: "crypto/elliptic",
 		Deps: map[string]string{
@@ -28,7 +28,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Curve": reflect.TypeOf((*q.Curve)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CurveParams": {reflect.TypeOf((*q.CurveParams)(nil)).Elem(), "", "Add,Double,IsOnCurve,Params,ScalarBaseMult,ScalarMult,addJacobian,affineFromJacobian,doubleJacobian,polynomial"},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -44,7 +44,7 @@ func init() {
 			"Unmarshal":           reflect.ValueOf(q.Unmarshal),
 			"UnmarshalCompressed": reflect.ValueOf(q.UnmarshalCompressed),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

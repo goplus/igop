@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "http",
 		Path: "net/http",
 		Deps: map[string]string{
@@ -73,7 +73,7 @@ func init() {
 			"ResponseWriter": reflect.TypeOf((*q.ResponseWriter)(nil)).Elem(),
 			"RoundTripper":   reflect.TypeOf((*q.RoundTripper)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Client":        {reflect.TypeOf((*q.Client)(nil)).Elem(), "", "CloseIdleConnections,Do,Get,Head,Post,PostForm,checkRedirect,deadline,do,makeHeadersCopier,send,transport"},
 			"ConnState":     {reflect.TypeOf((*q.ConnState)(nil)).Elem(), "String", ""},
 			"Cookie":        {reflect.TypeOf((*q.Cookie)(nil)).Elem(), "", "String"},
@@ -158,7 +158,7 @@ func init() {
 			"StripPrefix":           reflect.ValueOf(q.StripPrefix),
 			"TimeoutHandler":        reflect.ValueOf(q.TimeoutHandler),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"SameSiteDefaultMode": {reflect.TypeOf(q.SameSiteDefaultMode), constant.MakeInt64(int64(q.SameSiteDefaultMode))},
 			"SameSiteLaxMode":     {reflect.TypeOf(q.SameSiteLaxMode), constant.MakeInt64(int64(q.SameSiteLaxMode))},
 			"SameSiteNoneMode":    {reflect.TypeOf(q.SameSiteNoneMode), constant.MakeInt64(int64(q.SameSiteNoneMode))},
@@ -169,7 +169,7 @@ func init() {
 			"StateIdle":           {reflect.TypeOf(q.StateIdle), constant.MakeInt64(int64(q.StateIdle))},
 			"StateNew":            {reflect.TypeOf(q.StateNew), constant.MakeInt64(int64(q.StateNew))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"DefaultMaxHeaderBytes":               {"untyped int", constant.MakeInt64(int64(q.DefaultMaxHeaderBytes))},
 			"DefaultMaxIdleConnsPerHost":          {"untyped int", constant.MakeInt64(int64(q.DefaultMaxIdleConnsPerHost))},
 			"MethodConnect":                       {"untyped string", constant.MakeString(string(q.MethodConnect))},

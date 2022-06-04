@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "dwarf",
 		Path: "debug/dwarf",
 		Deps: map[string]string{
@@ -31,7 +31,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Type": reflect.TypeOf((*q.Type)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"AddrType":        {reflect.TypeOf((*q.AddrType)(nil)).Elem(), "", ""},
 			"ArrayType":       {reflect.TypeOf((*q.ArrayType)(nil)).Elem(), "", "Size,String"},
 			"Attr":            {reflect.TypeOf((*q.Attr)(nil)).Elem(), "GoString,String", ""},
@@ -76,7 +76,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"New": reflect.ValueOf(q.New),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"AttrAbstractOrigin":        {reflect.TypeOf(q.AttrAbstractOrigin), constant.MakeInt64(int64(q.AttrAbstractOrigin))},
 			"AttrAccessibility":         {reflect.TypeOf(q.AttrAccessibility), constant.MakeInt64(int64(q.AttrAccessibility))},
 			"AttrAddrBase":              {reflect.TypeOf(q.AttrAddrBase), constant.MakeInt64(int64(q.AttrAddrBase))},
@@ -288,6 +288,6 @@ func init() {
 			"TagVolatileType":           {reflect.TypeOf(q.TagVolatileType), constant.MakeInt64(int64(q.TagVolatileType))},
 			"TagWithStmt":               {reflect.TypeOf(q.TagWithStmt), constant.MakeInt64(int64(q.TagWithStmt))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

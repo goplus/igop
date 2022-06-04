@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "token",
 		Path: "go/token",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"File":     {reflect.TypeOf((*q.File)(nil)).Elem(), "", "AddLine,AddLineColumnInfo,AddLineInfo,Base,Line,LineCount,LineStart,MergeLine,Name,Offset,Pos,Position,PositionFor,SetLines,SetLinesForContent,Size,position,unpack"},
 			"FileSet":  {reflect.TypeOf((*q.FileSet)(nil)).Elem(), "", "AddFile,Base,File,Iterate,Position,PositionFor,Read,Write,file"},
 			"Pos":      {reflect.TypeOf((*q.Pos)(nil)).Elem(), "IsValid", ""},
@@ -42,7 +42,7 @@ func init() {
 			"Lookup":       reflect.ValueOf(q.Lookup),
 			"NewFileSet":   reflect.ValueOf(q.NewFileSet),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ADD":            {reflect.TypeOf(q.ADD), constant.MakeInt64(int64(q.ADD))},
 			"ADD_ASSIGN":     {reflect.TypeOf(q.ADD_ASSIGN), constant.MakeInt64(int64(q.ADD_ASSIGN))},
 			"AND":            {reflect.TypeOf(q.AND), constant.MakeInt64(int64(q.AND))},
@@ -126,7 +126,7 @@ func init() {
 			"XOR":            {reflect.TypeOf(q.XOR), constant.MakeInt64(int64(q.XOR))},
 			"XOR_ASSIGN":     {reflect.TypeOf(q.XOR_ASSIGN), constant.MakeInt64(int64(q.XOR_ASSIGN))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"HighestPrec": {"untyped int", constant.MakeInt64(int64(q.HighestPrec))},
 			"LowestPrec":  {"untyped int", constant.MakeInt64(int64(q.LowestPrec))},
 			"UnaryPrec":   {"untyped int", constant.MakeInt64(int64(q.UnaryPrec))},

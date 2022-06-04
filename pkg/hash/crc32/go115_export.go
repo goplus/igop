@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "crc32",
 		Path: "hash/crc32",
 		Deps: map[string]string{
@@ -25,7 +25,7 @@ func init() {
 			"unsafe":       "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Table": {reflect.TypeOf((*q.Table)(nil)).Elem(), "", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -40,8 +40,8 @@ func init() {
 			"NewIEEE":      reflect.ValueOf(q.NewIEEE),
 			"Update":       reflect.ValueOf(q.Update),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"Castagnoli": {"untyped int", constant.MakeInt64(int64(q.Castagnoli))},
 			"IEEE":       {"untyped int", constant.MakeInt64(int64(q.IEEE))},
 			"Koopman":    {"untyped int", constant.MakeInt64(int64(q.Koopman))},

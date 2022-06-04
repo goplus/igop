@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "httputil",
 		Path: "net/http/httputil",
 		Deps: map[string]string{
@@ -38,7 +38,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"BufferPool": reflect.TypeOf((*q.BufferPool)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ClientConn":   {reflect.TypeOf((*q.ClientConn)(nil)).Elem(), "", "Close,Do,Hijack,Pending,Read,Write"},
 			"ReverseProxy": {reflect.TypeOf((*q.ReverseProxy)(nil)).Elem(), "", "ServeHTTP,copyBuffer,copyResponse,defaultErrorHandler,flushInterval,getErrorHandler,handleUpgradeResponse,logf,modifyResponse"},
 			"ServerConn":   {reflect.TypeOf((*q.ServerConn)(nil)).Elem(), "", "Close,Hijack,Pending,Read,Write"},
@@ -61,7 +61,7 @@ func init() {
 			"NewServerConn":             reflect.ValueOf(q.NewServerConn),
 			"NewSingleHostReverseProxy": reflect.ValueOf(q.NewSingleHostReverseProxy),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "multipart",
 		Path: "mime/multipart",
 		Deps: map[string]string{
@@ -34,7 +34,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"File": reflect.TypeOf((*q.File)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"FileHeader": {reflect.TypeOf((*q.FileHeader)(nil)).Elem(), "", "Open"},
 			"Form":       {reflect.TypeOf((*q.Form)(nil)).Elem(), "", "RemoveAll"},
 			"Part":       {reflect.TypeOf((*q.Part)(nil)).Elem(), "", "Close,FileName,FormName,Read,parseContentDisposition,populateHeaders"},
@@ -49,7 +49,7 @@ func init() {
 			"NewReader": reflect.ValueOf(q.NewReader),
 			"NewWriter": reflect.ValueOf(q.NewWriter),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

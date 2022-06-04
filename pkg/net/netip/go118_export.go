@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "netip",
 		Path: "net/netip",
 		Deps: map[string]string{
@@ -27,7 +27,7 @@ func init() {
 			"strconv":          "strconv",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Addr":     {reflect.TypeOf((*q.Addr)(nil)).Elem(), "AppendTo,As16,As4,AsSlice,BitLen,Compare,Is4,Is4In6,Is6,IsGlobalUnicast,IsInterfaceLocalMulticast,IsLinkLocalMulticast,IsLinkLocalUnicast,IsLoopback,IsMulticast,IsPrivate,IsUnspecified,IsValid,Less,MarshalBinary,MarshalText,Next,Prefix,Prev,String,StringExpanded,Unmap,WithZone,Zone,appendTo4,appendTo6,hasZone,isZero,lessOrEq,marshalBinaryWithTrailingBytes,string4,string6,v4,v6,v6u16,withoutZone", "UnmarshalBinary,UnmarshalText"},
 			"AddrPort": {reflect.TypeOf((*q.AddrPort)(nil)).Elem(), "Addr,AppendTo,IsValid,MarshalBinary,MarshalText,Port,String,isZero", "UnmarshalBinary,UnmarshalText"},
 			"Prefix":   {reflect.TypeOf((*q.Prefix)(nil)).Elem(), "Addr,AppendTo,Bits,Contains,IsSingleIP,IsValid,MarshalBinary,MarshalText,Masked,Overlaps,String,isZero", "UnmarshalBinary,UnmarshalText"},
@@ -50,7 +50,7 @@ func init() {
 			"ParsePrefix":           reflect.ValueOf(q.ParsePrefix),
 			"PrefixFrom":            reflect.ValueOf(q.PrefixFrom),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

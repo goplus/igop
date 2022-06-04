@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "sync",
 		Path: "sync",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Locker": reflect.TypeOf((*q.Locker)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Cond":      {reflect.TypeOf((*q.Cond)(nil)).Elem(), "", "Broadcast,Signal,Wait"},
 			"Map":       {reflect.TypeOf((*q.Map)(nil)).Elem(), "", "Delete,Load,LoadAndDelete,LoadOrStore,Range,Store,dirtyLocked,missLocked"},
 			"Mutex":     {reflect.TypeOf((*q.Mutex)(nil)).Elem(), "", "Lock,TryLock,Unlock,lockSlow,unlockSlow"},
@@ -40,7 +40,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"NewCond": reflect.ValueOf(q.NewCond),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

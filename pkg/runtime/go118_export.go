@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "runtime",
 		Path: "runtime",
 		Deps: map[string]string{
@@ -33,7 +33,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Error": reflect.TypeOf((*q.Error)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"BlockProfileRecord": {reflect.TypeOf((*q.BlockProfileRecord)(nil)).Elem(), "", ""},
 			"Frame":              {reflect.TypeOf((*q.Frame)(nil)).Elem(), "", ""},
 			"Frames":             {reflect.TypeOf((*q.Frames)(nil)).Elem(), "", "Next"},
@@ -82,11 +82,11 @@ func init() {
 			"UnlockOSThread":          reflect.ValueOf(q.UnlockOSThread),
 			"Version":                 reflect.ValueOf(q.Version),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"GOARCH": {reflect.TypeOf(q.GOARCH), constant.MakeString(string(q.GOARCH))},
 			"GOOS":   {reflect.TypeOf(q.GOOS), constant.MakeString(string(q.GOOS))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"Compiler": {"untyped string", constant.MakeString(string(q.Compiler))},
 		},
 	})

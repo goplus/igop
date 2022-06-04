@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "scanner",
 		Path: "text/scanner",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Position": {reflect.TypeOf((*q.Position)(nil)).Elem(), "String", "IsValid"},
 			"Scanner":  {reflect.TypeOf((*q.Scanner)(nil)).Elem(), "", "Init,Next,Peek,Pos,Scan,TokenText,digits,error,errorf,isIdentRune,next,scanChar,scanComment,scanDigits,scanEscape,scanIdentifier,scanNumber,scanRawString,scanString"},
 		},
@@ -35,8 +35,8 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"TokenString": reflect.ValueOf(q.TokenString),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"Char":           {"untyped int", constant.MakeInt64(int64(q.Char))},
 			"Comment":        {"untyped int", constant.MakeInt64(int64(q.Comment))},
 			"EOF":            {"untyped int", constant.MakeInt64(int64(q.EOF))},

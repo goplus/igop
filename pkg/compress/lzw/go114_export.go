@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "lzw",
 		Path: "compress/lzw",
 		Deps: map[string]string{
@@ -24,7 +24,7 @@ func init() {
 			"io":     "io",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Order": {reflect.TypeOf((*q.Order)(nil)).Elem(), "", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -33,10 +33,10 @@ func init() {
 			"NewReader": reflect.ValueOf(q.NewReader),
 			"NewWriter": reflect.ValueOf(q.NewWriter),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"LSB": {reflect.TypeOf(q.LSB), constant.MakeInt64(int64(q.LSB))},
 			"MSB": {reflect.TypeOf(q.MSB), constant.MakeInt64(int64(q.MSB))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

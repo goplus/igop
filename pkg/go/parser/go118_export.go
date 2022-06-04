@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "parser",
 		Path: "go/parser",
 		Deps: map[string]string{
@@ -35,7 +35,7 @@ func init() {
 			"unicode":                "unicode",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Mode": {reflect.TypeOf((*q.Mode)(nil)).Elem(), "", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -46,7 +46,7 @@ func init() {
 			"ParseExprFrom": reflect.ValueOf(q.ParseExprFrom),
 			"ParseFile":     reflect.ValueOf(q.ParseFile),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"AllErrors":            {reflect.TypeOf(q.AllErrors), constant.MakeInt64(int64(q.AllErrors))},
 			"DeclarationErrors":    {reflect.TypeOf(q.DeclarationErrors), constant.MakeInt64(int64(q.DeclarationErrors))},
 			"ImportsOnly":          {reflect.TypeOf(q.ImportsOnly), constant.MakeInt64(int64(q.ImportsOnly))},
@@ -56,6 +56,6 @@ func init() {
 			"SpuriousErrors":       {reflect.TypeOf(q.SpuriousErrors), constant.MakeInt64(int64(q.SpuriousErrors))},
 			"Trace":                {reflect.TypeOf(q.Trace), constant.MakeInt64(int64(q.Trace))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

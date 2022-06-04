@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "big",
 		Path: "math/big",
 		Deps: map[string]string{
@@ -33,7 +33,7 @@ func init() {
 			"sync":            "sync",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Accuracy":     {reflect.TypeOf((*q.Accuracy)(nil)).Elem(), "String", ""},
 			"ErrNaN":       {reflect.TypeOf((*q.ErrNaN)(nil)).Elem(), "Error", ""},
 			"Float":        {reflect.TypeOf((*q.Float)(nil)).Elem(), "", "Abs,Acc,Add,Append,Cmp,Copy,Float32,Float64,Format,GobDecode,GobEncode,Int,Int64,IsInf,IsInt,MantExp,MarshalText,MinPrec,Mode,Mul,Neg,Parse,Prec,Quo,Rat,Scan,Set,SetFloat64,SetInf,SetInt,SetInt64,SetMantExp,SetMode,SetPrec,SetRat,SetString,SetUint64,Sign,Signbit,Sqrt,String,Sub,Text,Uint64,UnmarshalText,fmtB,fmtP,fmtX,ord,pow5,round,scan,setBits64,setExpAndRound,sqrtInverse,uadd,ucmp,umul,uquo,usub,validate"},
@@ -51,7 +51,7 @@ func init() {
 			"NewRat":     reflect.ValueOf(q.NewRat),
 			"ParseFloat": reflect.ValueOf(q.ParseFloat),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"Above":         {reflect.TypeOf(q.Above), constant.MakeInt64(int64(q.Above))},
 			"AwayFromZero":  {reflect.TypeOf(q.AwayFromZero), constant.MakeInt64(int64(q.AwayFromZero))},
 			"Below":         {reflect.TypeOf(q.Below), constant.MakeInt64(int64(q.Below))},
@@ -62,7 +62,7 @@ func init() {
 			"ToPositiveInf": {reflect.TypeOf(q.ToPositiveInf), constant.MakeInt64(int64(q.ToPositiveInf))},
 			"ToZero":        {reflect.TypeOf(q.ToZero), constant.MakeInt64(int64(q.ToZero))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"MaxBase": {"untyped rune", constant.MakeInt64(int64(q.MaxBase))},
 			"MaxExp":  {"untyped int", constant.MakeInt64(int64(q.MaxExp))},
 			"MaxPrec": {"untyped int", constant.MakeInt64(int64(q.MaxPrec))},

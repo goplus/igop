@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "types",
 		Path: "go/types",
 		Deps: map[string]string{
@@ -40,7 +40,7 @@ func init() {
 			"Sizes":        reflect.TypeOf((*q.Sizes)(nil)).Elem(),
 			"Type":         reflect.TypeOf((*q.Type)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Array":         {reflect.TypeOf((*q.Array)(nil)).Elem(), "", "Elem,Len,String,Underlying"},
 			"Basic":         {reflect.TypeOf((*q.Basic)(nil)).Elem(), "", "Info,Kind,Name,String,Underlying"},
 			"BasicInfo":     {reflect.TypeOf((*q.BasicInfo)(nil)).Elem(), "", ""},
@@ -133,7 +133,7 @@ func init() {
 			"WriteSignature":          reflect.ValueOf(q.WriteSignature),
 			"WriteType":               reflect.ValueOf(q.WriteType),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"Bool":           {reflect.TypeOf(q.Bool), constant.MakeInt64(int64(q.Bool))},
 			"Byte":           {reflect.TypeOf(q.Byte), constant.MakeInt64(int64(q.Byte))},
 			"Complex128":     {reflect.TypeOf(q.Complex128), constant.MakeInt64(int64(q.Complex128))},
@@ -179,6 +179,6 @@ func init() {
 			"UntypedRune":    {reflect.TypeOf(q.UntypedRune), constant.MakeInt64(int64(q.UntypedRune))},
 			"UntypedString":  {reflect.TypeOf(q.UntypedString), constant.MakeInt64(int64(q.UntypedString))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

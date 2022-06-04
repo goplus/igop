@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "template",
 		Path: "html/template",
 		Deps: map[string]string{
@@ -35,7 +35,7 @@ func init() {
 			"unicode/utf8":        "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CSS":       {reflect.TypeOf((*q.CSS)(nil)).Elem(), "", ""},
 			"Error":     {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error"},
 			"ErrorCode": {reflect.TypeOf((*q.ErrorCode)(nil)).Elem(), "", ""},
@@ -64,7 +64,7 @@ func init() {
 			"ParseGlob":        reflect.ValueOf(q.ParseGlob),
 			"URLQueryEscaper":  reflect.ValueOf(q.URLQueryEscaper),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ErrAmbigContext":      {reflect.TypeOf(q.ErrAmbigContext), constant.MakeInt64(int64(q.ErrAmbigContext))},
 			"ErrBadHTML":           {reflect.TypeOf(q.ErrBadHTML), constant.MakeInt64(int64(q.ErrBadHTML))},
 			"ErrBranchEnd":         {reflect.TypeOf(q.ErrBranchEnd), constant.MakeInt64(int64(q.ErrBranchEnd))},
@@ -78,6 +78,6 @@ func init() {
 			"ErrSlashAmbig":        {reflect.TypeOf(q.ErrSlashAmbig), constant.MakeInt64(int64(q.ErrSlashAmbig))},
 			"OK":                   {reflect.TypeOf(q.OK), constant.MakeInt64(int64(q.OK))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

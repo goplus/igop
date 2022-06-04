@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-// Package test implements the ``gossa test'' command.
+// Package test implements the ``igop test'' command.
 package test
 
 import (
@@ -24,14 +24,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goplus/gossa"
-	"github.com/goplus/gossa/cmd/internal/base"
-	_ "github.com/goplus/gossa/pkg/testing"
+	"github.com/goplus/igop"
+	"github.com/goplus/igop/cmd/internal/base"
+	_ "github.com/goplus/igop/pkg/testing"
 )
 
-// Cmd - gossa test
+// Cmd - igop test
 var Cmd = &base.Command{
-	UsageLine: "gossa test [-v] package",
+	UsageLine: "igop test [-v] package",
 	Short:     "test package",
 }
 
@@ -87,8 +87,8 @@ func runCmd(cmd *base.Command, args []string) {
 		}
 	})
 	for _, pkg := range pkgs {
-		if err := gossa.RunTest(pkg, testArgs, 0); err != nil {
-			log.Println("gossa test failed:", pkg, err)
+		if err := igop.RunTest(pkg, testArgs, 0); err != nil {
+			log.Println("igop test failed:", pkg, err)
 		}
 	}
 }

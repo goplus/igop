@@ -1,9 +1,9 @@
-package gossa
+package igop
 
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/xtype"
+	"github.com/goplus/igop/internal/xtype"
 )
 
 func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {

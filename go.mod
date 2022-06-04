@@ -1,4 +1,4 @@
-module github.com/goplus/gossa
+module github.com/goplus/igop
 
 go 1.14
 

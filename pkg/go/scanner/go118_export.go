@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "scanner",
 		Path: "go/scanner",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"unicode/utf8":  "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Error":        {reflect.TypeOf((*q.Error)(nil)).Elem(), "Error", ""},
 			"ErrorHandler": {reflect.TypeOf((*q.ErrorHandler)(nil)).Elem(), "", ""},
 			"ErrorList":    {reflect.TypeOf((*q.ErrorList)(nil)).Elem(), "Err,Error,Len,Less,Sort,Swap", "Add,RemoveMultiples,Reset"},
@@ -42,9 +42,9 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"PrintError": reflect.ValueOf(q.PrintError),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ScanComments": {reflect.TypeOf(q.ScanComments), constant.MakeInt64(int64(q.ScanComments))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 package ng
 
@@ -8,11 +8,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "ng",
 		Path: "github.com/goplus/gop/builtin/ng",
 		Deps: map[string]string{
@@ -23,7 +23,7 @@ func init() {
 			"strconv":   "strconv",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Bigfloat":        {reflect.TypeOf((*q.Bigfloat)(nil)).Elem(), "", ""},
 			"Bigint":          {reflect.TypeOf((*q.Bigint)(nil)).Elem(), "Gop_Add,Gop_AddAssign,Gop_And,Gop_AndAssign,Gop_AndNot,Gop_AndNotAssign,Gop_Dec,Gop_Dup,Gop_EQ,Gop_GE,Gop_GT,Gop_Inc,Gop_LE,Gop_LT,Gop_Lsh,Gop_LshAssign,Gop_Mul,Gop_MulAssign,Gop_NE,Gop_Neg,Gop_Not,Gop_Or,Gop_OrAssign,Gop_Quo,Gop_QuoAssign,Gop_Rcast__0,Gop_Rcast__1,Gop_Rcast__2,Gop_Rcast__3,Gop_Rem,Gop_RemAssign,Gop_Rsh,Gop_RshAssign,Gop_Sub,Gop_SubAssign,Gop_Xor,Gop_XorAssign,IsNil", ""},
 			"Bigrat":          {reflect.TypeOf((*q.Bigrat)(nil)).Elem(), "Gop_Add,Gop_AddAssign,Gop_Assign,Gop_Dup,Gop_EQ,Gop_GE,Gop_GT,Gop_Inv,Gop_LE,Gop_LT,Gop_Mul,Gop_MulAssign,Gop_NE,Gop_Neg,Gop_Quo,Gop_QuoAssign,Gop_Sub,Gop_SubAssign,IsNil", ""},
@@ -99,8 +99,8 @@ func init() {
 			"UntypedBigrat_Init__0": reflect.ValueOf(q.UntypedBigrat_Init__0),
 			"UntypedBigrat_Init__1": reflect.ValueOf(q.UntypedBigrat_Init__1),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"GopPackage": {"untyped bool", constant.MakeBool(bool(q.GopPackage))},
 		},
 	})

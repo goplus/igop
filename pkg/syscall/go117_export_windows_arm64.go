@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "syscall",
 		Path: "syscall",
 		Deps: map[string]string{
@@ -36,7 +36,7 @@ func init() {
 			"RawConn":  reflect.TypeOf((*q.RawConn)(nil)).Elem(),
 			"Sockaddr": reflect.TypeOf((*q.Sockaddr)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"AddrinfoW":                   {reflect.TypeOf((*q.AddrinfoW)(nil)).Elem(), "", ""},
 			"ByHandleFileInformation":     {reflect.TypeOf((*q.ByHandleFileInformation)(nil)).Elem(), "", ""},
 			"CertChainContext":            {reflect.TypeOf((*q.CertChainContext)(nil)).Elem(), "", ""},
@@ -368,7 +368,7 @@ func init() {
 			"WriteConsole":                           reflect.ValueOf(q.WriteConsole),
 			"WriteFile":                              reflect.ValueOf(q.WriteFile),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"E2BIG":                     {reflect.TypeOf(q.E2BIG), constant.MakeInt64(int64(q.E2BIG))},
 			"EACCES":                    {reflect.TypeOf(q.EACCES), constant.MakeInt64(int64(q.EACCES))},
 			"EADDRINUSE":                {reflect.TypeOf(q.EADDRINUSE), constant.MakeInt64(int64(q.EADDRINUSE))},
@@ -540,7 +540,7 @@ func init() {
 			"WSAECONNABORTED":           {reflect.TypeOf(q.WSAECONNABORTED), constant.MakeInt64(int64(q.WSAECONNABORTED))},
 			"WSAECONNRESET":             {reflect.TypeOf(q.WSAECONNRESET), constant.MakeInt64(int64(q.WSAECONNRESET))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"AF_INET":                             {"untyped int", constant.MakeInt64(int64(q.AF_INET))},
 			"AF_INET6":                            {"untyped int", constant.MakeInt64(int64(q.AF_INET6))},
 			"AF_NETBIOS":                          {"untyped int", constant.MakeInt64(int64(q.AF_NETBIOS))},

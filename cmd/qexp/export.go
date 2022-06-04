@@ -103,17 +103,17 @@ func exportSource(pkgPath string, id string, tagList []string, extList []string,
 	return data, nil
 }
 
-var template_export = `// export by github.com/goplus/gossa/cmd/qexp
+var template_export = `// export by github.com/goplus/igop/cmd/qexp
 package $PKGNAME
 
 import (
 	"$PKGPATH"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage("$PKGPATH",extMap,typList)
+	igop.RegisterPackage("$PKGPATH",extMap,typList)
 }
 
 var extMap = map[string]interface{}{$EXTMAP}
@@ -121,7 +121,7 @@ var extMap = map[string]interface{}{$EXTMAP}
 var typList = []interface{}{$TYPLIST}
 `
 
-var template_tags = `// export by github.com/goplus/gossa/cmd/qexp
+var template_tags = `// export by github.com/goplus/igop/cmd/qexp
 
 $TAGS
 
@@ -130,11 +130,11 @@ package $PKGNAME
 import (
 	"$PKGPATH"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage("$PKGPATH",extMap$ID,typList$ID)
+	igop.RegisterPackage("$PKGPATH",extMap$ID,typList$ID)
 }
 
 var extMap$ID = map[string]interface{}{$EXTMAP}
@@ -142,18 +142,18 @@ var extMap$ID = map[string]interface{}{$EXTMAP}
 var typList$ID = []interface{}{$TYPLIST}
 `
 
-var template_empty = `// export by github.com/goplus/gossa/cmd/qexp
+var template_empty = `// export by github.com/goplus/igop/cmd/qexp
 
 $TAGS
 
 package $PKGNAME
 
 import (
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage("$PKGPATH",nil,nil)
+	igop.RegisterPackage("$PKGPATH",nil,nil)
 }
 `
 
@@ -182,7 +182,7 @@ type Package struct {
 }
 */
 
-var template_pkg = `// export by github.com/goplus/gossa/cmd/qexp
+var template_pkg = `// export by github.com/goplus/igop/cmd/qexp
 
 $TAGS
 
@@ -191,21 +191,21 @@ package $PKGNAME
 import (
 	$IMPORTS
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package {
+	igop.RegisterPackage(&igop.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Deps: map[string]string{$DEPS},
 		Interfaces: map[string]reflect.Type{$INTERFACES},
-		NamedTypes: map[string]gossa.NamedType{$NAMEDTYPES},
+		NamedTypes: map[string]igop.NamedType{$NAMEDTYPES},
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
-		TypedConsts: map[string]gossa.TypedConst{$TYPEDCONSTS},
-		UntypedConsts: map[string]gossa.UntypedConst{$UNTYPEDCONSTS},
+		TypedConsts: map[string]igop.TypedConst{$TYPEDCONSTS},
+		UntypedConsts: map[string]igop.UntypedConst{$UNTYPEDCONSTS},
 	})
 }
 `

@@ -1,7 +1,7 @@
 //go:build ignore
 // +build ignore
 
-package gossa
+package igop
 
 import (
 	"errors"
@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goplus/gossa/internal/gopfile"
+	"github.com/goplus/igop/internal/gopfile"
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/ssa"

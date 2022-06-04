@@ -1,4 +1,4 @@
-package gossa
+package igop
 
 import (
 	"bytes"
@@ -396,7 +396,7 @@ func RunTest(path string, args []string, mode Mode) error {
 var (
 	builtinPkg = &Package{
 		Name:          "builtin",
-		Path:          "github.com/goplus/gossa/builtin",
+		Path:          "github.com/goplus/igop/builtin",
 		Deps:          make(map[string]string),
 		Interfaces:    map[string]reflect.Type{},
 		NamedTypes:    map[string]NamedType{},
@@ -441,7 +441,7 @@ func checkBuiltinDeps(typ reflect.Type) {
 
 var (
 	builtin_tmpl = `package main
-import "github.com/goplus/gossa/builtin"
+import "github.com/goplus/igop/builtin"
 `
 )
 
@@ -456,10 +456,10 @@ func parserBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
 		return nil, os.ErrInvalid
 	}
 	src := fmt.Sprintf(`package %v
-import "github.com/goplus/gossa/builtin"
+import "github.com/goplus/igop/builtin"
 var (
 	%v
 )
 `, pkg, strings.Join(list, "\n"))
-	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
+	return parser.ParseFile(fset, "igop_builtin.go", src, 0)
 }

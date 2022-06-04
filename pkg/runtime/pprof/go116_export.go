@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "pprof",
 		Path: "runtime/pprof",
 		Deps: map[string]string{
@@ -38,7 +38,7 @@ func init() {
 			"unsafe":          "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"LabelSet": {reflect.TypeOf((*q.LabelSet)(nil)).Elem(), "", ""},
 			"Profile":  {reflect.TypeOf((*q.Profile)(nil)).Elem(), "", "Add,Count,Name,Remove,WriteTo"},
 		},
@@ -58,7 +58,7 @@ func init() {
 			"WithLabels":         reflect.ValueOf(q.WithLabels),
 			"WriteHeapProfile":   reflect.ValueOf(q.WriteHeapProfile),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "quotedprintable",
 		Path: "mime/quotedprintable",
 		Deps: map[string]string{
@@ -23,7 +23,7 @@ func init() {
 			"io":    "io",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Read"},
 			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Write,checkLastByte,encode,flush,insertCRLF,insertSoftLineBreak,write"},
 		},
@@ -33,7 +33,7 @@ func init() {
 			"NewReader": reflect.ValueOf(q.NewReader),
 			"NewWriter": reflect.ValueOf(q.NewWriter),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

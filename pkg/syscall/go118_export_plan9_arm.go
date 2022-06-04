@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "syscall",
 		Path: "syscall",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"Conn":    reflect.TypeOf((*q.Conn)(nil)).Elem(),
 			"RawConn": reflect.TypeOf((*q.RawConn)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Dir":         {reflect.TypeOf((*q.Dir)(nil)).Elem(), "", "Marshal,Null"},
 			"ErrorString": {reflect.TypeOf((*q.ErrorString)(nil)).Elem(), "Error,Is,Temporary,Timeout", ""},
 			"Note":        {reflect.TypeOf((*q.Note)(nil)).Elem(), "Signal,String", ""},
@@ -127,7 +127,7 @@ func init() {
 			"Write":               reflect.ValueOf(q.Write),
 			"Wstat":               reflect.ValueOf(q.Wstat),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"SIGABRT": {reflect.TypeOf(q.SIGABRT), constant.MakeString(string(q.SIGABRT))},
 			"SIGALRM": {reflect.TypeOf(q.SIGALRM), constant.MakeString(string(q.SIGALRM))},
 			"SIGHUP":  {reflect.TypeOf(q.SIGHUP), constant.MakeString(string(q.SIGHUP))},
@@ -135,7 +135,7 @@ func init() {
 			"SIGKILL": {reflect.TypeOf(q.SIGKILL), constant.MakeString(string(q.SIGKILL))},
 			"SIGTERM": {reflect.TypeOf(q.SIGTERM), constant.MakeString(string(q.SIGTERM))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"DMAPPEND":        {"untyped int", constant.MakeInt64(int64(q.DMAPPEND))},
 			"DMAUTH":          {"untyped int", constant.MakeInt64(int64(q.DMAUTH))},
 			"DMDIR":           {"untyped int", constant.MakeInt64(int64(q.DMDIR))},

@@ -1,12 +1,12 @@
 //go:build go1.17
 // +build go1.17
 
-package gossa_test
+package igop_test
 
 import (
 	"testing"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func TestUnsafeBuiltins(t *testing.T) {
@@ -75,7 +75,7 @@ func mustPanic(f func()) {
 	f()
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func init() {
 	}
 }
 `
-	_, err := gossa.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

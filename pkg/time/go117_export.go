@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "time",
 		Path: "time",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 			"unsafe":  "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Duration":   {reflect.TypeOf((*q.Duration)(nil)).Elem(), "Hours,Microseconds,Milliseconds,Minutes,Nanoseconds,Round,Seconds,String,Truncate", ""},
 			"Location":   {reflect.TypeOf((*q.Location)(nil)).Elem(), "", "String,firstZoneUsed,get,lookup,lookupFirstZone,lookupName"},
 			"Month":      {reflect.TypeOf((*q.Month)(nil)).Elem(), "String", ""},
@@ -62,7 +62,7 @@ func init() {
 			"UnixMilli":              reflect.ValueOf(q.UnixMilli),
 			"Until":                  reflect.ValueOf(q.Until),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"April":       {reflect.TypeOf(q.April), constant.MakeInt64(int64(q.April))},
 			"August":      {reflect.TypeOf(q.August), constant.MakeInt64(int64(q.August))},
 			"December":    {reflect.TypeOf(q.December), constant.MakeInt64(int64(q.December))},
@@ -89,7 +89,7 @@ func init() {
 			"Tuesday":     {reflect.TypeOf(q.Tuesday), constant.MakeInt64(int64(q.Tuesday))},
 			"Wednesday":   {reflect.TypeOf(q.Wednesday), constant.MakeInt64(int64(q.Wednesday))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"ANSIC":       {"untyped string", constant.MakeString(string(q.ANSIC))},
 			"Kitchen":     {"untyped string", constant.MakeString(string(q.Kitchen))},
 			"Layout":      {"untyped string", constant.MakeString(string(q.Layout))},

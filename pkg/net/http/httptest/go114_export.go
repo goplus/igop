@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "httptest",
 		Path: "net/http/httptest",
 		Deps: map[string]string{
@@ -38,7 +38,7 @@ func init() {
 			"vendor/golang.org/x/net/http/httpguts": "httpguts",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ResponseRecorder": {reflect.TypeOf((*q.ResponseRecorder)(nil)).Elem(), "", "Flush,Header,Result,Write,WriteHeader,WriteString,writeHeader"},
 			"Server":           {reflect.TypeOf((*q.Server)(nil)).Elem(), "", "Certificate,Client,Close,CloseClientConnections,Start,StartTLS,closeConn,closeConnChan,forgetConn,goServe,logCloseHangDebugInfo,wrap"},
 		},
@@ -51,8 +51,8 @@ func init() {
 			"NewTLSServer":       reflect.ValueOf(q.NewTLSServer),
 			"NewUnstartedServer": reflect.ValueOf(q.NewUnstartedServer),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"DefaultRemoteAddr": {"untyped string", constant.MakeString(string(q.DefaultRemoteAddr))},
 		},
 	})

@@ -169,12 +169,12 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 	buf.WriteString("\tpanic(\"unreachable\")\n}\n")
 }
 
-var pkg_head = `package gossa
+var pkg_head = `package igop
 
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/xtype"
+	"github.com/goplus/igop/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 `

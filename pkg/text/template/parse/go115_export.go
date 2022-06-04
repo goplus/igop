@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "parse",
 		Path: "text/template/parse",
 		Deps: map[string]string{
@@ -29,7 +29,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Node": reflect.TypeOf((*q.Node)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ActionNode":     {reflect.TypeOf((*q.ActionNode)(nil)).Elem(), "", "Copy,String,tree,writeTo"},
 			"BoolNode":       {reflect.TypeOf((*q.BoolNode)(nil)).Elem(), "", "Copy,String,tree,writeTo"},
 			"BranchNode":     {reflect.TypeOf((*q.BranchNode)(nil)).Elem(), "", "Copy,String,tree,writeTo"},
@@ -61,7 +61,7 @@ func init() {
 			"NewIdentifier": reflect.ValueOf(q.NewIdentifier),
 			"Parse":         reflect.ValueOf(q.Parse),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"NodeAction":     {reflect.TypeOf(q.NodeAction), constant.MakeInt64(int64(q.NodeAction))},
 			"NodeBool":       {reflect.TypeOf(q.NodeBool), constant.MakeInt64(int64(q.NodeBool))},
 			"NodeChain":      {reflect.TypeOf(q.NodeChain), constant.MakeInt64(int64(q.NodeChain))},
@@ -81,6 +81,6 @@ func init() {
 			"NodeVariable":   {reflect.TypeOf(q.NodeVariable), constant.MakeInt64(int64(q.NodeVariable))},
 			"NodeWith":       {reflect.TypeOf(q.NodeWith), constant.MakeInt64(int64(q.NodeWith))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "template",
 		Path: "text/template",
 		Deps: map[string]string{
@@ -34,7 +34,7 @@ func init() {
 			"unicode/utf8":        "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ExecError": {reflect.TypeOf((*q.ExecError)(nil)).Elem(), "Error,Unwrap", ""},
 			"FuncMap":   {reflect.TypeOf((*q.FuncMap)(nil)).Elem(), "", ""},
 			"Template":  {reflect.TypeOf((*q.Template)(nil)).Elem(), "", "AddParseTree,Clone,DefinedTemplates,Delims,Execute,ExecuteTemplate,Funcs,Lookup,Name,New,Option,Parse,ParseFiles,ParseGlob,Templates,associate,copy,execute,init,setOption"},
@@ -55,7 +55,7 @@ func init() {
 			"ParseGlob":        reflect.ValueOf(q.ParseGlob),
 			"URLQueryEscaper":  reflect.ValueOf(q.URLQueryEscaper),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

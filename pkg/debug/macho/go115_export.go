@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "macho",
 		Path: "debug/macho",
 		Deps: map[string]string{
@@ -31,7 +31,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Load": reflect.TypeOf((*q.Load)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Cpu":              {reflect.TypeOf((*q.Cpu)(nil)).Elem(), "GoString,String", ""},
 			"Dylib":            {reflect.TypeOf((*q.Dylib)(nil)).Elem(), "", ""},
 			"DylibCmd":         {reflect.TypeOf((*q.DylibCmd)(nil)).Elem(), "", ""},
@@ -80,7 +80,7 @@ func init() {
 			"Open":       reflect.ValueOf(q.Open),
 			"OpenFat":    reflect.ValueOf(q.OpenFat),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ARM64_RELOC_ADDEND":              {reflect.TypeOf(q.ARM64_RELOC_ADDEND), constant.MakeInt64(int64(q.ARM64_RELOC_ADDEND))},
 			"ARM64_RELOC_BRANCH26":            {reflect.TypeOf(q.ARM64_RELOC_BRANCH26), constant.MakeInt64(int64(q.ARM64_RELOC_BRANCH26))},
 			"ARM64_RELOC_GOT_LOAD_PAGE21":     {reflect.TypeOf(q.ARM64_RELOC_GOT_LOAD_PAGE21), constant.MakeInt64(int64(q.ARM64_RELOC_GOT_LOAD_PAGE21))},
@@ -167,6 +167,6 @@ func init() {
 			"X86_64_RELOC_TLV":                {reflect.TypeOf(q.X86_64_RELOC_TLV), constant.MakeInt64(int64(q.X86_64_RELOC_TLV))},
 			"X86_64_RELOC_UNSIGNED":           {reflect.TypeOf(q.X86_64_RELOC_UNSIGNED), constant.MakeInt64(int64(q.X86_64_RELOC_UNSIGNED))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

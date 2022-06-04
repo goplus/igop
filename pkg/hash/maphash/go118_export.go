@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "maphash",
 		Path: "hash/maphash",
 		Deps: map[string]string{
@@ -22,7 +22,7 @@ func init() {
 			"unsafe":                "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Hash": {reflect.TypeOf((*q.Hash)(nil)).Elem(), "", "BlockSize,Reset,Seed,SetSeed,Size,Sum,Sum64,Write,WriteByte,WriteString,flush,initSeed"},
 			"Seed": {reflect.TypeOf((*q.Seed)(nil)).Elem(), "", ""},
 		},
@@ -31,7 +31,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"MakeSeed": reflect.ValueOf(q.MakeSeed),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

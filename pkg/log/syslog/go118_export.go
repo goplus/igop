@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "syslog",
 		Path: "log/syslog",
 		Deps: map[string]string{
@@ -29,7 +29,7 @@ func init() {
 			"time":    "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Priority": {reflect.TypeOf((*q.Priority)(nil)).Elem(), "", ""},
 			"Writer":   {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Alert,Close,Crit,Debug,Emerg,Err,Info,Notice,Warning,Write,connect,write,writeAndRetry"},
 		},
@@ -40,7 +40,7 @@ func init() {
 			"New":       reflect.ValueOf(q.New),
 			"NewLogger": reflect.ValueOf(q.NewLogger),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"LOG_ALERT":    {reflect.TypeOf(q.LOG_ALERT), constant.MakeInt64(int64(q.LOG_ALERT))},
 			"LOG_AUTH":     {reflect.TypeOf(q.LOG_AUTH), constant.MakeInt64(int64(q.LOG_AUTH))},
 			"LOG_AUTHPRIV": {reflect.TypeOf(q.LOG_AUTHPRIV), constant.MakeInt64(int64(q.LOG_AUTHPRIV))},
@@ -70,6 +70,6 @@ func init() {
 			"LOG_UUCP":     {reflect.TypeOf(q.LOG_UUCP), constant.MakeInt64(int64(q.LOG_UUCP))},
 			"LOG_WARNING":  {reflect.TypeOf(q.LOG_WARNING), constant.MakeInt64(int64(q.LOG_WARNING))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

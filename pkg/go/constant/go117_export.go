@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "constant",
 		Path: "go/constant",
 		Deps: map[string]string{
@@ -32,7 +32,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Value": reflect.TypeOf((*q.Value)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Kind": {reflect.TypeOf((*q.Kind)(nil)).Elem(), "", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -70,7 +70,7 @@ func init() {
 			"UnaryOp":         reflect.ValueOf(q.UnaryOp),
 			"Val":             reflect.ValueOf(q.Val),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"Bool":    {reflect.TypeOf(q.Bool), constant.MakeInt64(int64(q.Bool))},
 			"Complex": {reflect.TypeOf(q.Complex), constant.MakeInt64(int64(q.Complex))},
 			"Float":   {reflect.TypeOf(q.Float), constant.MakeInt64(int64(q.Float))},
@@ -78,6 +78,6 @@ func init() {
 			"String":  {reflect.TypeOf(q.String), constant.MakeInt64(int64(q.String))},
 			"Unknown": {reflect.TypeOf(q.Unknown), constant.MakeInt64(int64(q.Unknown))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

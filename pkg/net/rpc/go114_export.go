@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "rpc",
 		Path: "net/rpc",
 		Deps: map[string]string{
@@ -37,7 +37,7 @@ func init() {
 			"ClientCodec": reflect.TypeOf((*q.ClientCodec)(nil)).Elem(),
 			"ServerCodec": reflect.TypeOf((*q.ServerCodec)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Call":        {reflect.TypeOf((*q.Call)(nil)).Elem(), "", "done"},
 			"Client":      {reflect.TypeOf((*q.Client)(nil)).Elem(), "", "Call,Close,Go,input,send"},
 			"Request":     {reflect.TypeOf((*q.Request)(nil)).Elem(), "", ""},
@@ -65,8 +65,8 @@ func init() {
 			"ServeConn":          reflect.ValueOf(q.ServeConn),
 			"ServeRequest":       reflect.ValueOf(q.ServeRequest),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"DefaultDebugPath": {"untyped string", constant.MakeString(string(q.DefaultDebugPath))},
 			"DefaultRPCPath":   {"untyped string", constant.MakeString(string(q.DefaultRPCPath))},
 		},

@@ -22,15 +22,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/goplus/gossa"
-	"github.com/goplus/gossa/cmd/internal/base"
+	"github.com/goplus/igop"
+	"github.com/goplus/igop/cmd/internal/base"
 )
 
 // -----------------------------------------------------------------------------
 
 // Cmd - gop run
 var Cmd = &base.Command{
-	UsageLine: "gossa run <gopSrcDir|gopSrcFile> [arguments]",
+	UsageLine: "igop run <gopSrcDir|gopSrcFile> [arguments]",
 	Short:     "Run a Go+ program",
 }
 
@@ -57,14 +57,14 @@ func runCmd(cmd *base.Command, args []string) {
 	if err != nil {
 		log.Fatalln("input arg check failed:", err)
 	}
-	var mode gossa.Mode
+	var mode igop.Mode
 	if flagDumpInstr {
-		mode |= gossa.EnableDumpInstr
+		mode |= igop.EnableDumpInstr
 	}
 	if flagTrace {
-		mode |= gossa.EnableTracing
+		mode |= igop.EnableTracing
 	}
-	ctx := gossa.NewContext(mode)
+	ctx := igop.NewContext(mode)
 	if isDir {
 		if fnGopBuildDir != nil && containsExt(path, ".gop") {
 			err := fnGopBuildDir(ctx, path)
@@ -78,7 +78,7 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 }
 
-var fnGopBuildDir func(ctx *gossa.Context, path string) error
+var fnGopBuildDir func(ctx *igop.Context, path string) error
 
 // IsDir checks a target path is dir or not.
 func IsDir(target string) (bool, error) {
@@ -89,7 +89,7 @@ func IsDir(target string) (bool, error) {
 	return fi.IsDir(), nil
 }
 
-func runFile(ctx *gossa.Context, target string, args []string) {
+func runFile(ctx *igop.Context, target string, args []string) {
 	dir, file := filepath.Split(target)
 	os.Chdir(dir)
 	exitCode, err := ctx.RunFile(file, nil, args)
@@ -99,7 +99,7 @@ func runFile(ctx *gossa.Context, target string, args []string) {
 	os.Exit(exitCode)
 }
 
-func runDir(ctx *gossa.Context, dir string, args []string) {
+func runDir(ctx *igop.Context, dir string, args []string) {
 	os.Chdir(dir)
 	exitCode, err := ctx.Run(dir, args)
 	if err != nil {
