@@ -1078,6 +1078,14 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	if typ.Kind() != reflect.Func {
 		panic("unsupport")
 	}
+	// GopherJS not support funcval
+	if runtime.Compiler == "gopherjs" {
+		return func(fr *frame) {
+			fn := fr.reg(iv)
+			v := reflect.ValueOf(fn)
+			interp.callExternalByStack(fr, v, ir, ia)
+		}
+	}
 	return func(fr *frame) {
 		fn := fr.reg(iv)
 		if fv, n := funcval.Get(fn); n == 1 {
