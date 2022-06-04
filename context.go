@@ -26,6 +26,7 @@ type Mode uint
 
 const (
 	DisableRecover         Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	DisableCustomBuiltin                    // Disable load custom builtin func
 	DisableUnexportMethods                  // Disable unexport methods
 	EnableTracing                           // Print a trace of all instructions as they are interpreted.
 	EnableDumpInstr                         // Print packages & SSA instruction code
@@ -51,9 +52,15 @@ type Context struct {
 	Sizes       types.Sizes              // types size for package unsafe
 	debugFunc   func(*DebugInfo)         // debug func
 	override    map[string]reflect.Value // override function
-	builtin     map[string]reflect.Value // builtin function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
+	evalMode    bool                     // eval mode
+	evalInit    map[string]bool          // eval init check
+	evalCallFn  func(call *ssa.Call, res ...interface{})
+}
+
+func (c *Context) IsEvalMode() bool {
+	return c.evalMode
 }
 
 // NewContext create a new Context
@@ -64,7 +71,6 @@ func NewContext(mode Mode) *Context {
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
 		override:    make(map[string]reflect.Value),
-		builtin:     make(map[string]reflect.Value),
 		callForPool: 64,
 	}
 	if mode&EnableDumpInstr != 0 {
@@ -121,10 +127,6 @@ func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package
 	return
 }
 
-func (c *Context) RegisterBuiltin(key string, fn interface{}) {
-	c.builtin[key] = reflect.ValueOf(fn)
-}
-
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
 	sourceProcessor[ext] = fn
 }
@@ -136,6 +138,14 @@ var (
 )
 
 func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}) (*ssa.Package, error) {
+	file, err := c.ParseFile(fset, filename, src)
+	if err != nil {
+		return nil, err
+	}
+	return c.LoadAstFile(fset, file)
+}
+
+func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{}) (*ast.File, error) {
 	if ext := filepath.Ext(filename); ext != "" {
 		if fn, ok := sourceProcessor[ext]; ok {
 			data, err := fn(c, filename, src)
@@ -145,18 +155,16 @@ func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}
 			src = data
 		}
 	}
-	file, err := parser.ParseFile(fset, filename, src, c.ParserMode)
-	if err != nil {
-		return nil, err
-	}
-	return c.LoadAstFile(fset, file)
+	return parser.ParseFile(fset, filename, src, c.ParserMode)
 }
 
 func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
 	files := []*ast.File{file}
-	if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
-		files = append(files, f)
+	if c.Mode&DisableCustomBuiltin == 0 {
+		if f, err := parserBuiltin(fset, file.Name.Name); err == nil {
+			files = []*ast.File{f, file}
+		}
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
 	if err != nil {
@@ -172,8 +180,10 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
-	if f, err := parserBuiltin(fset, apkg.Name); err == nil {
-		files = append(files, f)
+	if c.Mode&DisableCustomBuiltin == 0 {
+		if f, err := parserBuiltin(fset, apkg.Name); err == nil {
+			files = append([]*ast.File{f}, files...)
+		}
 	}
 	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
 	if err != nil {
@@ -322,6 +332,9 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 		Importer: NewImporter(ctx.Loader, ctx.External),
 		Sizes:    ctx.Sizes,
 	}
+	if ctx.evalMode {
+		tc.DisableUnusedImportCheck = true
+	}
 	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
 		return nil, nil, err
 	}
@@ -400,7 +413,7 @@ func init() {
 	RegisterPackage(builtinPkg)
 }
 
-func RegisterBuiltin(key string, fn interface{}) error {
+func RegisterCustomBuiltin(key string, fn interface{}) error {
 	v := reflect.ValueOf(fn)
 	switch v.Kind() {
 	case reflect.Func:

@@ -24,6 +24,7 @@ import (
 
 	"github.com/goplus/gossa/cmd/internal/base"
 	"github.com/goplus/gossa/cmd/internal/help"
+	"github.com/goplus/gossa/cmd/internal/repl"
 	"github.com/goplus/gossa/cmd/internal/run"
 	"github.com/goplus/gossa/cmd/internal/test"
 
@@ -41,6 +42,7 @@ func init() {
 	base.Gossa.Commands = []*base.Command{
 		run.Cmd,
 		test.Cmd,
+		repl.Cmd,
 	}
 }
 
@@ -48,7 +50,8 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 	if len(args) < 1 {
-		base.Usage()
+		//base.Usage()
+		args = []string{"repl"}
 	}
 
 	base.CmdName = args[0] // for error messages

@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"log"
 	"reflect"
+	"strings"
 
 	"golang.org/x/tools/go/ssa"
 )
@@ -156,35 +157,72 @@ func (visit *visitor) function(fn *ssa.Function) {
 			if ifn == nil {
 				continue
 			}
+			if visit.intp.ctx.evalMode && fn.String() == "main.init" {
+				if call, ok := instr.(*ssa.Call); ok {
+					key := call.String()
+					if strings.HasPrefix(key, "init#") {
+						if visit.intp.ctx.evalInit[key] {
+							ifn = func(fr *frame) {}
+						} else {
+							visit.intp.ctx.evalInit[key] = true
+						}
+					}
+				}
+			}
+			if visit.intp.ctx.evalCallFn != nil {
+				if call, ok := instr.(*ssa.Call); ok {
+					ir := pfn.regIndex(call)
+					results := call.Call.Signature().Results()
+					ofn := ifn
+					switch results.Len() {
+					case 0:
+						ifn = func(fr *frame) {
+							ofn(fr)
+							visit.intp.ctx.evalCallFn(call)
+						}
+					case 1:
+						ifn = func(fr *frame) {
+							ofn(fr)
+							visit.intp.ctx.evalCallFn(call, fr.reg(ir))
+						}
+					default:
+						ifn = func(fr *frame) {
+							ofn(fr)
+							r := fr.reg(ir).(tuple)
+							visit.intp.ctx.evalCallFn(call, r...)
+						}
+					}
+				}
+			}
 			if visit.intp.mode&EnableTracing != 0 {
-				pfn := ifn
+				ofn := ifn
 				ifn = func(fr *frame) {
 					if v, ok := instr.(ssa.Value); ok {
 						log.Printf("\t%-20T %v = %-40v\t%v\n", instr, v.Name(), instr, v.Type())
 					} else {
 						log.Printf("\t%-20T %v\n", instr, instr)
 					}
-					pfn(fr)
+					ofn(fr)
 				}
 				if index == 0 {
-					pfn := ifn
+					ofn := ifn
 					bi := b.Index
 					ifn = func(fr *frame) {
 						log.Printf(".%v\n", bi)
-						pfn(fr)
+						ofn(fr)
 					}
 				}
 				if index == 0 && b.Index == 0 {
-					pfn := ifn
+					ofn := ifn
 					ifn = func(fr *frame) {
 						log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.pfn.Interp.fset, fr.pfn.Fn.Pos()))
-						pfn(fr)
+						ofn(fr)
 					}
 				}
 				if _, ok := instr.(*ssa.Return); ok {
-					pfn := ifn
+					ofn := ifn
 					ifn = func(fr *frame) {
-						pfn(fr)
+						ofn(fr)
 						var caller ssa.Instruction
 						if fr.caller != nil {
 							caller = fr.caller.pfn.InstrForPC(fr.caller.pc - 1)

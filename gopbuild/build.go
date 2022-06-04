@@ -194,6 +194,9 @@ func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[strin
 		c, ok = classfile[ext]
 		return
 	}
+	if c.ctx.IsEvalMode() {
+		conf.NoSkipConstant = true
+	}
 	out, err := cl.NewPackage("", mainPkg, conf)
 	if err != nil {
 		return nil, err
