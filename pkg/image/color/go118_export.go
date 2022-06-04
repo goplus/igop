@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "color",
 		Path: "image/color",
 		Deps: map[string]string{},
@@ -22,7 +22,7 @@ func init() {
 			"Color": reflect.TypeOf((*q.Color)(nil)).Elem(),
 			"Model": reflect.TypeOf((*q.Model)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Alpha":   {reflect.TypeOf((*q.Alpha)(nil)).Elem(), "RGBA", ""},
 			"Alpha16": {reflect.TypeOf((*q.Alpha16)(nil)).Elem(), "RGBA", ""},
 			"CMYK":    {reflect.TypeOf((*q.CMYK)(nil)).Elem(), "RGBA", ""},
@@ -61,7 +61,7 @@ func init() {
 			"RGBToYCbCr": reflect.ValueOf(q.RGBToYCbCr),
 			"YCbCrToRGB": reflect.ValueOf(q.YCbCrToRGB),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

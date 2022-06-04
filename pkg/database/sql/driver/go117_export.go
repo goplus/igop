@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "driver",
 		Path: "database/sql/driver",
 		Deps: map[string]string{
@@ -57,7 +57,7 @@ func init() {
 			"ValueConverter":                 reflect.TypeOf((*q.ValueConverter)(nil)).Elem(),
 			"Valuer":                         reflect.TypeOf((*q.Valuer)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"IsolationLevel": {reflect.TypeOf((*q.IsolationLevel)(nil)).Elem(), "", ""},
 			"NamedValue":     {reflect.TypeOf((*q.NamedValue)(nil)).Elem(), "", ""},
 			"NotNull":        {reflect.TypeOf((*q.NotNull)(nil)).Elem(), "ConvertValue", ""},
@@ -80,7 +80,7 @@ func init() {
 			"IsScanValue": reflect.ValueOf(q.IsScanValue),
 			"IsValue":     reflect.ValueOf(q.IsValue),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "fs",
 		Path: "io/fs",
 		Deps: map[string]string{
@@ -38,7 +38,7 @@ func init() {
 			"StatFS":      reflect.TypeOf((*q.StatFS)(nil)).Elem(),
 			"SubFS":       reflect.TypeOf((*q.SubFS)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"FileMode":    {reflect.TypeOf((*q.FileMode)(nil)).Elem(), "IsDir,IsRegular,Perm,String,Type", ""},
 			"PathError":   {reflect.TypeOf((*q.PathError)(nil)).Elem(), "", "Error,Timeout,Unwrap"},
 			"WalkDirFunc": {reflect.TypeOf((*q.WalkDirFunc)(nil)).Elem(), "", ""},
@@ -61,7 +61,7 @@ func init() {
 			"ValidPath": reflect.ValueOf(q.ValidPath),
 			"WalkDir":   reflect.ValueOf(q.WalkDir),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ModeAppend":     {reflect.TypeOf(q.ModeAppend), constant.MakeInt64(int64(q.ModeAppend))},
 			"ModeCharDevice": {reflect.TypeOf(q.ModeCharDevice), constant.MakeInt64(int64(q.ModeCharDevice))},
 			"ModeDevice":     {reflect.TypeOf(q.ModeDevice), constant.MakeInt64(int64(q.ModeDevice))},
@@ -78,6 +78,6 @@ func init() {
 			"ModeTemporary":  {reflect.TypeOf(q.ModeTemporary), constant.MakeInt64(int64(q.ModeTemporary))},
 			"ModeType":       {reflect.TypeOf(q.ModeType), constant.MakeInt64(int64(q.ModeType))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

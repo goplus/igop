@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "rsa",
 		Path: "crypto/rsa",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"math/big":                 "big",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CRTValue":               {reflect.TypeOf((*q.CRTValue)(nil)).Elem(), "", ""},
 			"OAEPOptions":            {reflect.TypeOf((*q.OAEPOptions)(nil)).Elem(), "", ""},
 			"PKCS1v15DecryptOptions": {reflect.TypeOf((*q.PKCS1v15DecryptOptions)(nil)).Elem(), "", ""},
@@ -58,8 +58,8 @@ func init() {
 			"VerifyPKCS1v15":            reflect.ValueOf(q.VerifyPKCS1v15),
 			"VerifyPSS":                 reflect.ValueOf(q.VerifyPSS),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"PSSSaltLengthAuto":       {"untyped int", constant.MakeInt64(int64(q.PSSSaltLengthAuto))},
 			"PSSSaltLengthEqualsHash": {"untyped int", constant.MakeInt64(int64(q.PSSSaltLengthEqualsHash))},
 		},

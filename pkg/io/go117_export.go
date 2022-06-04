@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "io",
 		Path: "io",
 		Deps: map[string]string{
@@ -46,7 +46,7 @@ func init() {
 			"WriterAt":        reflect.TypeOf((*q.WriterAt)(nil)).Elem(),
 			"WriterTo":        reflect.TypeOf((*q.WriterTo)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"LimitedReader": {reflect.TypeOf((*q.LimitedReader)(nil)).Elem(), "", "Read"},
 			"PipeReader":    {reflect.TypeOf((*q.PipeReader)(nil)).Elem(), "", "Close,CloseWithError,Read"},
 			"PipeWriter":    {reflect.TypeOf((*q.PipeWriter)(nil)).Elem(), "", "Close,CloseWithError,Write"},
@@ -78,8 +78,8 @@ func init() {
 			"TeeReader":        reflect.ValueOf(q.TeeReader),
 			"WriteString":      reflect.ValueOf(q.WriteString),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"SeekCurrent": {"untyped int", constant.MakeInt64(int64(q.SeekCurrent))},
 			"SeekEnd":     {"untyped int", constant.MakeInt64(int64(q.SeekEnd))},
 			"SeekStart":   {"untyped int", constant.MakeInt64(int64(q.SeekStart))},

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "strconv",
 		Path: "strconv",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 			"unicode/utf8":     "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"NumError": {reflect.TypeOf((*q.NumError)(nil)).Elem(), "", "Error,Unwrap"},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -70,8 +70,8 @@ func init() {
 			"Unquote":                  reflect.ValueOf(q.Unquote),
 			"UnquoteChar":              reflect.ValueOf(q.UnquoteChar),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"IntSize": {"untyped int", constant.MakeInt64(int64(q.IntSize))},
 		},
 	})

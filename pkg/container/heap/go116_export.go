@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "heap",
 		Path: "container/heap",
 		Deps: map[string]string{
@@ -22,7 +22,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Interface": reflect.TypeOf((*q.Interface)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{},
+		NamedTypes: map[string]igop.NamedType{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
@@ -32,7 +32,7 @@ func init() {
 			"Push":   reflect.ValueOf(q.Push),
 			"Remove": reflect.ValueOf(q.Remove),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

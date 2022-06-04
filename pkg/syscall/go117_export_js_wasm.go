@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "syscall",
 		Path: "syscall",
 		Deps: map[string]string{
@@ -32,7 +32,7 @@ func init() {
 			"RawConn":  reflect.TypeOf((*q.RawConn)(nil)).Elem(),
 			"Sockaddr": reflect.TypeOf((*q.Sockaddr)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Dirent":        {reflect.TypeOf((*q.Dirent)(nil)).Elem(), "", ""},
 			"Errno":         {reflect.TypeOf((*q.Errno)(nil)).Elem(), "Error,Is,Temporary,Timeout", ""},
 			"Iovec":         {reflect.TypeOf((*q.Iovec)(nil)).Elem(), "", ""},
@@ -139,7 +139,7 @@ func init() {
 			"Wait4":               reflect.ValueOf(q.Wait4),
 			"Write":               reflect.ValueOf(q.Write),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"E2BIG":           {reflect.TypeOf(q.E2BIG), constant.MakeInt64(int64(q.E2BIG))},
 			"EACCES":          {reflect.TypeOf(q.EACCES), constant.MakeInt64(int64(q.EACCES))},
 			"EADDRINUSE":      {reflect.TypeOf(q.EADDRINUSE), constant.MakeInt64(int64(q.EADDRINUSE))},
@@ -269,7 +269,7 @@ func init() {
 			"SIGTERM":         {reflect.TypeOf(q.SIGTERM), constant.MakeInt64(int64(q.SIGTERM))},
 			"SIGTRAP":         {reflect.TypeOf(q.SIGTRAP), constant.MakeInt64(int64(q.SIGTRAP))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"AF_INET":         {"untyped int", constant.MakeInt64(int64(q.AF_INET))},
 			"AF_INET6":        {"untyped int", constant.MakeInt64(int64(q.AF_INET6))},
 			"AF_UNIX":         {"untyped int", constant.MakeInt64(int64(q.AF_UNIX))},

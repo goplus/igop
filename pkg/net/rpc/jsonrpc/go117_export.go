@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "jsonrpc",
 		Path: "net/rpc/jsonrpc",
 		Deps: map[string]string{
@@ -27,7 +27,7 @@ func init() {
 			"sync":          "sync",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{},
+		NamedTypes: map[string]igop.NamedType{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
@@ -37,7 +37,7 @@ func init() {
 			"NewServerCodec": reflect.ValueOf(q.NewServerCodec),
 			"ServeConn":      reflect.ValueOf(q.ServeConn),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

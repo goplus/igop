@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "sha256",
 		Path: "crypto/sha256",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 			"math/bits":       "bits",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{},
+		NamedTypes: map[string]igop.NamedType{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
@@ -35,8 +35,8 @@ func init() {
 			"Sum224": reflect.ValueOf(q.Sum224),
 			"Sum256": reflect.ValueOf(q.Sum256),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"BlockSize": {"untyped int", constant.MakeInt64(int64(q.BlockSize))},
 			"Size":      {"untyped int", constant.MakeInt64(int64(q.Size))},
 			"Size224":   {"untyped int", constant.MakeInt64(int64(q.Size224))},

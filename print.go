@@ -1,4 +1,4 @@
-package gossa
+package igop
 
 import (
 	"bytes"

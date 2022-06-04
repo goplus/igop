@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "zip",
 		Path: "archive/zip",
 		Deps: map[string]string{
@@ -35,7 +35,7 @@ func init() {
 			"unicode/utf8":    "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Compressor":   {reflect.TypeOf((*q.Compressor)(nil)).Elem(), "", ""},
 			"Decompressor": {reflect.TypeOf((*q.Decompressor)(nil)).Elem(), "", ""},
 			"File":         {reflect.TypeOf((*q.File)(nil)).Elem(), "", "DataOffset,Open,findBodyOffset,hasDataDescriptor"},
@@ -58,10 +58,10 @@ func init() {
 			"RegisterCompressor":   reflect.ValueOf(q.RegisterCompressor),
 			"RegisterDecompressor": reflect.ValueOf(q.RegisterDecompressor),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"Deflate": {reflect.TypeOf(q.Deflate), constant.MakeInt64(int64(q.Deflate))},
 			"Store":   {reflect.TypeOf(q.Store), constant.MakeInt64(int64(q.Store))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

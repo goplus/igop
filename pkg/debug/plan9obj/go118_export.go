@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "plan9obj",
 		Path: "debug/plan9obj",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 			"os":              "os",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"File":          {reflect.TypeOf((*q.File)(nil)).Elem(), "", "Close,Section,Symbols"},
 			"FileHeader":    {reflect.TypeOf((*q.FileHeader)(nil)).Elem(), "", ""},
 			"Section":       {reflect.TypeOf((*q.Section)(nil)).Elem(), "", "Data,Open"},
@@ -41,8 +41,8 @@ func init() {
 			"NewFile": reflect.ValueOf(q.NewFile),
 			"Open":    reflect.ValueOf(q.Open),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"Magic386":   {"untyped int", constant.MakeInt64(int64(q.Magic386))},
 			"Magic64":    {"untyped int", constant.MakeInt64(int64(q.Magic64))},
 			"MagicAMD64": {"untyped int", constant.MakeInt64(int64(q.MagicAMD64))},

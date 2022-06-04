@@ -4,7 +4,7 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 const (
@@ -20,14 +20,14 @@ type UI interface {
 }
 
 type REPL struct {
-	repl *gossa.Repl
+	repl *igop.Repl
 	term UI
 	more string
 }
 
-func NewREPL(mode gossa.Mode) *REPL {
-	ctx := gossa.NewContext(mode)
-	repl := gossa.NewRepl(ctx)
+func NewREPL(mode igop.Mode) *REPL {
+	ctx := igop.NewContext(mode)
+	repl := igop.NewRepl(ctx)
 	return &REPL{
 		repl: repl,
 	}

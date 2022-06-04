@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "filepath",
 		Path: "path/filepath",
 		Deps: map[string]string{
@@ -27,7 +27,7 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"WalkFunc": {reflect.TypeOf((*q.WalkFunc)(nil)).Elem(), "", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -55,8 +55,8 @@ func init() {
 			"VolumeName":   reflect.ValueOf(q.VolumeName),
 			"Walk":         reflect.ValueOf(q.Walk),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"ListSeparator": {"untyped rune", constant.MakeInt64(int64(q.ListSeparator))},
 			"Separator":     {"untyped rune", constant.MakeInt64(int64(q.Separator))},
 		},

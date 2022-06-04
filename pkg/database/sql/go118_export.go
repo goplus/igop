@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "sql",
 		Path: "database/sql",
 		Deps: map[string]string{
@@ -38,7 +38,7 @@ func init() {
 			"Result":  reflect.TypeOf((*q.Result)(nil)).Elem(),
 			"Scanner": reflect.TypeOf((*q.Scanner)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ColumnType":     {reflect.TypeOf((*q.ColumnType)(nil)).Elem(), "", "DatabaseTypeName,DecimalSize,Length,Name,Nullable,ScanType"},
 			"Conn":           {reflect.TypeOf((*q.Conn)(nil)).Elem(), "", "BeginTx,Close,ExecContext,PingContext,PrepareContext,QueryContext,QueryRowContext,Raw,close,closemuRUnlockCondReleaseConn,grabConn,txCtx"},
 			"DB":             {reflect.TypeOf((*q.DB)(nil)).Elem(), "", "Begin,BeginTx,Close,Conn,Driver,Exec,ExecContext,Ping,PingContext,Prepare,PrepareContext,Query,QueryContext,QueryRow,QueryRowContext,SetConnMaxIdleTime,SetConnMaxLifetime,SetMaxIdleConns,SetMaxOpenConns,Stats,addDep,addDepLocked,begin,beginDC,conn,connectionCleaner,connectionCleanerRunLocked,connectionOpener,exec,execDC,maxIdleConnsLocked,maybeOpenNewConnections,nextRequestKeyLocked,noteUnusedDriverStatement,openNewConnection,pingDC,prepare,prepareDC,putConn,putConnDBLocked,query,queryDC,removeDep,removeDepLocked,shortestIdleTimeLocked,startCleanerLocked"},
@@ -74,7 +74,7 @@ func init() {
 			"OpenDB":   reflect.ValueOf(q.OpenDB),
 			"Register": reflect.ValueOf(q.Register),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"LevelDefault":         {reflect.TypeOf(q.LevelDefault), constant.MakeInt64(int64(q.LevelDefault))},
 			"LevelLinearizable":    {reflect.TypeOf(q.LevelLinearizable), constant.MakeInt64(int64(q.LevelLinearizable))},
 			"LevelReadCommitted":   {reflect.TypeOf(q.LevelReadCommitted), constant.MakeInt64(int64(q.LevelReadCommitted))},
@@ -84,6 +84,6 @@ func init() {
 			"LevelSnapshot":        {reflect.TypeOf(q.LevelSnapshot), constant.MakeInt64(int64(q.LevelSnapshot))},
 			"LevelWriteCommitted":  {reflect.TypeOf(q.LevelWriteCommitted), constant.MakeInt64(int64(q.LevelWriteCommitted))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

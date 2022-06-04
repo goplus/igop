@@ -71,12 +71,12 @@ func makeFuncOp(buf *bytes.Buffer, fnname string, op string, neg string, kinds [
 }`)
 }
 
-var pkg_head = `package gossa
+var pkg_head = `package igop
 
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/xtype"
+	"github.com/goplus/igop/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 `

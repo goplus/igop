@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "ast",
 		Path: "go/ast",
 		Deps: map[string]string{
@@ -38,7 +38,7 @@ func init() {
 			"Stmt":    reflect.TypeOf((*q.Stmt)(nil)).Elem(),
 			"Visitor": reflect.TypeOf((*q.Visitor)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ArrayType":      {reflect.TypeOf((*q.ArrayType)(nil)).Elem(), "", "End,Pos,exprNode"},
 			"AssignStmt":     {reflect.TypeOf((*q.AssignStmt)(nil)).Elem(), "", "End,Pos,stmtNode"},
 			"BadDecl":        {reflect.TypeOf((*q.BadDecl)(nil)).Elem(), "", "End,Pos,declNode"},
@@ -126,7 +126,7 @@ func init() {
 			"SortImports":       reflect.ValueOf(q.SortImports),
 			"Walk":              reflect.ValueOf(q.Walk),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"Bad":                        {reflect.TypeOf(q.Bad), constant.MakeInt64(int64(q.Bad))},
 			"Con":                        {reflect.TypeOf(q.Con), constant.MakeInt64(int64(q.Con))},
 			"FilterFuncDuplicates":       {reflect.TypeOf(q.FilterFuncDuplicates), constant.MakeInt64(int64(q.FilterFuncDuplicates))},
@@ -140,6 +140,6 @@ func init() {
 			"Typ":                        {reflect.TypeOf(q.Typ), constant.MakeInt64(int64(q.Typ))},
 			"Var":                        {reflect.TypeOf(q.Var), constant.MakeInt64(int64(q.Var))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

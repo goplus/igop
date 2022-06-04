@@ -1,4 +1,4 @@
-package gossa
+package igop
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ type Repl struct {
 	globals    []string // global var/func/type
 	infuncs    []string // in main func
 	source     string   // all source
-	lastDump   []string // last __gossa_repl_dump__
+	lastDump   []string // last __igop_repl_dump__
 	globalMap  map[string]interface{}
 	lastInterp *Interp
 	fileName   string
@@ -55,11 +55,11 @@ func NewRepl(ctx *Context) *Repl {
 	ctx.evalMode = true
 	ctx.evalInit = make(map[string]bool)
 
-	ctx.SetOverrideFunction("main.__gossa_repl_dump__", func(v ...interface{}) {
+	ctx.SetOverrideFunction("main.__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
 	})
 	ctx.evalCallFn = func(call *ssa.Call, res ...interface{}) {
-		if strings.HasPrefix(call.Call.Value.Name(), "__gossa_repl_") {
+		if strings.HasPrefix(call.Call.Value.Name(), "__igop_repl_") {
 			return
 		}
 		r.lastDump = toDump(res)
@@ -96,8 +96,8 @@ func (r *Repl) buildSource(expr string, tok token.Token) string {
 	}
 	return fmt.Sprintf(`package main
 %v
-func __gossa_repl_used__(v interface{}){}
-func __gossa_repl_dump__(v ...interface{}){}
+func __igop_repl_used__(v interface{}){}
+func __igop_repl_dump__(v ...interface{}){}
 %v
 func main() {
 	%v
@@ -147,10 +147,10 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			}
 			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
-				fixed = append(fixed, "__gossa_repl_used__(&"+v+")")
-				fixed = append(fixed, "__gossa_repl_dump__("+v+")")
+				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
+				fixed = append(fixed, "__igop_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
-				expr = "__gossa_repl_dump__(" + expr + ")"
+				expr = "__igop_repl_dump__(" + expr + ")"
 			} else {
 				return e
 			}

@@ -1,9 +1,9 @@
-package gossa
+package igop
 
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/xtype"
+	"github.com/goplus/igop/internal/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 

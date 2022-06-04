@@ -21,33 +21,33 @@ support ABI0 and ABIInternal
 - Go1.18 type parameters
 - Go1.18 fuzzing
 
-### gossa command line
+### igop command line
 ```
-go get -u github.com/goplus/gossa/cmd/gossa
+go get -u github.com/goplus/igop/cmd/igop
 ```
 
 Commands
 ```
-gossa run         # interpret package
-gossa test        # test package
+igop run         # interpret package
+igop test        # test package
 ```
 
-### gossa repl mode
+### igop repl mode
 ```
-gossa                       # run repl mode, support Go/Go+
-gossa repl                  # run repl mode, support Go/Go+
-gossa repl -gop=false       # run repl mode, disable Go+ syntax
+igop                       # run repl mode, support Go/Go+
+igop repl                  # run repl mode, support Go/Go+
+igop repl -gop=false       # run repl mode, disable Go+ syntax
 ```
 
-### gossa package
+### igop package
 
 **run go source**
 ```
 package main
 
 import (
-	"github.com/goplus/gossa"
-	_ "github.com/goplus/gossa/pkg/fmt"
+	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/pkg/fmt"
 )
 
 var source = `
@@ -61,7 +61,7 @@ func main() {
 `
 
 func main() {
-	_, err := gossa.RunFile("main.go", source, nil, 0)
+	_, err := igop.RunFile("main.go", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -74,9 +74,9 @@ func main() {
 package main
 
 import (
-	"github.com/goplus/gossa"
-	_ "github.com/goplus/gossa/gopbuild"
-	_ "github.com/goplus/gossa/pkg/fmt"
+	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/gopbuild"
+	_ "github.com/goplus/igop/pkg/fmt"
 )
 
 var source = `
@@ -84,7 +84,7 @@ println "Hello, Go+"
 `
 
 func main() {
-	_, err := gossa.RunFile("main.gop", source, nil, 0)
+	_, err := igop.RunFile("main.gop", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}

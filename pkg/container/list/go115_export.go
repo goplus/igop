@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -9,16 +9,16 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name:       "list",
 		Path:       "container/list",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Element": {reflect.TypeOf((*q.Element)(nil)).Elem(), "", "Next,Prev"},
 			"List":    {reflect.TypeOf((*q.List)(nil)).Elem(), "", "Back,Front,Init,InsertAfter,InsertBefore,Len,MoveAfter,MoveBefore,MoveToBack,MoveToFront,PushBack,PushBackList,PushFront,PushFrontList,Remove,insert,insertValue,lazyInit,move,remove"},
 		},
@@ -27,7 +27,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"New": reflect.ValueOf(q.New),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

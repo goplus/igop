@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "dsa",
 		Path: "crypto/dsa",
 		Deps: map[string]string{
@@ -25,7 +25,7 @@ func init() {
 			"math/big":                 "big",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"ParameterSizes": {reflect.TypeOf((*q.ParameterSizes)(nil)).Elem(), "", ""},
 			"Parameters":     {reflect.TypeOf((*q.Parameters)(nil)).Elem(), "", ""},
 			"PrivateKey":     {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "", ""},
@@ -41,12 +41,12 @@ func init() {
 			"Sign":               reflect.ValueOf(q.Sign),
 			"Verify":             reflect.ValueOf(q.Verify),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"L1024N160": {reflect.TypeOf(q.L1024N160), constant.MakeInt64(int64(q.L1024N160))},
 			"L2048N224": {reflect.TypeOf(q.L2048N224), constant.MakeInt64(int64(q.L2048N224))},
 			"L2048N256": {reflect.TypeOf(q.L2048N256), constant.MakeInt64(int64(q.L2048N256))},
 			"L3072N256": {reflect.TypeOf(q.L3072N256), constant.MakeInt64(int64(q.L3072N256))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

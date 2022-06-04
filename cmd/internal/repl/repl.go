@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/goplus/gossa"
-	"github.com/goplus/gossa/cmd/internal/base"
-	_ "github.com/goplus/gossa/pkg"
-	"github.com/goplus/gossa/repl"
+	"github.com/goplus/igop"
+	"github.com/goplus/igop/cmd/internal/base"
+	_ "github.com/goplus/igop/pkg"
+	"github.com/goplus/igop/repl"
 	"github.com/peterh/liner"
 )
 
-// Cmd - gossa test
+// Cmd - igop test
 var Cmd = &base.Command{
-	UsageLine: "gossa repl",
-	Short:     "gossa repl mode",
+	UsageLine: "igop repl",
+	Short:     "igop repl mode",
 }
 
 var (
@@ -70,12 +70,12 @@ func runCmd(cmd *base.Command, args []string) {
 	// state.SetCtrlCAborts(true)
 	state.SetMultiLineMode(true)
 	ui := &LinerUI{state: state}
-	var mode gossa.Mode
+	var mode igop.Mode
 	if flagDumpInstr {
-		mode |= gossa.EnableDumpInstr
+		mode |= igop.EnableDumpInstr
 	}
 	if flagTrace {
-		mode |= gossa.EnableTracing
+		mode |= igop.EnableTracing
 	}
 	r := repl.NewREPL(mode)
 	r.SetUI(ui)

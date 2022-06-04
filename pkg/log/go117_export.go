@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "log",
 		Path: "log",
 		Deps: map[string]string{
@@ -27,7 +27,7 @@ func init() {
 			"time":    "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Logger": {reflect.TypeOf((*q.Logger)(nil)).Elem(), "", "Fatal,Fatalf,Fatalln,Flags,Output,Panic,Panicf,Panicln,Prefix,Print,Printf,Println,SetFlags,SetOutput,SetPrefix,Writer,formatHeader"},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -52,8 +52,8 @@ func init() {
 			"SetPrefix": reflect.ValueOf(q.SetPrefix),
 			"Writer":    reflect.ValueOf(q.Writer),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"LUTC":          {"untyped int", constant.MakeInt64(int64(q.LUTC))},
 			"Ldate":         {"untyped int", constant.MakeInt64(int64(q.Ldate))},
 			"Llongfile":     {"untyped int", constant.MakeInt64(int64(q.Llongfile))},

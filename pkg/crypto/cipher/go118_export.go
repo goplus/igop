@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "cipher",
 		Path: "crypto/cipher",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"BlockMode": reflect.TypeOf((*q.BlockMode)(nil)).Elem(),
 			"Stream":    reflect.TypeOf((*q.Stream)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"StreamReader": {reflect.TypeOf((*q.StreamReader)(nil)).Elem(), "Read", ""},
 			"StreamWriter": {reflect.TypeOf((*q.StreamWriter)(nil)).Elem(), "Close,Write", ""},
 		},
@@ -47,7 +47,7 @@ func init() {
 			"NewGCMWithTagSize":   reflect.ValueOf(q.NewGCMWithTagSize),
 			"NewOFB":              reflect.ValueOf(q.NewOFB),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

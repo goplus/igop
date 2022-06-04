@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "exec",
 		Path: "os/exec",
 		Deps: map[string]string{
@@ -32,7 +32,7 @@ func init() {
 			"syscall":                  "syscall",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Cmd":       {reflect.TypeOf((*q.Cmd)(nil)).Elem(), "", "CombinedOutput,Output,Run,Start,StderrPipe,StdinPipe,StdoutPipe,String,Wait,argv,closeDescriptors,envv,stderr,stdin,stdout,writerDescriptor"},
 			"Error":     {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error,Unwrap"},
 			"ExitError": {reflect.TypeOf((*q.ExitError)(nil)).Elem(), "", "Error"},
@@ -46,7 +46,7 @@ func init() {
 			"CommandContext": reflect.ValueOf(q.CommandContext),
 			"LookPath":       reflect.ValueOf(q.LookPath),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

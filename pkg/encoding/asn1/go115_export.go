@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "asn1",
 		Path: "encoding/asn1",
 		Deps: map[string]string{
@@ -32,7 +32,7 @@ func init() {
 			"unicode/utf8":  "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"BitString":        {reflect.TypeOf((*q.BitString)(nil)).Elem(), "At,RightAlign", ""},
 			"Enumerated":       {reflect.TypeOf((*q.Enumerated)(nil)).Elem(), "", ""},
 			"Flag":             {reflect.TypeOf((*q.Flag)(nil)).Elem(), "", ""},
@@ -53,8 +53,8 @@ func init() {
 			"Unmarshal":           reflect.ValueOf(q.Unmarshal),
 			"UnmarshalWithParams": reflect.ValueOf(q.UnmarshalWithParams),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"ClassApplication":     {"untyped int", constant.MakeInt64(int64(q.ClassApplication))},
 			"ClassContextSpecific": {"untyped int", constant.MakeInt64(int64(q.ClassContextSpecific))},
 			"ClassPrivate":         {"untyped int", constant.MakeInt64(int64(q.ClassPrivate))},

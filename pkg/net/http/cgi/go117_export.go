@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "cgi",
 		Path: "net/http/cgi",
 		Deps: map[string]string{
@@ -38,7 +38,7 @@ func init() {
 			"vendor/golang.org/x/net/http/httpguts": "httpguts",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Handler": {reflect.TypeOf((*q.Handler)(nil)).Elem(), "", "ServeHTTP,handleInternalRedirect,printf,stderr"},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -48,7 +48,7 @@ func init() {
 			"RequestFromMap": reflect.ValueOf(q.RequestFromMap),
 			"Serve":          reflect.ValueOf(q.Serve),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

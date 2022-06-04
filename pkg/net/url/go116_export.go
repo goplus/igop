@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "url",
 		Path: "net/url",
 		Deps: map[string]string{
@@ -24,7 +24,7 @@ func init() {
 			"strings": "strings",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Error":            {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error,Temporary,Timeout,Unwrap"},
 			"EscapeError":      {reflect.TypeOf((*q.EscapeError)(nil)).Elem(), "Error", ""},
 			"InvalidHostError": {reflect.TypeOf((*q.InvalidHostError)(nil)).Elem(), "Error", ""},
@@ -45,7 +45,7 @@ func init() {
 			"User":            reflect.ValueOf(q.User),
 			"UserPassword":    reflect.ValueOf(q.UserPassword),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "pe",
 		Path: "debug/pe",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"strings":         "strings",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"COFFSymbol":       {reflect.TypeOf((*q.COFFSymbol)(nil)).Elem(), "", "FullName"},
 			"DataDirectory":    {reflect.TypeOf((*q.DataDirectory)(nil)).Elem(), "", ""},
 			"File":             {reflect.TypeOf((*q.File)(nil)).Elem(), "", "Close,DWARF,ImportedLibraries,ImportedSymbols,Section"},
@@ -52,8 +52,8 @@ func init() {
 			"NewFile": reflect.ValueOf(q.NewFile),
 			"Open":    reflect.ValueOf(q.Open),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"COFFSymbolSize":                                 {"untyped int", constant.MakeInt64(int64(q.COFFSymbolSize))},
 			"IMAGE_DIRECTORY_ENTRY_ARCHITECTURE":             {"untyped int", constant.MakeInt64(int64(q.IMAGE_DIRECTORY_ENTRY_ARCHITECTURE))},
 			"IMAGE_DIRECTORY_ENTRY_BASERELOC":                {"untyped int", constant.MakeInt64(int64(q.IMAGE_DIRECTORY_ENTRY_BASERELOC))},

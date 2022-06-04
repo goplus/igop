@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "importer",
 		Path: "go/importer",
 		Deps: map[string]string{
@@ -27,7 +27,7 @@ func init() {
 			"runtime":                   "runtime",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Lookup": {reflect.TypeOf((*q.Lookup)(nil)).Elem(), "", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -37,7 +37,7 @@ func init() {
 			"For":         reflect.ValueOf(q.For),
 			"ForCompiler": reflect.ValueOf(q.ForCompiler),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

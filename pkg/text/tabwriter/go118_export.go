@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "tabwriter",
 		Path: "text/tabwriter",
 		Deps: map[string]string{
@@ -23,7 +23,7 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Flush,Init,Write,addLine,append,dump,endEscape,flush,flushNoDefers,format,handlePanic,reset,startEscape,terminateCell,updateWidth,write0,writeLines,writeN,writePadding"},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -31,7 +31,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"NewWriter": reflect.ValueOf(q.NewWriter),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"AlignRight":          {reflect.TypeOf(q.AlignRight), constant.MakeInt64(int64(q.AlignRight))},
 			"Debug":               {reflect.TypeOf(q.Debug), constant.MakeInt64(int64(q.Debug))},
 			"DiscardEmptyColumns": {reflect.TypeOf(q.DiscardEmptyColumns), constant.MakeInt64(int64(q.DiscardEmptyColumns))},
@@ -39,7 +39,7 @@ func init() {
 			"StripEscape":         {reflect.TypeOf(q.StripEscape), constant.MakeInt64(int64(q.StripEscape))},
 			"TabIndent":           {reflect.TypeOf(q.TabIndent), constant.MakeInt64(int64(q.TabIndent))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"Escape": {"untyped rune", constant.MakeInt64(int64(q.Escape))},
 		},
 	})

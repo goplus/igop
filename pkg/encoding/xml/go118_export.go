@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "xml",
 		Path: "encoding/xml",
 		Deps: map[string]string{
@@ -40,7 +40,7 @@ func init() {
 			"Unmarshaler":     reflect.TypeOf((*q.Unmarshaler)(nil)).Elem(),
 			"UnmarshalerAttr": reflect.TypeOf((*q.UnmarshalerAttr)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Attr":                 {reflect.TypeOf((*q.Attr)(nil)).Elem(), "", ""},
 			"CharData":             {reflect.TypeOf((*q.CharData)(nil)).Elem(), "Copy", ""},
 			"Comment":              {reflect.TypeOf((*q.Comment)(nil)).Elem(), "Copy", ""},
@@ -72,8 +72,8 @@ func init() {
 			"NewTokenDecoder": reflect.ValueOf(q.NewTokenDecoder),
 			"Unmarshal":       reflect.ValueOf(q.Unmarshal),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"Header": {"untyped string", constant.MakeString(string(q.Header))},
 		},
 	})

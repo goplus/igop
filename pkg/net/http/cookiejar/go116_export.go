@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "cookiejar",
 		Path: "net/http/cookiejar",
 		Deps: map[string]string{
@@ -31,7 +31,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"PublicSuffixList": reflect.TypeOf((*q.PublicSuffixList)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Jar":     {reflect.TypeOf((*q.Jar)(nil)).Elem(), "", "Cookies,SetCookies,cookies,domainAndType,newEntry,setCookies"},
 			"Options": {reflect.TypeOf((*q.Options)(nil)).Elem(), "", ""},
 		},
@@ -40,7 +40,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"New": reflect.ValueOf(q.New),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

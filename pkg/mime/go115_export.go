@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "mime",
 		Path: "mime",
 		Deps: map[string]string{
@@ -32,7 +32,7 @@ func init() {
 			"unicode/utf8":    "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"WordDecoder": {reflect.TypeOf((*q.WordDecoder)(nil)).Elem(), "", "Decode,DecodeHeader,convert"},
 			"WordEncoder": {reflect.TypeOf((*q.WordEncoder)(nil)).Elem(), "Encode,bEncode,encodeWord,openWord,qEncode,splitWord", ""},
 		},
@@ -47,10 +47,10 @@ func init() {
 			"ParseMediaType":   reflect.ValueOf(q.ParseMediaType),
 			"TypeByExtension":  reflect.ValueOf(q.TypeByExtension),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"BEncoding": {reflect.TypeOf(q.BEncoding), constant.MakeInt64(int64(q.BEncoding))},
 			"QEncoding": {reflect.TypeOf(q.QEncoding), constant.MakeInt64(int64(q.QEncoding))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

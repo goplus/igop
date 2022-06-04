@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,18 +10,18 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "bits",
 		Path: "math/bits",
 		Deps: map[string]string{
 			"unsafe": "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{},
+		NamedTypes: map[string]igop.NamedType{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
@@ -75,8 +75,8 @@ func init() {
 			"TrailingZeros64": reflect.ValueOf(q.TrailingZeros64),
 			"TrailingZeros8":  reflect.ValueOf(q.TrailingZeros8),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"UintSize": {"untyped int", constant.MakeInt64(int64(q.UintSize))},
 		},
 	})

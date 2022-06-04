@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "x509",
 		Path: "crypto/x509",
 		Deps: map[string]string{
@@ -61,7 +61,7 @@ func init() {
 			"vendor/golang.org/x/crypto/cryptobyte/asn1": "asn1",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CertPool":                   {reflect.TypeOf((*q.CertPool)(nil)).Elem(), "", "AddCert,AppendCertsFromPEM,Subjects,contains,copy,findPotentialParents"},
 			"Certificate":                {reflect.TypeOf((*q.Certificate)(nil)).Elem(), "", "CheckCRLSignature,CheckSignature,CheckSignatureFrom,CreateCRL,Equal,Verify,VerifyHostname,buildChains,checkNameConstraints,commonNameAsHostname,getSANExtension,hasNameConstraints,hasSANExtension,isValid,systemVerify"},
 			"CertificateInvalidError":    {reflect.TypeOf((*q.CertificateInvalidError)(nil)).Elem(), "Error", ""},
@@ -109,7 +109,7 @@ func init() {
 			"ParsePKIXPublicKey":       reflect.ValueOf(q.ParsePKIXPublicKey),
 			"SystemCertPool":           reflect.ValueOf(q.SystemCertPool),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"CANotAuthorizedForExtKeyUsage": {reflect.TypeOf(q.CANotAuthorizedForExtKeyUsage), constant.MakeInt64(int64(q.CANotAuthorizedForExtKeyUsage))},
 			"CANotAuthorizedForThisName":    {reflect.TypeOf(q.CANotAuthorizedForThisName), constant.MakeInt64(int64(q.CANotAuthorizedForThisName))},
 			"DSA":                           {reflect.TypeOf(q.DSA), constant.MakeInt64(int64(q.DSA))},
@@ -171,6 +171,6 @@ func init() {
 			"UnknownPublicKeyAlgorithm":                 {reflect.TypeOf(q.UnknownPublicKeyAlgorithm), constant.MakeInt64(int64(q.UnknownPublicKeyAlgorithm))},
 			"UnknownSignatureAlgorithm":                 {reflect.TypeOf(q.UnknownSignatureAlgorithm), constant.MakeInt64(int64(q.UnknownSignatureAlgorithm))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

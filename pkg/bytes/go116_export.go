@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "bytes",
 		Path: "bytes",
 		Deps: map[string]string{
@@ -25,7 +25,7 @@ func init() {
 			"unicode/utf8":     "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Buffer": {reflect.TypeOf((*q.Buffer)(nil)).Elem(), "", "Bytes,Cap,Grow,Len,Next,Read,ReadByte,ReadBytes,ReadFrom,ReadRune,ReadString,Reset,String,Truncate,UnreadByte,UnreadRune,Write,WriteByte,WriteRune,WriteString,WriteTo,empty,grow,readSlice,tryGrowByReslice"},
 			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Len,Read,ReadAt,ReadByte,ReadRune,Reset,Seek,Size,UnreadByte,UnreadRune,WriteTo"},
 		},
@@ -85,8 +85,8 @@ func init() {
 			"TrimSpace":       reflect.ValueOf(q.TrimSpace),
 			"TrimSuffix":      reflect.ValueOf(q.TrimSuffix),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"MinRead": {"untyped int", constant.MakeInt64(int64(q.MinRead))},
 		},
 	})

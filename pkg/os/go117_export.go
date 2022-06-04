@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "os",
 		Path: "os",
 		Deps: map[string]string{
@@ -40,7 +40,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Signal": reflect.TypeOf((*q.Signal)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"File":         {reflect.TypeOf((*q.File)(nil)).Elem(), "", "Chdir,Chmod,Chown,Close,Fd,Name,Read,ReadAt,ReadDir,ReadFrom,Readdir,Readdirnames,Seek,SetDeadline,SetReadDeadline,SetWriteDeadline,Stat,Sync,SyscallConn,Truncate,Write,WriteAt,WriteString,checkValid,chmod,pread,pwrite,read,readFrom,readdir,seek,setDeadline,setReadDeadline,setWriteDeadline,wrapErr,write"},
 			"LinkError":    {reflect.TypeOf((*q.LinkError)(nil)).Elem(), "", "Error,Unwrap"},
 			"ProcAttr":     {reflect.TypeOf((*q.ProcAttr)(nil)).Elem(), "", ""},
@@ -132,7 +132,7 @@ func init() {
 			"UserHomeDir":     reflect.ValueOf(q.UserHomeDir),
 			"WriteFile":       reflect.ValueOf(q.WriteFile),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ModeAppend":     {reflect.TypeOf(q.ModeAppend), constant.MakeInt64(int64(q.ModeAppend))},
 			"ModeCharDevice": {reflect.TypeOf(q.ModeCharDevice), constant.MakeInt64(int64(q.ModeCharDevice))},
 			"ModeDevice":     {reflect.TypeOf(q.ModeDevice), constant.MakeInt64(int64(q.ModeDevice))},
@@ -160,7 +160,7 @@ func init() {
 			"SEEK_END":       {reflect.TypeOf(q.SEEK_END), constant.MakeInt64(int64(q.SEEK_END))},
 			"SEEK_SET":       {reflect.TypeOf(q.SEEK_SET), constant.MakeInt64(int64(q.SEEK_SET))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"DevNull":           {"untyped string", constant.MakeString(string(q.DevNull))},
 			"PathListSeparator": {"untyped rune", constant.MakeInt64(int64(q.PathListSeparator))},
 			"PathSeparator":     {"untyped rune", constant.MakeInt64(int64(q.PathSeparator))},

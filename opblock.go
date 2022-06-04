@@ -1,4 +1,4 @@
-package gossa
+package igop
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/gossa/internal/xtype"
+	"github.com/goplus/igop/internal/xtype"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
 	"golang.org/x/tools/go/ssa"

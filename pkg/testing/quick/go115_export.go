@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "quick",
 		Path: "testing/quick",
 		Deps: map[string]string{
@@ -28,7 +28,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Generator": reflect.TypeOf((*q.Generator)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CheckEqualError": {reflect.TypeOf((*q.CheckEqualError)(nil)).Elem(), "", "Error"},
 			"CheckError":      {reflect.TypeOf((*q.CheckError)(nil)).Elem(), "", "Error"},
 			"Config":          {reflect.TypeOf((*q.Config)(nil)).Elem(), "", "getMaxCount,getRand"},
@@ -41,7 +41,7 @@ func init() {
 			"CheckEqual": reflect.ValueOf(q.CheckEqual),
 			"Value":      reflect.ValueOf(q.Value),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

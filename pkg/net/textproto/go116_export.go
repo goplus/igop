@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "textproto",
 		Path: "net/textproto",
 		Deps: map[string]string{
@@ -27,7 +27,7 @@ func init() {
 			"sync":    "sync",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Conn":          {reflect.TypeOf((*q.Conn)(nil)).Elem(), "", "Close,Cmd"},
 			"Error":         {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error"},
 			"MIMEHeader":    {reflect.TypeOf((*q.MIMEHeader)(nil)).Elem(), "Add,Del,Get,Set,Values", ""},
@@ -47,7 +47,7 @@ func init() {
 			"TrimBytes":              reflect.ValueOf(q.TrimBytes),
 			"TrimString":             reflect.ValueOf(q.TrimString),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

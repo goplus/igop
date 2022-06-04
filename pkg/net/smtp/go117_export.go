@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "smtp",
 		Path: "net/smtp",
 		Deps: map[string]string{
@@ -32,7 +32,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Auth": reflect.TypeOf((*q.Auth)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Client":     {reflect.TypeOf((*q.Client)(nil)).Elem(), "", "Auth,Close,Data,Extension,Hello,Mail,Noop,Quit,Rcpt,Reset,StartTLS,TLSConnectionState,Verify,cmd,ehlo,hello,helo"},
 			"ServerInfo": {reflect.TypeOf((*q.ServerInfo)(nil)).Elem(), "", ""},
 		},
@@ -45,7 +45,7 @@ func init() {
 			"PlainAuth":   reflect.ValueOf(q.PlainAuth),
 			"SendMail":    reflect.ValueOf(q.SendMail),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

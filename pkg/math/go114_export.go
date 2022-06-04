@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -11,11 +11,11 @@ import (
 	"go/token"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "math",
 		Path: "math",
 		Deps: map[string]string{
@@ -24,7 +24,7 @@ func init() {
 			"unsafe":       "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{},
+		NamedTypes: map[string]igop.NamedType{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
@@ -96,8 +96,8 @@ func init() {
 			"Y1":              reflect.ValueOf(q.Y1),
 			"Yn":              reflect.ValueOf(q.Yn),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"E":                      {"untyped float", constant.MakeFromLiteral("2.71828182845904523536028747135266249775724709369995957496696763", token.FLOAT, 0)},
 			"Ln10":                   {"untyped float", constant.MakeFromLiteral("2.3025850929940456840179914546843642076011014886287729760333279", token.FLOAT, 0)},
 			"Ln2":                    {"untyped float", constant.MakeFromLiteral("0.693147180559945309417232121458176568075500134360255254120680009", token.FLOAT, 0)},

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "net",
 		Path: "net",
 		Deps: map[string]string{
@@ -46,7 +46,7 @@ func init() {
 			"Listener":   reflect.TypeOf((*q.Listener)(nil)).Elem(),
 			"PacketConn": reflect.TypeOf((*q.PacketConn)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"AddrError":           {reflect.TypeOf((*q.AddrError)(nil)).Elem(), "", "Error,Temporary,Timeout"},
 			"Buffers":             {reflect.TypeOf((*q.Buffers)(nil)).Elem(), "", "Read,WriteTo,consume"},
 			"DNSConfigError":      {reflect.TypeOf((*q.DNSConfigError)(nil)).Elem(), "", "Error,Temporary,Timeout,Unwrap"},
@@ -139,14 +139,14 @@ func init() {
 			"ResolveUnixAddr":    reflect.ValueOf(q.ResolveUnixAddr),
 			"SplitHostPort":      reflect.ValueOf(q.SplitHostPort),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"FlagBroadcast":    {reflect.TypeOf(q.FlagBroadcast), constant.MakeInt64(int64(q.FlagBroadcast))},
 			"FlagLoopback":     {reflect.TypeOf(q.FlagLoopback), constant.MakeInt64(int64(q.FlagLoopback))},
 			"FlagMulticast":    {reflect.TypeOf(q.FlagMulticast), constant.MakeInt64(int64(q.FlagMulticast))},
 			"FlagPointToPoint": {reflect.TypeOf(q.FlagPointToPoint), constant.MakeInt64(int64(q.FlagPointToPoint))},
 			"FlagUp":           {reflect.TypeOf(q.FlagUp), constant.MakeInt64(int64(q.FlagUp))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"IPv4len": {"untyped int", constant.MakeInt64(int64(q.IPv4len))},
 			"IPv6len": {"untyped int", constant.MakeInt64(int64(q.IPv6len))},
 		},

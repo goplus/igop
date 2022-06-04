@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "doc",
 		Path: "go/doc",
 		Deps: map[string]string{
@@ -34,7 +34,7 @@ func init() {
 			"unicode/utf8":        "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Example": {reflect.TypeOf((*q.Example)(nil)).Elem(), "", ""},
 			"Filter":  {reflect.TypeOf((*q.Filter)(nil)).Elem(), "", ""},
 			"Func":    {reflect.TypeOf((*q.Func)(nil)).Elem(), "", ""},
@@ -57,11 +57,11 @@ func init() {
 			"ToHTML":        reflect.ValueOf(q.ToHTML),
 			"ToText":        reflect.ValueOf(q.ToText),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"AllDecls":    {reflect.TypeOf(q.AllDecls), constant.MakeInt64(int64(q.AllDecls))},
 			"AllMethods":  {reflect.TypeOf(q.AllMethods), constant.MakeInt64(int64(q.AllMethods))},
 			"PreserveAST": {reflect.TypeOf(q.PreserveAST), constant.MakeInt64(int64(q.PreserveAST))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

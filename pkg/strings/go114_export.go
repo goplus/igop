@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "strings",
 		Path: "strings",
 		Deps: map[string]string{
@@ -26,7 +26,7 @@ func init() {
 			"unsafe":           "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Builder":  {reflect.TypeOf((*q.Builder)(nil)).Elem(), "", "Cap,Grow,Len,Reset,String,Write,WriteByte,WriteRune,WriteString,copyCheck,grow"},
 			"Reader":   {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Len,Read,ReadAt,ReadByte,ReadRune,Reset,Seek,Size,UnreadByte,UnreadRune,WriteTo"},
 			"Replacer": {reflect.TypeOf((*q.Replacer)(nil)).Elem(), "", "Replace,WriteString,build,buildOnce"},
@@ -82,7 +82,7 @@ func init() {
 			"TrimSpace":      reflect.ValueOf(q.TrimSpace),
 			"TrimSuffix":     reflect.ValueOf(q.TrimSuffix),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

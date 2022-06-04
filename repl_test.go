@@ -1,16 +1,16 @@
-package gossa_test
+package igop_test
 
 import (
 	"fmt"
 	"go/token"
 	"testing"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func TestReplExpr(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -33,8 +33,8 @@ func TestReplExpr(t *testing.T) {
 }
 
 func TestReplImports(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -61,8 +61,8 @@ func TestReplImports(t *testing.T) {
 }
 
 func TestReplClosure(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -92,8 +92,8 @@ func TestReplClosure(t *testing.T) {
 }
 
 func TestReplVar(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -127,8 +127,8 @@ func TestReplVar(t *testing.T) {
 }
 
 func TestReplType(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`type T struct {
 	X int
@@ -167,8 +167,8 @@ func TestReplType(t *testing.T) {
 }
 
 func TestReplFunc(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`a := "hello"`,
 		`import "fmt"`,
@@ -200,8 +200,8 @@ func TestReplFunc(t *testing.T) {
 }
 
 func TestReplTok(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`a := "hello"`,
 		`import "fmt"`,
@@ -232,8 +232,8 @@ func TestReplTok(t *testing.T) {
 }
 
 func TestReplInit(t *testing.T) {
-	ctx := gossa.NewContext(0)
-	repl := gossa.NewRepl(ctx)
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
 	list := []string{
 		`var i int = 10`,
 		`var j int = 20`,

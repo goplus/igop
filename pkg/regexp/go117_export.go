@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "regexp",
 		Path: "regexp",
 		Deps: map[string]string{
@@ -29,7 +29,7 @@ func init() {
 			"unicode/utf8":  "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Regexp": {reflect.TypeOf((*q.Regexp)(nil)).Elem(), "", "Copy,Expand,ExpandString,Find,FindAll,FindAllIndex,FindAllString,FindAllStringIndex,FindAllStringSubmatch,FindAllStringSubmatchIndex,FindAllSubmatch,FindAllSubmatchIndex,FindIndex,FindReaderIndex,FindReaderSubmatchIndex,FindString,FindStringIndex,FindStringSubmatch,FindStringSubmatchIndex,FindSubmatch,FindSubmatchIndex,LiteralPrefix,Longest,Match,MatchReader,MatchString,NumSubexp,ReplaceAll,ReplaceAllFunc,ReplaceAllLiteral,ReplaceAllLiteralString,ReplaceAllString,ReplaceAllStringFunc,Split,String,SubexpIndex,SubexpNames,allMatches,backtrack,doExecute,doMatch,doOnePass,expand,get,pad,put,replaceAll,tryBacktrack"},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -44,7 +44,7 @@ func init() {
 			"MustCompilePOSIX": reflect.ValueOf(q.MustCompilePOSIX),
 			"QuoteMeta":        reflect.ValueOf(q.QuoteMeta),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

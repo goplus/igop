@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "tls",
 		Path: "crypto/tls",
 		Deps: map[string]string{
@@ -62,7 +62,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"ClientSessionCache": reflect.TypeOf((*q.ClientSessionCache)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Certificate":            {reflect.TypeOf((*q.Certificate)(nil)).Elem(), "", "leaf"},
 			"CertificateRequestInfo": {reflect.TypeOf((*q.CertificateRequestInfo)(nil)).Elem(), "", "Context,SupportsCertificate"},
 			"CipherSuite":            {reflect.TypeOf((*q.CipherSuite)(nil)).Elem(), "", ""},
@@ -94,7 +94,7 @@ func init() {
 			"Server":                   reflect.ValueOf(q.Server),
 			"X509KeyPair":              reflect.ValueOf(q.X509KeyPair),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"CurveP256":                                     {reflect.TypeOf(q.CurveP256), constant.MakeInt64(int64(q.CurveP256))},
 			"CurveP384":                                     {reflect.TypeOf(q.CurveP384), constant.MakeInt64(int64(q.CurveP384))},
 			"CurveP521":                                     {reflect.TypeOf(q.CurveP521), constant.MakeInt64(int64(q.CurveP521))},
@@ -148,7 +148,7 @@ func init() {
 			"VerifyClientCertIfGiven":                       {reflect.TypeOf(q.VerifyClientCertIfGiven), constant.MakeInt64(int64(q.VerifyClientCertIfGiven))},
 			"X25519":                                        {reflect.TypeOf(q.X25519), constant.MakeInt64(int64(q.X25519))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		UntypedConsts: map[string]igop.UntypedConst{
 			"VersionSSL30": {"untyped int", constant.MakeInt64(int64(q.VersionSSL30))},
 			"VersionTLS10": {"untyped int", constant.MakeInt64(int64(q.VersionTLS10))},
 			"VersionTLS11": {"untyped int", constant.MakeInt64(int64(q.VersionTLS11))},

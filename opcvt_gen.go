@@ -58,12 +58,12 @@ func makeFuncOp2(buf *bytes.Buffer, fnname string, typ string) {
 	r.WriteString(buf, cvt_func2)
 }
 
-var pkg_head = `package gossa
+var pkg_head = `package igop
 
 import (
 	"reflect"
 
-	"github.com/goplus/gossa/internal/xtype"
+	"github.com/goplus/igop/internal/xtype"
 )
 `
 

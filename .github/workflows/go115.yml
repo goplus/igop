@@ -28,14 +28,14 @@ jobs:
     - name: Build
       run: go build -v .
 
-    - name: Install gossa
-      run: go install -v ./cmd/gossa
+    - name: Install igop
+      run: go install -v ./cmd/igop
 
     - name: Go Test
       run: GOARCH=amd64 go test -race -v .
 
     - name: Test $GOROOT/test
-      run: GOARCH=amd64 go run ./cmd/gossatest
+      run: GOARCH=amd64 go run ./cmd/igoptest
 
   linux:
     name: Test Go1.15 for Linux
@@ -57,14 +57,14 @@ jobs:
     - name: Build
       run: go build -v .
 
-    - name: Install gossa
-      run: go install -v ./cmd/gossa
+    - name: Install igop
+      run: go install -v ./cmd/igop
 
     - name: Go Test amd64
       run: GOARCH=amd64 go test -race -v .
 
     - name: Test $GOROOT/test
-      run: GOARCH=amd64 go run ./cmd/gossatest
+      run: GOARCH=amd64 go run ./cmd/igoptest
 
   windows:
     name: Test Go1.15 for Windows
@@ -86,8 +86,8 @@ jobs:
     - name: Build
       run: go build -v .
 
-    - name: Install gossa
-      run: go install -v ./cmd/gossa
+    - name: Install igop
+      run: go install -v ./cmd/igop
 
     - name: Go Test amd64
       run: |
@@ -97,7 +97,7 @@ jobs:
     - name: Test $GOROOT/test amd64
       run: |
         set GOARCH=amd64 
-        go run ./cmd/gossatest
+        go run ./cmd/igoptest
 
     - name: Go Test 386
       run: |
@@ -107,4 +107,4 @@ jobs:
     - name: Go $GOROOT/test 386
       run: |
         set GOARCH=386 
-        go run ./cmd/gossatest
+        go run ./cmd/igoptest

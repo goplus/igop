@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 package builtin
 
@@ -8,16 +8,16 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name:       "builtin",
 		Path:       "github.com/goplus/gop/builtin",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"IntRange": {reflect.TypeOf((*q.IntRange)(nil)).Elem(), "", "Gop_Enum"},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -25,8 +25,8 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"NewRange__0": reflect.ValueOf(q.NewRange__0),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"GopPackage": {"untyped bool", constant.MakeBool(bool(q.GopPackage))},
 		},
 	})

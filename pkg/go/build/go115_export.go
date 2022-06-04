@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "build",
 		Path: "go/build",
 		Deps: map[string]string{
@@ -42,7 +42,7 @@ func init() {
 			"unicode/utf8":       "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Context":              {reflect.TypeOf((*q.Context)(nil)).Elem(), "", "Import,ImportDir,MatchFile,SrcDirs,goodOSArchFile,gopath,hasSubdir,importGo,isAbsPath,isDir,isFile,joinPath,makePathsAbsolute,match,matchFile,openFile,readDir,saveCgo,shouldBuild,splitPathList"},
 			"ImportMode":           {reflect.TypeOf((*q.ImportMode)(nil)).Elem(), "", ""},
 			"MultiplePackageError": {reflect.TypeOf((*q.MultiplePackageError)(nil)).Elem(), "", "Error"},
@@ -60,12 +60,12 @@ func init() {
 			"ImportDir":     reflect.ValueOf(q.ImportDir),
 			"IsLocalImport": reflect.ValueOf(q.IsLocalImport),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"AllowBinary":   {reflect.TypeOf(q.AllowBinary), constant.MakeInt64(int64(q.AllowBinary))},
 			"FindOnly":      {reflect.TypeOf(q.FindOnly), constant.MakeInt64(int64(q.FindOnly))},
 			"IgnoreVendor":  {reflect.TypeOf(q.IgnoreVendor), constant.MakeInt64(int64(q.IgnoreVendor))},
 			"ImportComment": {reflect.TypeOf(q.ImportComment), constant.MakeInt64(int64(q.ImportComment))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -66,7 +66,7 @@ func init() {
 	gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
-	//gorootTestSkips["fixedbugs/bug295.go"] = "skip, gossa not import testing"
+	//gorootTestSkips["fixedbugs/bug295.go"] = "skip, igop not import testing"
 	//gorootTestSkips["fixedbugs/issue27695.go"] = "runtime/debug.SetGCPercent"
 	//gorootTestSkips["atomicload.go"] = "slow, 0.5"
 	gorootTestSkips["chan/select5.go"] = "bug, select case expr call order"
@@ -120,9 +120,9 @@ var (
 
 func init() {
 	var err error
-	gossaCmd, err = exec.LookPath("gossa")
+	gossaCmd, err = exec.LookPath("igop")
 	if err != nil {
-		panic(fmt.Sprintf("not found gossa: %v", err))
+		panic(fmt.Sprintf("not found igop: %v", err))
 	}
 	goCmd, err = exec.LookPath("go")
 	if err != nil {

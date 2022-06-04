@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "expvar",
 		Path: "expvar",
 		Deps: map[string]string{
@@ -34,7 +34,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Var": reflect.TypeOf((*q.Var)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Float":    {reflect.TypeOf((*q.Float)(nil)).Elem(), "", "Add,Set,String,Value"},
 			"Func":     {reflect.TypeOf((*q.Func)(nil)).Elem(), "String,Value", ""},
 			"Int":      {reflect.TypeOf((*q.Int)(nil)).Elem(), "", "Add,Set,String,Value"},
@@ -54,7 +54,7 @@ func init() {
 			"NewString": reflect.ValueOf(q.NewString),
 			"Publish":   reflect.ValueOf(q.Publish),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

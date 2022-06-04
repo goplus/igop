@@ -14,15 +14,15 @@ import (
 	"github.com/goplus/gop/cl"
 	"github.com/goplus/gop/parser"
 	"github.com/goplus/gop/token"
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 	"github.com/goplus/gox"
 
-	_ "github.com/goplus/gossa/pkg/fmt"
-	_ "github.com/goplus/gossa/pkg/github.com/goplus/gop/builtin"
-	_ "github.com/goplus/gossa/pkg/github.com/goplus/gop/builtin/ng"
-	_ "github.com/goplus/gossa/pkg/math/big"
-	_ "github.com/goplus/gossa/pkg/strconv"
-	_ "github.com/goplus/gossa/pkg/strings"
+	_ "github.com/goplus/igop/pkg/fmt"
+	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin"
+	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/ng"
+	_ "github.com/goplus/igop/pkg/math/big"
+	_ "github.com/goplus/igop/pkg/strconv"
+	_ "github.com/goplus/igop/pkg/strings"
 )
 
 var (
@@ -42,11 +42,11 @@ func RegisterClassFileType(projExt, workExt string, pkgPaths ...string) {
 }
 
 func init() {
-	gossa.RegisterFileProcess(".gop", BuildFile)
+	igop.RegisterFileProcess(".gop", BuildFile)
 	RegisterClassFileType(".gmx", ".spx", "github.com/goplus/spx", "math")
 }
 
-func BuildFile(ctx *gossa.Context, filename string, src interface{}) (data []byte, err error) {
+func BuildFile(ctx *igop.Context, filename string, src interface{}) (data []byte, err error) {
 	defer func() {
 		r := recover()
 		if r != nil {
@@ -62,7 +62,7 @@ func BuildFile(ctx *gossa.Context, filename string, src interface{}) (data []byt
 	return pkg.ToSource()
 }
 
-func BuildFSDir(ctx *gossa.Context, fs parser.FileSystem, dir string) (data []byte, err error) {
+func BuildFSDir(ctx *igop.Context, fs parser.FileSystem, dir string) (data []byte, err error) {
 	defer func() {
 		r := recover()
 		if r != nil {
@@ -78,7 +78,7 @@ func BuildFSDir(ctx *gossa.Context, fs parser.FileSystem, dir string) (data []by
 	return pkg.ToSource()
 }
 
-func BuildDir(ctx *gossa.Context, dir string) (data []byte, err error) {
+func BuildDir(ctx *igop.Context, dir string) (data []byte, err error) {
 	defer func() {
 		r := recover()
 		if r != nil {
@@ -112,8 +112,8 @@ func (p *Package) ToAst() *goast.File {
 }
 
 type Context struct {
-	ctx *gossa.Context
-	gop gossa.Loader
+	ctx *igop.Context
+	gop igop.Loader
 }
 
 func IsClass(ext string) (isProj bool, ok bool) {
@@ -123,12 +123,12 @@ func IsClass(ext string) (isProj bool, ok bool) {
 	return
 }
 
-func NewContext(ctx *gossa.Context) *Context {
-	return &Context{ctx: ctx, gop: gossa.NewTypesLoader(0)}
+func NewContext(ctx *igop.Context) *Context {
+	return &Context{ctx: ctx, gop: igop.NewTypesLoader(0)}
 }
 
 func isGopPackage(path string) bool {
-	if pkg, ok := gossa.LookupPackage(path); ok {
+	if pkg, ok := igop.LookupPackage(path); ok {
 		if _, ok := pkg.UntypedConsts["GopPackage"]; ok {
 			return true
 		}

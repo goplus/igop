@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "hash",
 		Path: "hash",
 		Deps: map[string]string{
@@ -24,11 +24,11 @@ func init() {
 			"Hash32": reflect.TypeOf((*q.Hash32)(nil)).Elem(),
 			"Hash64": reflect.TypeOf((*q.Hash64)(nil)).Elem(),
 		},
-		NamedTypes:    map[string]gossa.NamedType{},
+		NamedTypes:    map[string]igop.NamedType{},
 		AliasTypes:    map[string]reflect.Type{},
 		Vars:          map[string]reflect.Value{},
 		Funcs:         map[string]reflect.Value{},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "crypto",
 		Path: "crypto",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"Signer":        reflect.TypeOf((*q.Signer)(nil)).Elem(),
 			"SignerOpts":    reflect.TypeOf((*q.SignerOpts)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Hash": {reflect.TypeOf((*q.Hash)(nil)).Elem(), "Available,HashFunc,New,Size,String", ""},
 		},
 		AliasTypes: map[string]reflect.Type{},
@@ -38,7 +38,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"RegisterHash": reflect.ValueOf(q.RegisterHash),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"BLAKE2b_256": {reflect.TypeOf(q.BLAKE2b_256), constant.MakeInt64(int64(q.BLAKE2b_256))},
 			"BLAKE2b_384": {reflect.TypeOf(q.BLAKE2b_384), constant.MakeInt64(int64(q.BLAKE2b_384))},
 			"BLAKE2b_512": {reflect.TypeOf(q.BLAKE2b_512), constant.MakeInt64(int64(q.BLAKE2b_512))},
@@ -59,6 +59,6 @@ func init() {
 			"SHA512_224":  {reflect.TypeOf(q.SHA512_224), constant.MakeInt64(int64(q.SHA512_224))},
 			"SHA512_256":  {reflect.TypeOf(q.SHA512_256), constant.MakeInt64(int64(q.SHA512_256))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

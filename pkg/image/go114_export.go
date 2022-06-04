@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "image",
 		Path: "image",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"Image":         reflect.TypeOf((*q.Image)(nil)).Elem(),
 			"PalettedImage": reflect.TypeOf((*q.PalettedImage)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"Alpha":               {reflect.TypeOf((*q.Alpha)(nil)).Elem(), "", "AlphaAt,At,Bounds,ColorModel,Opaque,PixOffset,Set,SetAlpha,SubImage"},
 			"Alpha16":             {reflect.TypeOf((*q.Alpha16)(nil)).Elem(), "", "Alpha16At,At,Bounds,ColorModel,Opaque,PixOffset,Set,SetAlpha16,SubImage"},
 			"CMYK":                {reflect.TypeOf((*q.CMYK)(nil)).Elem(), "", "At,Bounds,CMYKAt,ColorModel,Opaque,PixOffset,Set,SetCMYK,SubImage"},
@@ -79,7 +79,7 @@ func init() {
 			"Rect":           reflect.ValueOf(q.Rect),
 			"RegisterFormat": reflect.ValueOf(q.RegisterFormat),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"YCbCrSubsampleRatio410": {reflect.TypeOf(q.YCbCrSubsampleRatio410), constant.MakeInt64(int64(q.YCbCrSubsampleRatio410))},
 			"YCbCrSubsampleRatio411": {reflect.TypeOf(q.YCbCrSubsampleRatio411), constant.MakeInt64(int64(q.YCbCrSubsampleRatio411))},
 			"YCbCrSubsampleRatio420": {reflect.TypeOf(q.YCbCrSubsampleRatio420), constant.MakeInt64(int64(q.YCbCrSubsampleRatio420))},
@@ -87,6 +87,6 @@ func init() {
 			"YCbCrSubsampleRatio440": {reflect.TypeOf(q.YCbCrSubsampleRatio440), constant.MakeInt64(int64(q.YCbCrSubsampleRatio440))},
 			"YCbCrSubsampleRatio444": {reflect.TypeOf(q.YCbCrSubsampleRatio444), constant.MakeInt64(int64(q.YCbCrSubsampleRatio444))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "jpeg",
 		Path: "image/jpeg",
 		Deps: map[string]string{
@@ -29,7 +29,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Reader": reflect.TypeOf((*q.Reader)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"FormatError":      {reflect.TypeOf((*q.FormatError)(nil)).Elem(), "Error", ""},
 			"Options":          {reflect.TypeOf((*q.Options)(nil)).Elem(), "", ""},
 			"UnsupportedError": {reflect.TypeOf((*q.UnsupportedError)(nil)).Elem(), "Error", ""},
@@ -41,8 +41,8 @@ func init() {
 			"DecodeConfig": reflect.ValueOf(q.DecodeConfig),
 			"Encode":       reflect.ValueOf(q.Encode),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"DefaultQuality": {"untyped int", constant.MakeInt64(int64(q.DefaultQuality))},
 		},
 	})

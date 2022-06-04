@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "syntax",
 		Path: "regexp/syntax",
 		Deps: map[string]string{
@@ -25,7 +25,7 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"EmptyOp":   {reflect.TypeOf((*q.EmptyOp)(nil)).Elem(), "", ""},
 			"Error":     {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error"},
 			"ErrorCode": {reflect.TypeOf((*q.ErrorCode)(nil)).Elem(), "String", ""},
@@ -44,7 +44,7 @@ func init() {
 			"IsWordChar":     reflect.ValueOf(q.IsWordChar),
 			"Parse":          reflect.ValueOf(q.Parse),
 		},
-		TypedConsts: map[string]gossa.TypedConst{
+		TypedConsts: map[string]igop.TypedConst{
 			"ClassNL":                  {reflect.TypeOf(q.ClassNL), constant.MakeInt64(int64(q.ClassNL))},
 			"DotNL":                    {reflect.TypeOf(q.DotNL), constant.MakeInt64(int64(q.DotNL))},
 			"EmptyBeginLine":           {reflect.TypeOf(q.EmptyBeginLine), constant.MakeInt64(int64(q.EmptyBeginLine))},
@@ -109,6 +109,6 @@ func init() {
 			"UnicodeGroups":            {reflect.TypeOf(q.UnicodeGroups), constant.MakeInt64(int64(q.UnicodeGroups))},
 			"WasDollar":                {reflect.TypeOf(q.WasDollar), constant.MakeInt64(int64(q.WasDollar))},
 		},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.18
 // +build go1.18
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name: "gob",
 		Path: "encoding/gob",
 		Deps: map[string]string{
@@ -37,7 +37,7 @@ func init() {
 			"GobDecoder": reflect.TypeOf((*q.GobDecoder)(nil)).Elem(),
 			"GobEncoder": reflect.TypeOf((*q.GobEncoder)(nil)).Elem(),
 		},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CommonType": {reflect.TypeOf((*q.CommonType)(nil)).Elem(), "", "id,name,safeString,setId,string"},
 			"Decoder":    {reflect.TypeOf((*q.Decoder)(nil)).Elem(), "", "Decode,DecodeValue,compatibleType,compileDec,compileIgnoreSingle,compileSingle,decIgnoreOpFor,decOpFor,decodeArray,decodeArrayHelper,decodeGobDecoder,decodeIgnoredValue,decodeInterface,decodeMap,decodeSingle,decodeSlice,decodeStruct,decodeTypeSequence,decodeValue,freeDecoderState,getDecEnginePtr,getIgnoreEnginePtr,gobDecodeOpFor,ignoreArray,ignoreArrayHelper,ignoreGobDecoder,ignoreInterface,ignoreMap,ignoreSingle,ignoreSlice,ignoreStruct,newDecoderState,nextInt,nextUint,readMessage,recvMessage,recvType,typeString"},
 			"Encoder":    {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode,EncodeValue,encode,encodeArray,encodeGobEncoder,encodeInterface,encodeMap,encodeSingle,encodeStruct,freeEncoderState,newEncoderState,popWriter,pushWriter,sendActualType,sendType,sendTypeDescriptor,sendTypeId,setError,writeMessage,writer"},
@@ -50,7 +50,7 @@ func init() {
 			"Register":     reflect.ValueOf(q.Register),
 			"RegisterName": reflect.ValueOf(q.RegisterName),
 		},
-		TypedConsts:   map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{},
+		TypedConsts:   map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{},
 	})
 }

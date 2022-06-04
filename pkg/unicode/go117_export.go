@@ -1,4 +1,4 @@
-// export by github.com/goplus/gossa/cmd/qexp
+// export by github.com/goplus/igop/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,16 +11,16 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/gossa"
+	"github.com/goplus/igop"
 )
 
 func init() {
-	gossa.RegisterPackage(&gossa.Package{
+	igop.RegisterPackage(&igop.Package{
 		Name:       "unicode",
 		Path:       "unicode",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]gossa.NamedType{
+		NamedTypes: map[string]igop.NamedType{
 			"CaseRange":   {reflect.TypeOf((*q.CaseRange)(nil)).Elem(), "", ""},
 			"Range16":     {reflect.TypeOf((*q.Range16)(nil)).Elem(), "", ""},
 			"Range32":     {reflect.TypeOf((*q.Range32)(nil)).Elem(), "", ""},
@@ -301,8 +301,8 @@ func init() {
 			"ToTitle":    reflect.ValueOf(q.ToTitle),
 			"ToUpper":    reflect.ValueOf(q.ToUpper),
 		},
-		TypedConsts: map[string]gossa.TypedConst{},
-		UntypedConsts: map[string]gossa.UntypedConst{
+		TypedConsts: map[string]igop.TypedConst{},
+		UntypedConsts: map[string]igop.UntypedConst{
 			"LowerCase":       {"untyped int", constant.MakeInt64(int64(q.LowerCase))},
 			"MaxASCII":        {"untyped rune", constant.MakeInt64(int64(q.MaxASCII))},
 			"MaxCase":         {"untyped int", constant.MakeInt64(int64(q.MaxCase))},

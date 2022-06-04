@@ -42,7 +42,7 @@
 //
 // * os.Exit is implemented using panic, causing deferred functions to
 // run.
-package gossa
+package igop
 
 import (
 	"fmt"
@@ -55,7 +55,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/gossa/internal/xtype"
+	"github.com/goplus/igop/internal/xtype"
 	"github.com/petermattis/goid"
 	"golang.org/x/tools/go/ssa"
 )
