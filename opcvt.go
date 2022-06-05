@@ -3,7 +3,7 @@ package igop
 import (
 	"reflect"
 
-	"github.com/goplus/igop/internal/xtype"
+	"github.com/visualfc/xtype"
 )
 
 func cvtInt(ir, ix register, xkind reflect.Kind, xtyp reflect.Type, typ reflect.Type) func(fr *frame) {

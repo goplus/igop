@@ -174,7 +174,7 @@ var pkg_head = `package igop
 import (
 	"reflect"
 
-	"github.com/goplus/igop/internal/xtype"
+	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 `

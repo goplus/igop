@@ -55,7 +55,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/igop/internal/xtype"
+	"github.com/visualfc/xtype"
 	"github.com/petermattis/goid"
 	"golang.org/x/tools/go/ssa"
 )
