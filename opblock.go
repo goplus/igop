@@ -272,10 +272,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			ir := pfn.regIndex(instr)
 			t := xtype.TypeOfType(typ.Elem())
 			pt := xtype.TypeOfType(typ)
-			ptr := xtype.NewPointer(t)
+			// ptr := xtype.NewPointer(t)
+			elem := reflect.New(typ.Elem()).Elem()
 			return func(fr *frame) {
 				if v := fr.reg(ir); v != nil {
-					xtype.SetPointer(v, ptr)
+					reflect.ValueOf(v).Elem().Set(elem)
 				} else {
 					fr.setReg(ir, xtype.New(t, pt))
 				}
