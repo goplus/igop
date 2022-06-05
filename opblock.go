@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/visualfc/xtype"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
+	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -1078,8 +1078,7 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	if typ.Kind() != reflect.Func {
 		panic("unsupport")
 	}
-	// GopherJS not support funcval
-	if runtime.Compiler == "gopherjs" {
+	if !funcval.IsSupport {
 		return func(fr *frame) {
 			fn := fr.reg(iv)
 			v := reflect.ValueOf(fn)
