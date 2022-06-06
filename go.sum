@@ -2,8 +2,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/goplus/c2go v0.7.6/go.mod h1:NedKEtme4+2tPEK3IEtACPvUPm/Bq9+myFVcbxQK8yg=
-github.com/goplus/gop v1.1.0-rc3 h1:DjoNU7ZiPfL/jF7y51j1k4ziqrOjh9ZjQYq1XyRieV8=
-github.com/goplus/gop v1.1.0-rc3/go.mod h1:mmGmU1rFKCuy658hmht6Lxj9vgb/fJTyHBwq/2AvMCE=
+github.com/goplus/gop v1.1.0 h1:DbIk7KGfp6KCBflcXxOfweNfWZWZljCEezuIUigvqjA=
+github.com/goplus/gop v1.1.0/go.mod h1:mmGmU1rFKCuy658hmht6Lxj9vgb/fJTyHBwq/2AvMCE=
 github.com/goplus/gox v1.11.8 h1:XVyhun8eq2gIAPpIKq+5MFoFqe+epALYUo00c66qH8g=
 github.com/goplus/gox v1.11.8/go.mod h1:gu7fuQF8RmWPZUjd+tEJGuV3m/vOEv0bHrct0x/KatM=
 github.com/goplus/libc v0.3.8/go.mod h1:5jwI9WTo0535XwnR5dFZuKgIXm2b2dOqulFon7C1yIE=

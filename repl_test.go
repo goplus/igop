@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/pkg/fmt"
 )
 
 func TestReplExpr(t *testing.T) {
