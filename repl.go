@@ -6,6 +6,7 @@ import (
 	"go/scanner"
 	"go/token"
 	"go/types"
+	"os"
 	"strings"
 
 	"golang.org/x/tools/go/ssa"
@@ -235,8 +236,11 @@ type fnState struct {
 
 func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err error) {
 	defer func() {
-		r := recover()
-		if r != nil {
+		switch p := recover().(type) {
+		case nil:
+		case exitPanic:
+			os.Exit(int(p))
+		default:
 			err = fmt.Errorf("%v", r)
 		}
 	}()
