@@ -3,6 +3,7 @@ package repl
 import (
 	"fmt"
 	"io"
+	"runtime"
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
@@ -48,7 +49,7 @@ func (u *LinerUI) Printf(format string, a ...interface{}) {
 }
 
 var (
-	welcomeGo  string = "Welcome to Go REPL!"
+	welcomeGo  string = fmt.Sprintf("Welcome to Go (version %v) REPL!", runtime.Version())
 	welcomeGop string = "Welcome to Go+ REPL!"
 )
 
