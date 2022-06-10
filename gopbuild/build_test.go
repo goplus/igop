@@ -2,6 +2,7 @@ package gopbuild
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/goplus/igop"
@@ -57,6 +58,36 @@ func TestBig(t *testing.T) {
 		t.Fatalf("build gop error: %v", err)
 	}
 	if string(data) != test_big_go {
+		fmt.Println("build gop error:")
+		fmt.Println(string(data))
+		t.Fail()
+	}
+}
+
+var test_builtin = `
+v := typeof(100)
+println(v)
+`
+var test_builtin_go = `package main
+
+import fmt "fmt"
+
+func main() {
+//line main.gop:2
+	v := typeof(100)
+//line main.gop:3
+	fmt.Println(v)
+}
+`
+
+func TestBuiltin(t *testing.T) {
+	ctx := igop.NewContext(0)
+	igop.RegisterCustomBuiltin("typeof", reflect.TypeOf)
+	data, err := BuildFile(ctx, "main.gop", test_builtin)
+	if err != nil {
+		t.Fatalf("build gop error: %v", err)
+	}
+	if string(data) != test_builtin_go {
 		fmt.Println("build gop error:")
 		fmt.Println(string(data))
 		t.Fail()

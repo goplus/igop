@@ -14,8 +14,8 @@ import (
 	"github.com/goplus/gop/cl"
 	"github.com/goplus/gop/parser"
 	"github.com/goplus/gop/token"
-	"github.com/goplus/igop"
 	"github.com/goplus/gox"
+	"github.com/goplus/igop"
 
 	_ "github.com/goplus/igop/pkg/fmt"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin"
@@ -186,6 +186,9 @@ func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[strin
 	mainPkg, ok := pkgs["main"]
 	if !ok {
 		return nil, fmt.Errorf("not a main package")
+	}
+	if f, err := igop.ParserBuiltin(fset, "main"); err == nil {
+		mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
 	}
 	conf := &cl.Config{
 		WorkingDir: srcDir, TargetDir: srcDir, Fset: fset}
