@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
+	"os/exec"
 	"reflect"
 	"strings"
 
@@ -67,6 +68,7 @@ func (r *REPL) IsNormal() bool {
 func (r *REPL) Dump(expr string) {
 	i := r.Interp()
 	if i == nil {
+		r.godoc(expr)
 		return
 	}
 	pkg := i.MainPkg()
@@ -85,8 +87,24 @@ func (r *REPL) Dump(expr string) {
 	}
 	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%q,%v)", expr, expr))
 	if err != nil {
-		r.Printf("not found %v\n", expr)
+		if err := r.godoc(expr); err != nil {
+			r.Printf("not found %v\n", expr)
+		}
 	}
+}
+
+func (r *REPL) godoc(expr string) error {
+	gobin, err := exec.LookPath("go")
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(gobin, "doc", expr)
+	data, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	r.Printf("%v\n", string(data))
+	return nil
 }
 
 func (r *REPL) Printf(_fmt string, a ...interface{}) {
