@@ -453,7 +453,7 @@ func ParserBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
 		}
 	}
 	if len(list) == 0 {
-		return nil, os.ErrInvalid
+		return nil, ErrNoCustomBuiltin
 	}
 	src := fmt.Sprintf(`package %v
 import "github.com/goplus/igop/builtin"
