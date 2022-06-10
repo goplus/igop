@@ -55,8 +55,8 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/visualfc/xtype"
 	"github.com/petermattis/goid"
+	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -111,6 +111,10 @@ type Interp struct {
 	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
 	goexited     int32                                       // is call runtime.Goexit
 	exited       int32                                       // is call os.Exit
+}
+
+func (i *Interp) MainPkg() *ssa.Package {
+	return i.mainpkg
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {

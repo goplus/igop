@@ -1,8 +1,13 @@
 package repl
 
 import (
+	"fmt"
 	"go/token"
+	"go/types"
+	"reflect"
 	"strings"
+
+	"golang.org/x/tools/go/ssa"
 
 	"github.com/goplus/igop"
 )
@@ -20,7 +25,7 @@ type UI interface {
 }
 
 type REPL struct {
-	repl *igop.Repl
+	*igop.Repl
 	term UI
 	more string
 }
@@ -28,9 +33,15 @@ type REPL struct {
 func NewREPL(mode igop.Mode) *REPL {
 	ctx := igop.NewContext(mode)
 	repl := igop.NewRepl(ctx)
-	return &REPL{
-		repl: repl,
+	r := &REPL{
+		Repl: repl,
 	}
+
+	ctx.SetOverrideFunction("main.__igop_repl_info__", func(name string, v interface{}) {
+		r.Printf("(main) %v %v %v\n", name, reflect.TypeOf(v), v)
+	})
+
+	return r
 }
 
 func (r *REPL) SetUI(term UI) {
@@ -40,15 +51,50 @@ func (r *REPL) SetUI(term UI) {
 
 func (r *REPL) SetNormal() {
 	r.more = ""
-	r.term.SetPrompt(NormalPrompt)
+	r.SetPrompt(NormalPrompt)
+}
+
+func (r *REPL) SetPrompt(prompt string) {
+	if r.term != nil {
+		r.term.SetPrompt(prompt)
+	}
 }
 
 func (r *REPL) IsNormal() bool {
 	return r.more == ""
 }
 
-func (r *REPL) SetFileName(filename string) {
-	r.repl.SetFileName(filename)
+func (r *REPL) Dump(expr string) {
+	i := r.Interp()
+	if i == nil {
+		return
+	}
+	pkg := i.MainPkg()
+	if m, ok := pkg.Members[expr]; ok {
+		switch v := m.(type) {
+		case *ssa.NamedConst:
+			r.Printf("(global) const %v %v = %v\n", v.Name(), v.Type(), v.Value.Value)
+		case *ssa.Global:
+			r.Printf("(global) var %v %v\n", v.Name(), v.Type().(*types.Pointer).Elem())
+		case *ssa.Type:
+			r.Printf("(global) type %v %v\n", v.Name(), v.Type())
+		case *ssa.Function:
+			r.Printf("(global) func %v %v\n", v.Name(), v.Type())
+		}
+		return
+	}
+	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%q,%v)", expr, expr))
+	if err != nil {
+		r.Printf("not found %v\n", expr)
+	}
+}
+
+func (r *REPL) Printf(_fmt string, a ...interface{}) {
+	if r.term != nil {
+		r.term.Printf(_fmt, a...)
+	} else {
+		fmt.Printf(_fmt, a...)
+	}
 }
 
 func (r *REPL) Run(line string) {
@@ -60,21 +106,25 @@ func (r *REPL) Run(line string) {
 		}
 		expr = r.more + "\n" + line
 	} else {
+		if strings.HasPrefix(line, "?") {
+			r.Dump(strings.TrimSpace(line[1:]))
+			return
+		}
 		expr = line
 	}
-	tok, dump, err := r.repl.Eval(expr)
+	tok, dump, err := r.Eval(expr)
 	if err != nil {
 		if checkMore(tok, err) {
 			r.more += "\n" + line
-			r.term.SetPrompt(ContinuePrompt)
+			r.SetPrompt(ContinuePrompt)
 		} else {
 			r.SetNormal()
-			r.term.Printf("error: %v\n", err)
+			r.Printf("error: %v\n", err)
 		}
 		return
 	}
 	if len(dump) > 0 {
-		r.term.Printf(": %v\n", strings.Join(dump, " "))
+		r.Printf(": %v\n", strings.Join(dump, " "))
 	}
 	r.SetNormal()
 }

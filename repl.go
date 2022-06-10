@@ -23,21 +23,21 @@ func main(){}
 */
 
 type Repl struct {
-	ctx        *Context
-	fset       *token.FileSet
-	pkg        *ssa.Package
-	frame      *frame   // last frame
-	pc         int      // last pc
-	fsInit     *fnState // func init
-	fsMain     *fnState // func main
-	imports    []string // import lines
-	globals    []string // global var/func/type
-	infuncs    []string // in main func
-	source     string   // all source
-	lastDump   []string // last __igop_repl_dump__
-	globalMap  map[string]interface{}
-	lastInterp *Interp
-	fileName   string
+	ctx       *Context
+	fset      *token.FileSet
+	pkg       *ssa.Package
+	frame     *frame   // last frame
+	pc        int      // last pc
+	fsInit    *fnState // func init
+	fsMain    *fnState // func main
+	imports   []string // import lines
+	globals   []string // global var/func/type
+	infuncs   []string // in main func
+	source    string   // all source
+	lastDump  []string // last __igop_repl_dump__
+	globalMap map[string]interface{}
+	interp    *Interp
+	fileName  string
 }
 
 func toDump(i []interface{}) (dump []string) {
@@ -79,6 +79,10 @@ func (r *Repl) Eval(expr string) (tok token.Token, dump []string, err error) {
 	return tok, r.lastDump, err
 }
 
+func (r *Repl) Interp() *Interp {
+	return r.interp
+}
+
 func (r *Repl) Source() string {
 	return r.source
 }
@@ -99,6 +103,7 @@ func (r *Repl) buildSource(expr string, tok token.Token) string {
 %v
 func __igop_repl_used__(v interface{}){}
 func __igop_repl_dump__(v ...interface{}){}
+func __igop_repl_info__(name string, v interface{}){}
 %v
 func main() {
 	%v
@@ -223,6 +228,7 @@ func (repl *Repl) run() error {
 		return err
 	}
 	repl.fsMain = rmain
+	repl.interp = i
 	for k, v := range i.globals {
 		repl.globalMap[k.String()] = v
 	}
