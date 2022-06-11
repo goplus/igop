@@ -39,7 +39,7 @@ func NewREPL(mode igop.Mode) *REPL {
 	}
 
 	ctx.SetOverrideFunction("main.__igop_repl_info__", func(name string, v interface{}) {
-		r.Printf("(main) %v %v %v\n", name, reflect.TypeOf(v), v)
+		r.Printf("%v %v %v\n", name, reflect.TypeOf(v), v)
 	})
 
 	return r
@@ -75,13 +75,13 @@ func (r *REPL) Dump(expr string) {
 	if m, ok := pkg.Members[expr]; ok {
 		switch v := m.(type) {
 		case *ssa.NamedConst:
-			r.Printf("(global) const %v %v = %v\n", v.Name(), v.Type(), v.Value.Value)
+			r.Printf("const %v %v = %v\n", v.Name(), v.Type(), v.Value.Value)
 		case *ssa.Global:
 			r.Printf("(global) var %v %v\n", v.Name(), v.Type().(*types.Pointer).Elem())
 		case *ssa.Type:
-			r.Printf("(global) type %v %v\n", v.Name(), v.Type())
+			r.Printf("type %v %v\n", v.Name(), v.Type().Underlying())
 		case *ssa.Function:
-			r.Printf("(global) func %v %v\n", v.Name(), v.Type())
+			r.Printf("func %v %v\n", v.Name(), v.Type())
 		}
 		return
 	}
