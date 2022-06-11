@@ -187,7 +187,7 @@ func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[strin
 	if !ok {
 		return nil, fmt.Errorf("not a main package")
 	}
-	if f, err := igop.ParserBuiltin(fset, "main"); err == nil {
+	if f, err := igop.ParseBuiltin(fset, "main"); err == nil {
 		mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
 	}
 	conf := &cl.Config{
