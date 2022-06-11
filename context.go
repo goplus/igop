@@ -162,7 +162,7 @@ func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package
 	pkg := types.NewPackage(file.Name.Name, "")
 	files := []*ast.File{file}
 	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParserBuiltin(fset, file.Name.Name); err == nil {
+		if f, err := ParseBuiltin(fset, file.Name.Name); err == nil {
 			files = []*ast.File{f, file}
 		}
 	}
@@ -181,7 +181,7 @@ func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.P
 		files = append(files, f)
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParserBuiltin(fset, apkg.Name); err == nil {
+		if f, err := ParseBuiltin(fset, apkg.Name); err == nil {
 			files = append([]*ast.File{f}, files...)
 		}
 	}
@@ -445,7 +445,7 @@ import "github.com/goplus/igop/builtin"
 `
 )
 
-func ParserBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
+func ParseBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
 	var list []string
 	for k, _ := range builtinPkg.Funcs {
 		if strings.HasPrefix(k, builtinPrefix) {
