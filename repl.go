@@ -26,18 +26,18 @@ type Repl struct {
 	ctx       *Context
 	fset      *token.FileSet
 	pkg       *ssa.Package
+	builtin   *ast.File
+	interp    *Interp  // last interp
 	frame     *frame   // last frame
-	pc        int      // last pc
 	fsInit    *fnState // func init
 	fsMain    *fnState // func main
 	imports   []string // import lines
 	globals   []string // global var/func/type
 	infuncs   []string // in main func
-	source    string   // all source
 	lastDump  []string // last __igop_repl_dump__
-	globalMap map[string]interface{}
-	interp    *Interp
+	source    string   // all source
 	fileName  string
+	globalMap map[string]interface{}
 }
 
 func toDump(i []interface{}) (dump []string) {
@@ -64,6 +64,9 @@ func NewRepl(ctx *Context) *Repl {
 			return
 		}
 		r.lastDump = toDump(res)
+	}
+	if f, err := ParseBuiltin(r.fset, "main"); err == nil {
+		r.builtin = f
 	}
 	return r
 }
@@ -201,7 +204,13 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 		errors = append(errors, err)
 	}
 	pkg := types.NewPackage(file.Name.Name, "")
-	types.NewChecker(tc, r.fset, pkg, &types.Info{}).Files([]*ast.File{file})
+	var files []*ast.File
+	if r.builtin != nil {
+		files = []*ast.File{r.builtin, file}
+	} else {
+		files = []*ast.File{file}
+	}
+	types.NewChecker(tc, r.fset, pkg, &types.Info{}).Files(files)
 	return
 }
 

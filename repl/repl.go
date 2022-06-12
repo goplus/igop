@@ -37,11 +37,9 @@ func NewREPL(mode igop.Mode) *REPL {
 	r := &REPL{
 		Repl: repl,
 	}
-
 	ctx.SetOverrideFunction("main.__igop_repl_info__", func(name string, v interface{}) {
 		r.Printf("%v %v %v\n", name, reflect.TypeOf(v), v)
 	})
-
 	return r
 }
 
