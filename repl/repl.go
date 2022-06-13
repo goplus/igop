@@ -32,14 +32,12 @@ type REPL struct {
 }
 
 func NewREPL(mode igop.Mode) *REPL {
-	ctx := igop.NewContext(mode)
-	repl := igop.NewRepl(ctx)
-	r := &REPL{
-		Repl: repl,
-	}
-	ctx.SetOverrideFunction("main.__igop_repl_info__", func(name string, v interface{}) {
+	r := &REPL{}
+	igop.RegisterCustomBuiltin("__igop_repl_info__", func(name string, v interface{}) {
 		r.Printf("%v %v %v\n", name, reflect.TypeOf(v), v)
 	})
+	ctx := igop.NewContext(mode)
+	r.Repl = igop.NewRepl(ctx)
 	return r
 }
 

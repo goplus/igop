@@ -55,12 +55,16 @@ func NewRepl(ctx *Context) *Repl {
 	}
 	ctx.evalMode = true
 	ctx.evalInit = make(map[string]bool)
-
-	ctx.SetOverrideFunction("main.__igop_repl_dump__", func(v ...interface{}) {
+	RegisterCustomBuiltin("__igop_repl_used__", func(v interface{}) {})
+	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
 	})
 	ctx.evalCallFn = func(call *ssa.Call, res ...interface{}) {
-		if strings.HasPrefix(call.Call.Value.Name(), "__igop_repl_") {
+		v := call.Call.Value
+		if un, ok := v.(*ssa.UnOp); ok {
+			v = un.X
+		}
+		if strings.HasPrefix(v.Name(), "__igop_repl_") {
 			return
 		}
 		r.lastDump = toDump(res)
@@ -104,9 +108,6 @@ func (r *Repl) buildSource(expr string, tok token.Token) string {
 	}
 	return fmt.Sprintf(`package main
 %v
-func __igop_repl_used__(v interface{}){}
-func __igop_repl_dump__(v ...interface{}){}
-func __igop_repl_info__(name string, v interface{}){}
 %v
 func main() {
 	%v
