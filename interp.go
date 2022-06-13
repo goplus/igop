@@ -1109,6 +1109,8 @@ func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
 	case *ssa.Global:
 		v = i.globals[p]
 	case *ssa.Function:
+		typ := i.toType(p.Type())
+		v = i.makeFunction(typ, i.funcs[p])
 	case *ssa.Type:
 		v = i.toType(p.Type())
 	}

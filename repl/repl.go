@@ -73,7 +73,7 @@ func (r *REPL) Dump(expr string) {
 			case *ssa.Type:
 				r.Printf(": type %v %v\n", p.Name(), p.Type().Underlying())
 			case *ssa.Function:
-				r.Printf(": func %v %v\n", p.Name(), p.Type())
+				r.Printf(": func %v %v %v\n", p.Name(), p.Type(), v)
 			}
 			return
 		}
