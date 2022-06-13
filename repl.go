@@ -67,6 +67,9 @@ func NewRepl(ctx *Context) *Repl {
 		r.lastDump = toDump(v)
 	})
 	ctx.evalCallFn = func(call *ssa.Call, res ...interface{}) {
+		if len(*call.Referrers()) != 0 {
+			return
+		}
 		v := call.Call.Value
 		if un, ok := v.(*ssa.UnOp); ok {
 			v = un.X

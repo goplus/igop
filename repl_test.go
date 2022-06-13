@@ -47,7 +47,7 @@ func TestReplImports(t *testing.T) {
 		`[]`,
 		`[]`,
 		`[]`,
-		`[1-2 string]`,
+		`[]`,
 		`[1-2 string]`,
 	}
 	for i, expr := range list {
@@ -74,8 +74,8 @@ func TestReplClosure(t *testing.T) {
 	result := []string{
 		`[]`,
 		`[]`,
-		`-`,
-		`[1 int]`,
+		`[]`,
+		`[]`,
 		`[3 int]`,
 	}
 	for i, expr := range list {
@@ -108,8 +108,8 @@ func TestReplVar(t *testing.T) {
 		`[]`,
 		`[]`,
 		`[]`,
-		`-`,
-		`[101 int]`,
+		`[]`,
+		`[]`,
 		`[103 int]`,
 		`[100 int]`,
 	}
