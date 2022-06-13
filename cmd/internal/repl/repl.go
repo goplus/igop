@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"runtime"
+	"strings"
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
@@ -70,6 +71,12 @@ func runCmd(cmd *base.Command, args []string) {
 
 	// state.SetCtrlCAborts(true)
 	state.SetMultiLineMode(true)
+	state.SetCompleter(func(line string) []string {
+		if strings.TrimSpace(line) == "" {
+			return []string{line + "    "}
+		}
+		return nil
+	})
 	ui := &LinerUI{state: state}
 	var mode igop.Mode
 	if flagDumpInstr {
