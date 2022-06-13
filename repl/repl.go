@@ -6,6 +6,7 @@ import (
 	"go/types"
 	"os/exec"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"golang.org/x/tools/go/ssa"
@@ -33,8 +34,8 @@ type REPL struct {
 
 func NewREPL(mode igop.Mode) *REPL {
 	r := &REPL{}
-	igop.RegisterCustomBuiltin("__igop_repl_info__", func(name string, v interface{}) {
-		r.Printf(": %v %v %v\n", name, reflect.TypeOf(v), v)
+	igop.RegisterCustomBuiltin("__igop_repl_info__", func(v interface{}) {
+		r.Printf("%v %v\n", v, reflect.TypeOf(v))
 	})
 	ctx := igop.NewContext(mode)
 	r.Repl = igop.NewRepl(ctx)
@@ -61,24 +62,44 @@ func (r *REPL) IsNormal() bool {
 	return r.more == ""
 }
 
+func (r *REPL) TryDump(expr string) bool {
+	i := r.Interp()
+	if i != nil {
+		if m, v, ok := i.GetSymbol(expr); ok {
+			switch p := m.(type) {
+			case *ssa.NamedConst:
+				r.Printf("%v %v (const)\n", v, p.Type())
+			case *ssa.Global:
+				r.Printf("%v %v (global var)\n", reflect.ValueOf(v).Elem().Interface(), p.Type().(*types.Pointer).Elem())
+			case *ssa.Type:
+				r.Printf("%v %v\n", p.Type().Underlying(), v)
+			case *ssa.Function:
+				r.Printf("%v %v\n", v, p.Type())
+			}
+			return true
+		}
+	}
+	return false
+}
+
 func (r *REPL) Dump(expr string) {
 	i := r.Interp()
 	if i != nil {
 		if m, v, ok := i.GetSymbol(expr); ok {
 			switch p := m.(type) {
 			case *ssa.NamedConst:
-				r.Printf(": const %v %v = %v\n", p.Name(), p.Type(), v)
+				r.Printf("%v %v (const)\n", v, p.Type())
 			case *ssa.Global:
-				r.Printf(": (global) var %v %v = %v\n", p.Name(), p.Type().(*types.Pointer).Elem(), reflect.ValueOf(v).Elem().Interface())
+				r.Printf("%v %v (global var)\n", reflect.ValueOf(v).Elem().Interface(), p.Type().(*types.Pointer).Elem())
 			case *ssa.Type:
-				r.Printf(": type %v %v\n", p.Name(), p.Type().Underlying())
+				r.Printf("%v %v\n", p.Type().Underlying(), v)
 			case *ssa.Function:
-				r.Printf(": func %v %v %v\n", p.Name(), p.Type(), v)
+				r.Printf("%v %v\n", v, p.Type())
 			}
 			return
 		}
 	}
-	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%q,%v)", expr, expr))
+	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%v)", expr))
 	if err != nil {
 		if err := r.godoc(expr); err != nil {
 			r.Printf("not found %v\n", expr)
@@ -108,6 +129,10 @@ func (r *REPL) Printf(_fmt string, a ...interface{}) {
 	}
 }
 
+var (
+	regWord = regexp.MustCompile("\\w+")
+)
+
 func (r *REPL) Run(line string) {
 	var expr string
 	if r.more != "" {
@@ -120,6 +145,10 @@ func (r *REPL) Run(line string) {
 		if strings.HasPrefix(line, "?") {
 			r.Dump(strings.TrimSpace(line[1:]))
 			return
+		} else if regWord.MatchString(line) {
+			if r.TryDump(line) {
+				return
+			}
 		}
 		expr = line
 	}
@@ -134,8 +163,12 @@ func (r *REPL) Run(line string) {
 		}
 		return
 	}
-	if len(dump) > 0 {
-		r.Printf(": %v\n", strings.Join(dump, " "))
+	switch len(dump) {
+	case 0:
+	case 1:
+		r.Printf("%v\n", dump[0])
+	default:
+		r.Printf("(%v)\n", strings.Join(dump, ", "))
 	}
 	r.SetNormal()
 }

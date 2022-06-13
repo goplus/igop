@@ -42,7 +42,14 @@ type Repl struct {
 
 func toDump(i []interface{}) (dump []string) {
 	for _, v := range i {
-		dump = append(dump, fmt.Sprintf("%v", v))
+		dump = append(dump, fmt.Sprintf("%v %T", v, v))
+	}
+	return
+}
+
+func toResultDump(vs []interface{}, rs *types.Tuple) (dump []string) {
+	for i, v := range vs {
+		dump = append(dump, fmt.Sprintf("%v %v", v, rs.At(i).Type()))
 	}
 	return
 }
@@ -67,7 +74,7 @@ func NewRepl(ctx *Context) *Repl {
 		if strings.HasPrefix(v.Name(), "__igop_repl_") {
 			return
 		}
-		r.lastDump = toDump(res)
+		r.lastDump = toResultDump(res, call.Call.Signature().Results())
 	}
 	if f, err := ParseBuiltin(r.fset, "main"); err == nil {
 		r.builtin = f
@@ -158,7 +165,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
 				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
-				fixed = append(fixed, "__igop_repl_dump__("+v+")")
+				// fixed = append(fixed, "__igop_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
 				expr = "__igop_repl_dump__(" + expr + ")"
 			} else {
