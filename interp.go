@@ -179,13 +179,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
-func (i *Interp) makeFunction(typ reflect.Type, pfn *function) reflect.Value {
-	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, nil)
-	})
-}
-
-func (i *Interp) makeClosure(typ reflect.Type, pfn *function, env []value) reflect.Value {
+func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
 	})
@@ -1058,7 +1052,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.makeClosure(i.toType(fn.Type()), i.funcs[fn], nil).Interface(), true
+	return i.makeFunction(i.toType(fn.Type()), i.funcs[fn], nil).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
@@ -1110,7 +1104,7 @@ func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
 		v = i.globals[p]
 	case *ssa.Function:
 		typ := i.toType(p.Type())
-		v = i.makeFunction(typ, i.funcs[p])
+		v = i.makeFunction(typ, i.funcs[p], nil)
 	case *ssa.Type:
 		v = i.toType(p.Type())
 	}
