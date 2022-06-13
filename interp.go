@@ -179,7 +179,13 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
-func (i *Interp) makeFunc(typ reflect.Type, pfn *function, env []value) reflect.Value {
+func (i *Interp) makeFunction(typ reflect.Type, pfn *function) reflect.Value {
+	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
+		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, nil)
+	})
+}
+
+func (i *Interp) makeClosure(typ reflect.Type, pfn *function, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
 		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
 	})
@@ -1052,7 +1058,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.makeFunc(i.toType(fn.Type()), i.funcs[fn], nil).Interface(), true
+	return i.makeClosure(i.toType(fn.Type()), i.funcs[fn], nil).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
@@ -1090,6 +1096,23 @@ func (i *Interp) GetType(key string) (reflect.Type, bool) {
 		return nil, false
 	}
 	return i.toType(t.Type()), true
+}
+
+func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
+	m, ok = i.mainpkg.Members[key]
+	if !ok {
+		return
+	}
+	switch p := m.(type) {
+	case *ssa.NamedConst:
+		v = p.Value.Value
+	case *ssa.Global:
+		v = i.globals[p]
+	case *ssa.Function:
+	case *ssa.Type:
+		v = i.toType(p.Type())
+	}
+	return
 }
 
 // deref returns a pointer's element type; otherwise it returns typ.

@@ -34,7 +34,7 @@ type REPL struct {
 func NewREPL(mode igop.Mode) *REPL {
 	r := &REPL{}
 	igop.RegisterCustomBuiltin("__igop_repl_info__", func(name string, v interface{}) {
-		r.Printf("%v %v %v\n", name, reflect.TypeOf(v), v)
+		r.Printf(": %v %v %v\n", name, reflect.TypeOf(v), v)
 	})
 	ctx := igop.NewContext(mode)
 	r.Repl = igop.NewRepl(ctx)
@@ -63,23 +63,20 @@ func (r *REPL) IsNormal() bool {
 
 func (r *REPL) Dump(expr string) {
 	i := r.Interp()
-	if i == nil {
-		r.godoc(expr)
-		return
-	}
-	pkg := i.MainPkg()
-	if m, ok := pkg.Members[expr]; ok {
-		switch v := m.(type) {
-		case *ssa.NamedConst:
-			r.Printf("const %v %v = %v\n", v.Name(), v.Type(), v.Value.Value)
-		case *ssa.Global:
-			r.Printf("(global) var %v %v\n", v.Name(), v.Type().(*types.Pointer).Elem())
-		case *ssa.Type:
-			r.Printf("type %v %v\n", v.Name(), v.Type().Underlying())
-		case *ssa.Function:
-			r.Printf("func %v %v\n", v.Name(), v.Type())
+	if i != nil {
+		if m, v, ok := i.GetSymbol(expr); ok {
+			switch p := m.(type) {
+			case *ssa.NamedConst:
+				r.Printf(": const %v %v = %v\n", p.Name(), p.Type(), v)
+			case *ssa.Global:
+				r.Printf(": (global) var %v %v = %v\n", p.Name(), p.Type().(*types.Pointer).Elem(), reflect.ValueOf(v).Elem().Interface())
+			case *ssa.Type:
+				r.Printf(": type %v %v\n", p.Name(), p.Type().Underlying())
+			case *ssa.Function:
+				r.Printf(": func %v %v\n", p.Name(), p.Type())
+			}
+			return
 		}
-		return
 	}
 	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%q,%v)", expr, expr))
 	if err != nil {
