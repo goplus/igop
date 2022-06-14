@@ -317,7 +317,7 @@ func writeStruct(w io.Writer, name string, typ reflect.Type) {
 	fmt.Fprintf(w, "type %v struct{\n", name)
 	for i := 0; i < n; i++ {
 		f := typ.Field(i)
-		if !f.IsExported() {
+		if f.PkgPath != "" {
 			fmt.Fprintf(w, "    // ... other fields elided ...\n")
 			break
 		}
