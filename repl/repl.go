@@ -156,6 +156,53 @@ func findPkg(name string) (pkg string, found bool) {
 	return
 }
 
+func lookupSymbol(p *igop.Package, sym string) (info string, found bool) {
+	if v, ok := p.UntypedConsts[sym]; ok {
+		return fmt.Sprintf("const %v.%v %v = %v", p.Name, sym, v.Typ, v.Value), true
+	}
+	if v, ok := p.TypedConsts[sym]; ok {
+		return fmt.Sprintf("const %v.%v %v = %v", p.Name, sym, v.Typ, v.Value), true
+	}
+	if v, ok := p.Vars[sym]; ok {
+		return fmt.Sprintf("var %v.%v %v", p.Name, sym, v.Type().Elem()), true
+	}
+	if v, ok := p.Funcs[sym]; ok {
+		var buf bytes.Buffer
+		writeFunc(&buf, p.Name+"."+sym, v.Type())
+		return buf.String(), true
+	}
+	if t, ok := p.NamedTypes[sym]; ok {
+		var buf bytes.Buffer
+		if t.Typ.Kind() == reflect.Struct {
+			writeStruct(&buf, p.Name+"."+sym, t.Typ)
+			buf.WriteByte('\n')
+		} else {
+			fmt.Fprintf(&buf, "type %v.%v %v\n", p.Name, sym, t.Typ.Kind())
+		}
+		for _, name := range strings.Split(t.Methods, ",") {
+			if m, ok := t.Typ.MethodByName(name); ok {
+				writeMethod(&buf, m)
+				buf.WriteByte('\n')
+			}
+		}
+		ptyp := reflect.PtrTo(t.Typ)
+		for _, name := range strings.Split(t.PtrMethods, ",") {
+			if m, ok := ptyp.MethodByName(name); ok {
+				writeMethod(&buf, m)
+				buf.WriteByte('\n')
+			}
+		}
+		return buf.String(), true
+	}
+	if t, ok := p.Interfaces[sym]; ok {
+		var buf bytes.Buffer
+		writeInterface(&buf, p.Name+"."+sym, t)
+		buf.WriteByte('\n')
+		return buf.String(), true
+	}
+	return
+}
+
 func dumpPkg(p *igop.Package) string {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "package %v // import %q\n\n", p.Name, p.Path)
@@ -245,6 +292,44 @@ func dumpPkg(p *igop.Package) string {
 	return buf.String()
 }
 
+func writeInterface(w io.Writer, name string, typ reflect.Type) {
+	n := typ.NumMethod()
+	if n == 0 {
+		fmt.Fprintf(w, "type %v interface{}", name)
+		return
+	}
+	fmt.Fprintf(w, "type %v interface{\n", name)
+	for i := 0; i < n; i++ {
+		m := typ.Method(i)
+		w.Write([]byte("    "))
+		writeFunc(w, m.Name, m.Type)
+		w.Write([]byte{'\n'})
+	}
+	w.Write([]byte{'}'})
+}
+
+func writeStruct(w io.Writer, name string, typ reflect.Type) {
+	n := typ.NumField()
+	if n == 0 {
+		fmt.Fprintf(w, "type %v struct{}", name)
+		return
+	}
+	fmt.Fprintf(w, "type %v struct{\n", name)
+	for i := 0; i < n; i++ {
+		f := typ.Field(i)
+		if !f.IsExported() {
+			fmt.Fprintf(w, "    // ... other fields elided ...\n")
+			break
+		}
+		if f.Anonymous {
+			fmt.Fprintf(w, "    %v\n", f.Type)
+		} else {
+			fmt.Fprintf(w, "    %v %v\n", f.Name, f.Type)
+		}
+	}
+	fmt.Fprintf(w, "}")
+}
+
 func writeMethod(w io.Writer, m reflect.Method) {
 	typ := m.Type
 	numIn := typ.NumIn()
@@ -307,18 +392,20 @@ func (r *REPL) tryPkg(expr string) error {
 	if err != nil {
 		return err
 	}
-	pkgPath, found := findPkg(pkg)
-	if !found {
-		return fmt.Errorf("not found pkg %v", pkg)
+	if pkgPath, found := findPkg(pkg); found {
+		if p, found := igop.LookupPackage(pkgPath); found {
+			if sym == "" {
+				r.Printf("%v\n", dumpPkg(p))
+				return nil
+			}
+			if info, ok := lookupSymbol(p, sym); ok {
+				r.Printf("%v\n", info)
+				return nil
+			}
+			return fmt.Errorf("not found symbol %v.%v", pkg, sym)
+		}
 	}
-	p, found := igop.LookupPackage(pkgPath)
-	if !found {
-		return fmt.Errorf("not found pkg %v", pkgPath)
-	}
-	if sym == "" {
-		r.Printf("%v\n", dumpPkg(p))
-	}
-	return nil
+	return fmt.Errorf("not found pkg %v", pkg)
 }
 
 func (r *REPL) godoc(expr string) error {
