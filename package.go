@@ -3,11 +3,21 @@ package igop
 import (
 	"go/constant"
 	"reflect"
+	"sort"
 )
 
 var (
 	registerPkgs = make(map[string]*Package)
 )
+
+// PackageList return all register packages
+func PackageList() (list []string) {
+	for pkg, _ := range registerPkgs {
+		list = append(list, pkg)
+	}
+	sort.Strings(list)
+	return
+}
 
 // LookupPackage lookup register pkgs
 func LookupPackage(name string) (pkg *Package, ok bool) {

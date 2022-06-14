@@ -1,12 +1,16 @@
 package repl
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"go/token"
 	"go/types"
+	"io"
 	"os/exec"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 
 	"golang.org/x/tools/go/ssa"
@@ -106,10 +110,215 @@ func (r *REPL) Dump(expr string) {
 	}
 	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%v)", expr))
 	if err != nil {
+		r.tryPkg(expr)
+		return
 		if err := r.godoc(expr); err != nil {
 			r.Printf("not found %v\n", expr)
 		}
 	}
+}
+
+// parseSymbol breaks str apart into a pkg, symbol and method
+// fmt.Println => fmt Println
+// fmt.Stringer.String => fmt Stringer.String
+func parseSymbol(str string) (pkg, symbol string, method string, err error) {
+	if str == "" {
+		return
+	}
+	elem := strings.Split(str, ".")
+	switch len(elem) {
+	case 1:
+	case 2:
+		symbol = elem[1]
+	case 3:
+		symbol = elem[1]
+		method = elem[2]
+	default:
+		err = errors.New("too many periods in symbol specification")
+		return
+	}
+	pkg = elem[0]
+	return
+}
+
+func findPkg(name string) (pkg string, found bool) {
+	list := igop.PackageList()
+	for _, v := range list {
+		if name == v {
+			return v, true
+		}
+	}
+	for _, v := range list {
+		if strings.HasSuffix(v, "/"+name) {
+			return v, true
+		}
+	}
+	return
+}
+
+func dumpPkg(p *igop.Package) string {
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "package %v // import %q\n\n", p.Name, p.Path)
+	// untyped const
+	var uconst []string
+	for v := range p.UntypedConsts {
+		uconst = append(uconst, v)
+	}
+	sort.Strings(uconst)
+	for _, v := range uconst {
+		t := p.UntypedConsts[v]
+		fmt.Fprintf(&buf, "const %v = %v\n", v, t.Value)
+	}
+	// typed const
+	var tconst []string
+	for v := range p.TypedConsts {
+		tconst = append(tconst, v)
+	}
+	sort.Strings(tconst)
+	for _, v := range tconst {
+		t := p.TypedConsts[v]
+		fmt.Fprintf(&buf, "const %v %v = %v\n", v, t.Typ, t.Value)
+	}
+	// var
+	var vars []string
+	for v := range p.Vars {
+		vars = append(vars, v)
+	}
+	sort.Strings(vars)
+	for _, v := range vars {
+		t := p.Vars[v]
+		fmt.Fprintf(&buf, "var %v %v\n", v, t.Elem().Type())
+	}
+	// funcs
+	var funcs []string
+	for v := range p.Funcs {
+		funcs = append(funcs, v)
+	}
+	sort.Strings(funcs)
+	for _, v := range funcs {
+		f := p.Funcs[v]
+		writeFunc(&buf, v, f.Type())
+		buf.WriteByte('\n')
+	}
+	// named types
+	var types []string
+	for v := range p.NamedTypes {
+		types = append(types, v)
+	}
+	sort.Strings(types)
+	for _, v := range types {
+		t := p.NamedTypes[v]
+		fmt.Fprintf(&buf, "type %v %v\n", v, t.Typ.Kind())
+		for _, name := range strings.Split(t.Methods, ",") {
+			if m, ok := t.Typ.MethodByName(name); ok {
+				buf.WriteString("    ")
+				writeMethod(&buf, m)
+				buf.WriteByte('\n')
+			}
+		}
+		ptyp := reflect.PtrTo(t.Typ)
+		for _, name := range strings.Split(t.PtrMethods, ",") {
+			if m, ok := ptyp.MethodByName(name); ok {
+				buf.WriteString("    ")
+				writeMethod(&buf, m)
+				buf.WriteByte('\n')
+			}
+		}
+	}
+	// interface
+	var ifaces []string
+	for v := range p.Interfaces {
+		ifaces = append(ifaces, v)
+	}
+	sort.Strings(ifaces)
+	for _, v := range ifaces {
+		t := p.Interfaces[v]
+		fmt.Fprintf(&buf, "type %v interface\n", v)
+		n := t.NumMethod()
+		for i := 0; i < n; i++ {
+			m := t.Method(i)
+			buf.WriteString("    ")
+			writeFunc(&buf, m.Name, m.Type)
+			buf.WriteByte('\n')
+		}
+	}
+	return buf.String()
+}
+
+func writeMethod(w io.Writer, m reflect.Method) {
+	typ := m.Type
+	numIn := typ.NumIn()
+	numOut := typ.NumOut()
+	var ins []string
+	if typ.IsVariadic() {
+		for i := 1; i < numIn-1; i++ {
+			ins = append(ins, typ.In(i).String())
+		}
+		ins = append(ins, "..."+typ.In(numIn-1).Elem().String())
+	} else {
+		for i := 1; i < numIn; i++ {
+			ins = append(ins, typ.In(i).String())
+		}
+	}
+	switch numOut {
+	case 0:
+		fmt.Fprintf(w, "func (%v) %v(%v)", typ.In(0), m.Name, strings.Join(ins, ", "))
+	case 1:
+		fmt.Fprintf(w, "func (%v) %v(%v) %v", typ.In(0), m.Name, strings.Join(ins, ", "), typ.Out(0).String())
+	default:
+		var outs []string
+		for i := 0; i < numOut; i++ {
+			outs = append(outs, typ.Out(i).String())
+		}
+		fmt.Fprintf(w, "func (%v) %v(%v) (%v)", typ.In(0), m.Name, strings.Join(ins, ", "), strings.Join(outs, ", "))
+	}
+}
+
+func writeFunc(w io.Writer, name string, typ reflect.Type) {
+	numIn := typ.NumIn()
+	numOut := typ.NumOut()
+	var ins []string
+	if typ.IsVariadic() {
+		for i := 0; i < numIn-1; i++ {
+			ins = append(ins, typ.In(i).String())
+		}
+		ins = append(ins, "..."+typ.In(numIn-1).Elem().String())
+	} else {
+		for i := 0; i < numIn; i++ {
+			ins = append(ins, typ.In(i).String())
+		}
+	}
+	switch numOut {
+	case 0:
+		fmt.Fprintf(w, "func %v(%v)", name, strings.Join(ins, ", "))
+	case 1:
+		fmt.Fprintf(w, "func %v(%v) %v", name, strings.Join(ins, ", "), typ.Out(0).String())
+	default:
+		var outs []string
+		for i := 0; i < numOut; i++ {
+			outs = append(outs, typ.Out(i).String())
+		}
+		fmt.Fprintf(w, "func %v(%v) (%v)", name, strings.Join(ins, ", "), strings.Join(outs, ", "))
+	}
+}
+
+func (r *REPL) tryPkg(expr string) error {
+	pkg, sym, _, err := parseSymbol(expr)
+	if err != nil {
+		return err
+	}
+	pkgPath, found := findPkg(pkg)
+	if !found {
+		return fmt.Errorf("not found pkg %v", pkg)
+	}
+	p, found := igop.LookupPackage(pkgPath)
+	if !found {
+		return fmt.Errorf("not found pkg %v", pkgPath)
+	}
+	if sym == "" {
+		r.Printf("%v\n", dumpPkg(p))
+	}
+	return nil
 }
 
 func (r *REPL) godoc(expr string) error {
