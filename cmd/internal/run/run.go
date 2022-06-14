@@ -90,9 +90,7 @@ func IsDir(target string) (bool, error) {
 }
 
 func runFile(ctx *igop.Context, target string, args []string) {
-	dir, file := filepath.Split(target)
-	os.Chdir(dir)
-	exitCode, err := ctx.RunFile(file, nil, args)
+	exitCode, err := ctx.RunFile(target, nil, args)
 	if err != nil {
 		log.Println(err)
 	}
@@ -100,7 +98,6 @@ func runFile(ctx *igop.Context, target string, args []string) {
 }
 
 func runDir(ctx *igop.Context, dir string, args []string) {
-	os.Chdir(dir)
 	exitCode, err := ctx.Run(dir, args)
 	if err != nil {
 		log.Println(err)
