@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/pkg/reflect"
 )
 
 var test_gop = `println "Go+"`
