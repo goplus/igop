@@ -12,6 +12,8 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -434,32 +436,60 @@ func RegisterCustomBuiltin(key string, fn interface{}) error {
 }
 
 func checkBuiltinDeps(typ reflect.Type) {
-	if typ.PkgPath() != "" {
-		builtinPkg.Deps[typ.Name()] = typ.PkgPath()
+	if path := typ.PkgPath(); path != "" {
+		v := strings.Split(path, "/")
+		builtinPkg.Deps[path] = v[len(v)-1]
 	}
 }
 
-var (
-	builtin_tmpl = `package main
-import "github.com/goplus/igop/builtin"
-`
-)
-
-func ParseBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
+func builtinFuncList() []string {
 	var list []string
-	for k, _ := range builtinPkg.Funcs {
+	for k, v := range builtinPkg.Funcs {
 		if strings.HasPrefix(k, builtinPrefix) {
-			list = append(list, k[len(builtinPrefix):]+"=builtin."+k)
+			name := k[len(builtinPrefix):]
+			typ := v.Type()
+			var ins []string
+			var outs []string
+			var call []string
+			numIn := typ.NumIn()
+			numOut := typ.NumOut()
+			for i := 0; i < numIn; i++ {
+				ins = append(ins, fmt.Sprintf("p%v %v", i, typ.In(i).String()))
+				call = append(call, fmt.Sprintf("p%v", i))
+			}
+			for i := 0; i < numOut; i++ {
+				outs = append(outs, typ.Out(i).String())
+			}
+			var str string
+			if numOut > 0 {
+				str = fmt.Sprintf("func %v(%v)(%v) { return builtin.%v(%v) }",
+					name, strings.Join(ins, ","), strings.Join(outs, ","), k, strings.Join(call, ","))
+			} else {
+				str = fmt.Sprintf("func %v(%v) { builtin.%v(%v) }",
+					name, strings.Join(ins, ","), k, strings.Join(call, ","))
+			}
+			list = append(list, str)
 		}
 	}
+	return list
+}
+
+func ParseBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
+	list := builtinFuncList()
 	if len(list) == 0 {
-		return nil, ErrNoCustomBuiltin
+		return nil, os.ErrInvalid
 	}
+	var deps []string
+	for k := range builtinPkg.Deps {
+		deps = append(deps, strconv.Quote(k))
+	}
+	sort.Strings(deps)
 	src := fmt.Sprintf(`package %v
-import "github.com/goplus/igop/builtin"
-var (
+import (
+	"github.com/goplus/igop/builtin"
 	%v
 )
-`, pkg, strings.Join(list, "\n"))
-	return parser.ParseFile(fset, "igop_builtin.go", src, 0)
+%v
+`, pkg, strings.Join(deps, "\n"), strings.Join(list, "\n"))
+	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
 }
