@@ -160,21 +160,21 @@ var (
 	regWord = regexp.MustCompile("\\w+")
 )
 
-func (r *REPL) Run(line string) {
+func (r *REPL) Run(line string) error {
 	var expr string
 	if r.more != "" {
 		if line == "" {
 			r.SetNormal()
-			return
+			return nil
 		}
 		expr = r.more + "\n" + line
 	} else {
 		if strings.HasPrefix(line, "?") {
 			r.Dump(strings.TrimSpace(line[1:]))
-			return
+			return nil
 		} else if regWord.MatchString(line) {
 			if r.TryDump(line) {
-				return
+				return nil
 			}
 		}
 		expr = line
@@ -184,11 +184,11 @@ func (r *REPL) Run(line string) {
 		if checkMore(tok, err) {
 			r.more += "\n" + line
 			r.SetPrompt(ContinuePrompt)
+			return nil
 		} else {
 			r.SetNormal()
-			r.Printf("error: %v\n", err)
 		}
-		return
+		return err
 	}
 	switch len(dump) {
 	case 0:
@@ -198,6 +198,7 @@ func (r *REPL) Run(line string) {
 		r.Printf("(%v)\n", strings.Join(dump, ", "))
 	}
 	r.SetNormal()
+	return nil
 }
 
 func checkMore(tok token.Token, err error) bool {

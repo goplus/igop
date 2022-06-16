@@ -103,6 +103,15 @@ func runCmd(cmd *base.Command, args []string) {
 		if line != "" {
 			state.AppendHistory(line)
 		}
-		r.Run(line)
+		err = r.Run(line)
+		switch e := err.(type) {
+		case nil:
+			//
+		case igop.ExitError:
+			fmt.Printf("exit %v\n", int(e))
+			return
+		default:
+			fmt.Printf("error: %v\n", err)
+		}
 	}
 }

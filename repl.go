@@ -6,7 +6,6 @@ import (
 	"go/scanner"
 	"go/token"
 	"go/types"
-	"os"
 	"strings"
 
 	"golang.org/x/tools/go/ssa"
@@ -265,7 +264,7 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 		switch p := recover().(type) {
 		case nil:
 		case exitPanic:
-			os.Exit(int(p))
+			err = ExitError(int(p))
 		default:
 			err = fmt.Errorf("%v", r)
 		}

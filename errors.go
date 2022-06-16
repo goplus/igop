@@ -1,6 +1,9 @@
 package igop
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ErrNoPackage        = errors.New("no package")
@@ -13,3 +16,9 @@ var (
 	ErrNoFunction       = errors.New("no function")
 	ErrNoCustomBuiltin  = errors.New("no custom builtin")
 )
+
+type ExitError int
+
+func (r ExitError) Error() string {
+	return fmt.Sprintf("exit %v", int(r))
+}
