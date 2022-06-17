@@ -73,7 +73,7 @@ func NewRepl(ctx *Context) *Repl {
 		if un, ok := v.(*ssa.UnOp); ok {
 			v = un.X
 		}
-		if strings.HasPrefix(v.Name(), "__igop_repl_") {
+		if strings.Contains(v.Name(), "__igop_repl_") {
 			return
 		}
 		r.lastDump = toResultDump(res, call.Call.Signature().Results())
