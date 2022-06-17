@@ -2149,6 +2149,7 @@ func TestRegisterBuiltin(t *testing.T) {
 
 func main() {
 	dump_info(typeof("hello"))
+	dump_ints(20,30,50)
 }
 `
 	igop.RegisterCustomBuiltin("typeof", reflect.TypeOf)
@@ -2156,11 +2157,20 @@ func main() {
 	igop.RegisterCustomBuiltin("dump_info", func(v interface{}) {
 		info = v
 	})
+	var all int
+	igop.RegisterCustomBuiltin("dump_ints", func(a ...int) {
+		for _, v := range a {
+			all += v
+		}
+	})
 	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		panic(err)
 	}
 	if info != reflect.TypeOf("hello") {
 		panic("error")
+	}
+	if all != 100 {
+		panic(all)
 	}
 }
