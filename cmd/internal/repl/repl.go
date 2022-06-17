@@ -85,7 +85,11 @@ func runCmd(cmd *base.Command, args []string) {
 	if flagTrace {
 		mode |= igop.EnableTracing
 	}
-	r := repl.NewREPL(mode)
+	var r *repl.REPL
+	igop.RegisterCustomBuiltin("exit", func() {
+		r.Interp().Exit(0)
+	})
+	r = repl.NewREPL(mode)
 	r.SetUI(ui)
 	if supportGoplus && flagGoplus {
 		r.SetFileName("main.gop")

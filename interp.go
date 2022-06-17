@@ -1111,6 +1111,14 @@ func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
 	return
 }
 
+func (i *Interp) Exit(code int) {
+	if i != nil && atomic.LoadInt32(&i.goexited) == 1 {
+		i.chexit <- code
+	} else {
+		panic(exitPanic(code))
+	}
+}
+
 // deref returns a pointer's element type; otherwise it returns typ.
 // TODO(adonovan): Import from ssa?
 func deref(typ types.Type) types.Type {
