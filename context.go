@@ -453,9 +453,18 @@ func builtinFuncList() []string {
 			var call []string
 			numIn := typ.NumIn()
 			numOut := typ.NumOut()
-			for i := 0; i < numIn; i++ {
-				ins = append(ins, fmt.Sprintf("p%v %v", i, typ.In(i).String()))
-				call = append(call, fmt.Sprintf("p%v", i))
+			if typ.IsVariadic() {
+				for i := 0; i < numIn-1; i++ {
+					ins = append(ins, fmt.Sprintf("p%v %v", i, typ.In(i).String()))
+					call = append(call, fmt.Sprintf("p%v", i))
+				}
+				ins = append(ins, fmt.Sprintf("p%v ...%v", numIn-1, typ.In(numIn-1).Elem().String()))
+				call = append(call, fmt.Sprintf("p%v...", numIn-1))
+			} else {
+				for i := 0; i < numIn; i++ {
+					ins = append(ins, fmt.Sprintf("p%v %v", i, typ.In(i).String()))
+					call = append(call, fmt.Sprintf("p%v", i))
+				}
 			}
 			for i := 0; i < numOut; i++ {
 				outs = append(outs, typ.Out(i).String())
