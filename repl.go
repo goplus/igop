@@ -6,6 +6,7 @@ import (
 	"go/scanner"
 	"go/token"
 	"go/types"
+	"strconv"
 	"strings"
 
 	"golang.org/x/tools/go/ssa"
@@ -169,6 +170,10 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
 				// fixed = append(fixed, "__igop_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
+				if c, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errIsNotUsed)])); ok {
+					r.lastDump = []string{c.Lit}
+					return nil
+				}
 				expr = "__igop_repl_dump__(" + expr + ")"
 			} else {
 				return e
@@ -287,4 +292,76 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 		fn(fr)
 	}
 	return &fnState{fr: fr, pc: pc}, nil
+}
+
+type tokenLit struct {
+	Pos token.Pos
+	Tok token.Token
+	Lit string
+}
+
+// extractConstant extract constant int and overflows float/complex
+func extractConstant(src []byte) (constant *tokenLit, ok bool) {
+	var s scanner.Scanner
+	fset := token.NewFileSet()
+	file := fset.AddFile("", fset.Base(), len(src))
+	s.Init(file, src, nil, 0)
+	pos, tok, lit := s.Scan()
+	if tok == token.EOF {
+		return
+	}
+	first := &tokenLit{pos, tok, lit}
+	var check int
+	for {
+		_, tok, lit := s.Scan()
+		if tok == token.EOF {
+			break
+		}
+		switch tok {
+		case token.LPAREN:
+			check++
+		case token.RPAREN:
+			check--
+		case token.IDENT:
+			if check == 1 && lit == "constant" {
+				var nodes []*tokenLit
+			loop:
+				for {
+					pos, tok, lit := s.Scan()
+					if tok == token.EOF {
+						break
+					}
+					switch tok {
+					case token.LPAREN:
+						check++
+					case token.RPAREN:
+						check--
+						if check == 0 {
+							break loop
+						}
+					default:
+						nodes = append(nodes, &tokenLit{pos, tok, lit})
+					}
+				}
+				switch len(nodes) {
+				case 0:
+					return first, true
+				case 1:
+					switch nodes[0].Tok {
+					case token.INT:
+						return nodes[0], true
+					case token.FLOAT:
+						// extract if not parse float64
+						if _, err := strconv.ParseFloat(nodes[0].Lit, 128); err != nil {
+							return nodes[0], true
+						}
+					}
+				default:
+					last := nodes[len(nodes)-1]
+					return &tokenLit{nodes[0].Pos, token.IMAG, string(src[int(nodes[0].Pos)-1 : int(last.Pos)+len(last.Lit)])}, true
+				}
+			}
+		}
+	}
+	return
 }
