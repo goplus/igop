@@ -71,8 +71,10 @@ func (r *REPL) TryDump(expr string) bool {
 			case *ssa.Global:
 				r.Printf("%v %v (global var)\n", reflect.ValueOf(v).Elem().Interface(), p.Type().(*types.Pointer).Elem())
 			case *ssa.Type:
-				// r.Printf("%v %v\n", p.Type().Underlying(), v)
-				return false
+				if m.Package().Pkg.Name() == "main" {
+					return false
+				}
+				r.Printf("%v %v\n", p.Type().Underlying(), v)
 			case *ssa.Function:
 				n := p.Signature.Params().Len()
 				if n == 0 || (n == 1 && p.Signature.Variadic()) {

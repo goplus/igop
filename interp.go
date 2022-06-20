@@ -51,6 +51,7 @@ import (
 	"go/types"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"unsafe"
@@ -1093,7 +1094,27 @@ func (i *Interp) GetType(key string) (reflect.Type, bool) {
 }
 
 func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
-	m, ok = i.mainpkg.Members[key]
+	ar := strings.Split(key, ".")
+	var pkg *ssa.Package
+	switch len(ar) {
+	case 1:
+		pkg = i.mainpkg
+	case 2:
+		pkgs := i.prog.AllPackages()
+		for _, p := range pkgs {
+			if p.Pkg.Path() == ar[0] || p.Pkg.Name() == ar[0] {
+				pkg = p
+				break
+			}
+		}
+		if pkg == nil {
+			return
+		}
+		key = ar[1]
+	default:
+		return
+	}
+	m, ok = pkg.Members[key]
 	if !ok {
 		return
 	}
