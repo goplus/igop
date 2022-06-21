@@ -6,7 +6,7 @@ import (
 	"go/scanner"
 	"go/token"
 	"go/types"
-	"os"
+	"strconv"
 	"strings"
 
 	"golang.org/x/tools/go/ssa"
@@ -23,26 +23,33 @@ func main(){}
 */
 
 type Repl struct {
-	ctx        *Context
-	fset       *token.FileSet
-	pkg        *ssa.Package
-	frame      *frame   // last frame
-	pc         int      // last pc
-	fsInit     *fnState // func init
-	fsMain     *fnState // func main
-	imports    []string // import lines
-	globals    []string // global var/func/type
-	infuncs    []string // in main func
-	source     string   // all source
-	lastDump   []string // last __igop_repl_dump__
-	globalMap  map[string]interface{}
-	lastInterp *Interp
-	fileName   string
+	ctx       *Context
+	fset      *token.FileSet
+	pkg       *ssa.Package
+	builtin   *ast.File
+	interp    *Interp  // last interp
+	frame     *frame   // last frame
+	fsInit    *fnState // func init
+	fsMain    *fnState // func main
+	imports   []string // import lines
+	globals   []string // global var/func/type
+	infuncs   []string // in main func
+	lastDump  []string // last __igop_repl_dump__
+	source    string   // all source
+	fileName  string
+	globalMap map[string]interface{}
 }
 
 func toDump(i []interface{}) (dump []string) {
 	for _, v := range i {
-		dump = append(dump, fmt.Sprintf("%v", v))
+		dump = append(dump, fmt.Sprintf("%v %T", v, v))
+	}
+	return
+}
+
+func toResultDump(vs []interface{}, rs *types.Tuple) (dump []string) {
+	for i, v := range vs {
+		dump = append(dump, fmt.Sprintf("%v %v", v, rs.At(i).Type()))
 	}
 	return
 }
@@ -55,15 +62,25 @@ func NewRepl(ctx *Context) *Repl {
 	}
 	ctx.evalMode = true
 	ctx.evalInit = make(map[string]bool)
-
-	ctx.SetOverrideFunction("main.__igop_repl_dump__", func(v ...interface{}) {
+	RegisterCustomBuiltin("__igop_repl_used__", func(v interface{}) {})
+	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
 	})
 	ctx.evalCallFn = func(call *ssa.Call, res ...interface{}) {
-		if strings.HasPrefix(call.Call.Value.Name(), "__igop_repl_") {
+		if len(*call.Referrers()) != 0 {
 			return
 		}
-		r.lastDump = toDump(res)
+		v := call.Call.Value
+		if un, ok := v.(*ssa.UnOp); ok {
+			v = un.X
+		}
+		if strings.Contains(v.Name(), "__igop_repl_") {
+			return
+		}
+		r.lastDump = toResultDump(res, call.Call.Signature().Results())
+	}
+	if f, err := ParseBuiltin(r.fset, "main"); err == nil {
+		r.builtin = f
 	}
 	return r
 }
@@ -77,6 +94,10 @@ func (r *Repl) Eval(expr string) (tok token.Token, dump []string, err error) {
 	tok = r.firstToken(expr)
 	err = r.eval(tok, expr)
 	return tok, r.lastDump, err
+}
+
+func (r *Repl) Interp() *Interp {
+	return r.interp
 }
 
 func (r *Repl) Source() string {
@@ -97,8 +118,6 @@ func (r *Repl) buildSource(expr string, tok token.Token) string {
 	}
 	return fmt.Sprintf(`package main
 %v
-func __igop_repl_used__(v interface{}){}
-func __igop_repl_dump__(v ...interface{}){}
 %v
 func main() {
 	%v
@@ -149,8 +168,12 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
 				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
-				fixed = append(fixed, "__igop_repl_dump__("+v+")")
+				// fixed = append(fixed, "__igop_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
+				if c, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errIsNotUsed)])); ok {
+					r.lastDump = []string{c.Lit}
+					return nil
+				}
 				expr = "__igop_repl_dump__(" + expr + ")"
 			} else {
 				return e
@@ -196,7 +219,13 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 		errors = append(errors, err)
 	}
 	pkg := types.NewPackage(file.Name.Name, "")
-	types.NewChecker(tc, r.fset, pkg, &types.Info{}).Files([]*ast.File{file})
+	var files []*ast.File
+	if r.builtin != nil {
+		files = []*ast.File{r.builtin, file}
+	} else {
+		files = []*ast.File{file}
+	}
+	types.NewChecker(tc, r.fset, pkg, &types.Info{}).Files(files)
 	return
 }
 
@@ -223,6 +252,7 @@ func (repl *Repl) run() error {
 		return err
 	}
 	repl.fsMain = rmain
+	repl.interp = i
 	for k, v := range i.globals {
 		repl.globalMap[k.String()] = v
 	}
@@ -239,7 +269,7 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 		switch p := recover().(type) {
 		case nil:
 		case exitPanic:
-			os.Exit(int(p))
+			err = ExitError(int(p))
 		default:
 			err = fmt.Errorf("%v", r)
 		}
@@ -262,4 +292,76 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 		fn(fr)
 	}
 	return &fnState{fr: fr, pc: pc}, nil
+}
+
+type tokenLit struct {
+	Pos token.Pos
+	Tok token.Token
+	Lit string
+}
+
+// extractConstant extract constant int and overflows float/complex
+func extractConstant(src []byte) (constant *tokenLit, ok bool) {
+	var s scanner.Scanner
+	fset := token.NewFileSet()
+	file := fset.AddFile("", fset.Base(), len(src))
+	s.Init(file, src, nil, 0)
+	pos, tok, lit := s.Scan()
+	if tok == token.EOF {
+		return
+	}
+	first := &tokenLit{pos, tok, lit}
+	var check int
+	for {
+		_, tok, lit := s.Scan()
+		if tok == token.EOF {
+			break
+		}
+		switch tok {
+		case token.LPAREN:
+			check++
+		case token.RPAREN:
+			check--
+		case token.IDENT:
+			if check == 1 && lit == "constant" {
+				var nodes []*tokenLit
+			loop:
+				for {
+					pos, tok, lit := s.Scan()
+					if tok == token.EOF {
+						break
+					}
+					switch tok {
+					case token.LPAREN:
+						check++
+					case token.RPAREN:
+						check--
+						if check == 0 {
+							break loop
+						}
+					default:
+						nodes = append(nodes, &tokenLit{pos, tok, lit})
+					}
+				}
+				switch len(nodes) {
+				case 0:
+					return first, true
+				case 1:
+					switch nodes[0].Tok {
+					case token.INT:
+						return nodes[0], true
+					case token.FLOAT:
+						// extract if not parse float64
+						if _, err := strconv.ParseFloat(nodes[0].Lit, 128); err != nil {
+							return nodes[0], true
+						}
+					}
+				default:
+					last := nodes[len(nodes)-1]
+					return &tokenLit{nodes[0].Pos, token.IMAG, string(src[int(nodes[0].Pos)-1 : int(last.Pos)+len(last.Lit)])}, true
+				}
+			}
+		}
+	}
+	return
 }

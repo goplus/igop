@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"runtime"
+	"strings"
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
@@ -70,6 +71,12 @@ func runCmd(cmd *base.Command, args []string) {
 
 	// state.SetCtrlCAborts(true)
 	state.SetMultiLineMode(true)
+	state.SetCompleter(func(line string) []string {
+		if strings.TrimSpace(line) == "" {
+			return []string{line + "    "}
+		}
+		return nil
+	})
 	ui := &LinerUI{state: state}
 	var mode igop.Mode
 	if flagDumpInstr {
@@ -78,7 +85,11 @@ func runCmd(cmd *base.Command, args []string) {
 	if flagTrace {
 		mode |= igop.EnableTracing
 	}
-	r := repl.NewREPL(mode)
+	var r *repl.REPL
+	igop.RegisterCustomBuiltin("exit", func() {
+		r.Interp().Exit(0)
+	})
+	r = repl.NewREPL(mode)
 	r.SetUI(ui)
 	if supportGoplus && flagGoplus {
 		r.SetFileName("main.gop")
@@ -96,6 +107,15 @@ func runCmd(cmd *base.Command, args []string) {
 		if line != "" {
 			state.AppendHistory(line)
 		}
-		r.Run(line)
+		err = r.Run(line)
+		switch e := err.(type) {
+		case nil:
+			//
+		case igop.ExitError:
+			fmt.Printf("exit %v\n", int(e))
+			return
+		default:
+			fmt.Printf("error: %v\n", err)
+		}
 	}
 }

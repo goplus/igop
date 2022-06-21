@@ -192,7 +192,7 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 		if v.Blocks != nil {
 			typ := p.Interp.preToType(v.Type())
 			pfn := p.Interp.loadFunction(v)
-			vs = p.Interp.makeFunc(typ, pfn, nil).Interface()
+			vs = p.Interp.makeFunction(typ, pfn, nil).Interface()
 		} else {
 			ext, ok := findExternFunc(p.Interp, v)
 			if !ok {
@@ -407,7 +407,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			for i, _ := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			v := interp.makeFunc(typ, pfn, bindings)
+			v := interp.makeFunction(typ, pfn, bindings)
 			fr.setReg(ir, v.Interface())
 		}
 	case *ssa.MakeChan:

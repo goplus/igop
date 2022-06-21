@@ -18,9 +18,9 @@ func TestReplExpr(t *testing.T) {
 		`a+b`,
 	}
 	result := []string{
-		`[1]`,
-		`[2]`,
-		`[3]`,
+		`[]`,
+		`[]`,
+		`[3 int]`,
 	}
 	for i, expr := range list {
 		_, v, err := repl.Eval(expr)
@@ -44,11 +44,11 @@ func TestReplImports(t *testing.T) {
 		`c`,
 	}
 	result := []string{
-		`[1]`,
-		`[2]`,
 		`[]`,
-		`[1-2]`,
-		`[1-2]`,
+		`[]`,
+		`[]`,
+		`[]`,
+		`[1-2 string]`,
 	}
 	for i, expr := range list {
 		_, v, err := repl.Eval(expr)
@@ -72,11 +72,11 @@ func TestReplClosure(t *testing.T) {
 		`d`,
 	}
 	result := []string{
-		`[1]`,
-		`[2]`,
-		`-`,
-		`[3]`,
-		`[3]`,
+		`[]`,
+		`[]`,
+		`[]`,
+		`[]`,
+		`[3 int]`,
 	}
 	for i, expr := range list {
 		_, v, err := repl.Eval(expr)
@@ -105,13 +105,13 @@ func TestReplVar(t *testing.T) {
 		`c`,
 	}
 	result := []string{
-		`[1]`,
-		`[2]`,
-		`-`,
-		`-`,
-		`[103]`,
-		`[103]`,
-		`[100]`,
+		`[]`,
+		`[]`,
+		`[]`,
+		`[]`,
+		`[]`,
+		`[103 int]`,
+		`[100 int]`,
 	}
 	for i, expr := range list {
 		_, v, err := repl.Eval(expr)
@@ -137,21 +137,21 @@ func TestReplType(t *testing.T) {
 }`,
 		`v1 := &T{10,20}`,
 		`import "fmt"`,
-		`r1 := fmt.Sprint(v1)`,
+		`v1`,
 		`func (t *T) String() string {
 	return fmt.Sprintf("%v-%v",t.X,t.Y)
 }`,
 		`v2 := &T{10,20}`,
-		`r2 := fmt.Sprint(v2)`,
+		`v2`,
 	}
 	result := []string{
 		`-`,
-		`[&{10 20}]`,
 		`-`,
-		`[&{10 20}]`,
 		`-`,
-		`[10-20]`,
-		`[10-20]`,
+		`[&{10 20} *main.T]`,
+		`-`,
+		`-`,
+		`[10-20 *main.T]`,
 	}
 	for i, expr := range list {
 		_, v, err := repl.Eval(expr)
@@ -176,15 +176,17 @@ func TestReplFunc(t *testing.T) {
 		`a`,
 		`fmt.Println(a)`,
 		`s := fmt.Sprint(a)`,
+		`s`,
 		`fmt.Println(s)`,
 	}
 	result := []string{
-		`[hello]`,
+		`[]`,
 		`-`,
-		`[hello]`,
-		`[6 <nil>]`,
-		`[hello]`,
-		`[6 <nil>]`,
+		`[hello string]`,
+		`[6 int <nil> error]`,
+		`-`,
+		`[hello string]`,
+		`[6 int <nil> error]`,
 	}
 	for i, expr := range list {
 		_, v, err := repl.Eval(expr)
@@ -250,8 +252,8 @@ func TestReplInit(t *testing.T) {
 		`-`,
 		`-`,
 		`-`,
-		`[11]`,
-		`[21]`,
+		`[11 int]`,
+		`[21 int]`,
 	}
 	for i, expr := range list {
 		_, v, err := repl.Eval(expr)
