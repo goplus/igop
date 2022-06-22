@@ -74,7 +74,9 @@ func (r *REPL) TryDump(expr string) bool {
 				if m.Package().Pkg.Name() == "main" {
 					return false
 				}
-				r.Printf("%v %v\n", p.Type().Underlying(), v)
+				if r.tryDumpByPkg(expr) != nil {
+					r.Printf("%v %v\n", p.Type().Underlying(), v)
+				}
 			case *ssa.Function:
 				n := p.Signature.Params().Len()
 				if n == 0 || (n == 1 && p.Signature.Variadic()) {
@@ -98,7 +100,9 @@ func (r *REPL) Dump(expr string) {
 			case *ssa.Global:
 				r.Printf("%v %v (global var)\n", reflect.ValueOf(v).Elem().Interface(), p.Type().(*types.Pointer).Elem())
 			case *ssa.Type:
-				r.Printf("%v %v\n", p.Type().Underlying(), v)
+				if r.tryDumpByPkg(expr) != nil {
+					r.Printf("%v %v\n", p.Type().Underlying(), v)
+				}
 			case *ssa.Function:
 				r.Printf("%v %v\n", v, p.Type())
 			}
@@ -107,7 +111,10 @@ func (r *REPL) Dump(expr string) {
 	}
 	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%v)", expr))
 	if err != nil {
-		r.tryPkg(expr)
+		err = r.tryDumpByPkg(expr)
+		if err != nil {
+			r.Printf("not found %v\n", expr)
+		}
 		return
 		if err := r.godoc(expr); err != nil {
 			r.Printf("not found %v\n", expr)
@@ -115,7 +122,7 @@ func (r *REPL) Dump(expr string) {
 	}
 }
 
-func (r *REPL) tryPkg(expr string) error {
+func (r *REPL) tryDumpByPkg(expr string) error {
 	pkg, sym, _, err := parseSymbol(expr)
 	if err != nil {
 		return err
