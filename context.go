@@ -58,7 +58,7 @@ type Context struct {
 	callForPool int                      // least call count for enable function pool
 	evalMode    bool                     // eval mode
 	evalInit    map[string]bool          // eval init check
-	evalCallFn  func(call *ssa.Call, res ...interface{})
+	evalCallFn  func(interp *Interp, call *ssa.Call, res ...interface{})
 }
 
 func (c *Context) IsEvalMode() bool {

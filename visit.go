@@ -178,18 +178,18 @@ func (visit *visitor) function(fn *ssa.Function) {
 					case 0:
 						ifn = func(fr *frame) {
 							ofn(fr)
-							visit.intp.ctx.evalCallFn(call)
+							visit.intp.ctx.evalCallFn(visit.intp, call)
 						}
 					case 1:
 						ifn = func(fr *frame) {
 							ofn(fr)
-							visit.intp.ctx.evalCallFn(call, fr.reg(ir))
+							visit.intp.ctx.evalCallFn(visit.intp, call, fr.reg(ir))
 						}
 					default:
 						ifn = func(fr *frame) {
 							ofn(fr)
 							r := fr.reg(ir).(tuple)
-							visit.intp.ctx.evalCallFn(call, r...)
+							visit.intp.ctx.evalCallFn(visit.intp, call, r...)
 						}
 					}
 				}

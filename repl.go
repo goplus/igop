@@ -47,9 +47,9 @@ func toDump(i []interface{}) (dump []string) {
 	return
 }
 
-func toResultDump(vs []interface{}, rs *types.Tuple) (dump []string) {
+func toResultDump(interp *Interp, vs []interface{}, rs *types.Tuple) (dump []string) {
 	for i, v := range vs {
-		dump = append(dump, fmt.Sprintf("%v %v", v, rs.At(i).Type()))
+		dump = append(dump, fmt.Sprintf("%v %v", v, interp.toType(rs.At(i).Type())))
 	}
 	return
 }
@@ -66,7 +66,7 @@ func NewRepl(ctx *Context) *Repl {
 	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
 	})
-	ctx.evalCallFn = func(call *ssa.Call, res ...interface{}) {
+	ctx.evalCallFn = func(interp *Interp, call *ssa.Call, res ...interface{}) {
 		if len(*call.Referrers()) != 0 {
 			return
 		}
@@ -77,7 +77,7 @@ func NewRepl(ctx *Context) *Repl {
 		if strings.Contains(v.Name(), "__igop_repl_") {
 			return
 		}
-		r.lastDump = toResultDump(res, call.Call.Signature().Results())
+		r.lastDump = toResultDump(interp, res, call.Call.Signature().Results())
 	}
 	if f, err := ParseBuiltin(r.fset, "main"); err == nil {
 		r.builtin = f
