@@ -34,7 +34,7 @@ type REPL struct {
 func NewREPL(mode igop.Mode) *REPL {
 	r := &REPL{}
 	igop.RegisterCustomBuiltin("__igop_repl_info__", func(v interface{}) {
-		r.Printf("%v %v\n", v, reflect.TypeOf(v))
+		r.Printf("%v %T\n", v, v)
 	})
 	ctx := igop.NewContext(mode)
 	r.Repl = igop.NewRepl(ctx)
