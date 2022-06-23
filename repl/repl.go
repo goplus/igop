@@ -3,7 +3,6 @@ package repl
 import (
 	"fmt"
 	"go/token"
-	"go/types"
 	"os/exec"
 	"reflect"
 	"regexp"
@@ -69,7 +68,8 @@ func (r *REPL) TryDump(expr string) bool {
 			case *ssa.NamedConst:
 				r.Printf("%v %v (const)\n", v, p.Type())
 			case *ssa.Global:
-				r.Printf("%v %v (global var)\n", reflect.ValueOf(v).Elem().Interface(), p.Type().(*types.Pointer).Elem())
+				e := reflect.ValueOf(v).Elem().Interface()
+				r.Printf("%v %T (global var)\n", e, e)
 			case *ssa.Type:
 				if m.Package().Pkg.Name() == "main" {
 					return false
@@ -82,7 +82,7 @@ func (r *REPL) TryDump(expr string) bool {
 				if n == 0 || (n == 1 && p.Signature.Variadic()) {
 					return false
 				}
-				r.Printf("%v %v\n", v, p.Type())
+				r.Printf("%v %T\n", v, v)
 			}
 			return true
 		}
@@ -98,13 +98,14 @@ func (r *REPL) Dump(expr string) {
 			case *ssa.NamedConst:
 				r.Printf("%v %v (const)\n", v, p.Type())
 			case *ssa.Global:
-				r.Printf("%v %v (global var)\n", reflect.ValueOf(v).Elem().Interface(), p.Type().(*types.Pointer).Elem())
+				e := reflect.ValueOf(v).Elem().Interface()
+				r.Printf("%v %T (global var)\n", e, e)
 			case *ssa.Type:
 				if r.tryDumpByPkg(expr) != nil {
 					r.Printf("%v %v\n", p.Type().Underlying(), v)
 				}
 			case *ssa.Function:
-				r.Printf("%v %v\n", v, p.Type())
+				r.Printf("%v %T\n", v, v)
 			}
 			return
 		}
