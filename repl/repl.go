@@ -82,7 +82,7 @@ func (r *REPL) TryDump(expr string) bool {
 				if n == 0 || (n == 1 && p.Signature.Variadic()) {
 					return false
 				}
-				r.Printf("%v %T\n", v, v)
+				r.Printf("%v %v\n", v, p.Type())
 			}
 			return true
 		}
@@ -105,7 +105,7 @@ func (r *REPL) Dump(expr string) {
 					r.Printf("%v %v\n", p.Type().Underlying(), v)
 				}
 			case *ssa.Function:
-				r.Printf("%v %T\n", v, v)
+				r.Printf("%v %v\n", v, p.Type())
 			}
 			return
 		}
