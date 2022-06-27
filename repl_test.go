@@ -268,3 +268,30 @@ func TestReplInit(t *testing.T) {
 		}
 	}
 }
+
+func TestReplFunLit(t *testing.T) {
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
+	list := []string{
+		`var a int`,
+		`func(x int){ a = x }(100)`,
+		`a`,
+	}
+	result := []string{
+		`-`,
+		`-`,
+		`[100 int]`,
+	}
+	for i, expr := range list {
+		_, v, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if result[i] == "-" {
+			continue
+		}
+		if fmt.Sprint(v) != result[i] {
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
+		}
+	}
+}
