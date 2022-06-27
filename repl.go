@@ -143,7 +143,24 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		}
 		r.imports = append(r.imports, expr)
 		return nil
-	case token.CONST, token.FUNC, token.TYPE, token.VAR:
+	case token.FUNC:
+		src = r.buildSource(expr, tok)
+		errors, err := r.check(r.fileName, src)
+		if err != nil {
+			// check funlit
+			if strings.Contains(err.Error(), `expected '(',`) {
+				inMain = true
+				src = r.buildSource(expr, token.ILLEGAL)
+				errors, err = r.check(r.fileName, src)
+			}
+			if err != nil {
+				return err
+			}
+		}
+		if errors != nil {
+			return errors[0]
+		}
+	case token.CONST, token.TYPE, token.VAR:
 		src = r.buildSource(expr, tok)
 		errors, err := r.check(r.fileName, src)
 		if err != nil {
@@ -271,7 +288,7 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 		case exitPanic:
 			err = ExitError(int(p))
 		default:
-			err = fmt.Errorf("%v", r)
+			err = fmt.Errorf("%v", p)
 		}
 	}()
 	fn := r.pkg.Func(fnname)
