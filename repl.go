@@ -148,7 +148,8 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		errors, err := r.check(r.fileName, src)
 		if err != nil {
 			// check funlit
-			if strings.Contains(err.Error(), `expected '(',`) {
+			msg := err.Error()
+			if strings.Contains(msg, errMaybeGoFunLit) || strings.Contains(msg, errMaybeGopFunLit) {
 				inMain = true
 				src = r.buildSource(expr, token.ILLEGAL)
 				errors, err = r.check(r.fileName, src)
@@ -218,8 +219,10 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 }
 
 const (
-	errDeclNotUsed = "declared but not used"
-	errIsNotUsed   = "is not used"
+	errDeclNotUsed    = "declared but not used"
+	errIsNotUsed      = "is not used"
+	errMaybeGoFunLit  = `expected 'IDENT', found '{'`
+	errMaybeGopFunLit = `expected '(',`
 )
 
 func (r *Repl) check(filename string, src interface{}) (errors []error, err error) {
