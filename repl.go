@@ -171,6 +171,10 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			return errors[0]
 		}
 	default:
+		switch tok {
+		case token.FOR, token.IF, token.SWITCH, token.SELECT:
+			expr = "func(){\n" + expr + "\n}()"
+		}
 		inMain = true
 		src = r.buildSource(expr, tok)
 		errors, err := r.check(r.fileName, src)

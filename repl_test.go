@@ -295,3 +295,82 @@ func TestReplFunLit(t *testing.T) {
 		}
 	}
 }
+
+func TestReplFor(t *testing.T) {
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
+	list := []string{
+		`import "fmt"`,
+		`for i := 0; i < 3; i++ { fmt.Println(i) }`,
+		`fmt.Println(100)`,
+	}
+	for _, expr := range list {
+		_, _, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestReplIf(t *testing.T) {
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
+	list := []string{
+		`import "fmt"`,
+		`a := 2`,
+		`if a == 1 { fmt.Println(1) } else { fmt.Println(a) }`,
+		`fmt.Println(100)`,
+	}
+	for _, expr := range list {
+		_, _, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestReplSwitch(t *testing.T) {
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
+	list := []string{
+		`import "fmt"`,
+		`a := 2`,
+		`switch a {
+		case 1: 
+			if a == 1 { fmt.Println(1) }
+		default: 
+			fmt.Println(a)
+		}`,
+		`fmt.Println(100)`,
+	}
+	for _, expr := range list {
+		_, _, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestReplSelect(t *testing.T) {
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
+	list := []string{
+		`import "fmt"`,
+		`a := 1`,
+		`ch := make(chan int)`,
+		`select {
+		case ch <- 1:
+			if a == 1 { fmt.Println(1) }
+			fmt.Println(1)
+		default:
+			fmt.Println(ch)
+		}`,
+		`fmt.Println(100)`,
+	}
+	for _, expr := range list {
+		_, _, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
