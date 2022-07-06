@@ -1,4 +1,4 @@
-package igop
+package constant
 
 import (
 	"go/constant"
