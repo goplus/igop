@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/goplus/igop"
+	"github.com/goplus/igop/constant"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -66,7 +67,7 @@ func (r *REPL) TryDump(expr string) bool {
 		if m, v, ok := i.GetSymbol(expr); ok {
 			switch p := m.(type) {
 			case *ssa.NamedConst:
-				r.Printf("%v %v (const)\n", v, p.Type())
+				r.Printf("const %v %v\n", constant.ExactConstant(p.Value.Value), p.Type())
 			case *ssa.Global:
 				e := reflect.ValueOf(v).Elem().Interface()
 				r.Printf("%v %T (global var)\n", e, e)
@@ -96,7 +97,7 @@ func (r *REPL) Dump(expr string) {
 		if m, v, ok := i.GetSymbol(expr); ok {
 			switch p := m.(type) {
 			case *ssa.NamedConst:
-				r.Printf("%v %v (const)\n", v, p.Type())
+				r.Printf("const %v %v\n", constant.ExactConstant(p.Value.Value), p.Type())
 			case *ssa.Global:
 				e := reflect.ValueOf(v).Elem().Interface()
 				r.Printf("%v %T (global var)\n", e, e)
