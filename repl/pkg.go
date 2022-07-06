@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/goplus/igop"
+	"github.com/goplus/igop/constant"
 )
 
 // parseSymbol breaks str apart into a pkg, symbol and method
@@ -52,10 +53,10 @@ func findPkg(name string) (pkg string, found bool) {
 
 func lookupSymbol(p *igop.Package, sym string) (info string, found bool) {
 	if v, ok := p.UntypedConsts[sym]; ok {
-		return fmt.Sprintf("const %v.%v %v = %v", p.Name, sym, v.Typ, v.Value), true
+		return fmt.Sprintf("const %v.%v %v = %v", p.Name, sym, v.Typ, constant.ExactConstant(v.Value)), true
 	}
 	if v, ok := p.TypedConsts[sym]; ok {
-		return fmt.Sprintf("const %v.%v %v = %v", p.Name, sym, v.Typ, v.Value), true
+		return fmt.Sprintf("const %v.%v %v = %v", p.Name, sym, v.Typ, constant.ExactConstant(v.Value)), true
 	}
 	if v, ok := p.Vars[sym]; ok {
 		return fmt.Sprintf("var %v.%v %v", p.Name, sym, v.Type().Elem()), true
@@ -108,7 +109,7 @@ func dumpPkg(p *igop.Package) string {
 	sort.Strings(uconst)
 	for _, v := range uconst {
 		t := p.UntypedConsts[v]
-		fmt.Fprintf(&buf, "const %v = %v\n", v, t.Value)
+		fmt.Fprintf(&buf, "const %v = %v\n", v, constant.ExactConstant(t.Value))
 	}
 	// typed const
 	var tconst []string
@@ -118,7 +119,7 @@ func dumpPkg(p *igop.Package) string {
 	sort.Strings(tconst)
 	for _, v := range tconst {
 		t := p.TypedConsts[v]
-		fmt.Fprintf(&buf, "const %v %v = %v\n", v, t.Typ, t.Value)
+		fmt.Fprintf(&buf, "const %v %v = %v\n", v, t.Typ, constant.ExactConstant(t.Value))
 	}
 	// var
 	var vars []string
