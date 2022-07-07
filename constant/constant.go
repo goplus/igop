@@ -58,10 +58,8 @@ func ExactConstantEx(c constant.Value, toFloat bool) (s string, exact bool) {
 				if !ok {
 					panic(fmt.Errorf("parser rat %q error", s))
 				}
-				if v, ok := r.Float64(); ok {
-					return fmt.Sprintf("%v", v), false
-				}
-				return r.FloatString(10), false
+				v, _ := r.Float64()
+				return fmt.Sprintf("%v", v), false
 			}
 			return s, true
 		}
@@ -76,9 +74,10 @@ func ExactConstantEx(c constant.Value, toFloat bool) (s string, exact bool) {
 		}
 		return s, true
 	case constant.Complex:
-		re, e1 := ExactConstantEx(constant.Real(c), toFloat)
-		im, e2 := ExactConstantEx(constant.Imag(c), toFloat)
-		return fmt.Sprintf("%v+%vi", re, im), e1 && e2
+		return c.ExactString(), true
+		// re, e1 := ExactConstantEx(constant.Real(c), toFloat)
+		// im, e2 := ExactConstantEx(constant.Imag(c), toFloat)
+		// return fmt.Sprintf("%v+%vi", re, im), e1 && e2
 	default:
 		panic("unreachable")
 	}
