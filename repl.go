@@ -3,12 +3,13 @@ package igop
 import (
 	"fmt"
 	"go/ast"
+	"go/constant"
 	"go/scanner"
 	"go/token"
 	"go/types"
-	"strconv"
 	"strings"
 
+	xconst "github.com/goplus/igop/constant"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -128,6 +129,7 @@ func main() {
 func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	var src string
 	var inMain bool
+	var evalConst bool
 	switch tok {
 	case token.PACKAGE:
 		// skip package
@@ -192,11 +194,15 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
 				// fixed = append(fixed, "__igop_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
-				if c, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errIsNotUsed)])); ok {
-					r.lastDump = []string{c.Lit}
-					return nil
+				if _, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errIsNotUsed)])); ok {
+					// r.lastDump = []string{c.Lit}
+					// return nil
+					expr = "const __igop_repl_const__ = " + expr
+					tok = token.CONST
+					evalConst = true
+				} else {
+					expr = "__igop_repl_dump__(" + expr + ")"
 				}
-				expr = "__igop_repl_dump__(" + expr + ")"
 			} else {
 				return e
 			}
@@ -210,16 +216,44 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	if err != nil {
 		return err
 	}
-	err = r.run()
-	if err == nil {
-		if inMain {
-			r.infuncs = append(r.infuncs, expr)
-		} else {
-			r.globals = append(r.globals, expr)
-		}
-		r.source = src
+	i, err := newInterp(r.ctx, r.pkg, r.globalMap)
+	if err != nil {
+		return err
 	}
-	return err
+	rinit, err := r.runFunc(i, "init", r.fsInit)
+	if err == nil {
+		rinit.pc--
+	}
+	rmain, err := r.runFunc(i, "main", r.fsMain)
+	if err != nil {
+		return err
+	}
+	if evalConst {
+		m, _ := i.mainpkg.Members["__igop_repl_const__"]
+		c, _ := m.(*ssa.NamedConst)
+		s, _ := xconst.ExactConstantEx(c.Value.Value, true)
+		kind := c.Value.Value.Kind()
+		if kind == constant.Float {
+			es := c.Value.Value.ExactString()
+			r.lastDump = []string{fmt.Sprintf("%v %v\n(%v)", s, c.Type(), es)}
+		} else {
+			r.lastDump = []string{fmt.Sprintf("%v %v", s, c.Type())}
+		}
+		return nil
+	}
+	r.interp = i
+	r.fsInit = rinit
+	r.fsMain = rmain
+	for k, v := range i.globals {
+		r.globalMap[k.String()] = v
+	}
+	if inMain {
+		r.infuncs = append(r.infuncs, expr)
+	} else {
+		r.globals = append(r.globals, expr)
+	}
+	r.source = src
+	return nil
 }
 
 const (
@@ -259,28 +293,6 @@ func (r *Repl) firstToken(src string) token.Token {
 	s.Init(file, []byte(src), nil, 0)
 	_, tok, _ := s.Scan()
 	return tok
-}
-
-func (repl *Repl) run() error {
-	i, err := newInterp(repl.ctx, repl.pkg, repl.globalMap)
-	if err != nil {
-		return err
-	}
-	rinit, err := repl.runFunc(i, "init", repl.fsInit)
-	if err == nil {
-		repl.fsInit = rinit
-		repl.fsInit.pc--
-	}
-	rmain, err := repl.runFunc(i, "main", repl.fsMain)
-	if err != nil {
-		return err
-	}
-	repl.fsMain = rmain
-	repl.interp = i
-	for k, v := range i.globals {
-		repl.globalMap[k.String()] = v
-	}
-	return nil
 }
 
 type fnState struct {
@@ -375,10 +387,11 @@ func extractConstant(src []byte) (constant *tokenLit, ok bool) {
 					case token.INT:
 						return nodes[0], true
 					case token.FLOAT:
+						return nodes[0], true
 						// extract if not parse float64
-						if _, err := strconv.ParseFloat(nodes[0].Lit, 128); err != nil {
-							return nodes[0], true
-						}
+						// if _, err := strconv.ParseFloat(nodes[0].Lit, 128); err != nil {
+						// 	return nodes[0], true
+						// }
 					}
 				default:
 					last := nodes[len(nodes)-1]
