@@ -79,13 +79,18 @@ func init() {
 
 	ver := runtime.Version()[:6]
 	switch ver {
-	case "go1.17", "go1.18":
+	case "go1.17", "go1.18", "go1.19":
 		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
 		gorootTestSkips["abi/fibish_closure.go"] = "slow, 35s"
 		gorootTestSkips["abi/uglyfib.go"] = "5m48s"
 		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
+
+		gorootTestSkips["fixedbugs/issue50672.go"] = "type param"
+		gorootTestSkips["fixedbugs/issue53137.go"] = "type param"
+		gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
+
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	case "go1.15":
@@ -180,7 +185,7 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 			}
 			_, n := filepath.Split(path)
 			switch n {
-			case "bench", "dwarf", "codegen":
+			case "bench", "dwarf", "codegen", "typeparam":
 				return filepath.SkipDir
 			default:
 				if strings.Contains(n, ".dir") {
