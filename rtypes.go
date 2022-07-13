@@ -131,7 +131,14 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 		r.InsertInterface(p, name, typ)
 	}
 	for name, typ := range pkg.NamedTypes {
-		r.InsertNamedType(p, name, typ)
+		if typ.Typ.Kind() == reflect.Struct {
+			r.InsertNamedType(p, name, typ)
+		}
+	}
+	for name, typ := range pkg.NamedTypes {
+		if typ.Typ.Kind() != reflect.Struct {
+			r.InsertNamedType(p, name, typ)
+		}
 	}
 	for name, typ := range pkg.AliasTypes {
 		r.InsertAlias(p, name, typ)
