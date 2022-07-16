@@ -1,4 +1,4 @@
-# iGo+ - The Go/Go+ Interpreter
+# iGo+ The Go/Go+ Interpreter
 
 [![Go1.14](https://github.com/goplus/igop/workflows/Go1.14/badge.svg)](https://github.com/goplus/igop/actions/workflows/go114.yml)
 [![Go1.15](https://github.com/goplus/igop/workflows/Go1.15/badge.svg)](https://github.com/goplus/igop/actions/workflows/go115.yml)
