@@ -23,8 +23,15 @@ support ABI0 and ABIInternal
 - Go1.18 fuzzing
 
 ### igop command line
+
+Go version < 1.17:
 ```
 go get -u github.com/goplus/igop/cmd/igop
+```
+
+Go version >= 1.17:
+```
+go install github.com/goplus/igop/cmd/igop@latest
 ```
 
 Commands
