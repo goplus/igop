@@ -25,7 +25,6 @@ func main(){}
 
 type Repl struct {
 	ctx       *Context
-	fset      *token.FileSet
 	pkg       *ssa.Package
 	builtin   *ast.File
 	interp    *Interp  // last interp
@@ -58,7 +57,6 @@ func toResultDump(interp *Interp, vs []interface{}, rs *types.Tuple) (dump []str
 func NewRepl(ctx *Context) *Repl {
 	r := &Repl{
 		ctx:       ctx,
-		fset:      token.NewFileSet(),
 		globalMap: make(map[string]interface{}),
 	}
 	ctx.evalMode = true
@@ -80,7 +78,7 @@ func NewRepl(ctx *Context) *Repl {
 		}
 		r.lastDump = toResultDump(interp, res, call.Call.Signature().Results())
 	}
-	if f, err := ParseBuiltin(r.fset, "main"); err == nil {
+	if f, err := ParseBuiltin(r.ctx.FileSet, "main"); err == nil {
 		r.builtin = f
 	}
 	return r
@@ -212,7 +210,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		}
 		src = r.buildSource(expr, tok)
 	}
-	r.pkg, err = r.ctx.LoadFile(r.fset, r.fileName, src)
+	r.pkg, err = r.ctx.LoadFile(r.fileName, src)
 	if err != nil {
 		return err
 	}
@@ -264,7 +262,7 @@ const (
 )
 
 func (r *Repl) check(filename string, src interface{}) (errors []error, err error) {
-	file, err := r.ctx.ParseFile(r.fset, filename, src)
+	file, err := r.ctx.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
 	}
@@ -283,13 +281,13 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 	} else {
 		files = []*ast.File{file}
 	}
-	types.NewChecker(tc, r.fset, pkg, &types.Info{}).Files(files)
+	types.NewChecker(tc, r.ctx.FileSet, pkg, &types.Info{}).Files(files)
 	return
 }
 
 func (r *Repl) firstToken(src string) token.Token {
 	var s scanner.Scanner
-	file := r.fset.AddFile("", r.fset.Base(), len(src))
+	file := r.ctx.FileSet.AddFile("", -1, len(src))
 	s.Init(file, []byte(src), nil, 0)
 	_, tok, _ := s.Scan()
 	return tok

@@ -47,6 +47,7 @@ type Loader interface {
 // Context ssa context
 type Context struct {
 	Loader      Loader                   // types loader
+	FileSet     *token.FileSet           // file set
 	Mode        Mode                     // mode
 	ParserMode  parser.Mode              // parser mode
 	BuilderMode ssa.BuilderMode          // ssa builder mode
@@ -69,6 +70,7 @@ func (c *Context) IsEvalMode() bool {
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
 		Loader:      NewTypesLoader(mode),
+		FileSet:     token.NewFileSet(),
 		Mode:        mode,
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
@@ -114,13 +116,13 @@ func (c *Context) writeOutput(data []byte) (n int, err error) {
 	return os.Stdout.Write(data)
 }
 
-func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package, first error) {
-	apkgs, err := parser.ParseDir(fset, path, nil, c.ParserMode)
+func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
+	apkgs, err := parser.ParseDir(c.FileSet, path, nil, c.ParserMode)
 	if err != nil {
 		return nil, err
 	}
 	for _, apkg := range apkgs {
-		if pkg, err := c.LoadAstPackage(fset, apkg); err == nil {
+		if pkg, err := c.LoadAstPackage(apkg); err == nil {
 			pkgs = append(pkgs, pkg)
 		} else if first == nil {
 			first = err
@@ -139,15 +141,15 @@ var (
 	sourceProcessor = make(map[string]SourceProcessFunc)
 )
 
-func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}) (*ssa.Package, error) {
-	file, err := c.ParseFile(fset, filename, src)
+func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
+	file, err := c.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
 	}
-	return c.LoadAstFile(fset, file)
+	return c.LoadAstFile(file)
 }
 
-func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{}) (*ast.File, error) {
+func (c *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {
 	if ext := filepath.Ext(filename); ext != "" {
 		if fn, ok := sourceProcessor[ext]; ok {
 			data, err := fn(c, filename, src)
@@ -157,18 +159,18 @@ func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{
 			src = data
 		}
 	}
-	return parser.ParseFile(fset, filename, src, c.ParserMode)
+	return parser.ParseFile(c.FileSet, filename, src, c.ParserMode)
 }
 
-func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
+func (c *Context) LoadAstFile(file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
 	files := []*ast.File{file}
 	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParseBuiltin(fset, file.Name.Name); err == nil {
+		if f, err := ParseBuiltin(c.FileSet, file.Name.Name); err == nil {
 			files = []*ast.File{f, file}
 		}
 	}
-	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
+	ssapkg, _, err := c.BuildPackage(pkg, files)
 	if err != nil {
 		return nil, err
 	}
@@ -176,18 +178,18 @@ func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package
 	return ssapkg, nil
 }
 
-func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.Package, error) {
+func (c *Context) LoadAstPackage(apkg *ast.Package) (*ssa.Package, error) {
 	pkg := types.NewPackage(apkg.Name, "")
 	var files []*ast.File
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParseBuiltin(fset, apkg.Name); err == nil {
+		if f, err := ParseBuiltin(c.FileSet, apkg.Name); err == nil {
 			files = append([]*ast.File{f}, files...)
 		}
 	}
-	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
+	ssapkg, _, err := c.BuildPackage(pkg, files)
 	if err != nil {
 		return nil, err
 	}
@@ -278,8 +280,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 }
 
 func (c *Context) RunFile(filename string, src interface{}, args []string) (exitCode int, err error) {
-	fset := token.NewFileSet()
-	pkg, err := c.LoadFile(fset, filename, src)
+	pkg, err := c.LoadFile(filename, src)
 	if err != nil {
 		return 2, err
 	}
@@ -290,8 +291,7 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
-	fset := token.NewFileSet()
-	pkgs, err := c.LoadDir(fset, path)
+	pkgs, err := c.LoadDir(path)
 	if err != nil {
 		return 2, err
 	}
@@ -303,20 +303,16 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 }
 
 func (c *Context) RunTest(path string, args []string) error {
-	fset := token.NewFileSet()
 	// preload regexp for create testing
 	c.Loader.Import("regexp")
-	pkgs, err := c.LoadDir(fset, path)
+	pkgs, err := c.LoadDir(path)
 	if err != nil {
 		return err
 	}
 	return c.TestPkg(pkgs, path, args)
 }
 
-func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
-	if fset == nil {
-		panic("no token.FileSet")
-	}
+func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
 	if pkg.Path() == "" {
 		panic("package has no import path")
 	}
@@ -337,11 +333,11 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 	if ctx.evalMode {
 		tc.DisableUnusedImportCheck = true
 	}
-	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
+	if err := types.NewChecker(tc, ctx.FileSet, pkg, info).Files(files); err != nil {
 		return nil, nil, err
 	}
 
-	prog := ssa.NewProgram(fset, ctx.BuilderMode)
+	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 
 	// Create SSA packages for all imports.
 	// Order is not significant.
