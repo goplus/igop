@@ -53,13 +53,20 @@ type Context struct {
 	BuilderMode ssa.BuilderMode          // ssa builder mode
 	External    types.Importer           // external import
 	Sizes       types.Sizes              // types size for package unsafe
-	debugFunc   func(*DebugInfo)         // debug func
+	pkgs        map[string]*typesPackage // imports
 	override    map[string]reflect.Value // override function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
 	evalMode    bool                     // eval mode
 	evalInit    map[string]bool          // eval init check
 	evalCallFn  func(interp *Interp, call *ssa.Call, res ...interface{})
+	debugFunc   func(*DebugInfo) // debug func
+}
+
+type typesPackage struct {
+	Package *types.Package
+	Files   []*ast.File
+	Info    *types.Info
 }
 
 func (c *Context) IsEvalMode() bool {
@@ -74,9 +81,11 @@ func NewContext(mode Mode) *Context {
 		Mode:        mode,
 		ParserMode:  parser.AllErrors,
 		BuilderMode: 0, //ssa.SanityCheckFunctions,
+		pkgs:        make(map[string]*typesPackage),
 		override:    make(map[string]reflect.Value),
 		callForPool: 64,
 	}
+	ctx.External = &externalLoader{ctx}
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
@@ -140,6 +149,18 @@ type SourceProcessFunc func(ctx *Context, filename string, src interface{}) ([]b
 var (
 	sourceProcessor = make(map[string]SourceProcessFunc)
 )
+
+func (c *Context) AddImport(path string, filename string, src interface{}) error {
+	file, err := c.ParseFile(filename, src)
+	if err != nil {
+		return err
+	}
+	c.pkgs[path] = &typesPackage{
+		Package: types.NewPackage(path, file.Name.Name),
+		Files:   []*ast.File{file},
+	}
+	return nil
+}
 
 func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
 	file, err := c.ParseFile(filename, src)
@@ -312,11 +333,25 @@ func (c *Context) RunTest(path string, args []string) error {
 	return c.TestPkg(pkgs, path, args)
 }
 
-func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
-	if pkg.Path() == "" {
-		panic("package has no import path")
-	}
+type externalLoader struct {
+	ctx *Context
+}
 
+func (e *externalLoader) Import(path string) (*types.Package, error) {
+	if pkg, ok := e.ctx.pkgs[path]; ok {
+		if pkg.Info == nil {
+			info, err := e.ctx.checkTypesInfo(pkg.Package, pkg.Files)
+			if err != nil {
+				return nil, err
+			}
+			pkg.Info = info
+		}
+		return pkg.Package, nil
+	}
+	return nil, ErrNotFoundPackage
+}
+
+func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
 	info := &types.Info{
 		Types:      make(map[ast.Expr]types.TypeAndValue),
 		Defs:       make(map[*ast.Ident]types.Object),
@@ -325,7 +360,6 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
-
 	tc := &types.Config{
 		Importer: NewImporter(ctx.Loader, ctx.External),
 		Sizes:    ctx.Sizes,
@@ -334,6 +368,17 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 		tc.DisableUnusedImportCheck = true
 	}
 	if err := types.NewChecker(tc, ctx.FileSet, pkg, info).Files(files); err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
+func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
+	if pkg.Path() == "" {
+		panic("package has no import path")
+	}
+	info, err := ctx.checkTypesInfo(pkg, files)
+	if err != nil {
 		return nil, nil, err
 	}
 
@@ -357,8 +402,12 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 						fmt.Println("# imported", p)
 					}
 				}
-				prog.CreatePackage(p, nil, nil, true)
 				createAll(p.Imports())
+				if pkg, ok := ctx.pkgs[p.Path()]; ok {
+					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
+				} else {
+					prog.CreatePackage(p, nil, nil, true)
+				}
 			}
 		}
 	}
