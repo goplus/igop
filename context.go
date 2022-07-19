@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -15,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/goplus/reflectx"
@@ -45,9 +47,9 @@ type Loader interface {
 	LookupTypes(typ reflect.Type) (types.Type, bool)
 }
 
-// load package interface
-type LoadPackage interface {
-	Load(ctx *Context, path string) (*types.Package, []*ast.File, error)
+// lookup import package interface
+type LookupImport interface {
+	Lookup(path string) (dir string, found bool)
 }
 
 // Context ssa context
@@ -57,7 +59,7 @@ type Context struct {
 	Mode        Mode                     // mode
 	ParserMode  parser.Mode              // parser mode
 	BuilderMode ssa.BuilderMode          // ssa builder mode
-	External    LoadPackage              // load external import
+	External    LookupImport             // lookup external import
 	Sizes       types.Sizes              // types size for package unsafe
 	pkgs        map[string]*typesPackage // imports
 	override    map[string]reflect.Value // override function
@@ -166,6 +168,54 @@ func (c *Context) AddImport(path string, filename string, src interface{}) error
 		Files:   []*ast.File{file},
 	}
 	return nil
+}
+
+func (c *Context) AddImportDir(path string, dir string) error {
+	files, err := c.parseDir(dir)
+	if err != nil {
+		return err
+	}
+	if len(files) > 0 {
+		c.pkgs[path] = &typesPackage{
+			Package: types.NewPackage(path, files[0].Name.Name),
+			Files:   files,
+		}
+	}
+	return nil
+}
+
+func (c *Context) parseDir(dir string) ([]*ast.File, error) {
+	bp, err := build.ImportDir(dir, 0)
+	if err != nil {
+		return nil, err
+	}
+	var filenames []string
+	filenames = append(filenames, bp.GoFiles...)
+	filenames = append(filenames, bp.CgoFiles...)
+
+	return c.parseFiles(bp.Dir, filenames)
+}
+
+func (c *Context) parseFiles(dir string, filenames []string) ([]*ast.File, error) {
+	files := make([]*ast.File, len(filenames))
+	errors := make([]error, len(filenames))
+
+	var wg sync.WaitGroup
+	wg.Add(len(filenames))
+	for i, filename := range filenames {
+		go func(i int, filepath string) {
+			defer wg.Done()
+			files[i], errors[i] = c.ParseFile(filepath, nil)
+		}(i, filepath.Join(dir, filename))
+	}
+	wg.Wait()
+
+	for _, err := range errors {
+		if err != nil {
+			return nil, err
+		}
+	}
+	return files, nil
 }
 
 func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {

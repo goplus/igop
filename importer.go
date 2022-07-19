@@ -52,22 +52,17 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		return pkg.Package, nil
 	}
 	if i.ctx.External != nil {
-		pkg, files, err := i.ctx.External.Load(i.ctx, path)
-		if err == nil {
-			i.pkgs[path] = pkg
-			if files != nil {
-				info, err := i.ctx.checkTypesInfo(pkg, files)
+		if dir, found := i.ctx.External.Lookup(path); found {
+			if i.ctx.AddImportDir(path, dir) == nil {
+				pkg := i.ctx.pkgs[path]
+				info, err := i.ctx.checkTypesInfo(pkg.Package, pkg.Files)
 				if err != nil {
 					return nil, err
 				}
-				i.ctx.pkgs[path] = &typesPackage{
-					Package: pkg,
-					Files:   files,
-					Info:    info,
-				}
+				pkg.Info = info
+				return pkg.Package, nil
 			}
 		}
-		return pkg, err
 	}
 	pkg, err := i.defaultImpl.Import(path)
 	if err == nil {
