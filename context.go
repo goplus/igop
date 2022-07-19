@@ -86,7 +86,6 @@ func NewContext(mode Mode) *Context {
 		override:    make(map[string]reflect.Value),
 		callForPool: 64,
 	}
-	ctx.External = &externalLoader{ctx}
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
@@ -334,28 +333,10 @@ func (c *Context) RunTest(path string, args []string) error {
 	return c.TestPkg(pkgs, path, args)
 }
 
-type externalLoader struct {
-	ctx *Context
-}
-
-func (e *externalLoader) Import(path string) (*types.Package, error) {
-	if pkg, ok := e.ctx.pkgs[path]; ok {
-		if pkg.Info == nil {
-			info, err := e.ctx.checkTypesInfo(pkg.Package, pkg.Files)
-			if err != nil {
-				return nil, err
-			}
-			pkg.Info = info
-		}
-		return pkg.Package, nil
-	}
-	return nil, ErrNotFoundPackage
-}
-
 func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
 	if ctx.conf == nil {
 		ctx.conf = &types.Config{
-			Importer: NewImporter(ctx.Loader, ctx.External),
+			Importer: NewImporter(ctx),
 			Sizes:    ctx.Sizes,
 		}
 		if ctx.evalMode {

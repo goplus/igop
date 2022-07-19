@@ -267,7 +267,7 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 		return nil, err
 	}
 	tc := &types.Config{
-		Importer:                 NewImporter(r.ctx.Loader, r.ctx.External),
+		Importer:                 NewImporter(r.ctx),
 		Sizes:                    r.ctx.Sizes,
 		DisableUnusedImportCheck: true,
 	}
