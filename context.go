@@ -45,6 +45,11 @@ type Loader interface {
 	LookupTypes(typ reflect.Type) (types.Type, bool)
 }
 
+// load package interface
+type LoadPackage interface {
+	Load(ctx *Context, path string) (*types.Package, []*ast.File, error)
+}
+
 // Context ssa context
 type Context struct {
 	Loader      Loader                   // types loader
@@ -52,7 +57,7 @@ type Context struct {
 	Mode        Mode                     // mode
 	ParserMode  parser.Mode              // parser mode
 	BuilderMode ssa.BuilderMode          // ssa builder mode
-	External    types.Importer           // external import
+	External    LoadPackage              // load external import
 	Sizes       types.Sizes              // types size for package unsafe
 	pkgs        map[string]*typesPackage // imports
 	override    map[string]reflect.Value // override function

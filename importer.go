@@ -52,9 +52,20 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		return pkg.Package, nil
 	}
 	if i.ctx.External != nil {
-		pkg, err := i.ctx.External.Import(path)
+		pkg, files, err := i.ctx.External.Load(i.ctx, path)
 		if err == nil {
 			i.pkgs[path] = pkg
+			if files != nil {
+				info, err := i.ctx.checkTypesInfo(pkg, files)
+				if err != nil {
+					return nil, err
+				}
+				i.ctx.pkgs[path] = &typesPackage{
+					Package: pkg,
+					Files:   files,
+					Info:    info,
+				}
+			}
 		}
 		return pkg, err
 	}
