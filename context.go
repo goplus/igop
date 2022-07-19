@@ -30,8 +30,9 @@ const (
 	DisableRecover         Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
 	DisableCustomBuiltin                    // Disable load custom builtin func
 	DisableUnexportMethods                  // Disable unexport methods
-	EnableTracing                           // Print a trace of all instructions as they are interpreted.
+	EnableDumpImports                       // print typesimports
 	EnableDumpInstr                         // Print packages & SSA instruction code
+	EnableTracing                           // Print a trace of all instructions as they are interpreted.
 	EnablePrintAny                          // Enable builtin print for any type ( struct/array )
 )
 

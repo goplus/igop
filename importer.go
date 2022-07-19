@@ -2,26 +2,32 @@ package igop
 
 import (
 	"fmt"
+	"go/importer"
 	"go/types"
 )
 
 type Importer struct {
-	ctx       *Context
-	pkgs      map[string]*types.Package
-	importing map[string]bool
+	ctx         *Context
+	pkgs        map[string]*types.Package
+	importing   map[string]bool
+	defaultImpl types.Importer
 }
 
 func NewImporter(ctx *Context) *Importer {
 	return &Importer{
-		ctx:       ctx,
-		pkgs:      make(map[string]*types.Package),
-		importing: make(map[string]bool),
+		ctx:         ctx,
+		pkgs:        make(map[string]*types.Package),
+		importing:   make(map[string]bool),
+		defaultImpl: importer.Default(),
 	}
 }
 
 func (i *Importer) Import(path string) (*types.Package, error) {
 	if pkg, ok := i.pkgs[path]; ok {
 		return pkg, nil
+	}
+	if i.ctx.Mode&EnableDumpImports != 0 {
+		fmt.Printf("import %q\n", path)
 	}
 	if i.importing[path] {
 		return nil, fmt.Errorf("cycle importing package %q", path)
@@ -45,10 +51,14 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		i.pkgs[path] = pkg.Package
 		return pkg.Package, nil
 	}
-	if i.ctx.External == nil {
-		return nil, ErrNotFoundImporter
+	if i.ctx.External != nil {
+		pkg, err := i.ctx.External.Import(path)
+		if err == nil {
+			i.pkgs[path] = pkg
+		}
+		return pkg, err
 	}
-	pkg, err := i.ctx.External.Import(path)
+	pkg, err := i.defaultImpl.Import(path)
 	if err == nil {
 		i.pkgs[path] = pkg
 	}
