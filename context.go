@@ -57,6 +57,7 @@ type Context struct {
 	override    map[string]reflect.Value // override function
 	output      io.Writer                // capture print/println output
 	callForPool int                      // least call count for enable function pool
+	conf        *types.Config            // types check config
 	evalMode    bool                     // eval mode
 	evalInit    map[string]bool          // eval init check
 	evalCallFn  func(interp *Interp, call *ssa.Call, res ...interface{})
@@ -352,6 +353,15 @@ func (e *externalLoader) Import(path string) (*types.Package, error) {
 }
 
 func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
+	if ctx.conf == nil {
+		ctx.conf = &types.Config{
+			Importer: NewImporter(ctx.Loader, ctx.External),
+			Sizes:    ctx.Sizes,
+		}
+		if ctx.evalMode {
+			ctx.conf.DisableUnusedImportCheck = true
+		}
+	}
 	info := &types.Info{
 		Types:      make(map[ast.Expr]types.TypeAndValue),
 		Defs:       make(map[*ast.Ident]types.Object),
@@ -360,14 +370,7 @@ func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*type
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
-	tc := &types.Config{
-		Importer: NewImporter(ctx.Loader, ctx.External),
-		Sizes:    ctx.Sizes,
-	}
-	if ctx.evalMode {
-		tc.DisableUnusedImportCheck = true
-	}
-	if err := types.NewChecker(tc, ctx.FileSet, pkg, info).Files(files); err != nil {
+	if err := types.NewChecker(ctx.conf, ctx.FileSet, pkg, info).Files(files); err != nil {
 		return nil, err
 	}
 	return info, nil
