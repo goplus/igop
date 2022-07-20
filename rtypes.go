@@ -38,6 +38,7 @@ func init() {
 type TypesLoader struct {
 	packages  map[string]*types.Package
 	installed map[string]*Package
+	pkgloads  map[string]func() error
 	rcache    map[reflect.Type]types.Type
 	tcache    *typeutil.Map
 	curpkg    *Package
@@ -49,6 +50,7 @@ func NewTypesLoader(mode Mode) Loader {
 	r := &TypesLoader{
 		packages:  make(map[string]*types.Package),
 		installed: make(map[string]*Package),
+		pkgloads:  make(map[string]func() error),
 		rcache:    make(map[reflect.Type]types.Type),
 		tcache:    &typeutil.Map{},
 		mode:      mode,
@@ -59,8 +61,11 @@ func NewTypesLoader(mode Mode) Loader {
 	return r
 }
 
-func (r *TypesLoader) SetImport(path string, pkg *types.Package) error {
+func (r *TypesLoader) SetImport(path string, pkg *types.Package, load func() error) error {
 	r.packages[path] = pkg
+	if load != nil {
+		r.pkgloads[path] = load
+	}
 	return nil
 }
 
@@ -95,6 +100,11 @@ func (r *TypesLoader) LookupTypes(typ reflect.Type) (types.Type, bool) {
 
 func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	if p, ok := r.packages[path]; ok {
+		if !p.Complete() {
+			if load, ok := r.pkgloads[path]; ok {
+				load()
+			}
+		}
 		return p, nil
 	}
 	pkg, ok := registerPkgs[path]

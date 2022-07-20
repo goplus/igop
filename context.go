@@ -45,7 +45,7 @@ type Loader interface {
 	Packages() []*types.Package
 	LookupReflect(typ types.Type) (reflect.Type, bool)
 	LookupTypes(typ reflect.Type) (types.Type, bool)
-	SetImport(path string, pkg *types.Package) error
+	SetImport(path string, pkg *types.Package, load func() error) error
 }
 
 // lookup import package interface
@@ -77,6 +77,7 @@ type typesPackage struct {
 	Package *types.Package
 	Files   []*ast.File
 	Info    *types.Info
+	Load    func() error
 }
 
 func (c *Context) IsEvalMode() bool {
@@ -165,11 +166,16 @@ func (c *Context) AddImport(path string, filename string, src interface{}) error
 		return err
 	}
 	pkg := types.NewPackage(path, file.Name.Name)
-	c.pkgs[path] = &typesPackage{
+	tp := &typesPackage{
 		Package: pkg,
 		Files:   []*ast.File{file},
 	}
-	c.Loader.SetImport(path, pkg)
+	tp.Load = func() (err error) {
+		tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+		return
+	}
+	c.pkgs[path] = tp
+	c.Loader.SetImport(path, pkg, tp.Load)
 	return nil
 }
 
@@ -180,11 +186,18 @@ func (c *Context) AddImportDir(path string, dir string) error {
 	}
 	if len(files) > 0 {
 		pkg := types.NewPackage(path, files[0].Name.Name)
-		c.pkgs[path] = &typesPackage{
+		tp := &typesPackage{
 			Package: pkg,
 			Files:   files,
 		}
-		c.Loader.SetImport(path, pkg)
+		tp.Load = func() (err error) {
+			if tp.Info == nil {
+				tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+			}
+			return
+		}
+		c.pkgs[path] = tp
+		c.Loader.SetImport(path, pkg, tp.Load)
 	}
 	return nil
 }

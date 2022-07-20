@@ -36,20 +36,18 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 	defer func() {
 		i.importing[path] = false
 	}()
-	if pkg, ok := i.ctx.pkgs[path]; ok {
-		if pkg.Info == nil {
-			info, err := i.ctx.checkTypesInfo(pkg.Package, pkg.Files)
-			if err != nil {
-				return nil, err
-			}
-			pkg.Info = info
-		}
-		i.pkgs[path] = pkg.Package
-		return pkg.Package, nil
-	}
 	if pkg, err := i.ctx.Loader.Import(path); err == nil {
 		i.pkgs[path] = pkg
 		return pkg, nil
+	}
+	if pkg, ok := i.ctx.pkgs[path]; ok {
+		if !pkg.Package.Complete() {
+			if err := pkg.Load(); err != nil {
+				return nil, err
+			}
+		}
+		i.pkgs[path] = pkg.Package
+		return pkg.Package, nil
 	}
 	if i.ctx.External != nil {
 		if dir, found := i.ctx.External.Lookup(path); found {
