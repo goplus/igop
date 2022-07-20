@@ -45,6 +45,7 @@ type Loader interface {
 	Packages() []*types.Package
 	LookupReflect(typ types.Type) (reflect.Type, bool)
 	LookupTypes(typ reflect.Type) (types.Type, bool)
+	SetImport(path string, pkg *types.Package) error
 }
 
 // lookup import package interface
@@ -163,10 +164,12 @@ func (c *Context) AddImport(path string, filename string, src interface{}) error
 	if err != nil {
 		return err
 	}
+	pkg := types.NewPackage(path, file.Name.Name)
 	c.pkgs[path] = &typesPackage{
-		Package: types.NewPackage(path, file.Name.Name),
+		Package: pkg,
 		Files:   []*ast.File{file},
 	}
+	c.Loader.SetImport(path, pkg)
 	return nil
 }
 
@@ -176,10 +179,12 @@ func (c *Context) AddImportDir(path string, dir string) error {
 		return err
 	}
 	if len(files) > 0 {
+		pkg := types.NewPackage(path, files[0].Name.Name)
 		c.pkgs[path] = &typesPackage{
-			Package: types.NewPackage(path, files[0].Name.Name),
+			Package: pkg,
 			Files:   files,
 		}
+		c.Loader.SetImport(path, pkg)
 	}
 	return nil
 }
@@ -446,7 +451,7 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 				if pkg, ok := ctx.pkgs[p.Path()]; ok {
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
 				} else {
-					prog.CreatePackage(p, nil, nil, true)
+					prog.CreatePackage(p, nil, nil, true).Build()
 				}
 			}
 		}

@@ -36,10 +36,6 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 	defer func() {
 		i.importing[path] = false
 	}()
-	if pkg, err := i.ctx.Loader.Import(path); err == nil {
-		i.pkgs[path] = pkg
-		return pkg, nil
-	}
 	if pkg, ok := i.ctx.pkgs[path]; ok {
 		if pkg.Info == nil {
 			info, err := i.ctx.checkTypesInfo(pkg.Package, pkg.Files)
@@ -50,6 +46,10 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		}
 		i.pkgs[path] = pkg.Package
 		return pkg.Package, nil
+	}
+	if pkg, err := i.ctx.Loader.Import(path); err == nil {
+		i.pkgs[path] = pkg
+		return pkg, nil
 	}
 	if i.ctx.External != nil {
 		if dir, found := i.ctx.External.Lookup(path); found {
@@ -64,6 +64,7 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 			}
 		}
 	}
+	return nil, ErrNotFoundPackage
 	pkg, err := i.defaultImpl.Import(path)
 	if err == nil {
 		i.pkgs[path] = pkg

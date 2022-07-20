@@ -59,6 +59,11 @@ func NewTypesLoader(mode Mode) Loader {
 	return r
 }
 
+func (r *TypesLoader) SetImport(path string, pkg *types.Package) error {
+	r.packages[path] = pkg
+	return nil
+}
+
 func (r *TypesLoader) Installed(path string) (pkg *Package, ok bool) {
 	pkg, ok = r.installed[path]
 	return
@@ -286,6 +291,16 @@ func (r *TypesLoader) toFunc(pkg *types.Package, recv *types.Var, inoff int, rt 
 func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	if t, ok := r.rcache[rt]; ok {
 		return t
+	}
+	// check complete pkg named type
+	if path := rt.PkgPath(); path != "" {
+		if pkg, ok := r.packages[path]; ok && pkg.Complete() {
+			if obj := pkg.Scope().Lookup(rt.Name()); obj != nil {
+				typ := obj.Type()
+				r.rcache[rt] = typ
+				return typ
+			}
+		}
 	}
 	var typ types.Type
 	var fields []*types.Var
