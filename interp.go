@@ -130,11 +130,13 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 	pfn := &function{
 		Interp:           i,
 		Fn:               fn,
-		Main:             fn.Blocks[0],
 		mapUnderscoreKey: make(map[types.Type]bool),
 		index:            make(map[ssa.Value]uint32),
 		narg:             len(fn.Params),
 		nenv:             len(fn.FreeVars),
+	}
+	if len(fn.Blocks) > 0 {
+		pfn.Main = fn.Blocks[0]
 	}
 	if res := fn.Signature.Results(); res != nil {
 		pfn.nres = res.Len()

@@ -3,6 +3,7 @@ package igop
 import (
 	"fmt"
 	"go/constant"
+	"go/importer"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -43,6 +44,7 @@ type TypesLoader struct {
 	tcache    *typeutil.Map
 	curpkg    *Package
 	mode      Mode
+	importer  types.Importer
 }
 
 // NewTypesLoader install package and readonly
@@ -58,6 +60,7 @@ func NewTypesLoader(mode Mode) Loader {
 	r.packages["unsafe"] = types.Unsafe
 	r.rcache[tyErrorInterface] = typesError
 	r.rcache[tyEmptyInterface] = typesEmptyInterface
+	r.importer = importer.Default()
 	return r
 }
 
@@ -109,6 +112,12 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	}
 	pkg, ok := registerPkgs[path]
 	if !ok {
+		if r.mode&DisableLoadUnexportImport == 0 && r.importer != nil {
+			if p, err := r.importer.Import(path); err == nil {
+				r.packages[path] = p
+				return p, nil
+			}
+		}
 		return nil, fmt.Errorf("Not found package %v", path)
 	}
 	p := types.NewPackage(pkg.Path, pkg.Name)
@@ -457,7 +466,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
 
 			skip := make(map[string]bool)
-			for _, im := range AllMethod(prt, r.mode&DisableUnexportMethods == 0) {
+			for _, im := range AllMethod(prt, true) {
 				if filter != nil && !filter(im.Name, true) {
 					continue
 				}
@@ -471,7 +480,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
-			for _, im := range AllMethod(rt, r.mode&DisableUnexportMethods == 0) {
+			for _, im := range AllMethod(rt, true) {
 				if skip[im.Name] {
 					continue
 				}
