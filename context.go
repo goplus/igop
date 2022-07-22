@@ -448,6 +448,7 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 		for _, p := range pkgs {
 			if !created[p] {
 				created[p] = true
+				createAll(p.Imports())
 				if !p.Complete() {
 					if ctx.Mode&EnableDumpImports != 0 {
 						fmt.Println("# indirect", p.Path())
@@ -458,7 +459,6 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 						fmt.Println("# imported", p.Path())
 					}
 				}
-				createAll(p.Imports())
 				if pkg, ok := ctx.pkgs[p.Path()]; ok {
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
 				} else {
