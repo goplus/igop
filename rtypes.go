@@ -122,15 +122,17 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	}
 	p := types.NewPackage(pkg.Path, pkg.Name)
 	r.packages[path] = p
-	var list []*types.Package
 	for dep, _ := range pkg.Deps {
-		p, err := r.Import(dep)
-		if err == nil {
-			list = append(list, p)
-		}
+		r.Import(dep)
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
+	}
+	var list []*types.Package
+	for dep, _ := range pkg.Deps {
+		if p, ok := r.packages[dep]; ok {
+			list = append(list, p)
+		}
 	}
 	p.SetImports(list)
 	p.MarkComplete()
@@ -460,7 +462,6 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 					}
 				}
 			}
-
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
@@ -474,9 +475,11 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				if im.Type != nil {
 					sig = r.toFunc(pkg, precv, 1, im.Type)
 				} else {
-					sig = typesDummySig
+					sig = r.toFunc(pkg, precv, 0, tyEmptyFunc)
 				}
 				skip[im.Name] = true
+				if im.Name == "Accept" {
+				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
@@ -491,7 +494,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				if im.Type != nil {
 					sig = r.toFunc(pkg, recv, 1, im.Type)
 				} else {
-					sig = typesDummySig
+					sig = r.toFunc(pkg, recv, 0, tyEmptyFunc)
 				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}

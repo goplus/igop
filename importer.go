@@ -26,9 +26,6 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 	if pkg, ok := i.pkgs[path]; ok {
 		return pkg, nil
 	}
-	if i.ctx.Mode&EnableDumpImports != 0 {
-		fmt.Printf("import %q\n", path)
-	}
 	if i.importing[path] {
 		return nil, fmt.Errorf("cycle importing package %q", path)
 	}

@@ -439,7 +439,6 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 	if err != nil {
 		return nil, nil, err
 	}
-
 	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 
 	// Create SSA packages for all imports.
@@ -451,13 +450,13 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 			if !created[p] {
 				created[p] = true
 				if !p.Complete() {
-					if ctx.Mode&EnableDumpInstr != 0 {
-						fmt.Println("# indirect", p)
+					if ctx.Mode&EnableDumpImports != 0 {
+						fmt.Println("# indirect", p.Path())
 					}
 					p.MarkComplete()
 				} else {
-					if ctx.Mode&EnableDumpInstr != 0 {
-						fmt.Println("# imported", p)
+					if ctx.Mode&EnableDumpImports != 0 {
+						fmt.Println("# imported", p.Path())
 					}
 				}
 				createAll(p.Imports())
@@ -469,10 +468,7 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 			}
 		}
 	}
-	// create imports
 	createAll(pkg.Imports())
-	// create indirect depends
-	createAll(ctx.Loader.Packages())
 
 	// Create and build the primary package.
 	ssapkg := prog.CreatePackage(pkg, files, info, false)
