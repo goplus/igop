@@ -472,8 +472,6 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 					sig = r.toFunc(pkg, precv, 0, tyEmptyFunc)
 				}
 				skip[im.Name] = true
-				if im.Name == "Accept" {
-				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
