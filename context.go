@@ -170,7 +170,9 @@ func (c *Context) AddImport(path string, filename string, src interface{}) error
 		Files:   []*ast.File{file},
 	}
 	tp.Load = func() (err error) {
-		tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+		if tp.Info == nil {
+			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+		}
 		return
 	}
 	c.pkgs[path] = tp
@@ -407,15 +409,6 @@ func (c *Context) RunTest(path string, args []string) error {
 }
 
 func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
-	if ctx.conf == nil {
-		ctx.conf = &types.Config{
-			Importer: NewImporter(ctx),
-			Sizes:    ctx.Sizes,
-		}
-		if ctx.evalMode {
-			ctx.conf.DisableUnusedImportCheck = true
-		}
-	}
 	info := &types.Info{
 		Types:      make(map[ast.Expr]types.TypeAndValue),
 		Defs:       make(map[*ast.Ident]types.Object),
@@ -434,10 +427,27 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 	if pkg.Path() == "" {
 		panic("package has no import path")
 	}
+	ctx.conf = &types.Config{
+		Importer: NewImporter(ctx),
+		Sizes:    ctx.Sizes,
+	}
+	var first error
+	ctx.conf.Error = func(err error) {
+		if first == nil {
+			first = err
+		}
+	}
+	if ctx.evalMode {
+		ctx.conf.DisableUnusedImportCheck = true
+	}
 	info, err := ctx.checkTypesInfo(pkg, files)
+	if first != nil {
+		return nil, nil, first
+	}
 	if err != nil {
 		return nil, nil, err
 	}
+
 	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 
 	// Create SSA packages for all imports.

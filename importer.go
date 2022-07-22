@@ -60,9 +60,4 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		}
 	}
 	return nil, ErrNotFoundPackage
-	pkg, err := i.defaultImpl.Import(path)
-	if err == nil {
-		i.pkgs[path] = pkg
-	}
-	return pkg, err
 }
