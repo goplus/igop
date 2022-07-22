@@ -29,13 +29,12 @@ import (
 type Mode uint
 
 const (
-	DisableRecover            Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	DisableCustomBuiltin                       // Disable load custom builtin func
-	DisableLoadUnexportImport                  // Disable load unexport import by go/importer
-	EnableDumpImports                          // print typesimports
-	EnableDumpInstr                            // Print packages & SSA instruction code
-	EnableTracing                              // Print a trace of all instructions as they are interpreted.
-	EnablePrintAny                             // Enable builtin print for any type ( struct/array )
+	DisableRecover       Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	DisableCustomBuiltin                  // Disable load custom builtin func
+	EnableDumpImports                     // print typesimports
+	EnableDumpInstr                       // Print packages & SSA instruction code
+	EnableTracing                         // Print a trace of all instructions as they are interpreted.
+	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
 )
 
 // Loader types loader interface

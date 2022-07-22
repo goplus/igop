@@ -112,12 +112,6 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	}
 	pkg, ok := registerPkgs[path]
 	if !ok {
-		if r.mode&DisableLoadUnexportImport == 0 && r.importer != nil {
-			if p, err := r.importer.Import(path); err == nil {
-				r.packages[path] = p
-				return p, nil
-			}
-		}
 		return nil, fmt.Errorf("Not found package %v", path)
 	}
 	p := types.NewPackage(pkg.Path, pkg.Name)
