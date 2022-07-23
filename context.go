@@ -76,6 +76,7 @@ type typesPackage struct {
 	Package *types.Package
 	Files   []*ast.File
 	Info    *types.Info
+	Dir     string
 	Load    func() error
 }
 
@@ -190,6 +191,7 @@ func (c *Context) AddImportDir(path string, dir string) error {
 		tp := &typesPackage{
 			Package: pkg,
 			Files:   files,
+			Dir:     dir,
 		}
 		tp.Load = func() (err error) {
 			if tp.Info == nil {
@@ -459,19 +461,28 @@ func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Pa
 			if !created[p] {
 				created[p] = true
 				createAll(p.Imports())
-				if !p.Complete() {
-					if ctx.Mode&EnableDumpImports != 0 {
-						fmt.Println("# indirect", p.Path())
-					}
-					p.MarkComplete()
-				} else {
-					if ctx.Mode&EnableDumpImports != 0 {
-						fmt.Println("# imported", p.Path())
-					}
-				}
 				if pkg, ok := ctx.pkgs[p.Path()]; ok {
+					if ctx.Mode&EnableDumpImports != 0 {
+						if pkg.Dir != "" {
+							fmt.Println("# imported", p.Path(), pkg.Dir)
+						} else {
+							fmt.Println("# imported", p.Path(), "source")
+						}
+					}
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
 				} else {
+					var indirect bool
+					if !p.Complete() {
+						indirect = true
+						p.MarkComplete()
+					}
+					if ctx.Mode&EnableDumpImports != 0 {
+						if indirect {
+							fmt.Println("# indirect", p.Path())
+						} else {
+							fmt.Println("# imported", p.Path())
+						}
+					}
 					prog.CreatePackage(p, nil, nil, true).Build()
 				}
 			}
