@@ -46,8 +46,8 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		i.pkgs[path] = pkg.Package
 		return pkg.Package, nil
 	}
-	if i.ctx.External != nil {
-		if dir, found := i.ctx.External.Lookup(path); found {
+	if i.ctx.Lookup != nil {
+		if dir, found := i.ctx.Lookup(i.ctx.root, path); found {
 			if i.ctx.AddImportDir(path, dir) == nil {
 				pkg := i.ctx.pkgs[path]
 				info, err := i.ctx.checkTypesInfo(pkg.Package, pkg.Files)

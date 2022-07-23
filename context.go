@@ -47,29 +47,25 @@ type Loader interface {
 	SetImport(path string, pkg *types.Package, load func() error) error
 }
 
-// lookup import package interface
-type LookupImport interface {
-	Lookup(path string) (dir string, found bool)
-}
-
 // Context ssa context
 type Context struct {
-	Loader      Loader                   // types loader
-	FileSet     *token.FileSet           // file set
-	Mode        Mode                     // mode
-	ParserMode  parser.Mode              // parser mode
-	BuilderMode ssa.BuilderMode          // ssa builder mode
-	External    LookupImport             // lookup external import
-	Sizes       types.Sizes              // types size for package unsafe
-	pkgs        map[string]*typesPackage // imports
-	override    map[string]reflect.Value // override function
-	output      io.Writer                // capture print/println output
-	callForPool int                      // least call count for enable function pool
-	conf        *types.Config            // types check config
-	evalMode    bool                     // eval mode
-	evalInit    map[string]bool          // eval init check
+	Loader      Loader                                           // types loader
+	FileSet     *token.FileSet                                   // file set
+	Mode        Mode                                             // mode
+	ParserMode  parser.Mode                                      // parser mode
+	BuilderMode ssa.BuilderMode                                  // ssa builder mode
+	Sizes       types.Sizes                                      // types size for package unsafe
+	Lookup      func(root, path string) (dir string, found bool) // lookup external import
+	pkgs        map[string]*typesPackage                         // imports
+	override    map[string]reflect.Value                         // override function
+	output      io.Writer                                        // capture print/println output
+	callForPool int                                              // least call count for enable function pool
+	conf        *types.Config                                    // types check config
+	evalMode    bool                                             // eval mode
+	evalInit    map[string]bool                                  // eval init check
 	evalCallFn  func(interp *Interp, call *ssa.Call, res ...interface{})
 	debugFunc   func(*DebugInfo) // debug func
+	root        string
 }
 
 type typesPackage struct {
@@ -140,6 +136,7 @@ func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
 	if err != nil {
 		return nil, err
 	}
+	c.root = path
 	for _, apkg := range apkgs {
 		if pkg, err := c.LoadAstPackage(apkg); err == nil {
 			pkgs = append(pkgs, pkg)
@@ -244,6 +241,7 @@ func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, erro
 	if err != nil {
 		return nil, err
 	}
+	c.root, _ = filepath.Split(filename)
 	return c.LoadAstFile(file)
 }
 
