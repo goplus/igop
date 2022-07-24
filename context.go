@@ -209,22 +209,20 @@ func (c *Context) AddImportDir(path string, dir string) error {
 	if err != nil {
 		return err
 	}
-	if len(files) > 0 {
-		pkg := types.NewPackage(path, files[0].Name.Name)
-		tp := &typesPackage{
-			Package: pkg,
-			Files:   files,
-			Dir:     dir,
-		}
-		tp.Load = func() (err error) {
-			if tp.Info == nil {
-				tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
-			}
-			return
-		}
-		c.pkgs[path] = tp
-		c.Loader.SetImport(path, pkg, tp.Load)
+	pkg := types.NewPackage(path, files[0].Name.Name)
+	tp := &typesPackage{
+		Package: pkg,
+		Files:   files,
+		Dir:     dir,
 	}
+	tp.Load = func() (err error) {
+		if tp.Info == nil {
+			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+		}
+		return
+	}
+	c.pkgs[path] = tp
+	c.Loader.SetImport(path, pkg, tp.Load)
 	return nil
 }
 
