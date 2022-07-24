@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/goplus/reflectx"
-
+	"github.com/visualfc/gomod"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
 )
@@ -49,23 +49,48 @@ type Loader interface {
 
 // Context ssa context
 type Context struct {
-	Loader      Loader                                           // types loader
-	FileSet     *token.FileSet                                   // file set
-	Mode        Mode                                             // mode
-	ParserMode  parser.Mode                                      // parser mode
-	BuilderMode ssa.BuilderMode                                  // ssa builder mode
-	Sizes       types.Sizes                                      // types size for package unsafe
-	Lookup      func(root, path string) (dir string, found bool) // lookup external import
-	pkgs        map[string]*typesPackage                         // imports
-	override    map[string]reflect.Value                         // override function
-	output      io.Writer                                        // capture print/println output
-	callForPool int                                              // least call count for enable function pool
-	conf        *types.Config                                    // types check config
-	evalMode    bool                                             // eval mode
-	evalInit    map[string]bool                                  // eval init check
-	evalCallFn  func(interp *Interp, call *ssa.Call, res ...interface{})
-	debugFunc   func(*DebugInfo) // debug func
-	root        string
+	Loader       Loader                                           // types loader
+	FileSet      *token.FileSet                                   // file set
+	Mode         Mode                                             // mode
+	ParserMode   parser.Mode                                      // parser mode
+	BuilderMode  ssa.BuilderMode                                  // ssa builder mode
+	Sizes        types.Sizes                                      // types size for package unsafe
+	BuildContext build.Context                                    // build context
+	Lookup       func(root, path string) (dir string, found bool) // lookup external import
+	pkgs         map[string]*typesPackage                         // imports
+	override     map[string]reflect.Value                         // override function
+	output       io.Writer                                        // capture print/println output
+	callForPool  int                                              // least call count for enable function pool
+	conf         *types.Config                                    // types check config
+	evalMode     bool                                             // eval mode
+	evalInit     map[string]bool                                  // eval init check
+	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
+	debugFunc    func(*DebugInfo) // debug func
+	root         string           // project root
+	mod          *gomod.Package   // lookup path for go.mod
+}
+
+func (c *Context) setRoot(root string) {
+	c.root = root
+	c.mod = nil
+}
+
+func (c *Context) lookupPath(path string) (dir string, found bool) {
+	if c.Lookup != nil {
+		dir, found = c.Lookup(c.root, path)
+		if found {
+			return
+		}
+	}
+	if c.mod == nil {
+		var err error
+		c.mod, err = gomod.Load(c.root, &c.BuildContext)
+		if err != nil {
+			panic(err)
+		}
+	}
+	_, dir, found = c.mod.Lookup(path)
+	return
 }
 
 type typesPackage struct {
@@ -83,14 +108,15 @@ func (c *Context) IsEvalMode() bool {
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
-		Loader:      NewTypesLoader(mode),
-		FileSet:     token.NewFileSet(),
-		Mode:        mode,
-		ParserMode:  parser.AllErrors,
-		BuilderMode: 0, //ssa.SanityCheckFunctions,
-		pkgs:        make(map[string]*typesPackage),
-		override:    make(map[string]reflect.Value),
-		callForPool: 64,
+		Loader:       NewTypesLoader(mode),
+		FileSet:      token.NewFileSet(),
+		Mode:         mode,
+		ParserMode:   parser.AllErrors,
+		BuilderMode:  0, //ssa.SanityCheckFunctions,
+		BuildContext: build.Default,
+		pkgs:         make(map[string]*typesPackage),
+		override:     make(map[string]reflect.Value),
+		callForPool:  64,
 	}
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
@@ -136,7 +162,7 @@ func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
 	if err != nil {
 		return nil, err
 	}
-	c.root = path
+	c.setRoot(path)
 	for _, apkg := range apkgs {
 		if pkg, err := c.LoadAstPackage(apkg); err == nil {
 			pkgs = append(pkgs, pkg)
@@ -241,7 +267,8 @@ func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, erro
 	if err != nil {
 		return nil, err
 	}
-	c.root, _ = filepath.Split(filename)
+	root, _ := filepath.Split(filename)
+	c.setRoot(root)
 	return c.LoadAstFile(file)
 }
 
