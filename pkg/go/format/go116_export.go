@@ -27,7 +27,7 @@ func init() {
 			"strings":    "strings",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{},
+		NamedTypes: map[string]reflect.Type{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{

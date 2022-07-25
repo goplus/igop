@@ -38,13 +38,13 @@ func init() {
 			"ClientCodec": reflect.TypeOf((*q.ClientCodec)(nil)).Elem(),
 			"ServerCodec": reflect.TypeOf((*q.ServerCodec)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Call":        {reflect.TypeOf((*q.Call)(nil)).Elem(), "", "done"},
-			"Client":      {reflect.TypeOf((*q.Client)(nil)).Elem(), "", "Call,Close,Go,input,send"},
-			"Request":     {reflect.TypeOf((*q.Request)(nil)).Elem(), "", ""},
-			"Response":    {reflect.TypeOf((*q.Response)(nil)).Elem(), "", ""},
-			"Server":      {reflect.TypeOf((*q.Server)(nil)).Elem(), "", "Accept,HandleHTTP,Register,RegisterName,ServeCodec,ServeConn,ServeHTTP,ServeRequest,freeRequest,freeResponse,getRequest,getResponse,readRequest,readRequestHeader,register,sendResponse"},
-			"ServerError": {reflect.TypeOf((*q.ServerError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Call":        reflect.TypeOf((*q.Call)(nil)).Elem(),
+			"Client":      reflect.TypeOf((*q.Client)(nil)).Elem(),
+			"Request":     reflect.TypeOf((*q.Request)(nil)).Elem(),
+			"Response":    reflect.TypeOf((*q.Response)(nil)).Elem(),
+			"Server":      reflect.TypeOf((*q.Server)(nil)).Elem(),
+			"ServerError": reflect.TypeOf((*q.ServerError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

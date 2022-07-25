@@ -22,9 +22,9 @@ func init() {
 			"strconv":                "strconv",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Cipher":       {reflect.TypeOf((*q.Cipher)(nil)).Elem(), "", "Reset,XORKeyStream"},
-			"KeySizeError": {reflect.TypeOf((*q.KeySizeError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Cipher":       reflect.TypeOf((*q.Cipher)(nil)).Elem(),
+			"KeySizeError": reflect.TypeOf((*q.KeySizeError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

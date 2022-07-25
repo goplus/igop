@@ -23,8 +23,8 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Flush,Init,Write,addLine,append,dump,endEscape,flush,flushNoDefers,format,handlePanic,reset,startEscape,terminateCell,updateWidth,write0,writeLines,writeN,writePadding"},
+		NamedTypes: map[string]reflect.Type{
+			"Writer": reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

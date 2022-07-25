@@ -57,13 +57,13 @@ func init() {
 			"ValueConverter":                 reflect.TypeOf((*q.ValueConverter)(nil)).Elem(),
 			"Valuer":                         reflect.TypeOf((*q.Valuer)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"IsolationLevel": {reflect.TypeOf((*q.IsolationLevel)(nil)).Elem(), "", ""},
-			"NamedValue":     {reflect.TypeOf((*q.NamedValue)(nil)).Elem(), "", ""},
-			"NotNull":        {reflect.TypeOf((*q.NotNull)(nil)).Elem(), "ConvertValue", ""},
-			"Null":           {reflect.TypeOf((*q.Null)(nil)).Elem(), "ConvertValue", ""},
-			"RowsAffected":   {reflect.TypeOf((*q.RowsAffected)(nil)).Elem(), "LastInsertId,RowsAffected", ""},
-			"TxOptions":      {reflect.TypeOf((*q.TxOptions)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"IsolationLevel": reflect.TypeOf((*q.IsolationLevel)(nil)).Elem(),
+			"NamedValue":     reflect.TypeOf((*q.NamedValue)(nil)).Elem(),
+			"NotNull":        reflect.TypeOf((*q.NotNull)(nil)).Elem(),
+			"Null":           reflect.TypeOf((*q.Null)(nil)).Elem(),
+			"RowsAffected":   reflect.TypeOf((*q.RowsAffected)(nil)).Elem(),
+			"TxOptions":      reflect.TypeOf((*q.TxOptions)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

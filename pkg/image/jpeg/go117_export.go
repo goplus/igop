@@ -29,10 +29,10 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Reader": reflect.TypeOf((*q.Reader)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"FormatError":      {reflect.TypeOf((*q.FormatError)(nil)).Elem(), "Error", ""},
-			"Options":          {reflect.TypeOf((*q.Options)(nil)).Elem(), "", ""},
-			"UnsupportedError": {reflect.TypeOf((*q.UnsupportedError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"FormatError":      reflect.TypeOf((*q.FormatError)(nil)).Elem(),
+			"Options":          reflect.TypeOf((*q.Options)(nil)).Elem(),
+			"UnsupportedError": reflect.TypeOf((*q.UnsupportedError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

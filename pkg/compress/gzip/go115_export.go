@@ -28,10 +28,10 @@ func init() {
 			"time":            "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Header": {reflect.TypeOf((*q.Header)(nil)).Elem(), "", ""},
-			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Close,Multistream,Read,Reset,readHeader,readString"},
-			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Flush,Reset,Write,init,writeBytes,writeString"},
+		NamedTypes: map[string]reflect.Type{
+			"Header": reflect.TypeOf((*q.Header)(nil)).Elem(),
+			"Reader": reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Writer": reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

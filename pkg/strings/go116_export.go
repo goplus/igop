@@ -26,10 +26,10 @@ func init() {
 			"unsafe":           "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Builder":  {reflect.TypeOf((*q.Builder)(nil)).Elem(), "", "Cap,Grow,Len,Reset,String,Write,WriteByte,WriteRune,WriteString,copyCheck,grow"},
-			"Reader":   {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Len,Read,ReadAt,ReadByte,ReadRune,Reset,Seek,Size,UnreadByte,UnreadRune,WriteTo"},
-			"Replacer": {reflect.TypeOf((*q.Replacer)(nil)).Elem(), "", "Replace,WriteString,build,buildOnce"},
+		NamedTypes: map[string]reflect.Type{
+			"Builder":  reflect.TypeOf((*q.Builder)(nil)).Elem(),
+			"Reader":   reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Replacer": reflect.TypeOf((*q.Replacer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

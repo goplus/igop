@@ -32,7 +32,7 @@ func init() {
 			"runtime/debug":   "debug",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{},
+		NamedTypes: map[string]reflect.Type{},
 		AliasTypes: map[string]reflect.Type{
 			"BuildInfo": reflect.TypeOf((*q.BuildInfo)(nil)).Elem(),
 		},

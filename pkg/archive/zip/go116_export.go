@@ -35,14 +35,14 @@ func init() {
 			"unicode/utf8":    "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Compressor":   {reflect.TypeOf((*q.Compressor)(nil)).Elem(), "", ""},
-			"Decompressor": {reflect.TypeOf((*q.Decompressor)(nil)).Elem(), "", ""},
-			"File":         {reflect.TypeOf((*q.File)(nil)).Elem(), "", "DataOffset,Open,findBodyOffset,hasDataDescriptor"},
-			"FileHeader":   {reflect.TypeOf((*q.FileHeader)(nil)).Elem(), "", "FileInfo,ModTime,Mode,SetModTime,SetMode,isZip64"},
-			"ReadCloser":   {reflect.TypeOf((*q.ReadCloser)(nil)).Elem(), "", "Close"},
-			"Reader":       {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Open,RegisterDecompressor,decompressor,init,initFileList,openLookup,openReadDir"},
-			"Writer":       {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Create,CreateHeader,Flush,RegisterCompressor,SetComment,SetOffset,compressor"},
+		NamedTypes: map[string]reflect.Type{
+			"Compressor":   reflect.TypeOf((*q.Compressor)(nil)).Elem(),
+			"Decompressor": reflect.TypeOf((*q.Decompressor)(nil)).Elem(),
+			"File":         reflect.TypeOf((*q.File)(nil)).Elem(),
+			"FileHeader":   reflect.TypeOf((*q.FileHeader)(nil)).Elem(),
+			"ReadCloser":   reflect.TypeOf((*q.ReadCloser)(nil)).Elem(),
+			"Reader":       reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Writer":       reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

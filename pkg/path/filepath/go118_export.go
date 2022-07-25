@@ -29,8 +29,8 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"WalkFunc": {reflect.TypeOf((*q.WalkFunc)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"WalkFunc": reflect.TypeOf((*q.WalkFunc)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

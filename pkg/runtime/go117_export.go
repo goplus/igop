@@ -31,15 +31,15 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Error": reflect.TypeOf((*q.Error)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"BlockProfileRecord": {reflect.TypeOf((*q.BlockProfileRecord)(nil)).Elem(), "", ""},
-			"Frame":              {reflect.TypeOf((*q.Frame)(nil)).Elem(), "", ""},
-			"Frames":             {reflect.TypeOf((*q.Frames)(nil)).Elem(), "", "Next"},
-			"Func":               {reflect.TypeOf((*q.Func)(nil)).Elem(), "", "Entry,FileLine,Name,funcInfo,raw"},
-			"MemProfileRecord":   {reflect.TypeOf((*q.MemProfileRecord)(nil)).Elem(), "", "InUseBytes,InUseObjects,Stack"},
-			"MemStats":           {reflect.TypeOf((*q.MemStats)(nil)).Elem(), "", ""},
-			"StackRecord":        {reflect.TypeOf((*q.StackRecord)(nil)).Elem(), "", "Stack"},
-			"TypeAssertionError": {reflect.TypeOf((*q.TypeAssertionError)(nil)).Elem(), "", "Error,RuntimeError"},
+		NamedTypes: map[string]reflect.Type{
+			"BlockProfileRecord": reflect.TypeOf((*q.BlockProfileRecord)(nil)).Elem(),
+			"Frame":              reflect.TypeOf((*q.Frame)(nil)).Elem(),
+			"Frames":             reflect.TypeOf((*q.Frames)(nil)).Elem(),
+			"Func":               reflect.TypeOf((*q.Func)(nil)).Elem(),
+			"MemProfileRecord":   reflect.TypeOf((*q.MemProfileRecord)(nil)).Elem(),
+			"MemStats":           reflect.TypeOf((*q.MemStats)(nil)).Elem(),
+			"StackRecord":        reflect.TypeOf((*q.StackRecord)(nil)).Elem(),
+			"TypeAssertionError": reflect.TypeOf((*q.TypeAssertionError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

@@ -39,9 +39,9 @@ func init() {
 			"vendor/golang.org/x/net/http/httpguts": "httpguts",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"ResponseRecorder": {reflect.TypeOf((*q.ResponseRecorder)(nil)).Elem(), "", "Flush,Header,Result,Write,WriteHeader,WriteString,writeHeader"},
-			"Server":           {reflect.TypeOf((*q.Server)(nil)).Elem(), "", "Certificate,Client,Close,CloseClientConnections,Start,StartTLS,closeConn,closeConnChan,forgetConn,goServe,logCloseHangDebugInfo,wrap"},
+		NamedTypes: map[string]reflect.Type{
+			"ResponseRecorder": reflect.TypeOf((*q.ResponseRecorder)(nil)).Elem(),
+			"Server":           reflect.TypeOf((*q.Server)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

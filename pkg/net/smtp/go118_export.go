@@ -32,9 +32,9 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Auth": reflect.TypeOf((*q.Auth)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Client":     {reflect.TypeOf((*q.Client)(nil)).Elem(), "", "Auth,Close,Data,Extension,Hello,Mail,Noop,Quit,Rcpt,Reset,StartTLS,TLSConnectionState,Verify,cmd,ehlo,hello,helo"},
-			"ServerInfo": {reflect.TypeOf((*q.ServerInfo)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Client":     reflect.TypeOf((*q.Client)(nil)).Elem(),
+			"ServerInfo": reflect.TypeOf((*q.ServerInfo)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

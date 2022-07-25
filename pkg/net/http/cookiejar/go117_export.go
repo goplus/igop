@@ -33,9 +33,9 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"PublicSuffixList": reflect.TypeOf((*q.PublicSuffixList)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Jar":     {reflect.TypeOf((*q.Jar)(nil)).Elem(), "", "Cookies,SetCookies,cookies,domainAndType,newEntry,setCookies"},
-			"Options": {reflect.TypeOf((*q.Options)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Jar":     reflect.TypeOf((*q.Jar)(nil)).Elem(),
+			"Options": reflect.TypeOf((*q.Options)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

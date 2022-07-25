@@ -23,9 +23,9 @@ func init() {
 			"io":    "io",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Read"},
-			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Write,checkLastByte,encode,flush,insertCRLF,insertSoftLineBreak,write"},
+		NamedTypes: map[string]reflect.Type{
+			"Reader": reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Writer": reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

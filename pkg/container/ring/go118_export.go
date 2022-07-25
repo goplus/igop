@@ -19,8 +19,8 @@ func init() {
 		Path:       "container/ring",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Ring": {reflect.TypeOf((*q.Ring)(nil)).Elem(), "", "Do,Len,Link,Move,Next,Prev,Unlink,init"},
+		NamedTypes: map[string]reflect.Type{
+			"Ring": reflect.TypeOf((*q.Ring)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

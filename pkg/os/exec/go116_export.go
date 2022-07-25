@@ -32,10 +32,10 @@ func init() {
 			"syscall":                  "syscall",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Cmd":       {reflect.TypeOf((*q.Cmd)(nil)).Elem(), "", "CombinedOutput,Output,Run,Start,StderrPipe,StdinPipe,StdoutPipe,String,Wait,argv,closeDescriptors,envv,stderr,stdin,stdout,writerDescriptor"},
-			"Error":     {reflect.TypeOf((*q.Error)(nil)).Elem(), "", "Error,Unwrap"},
-			"ExitError": {reflect.TypeOf((*q.ExitError)(nil)).Elem(), "", "Error"},
+		NamedTypes: map[string]reflect.Type{
+			"Cmd":       reflect.TypeOf((*q.Cmd)(nil)).Elem(),
+			"Error":     reflect.TypeOf((*q.Error)(nil)).Elem(),
+			"ExitError": reflect.TypeOf((*q.ExitError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

@@ -26,9 +26,9 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Position": {reflect.TypeOf((*q.Position)(nil)).Elem(), "String", "IsValid"},
-			"Scanner":  {reflect.TypeOf((*q.Scanner)(nil)).Elem(), "", "Init,Next,Peek,Pos,Scan,TokenText,digits,error,errorf,isIdentRune,next,scanChar,scanComment,scanDigits,scanEscape,scanIdentifier,scanNumber,scanRawString,scanString"},
+		NamedTypes: map[string]reflect.Type{
+			"Position": reflect.TypeOf((*q.Position)(nil)).Elem(),
+			"Scanner":  reflect.TypeOf((*q.Scanner)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

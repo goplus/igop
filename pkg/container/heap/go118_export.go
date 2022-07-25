@@ -23,7 +23,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Interface": reflect.TypeOf((*q.Interface)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{},
+		NamedTypes: map[string]reflect.Type{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{

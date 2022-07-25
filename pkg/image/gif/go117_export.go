@@ -31,9 +31,9 @@ func init() {
 			"io":                  "io",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"GIF":     {reflect.TypeOf((*q.GIF)(nil)).Elem(), "", ""},
-			"Options": {reflect.TypeOf((*q.Options)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"GIF":     reflect.TypeOf((*q.GIF)(nil)).Elem(),
+			"Options": reflect.TypeOf((*q.Options)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

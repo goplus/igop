@@ -33,12 +33,12 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"EncoderBufferPool": reflect.TypeOf((*q.EncoderBufferPool)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"CompressionLevel": {reflect.TypeOf((*q.CompressionLevel)(nil)).Elem(), "", ""},
-			"Encoder":          {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode"},
-			"EncoderBuffer":    {reflect.TypeOf((*q.EncoderBuffer)(nil)).Elem(), "", ""},
-			"FormatError":      {reflect.TypeOf((*q.FormatError)(nil)).Elem(), "Error", ""},
-			"UnsupportedError": {reflect.TypeOf((*q.UnsupportedError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"CompressionLevel": reflect.TypeOf((*q.CompressionLevel)(nil)).Elem(),
+			"Encoder":          reflect.TypeOf((*q.Encoder)(nil)).Elem(),
+			"EncoderBuffer":    reflect.TypeOf((*q.EncoderBuffer)(nil)).Elem(),
+			"FormatError":      reflect.TypeOf((*q.FormatError)(nil)).Elem(),
+			"UnsupportedError": reflect.TypeOf((*q.UnsupportedError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

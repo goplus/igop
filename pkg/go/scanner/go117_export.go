@@ -30,12 +30,12 @@ func init() {
 			"unicode/utf8":  "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Error":        {reflect.TypeOf((*q.Error)(nil)).Elem(), "Error", ""},
-			"ErrorHandler": {reflect.TypeOf((*q.ErrorHandler)(nil)).Elem(), "", ""},
-			"ErrorList":    {reflect.TypeOf((*q.ErrorList)(nil)).Elem(), "Err,Error,Len,Less,Sort,Swap", "Add,RemoveMultiples,Reset"},
-			"Mode":         {reflect.TypeOf((*q.Mode)(nil)).Elem(), "", ""},
-			"Scanner":      {reflect.TypeOf((*q.Scanner)(nil)).Elem(), "", "Init,Scan,digits,error,errorf,findLineEnd,next,peek,scanComment,scanEscape,scanIdentifier,scanNumber,scanRawString,scanRune,scanString,skipWhitespace,switch2,switch3,switch4,updateLineInfo"},
+		NamedTypes: map[string]reflect.Type{
+			"Error":        reflect.TypeOf((*q.Error)(nil)).Elem(),
+			"ErrorHandler": reflect.TypeOf((*q.ErrorHandler)(nil)).Elem(),
+			"ErrorList":    reflect.TypeOf((*q.ErrorList)(nil)).Elem(),
+			"Mode":         reflect.TypeOf((*q.Mode)(nil)).Elem(),
+			"Scanner":      reflect.TypeOf((*q.Scanner)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

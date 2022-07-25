@@ -30,14 +30,14 @@ func init() {
 			"math/big":                 "big",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"CRTValue":               {reflect.TypeOf((*q.CRTValue)(nil)).Elem(), "", ""},
-			"OAEPOptions":            {reflect.TypeOf((*q.OAEPOptions)(nil)).Elem(), "", ""},
-			"PKCS1v15DecryptOptions": {reflect.TypeOf((*q.PKCS1v15DecryptOptions)(nil)).Elem(), "", ""},
-			"PSSOptions":             {reflect.TypeOf((*q.PSSOptions)(nil)).Elem(), "", "HashFunc,saltLength"},
-			"PrecomputedValues":      {reflect.TypeOf((*q.PrecomputedValues)(nil)).Elem(), "", ""},
-			"PrivateKey":             {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "", "Decrypt,Precompute,Public,Sign,Validate"},
-			"PublicKey":              {reflect.TypeOf((*q.PublicKey)(nil)).Elem(), "", "Size"},
+		NamedTypes: map[string]reflect.Type{
+			"CRTValue":               reflect.TypeOf((*q.CRTValue)(nil)).Elem(),
+			"OAEPOptions":            reflect.TypeOf((*q.OAEPOptions)(nil)).Elem(),
+			"PKCS1v15DecryptOptions": reflect.TypeOf((*q.PKCS1v15DecryptOptions)(nil)).Elem(),
+			"PSSOptions":             reflect.TypeOf((*q.PSSOptions)(nil)).Elem(),
+			"PrecomputedValues":      reflect.TypeOf((*q.PrecomputedValues)(nil)).Elem(),
+			"PrivateKey":             reflect.TypeOf((*q.PrivateKey)(nil)).Elem(),
+			"PublicKey":              reflect.TypeOf((*q.PublicKey)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{
