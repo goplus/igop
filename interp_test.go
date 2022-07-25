@@ -2174,3 +2174,20 @@ func main() {
 		panic(all)
 	}
 }
+
+func TestVariadicFunc(t *testing.T) {
+	src := `package main
+type Context struct{}
+type ClientConn struct{}
+type CallOption struct{}
+
+type UnaryInvoker func(ctx Context, method string, req, reply interface{}, cc *ClientConn, opts ...CallOption) error
+
+func main() {
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
