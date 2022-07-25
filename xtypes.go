@@ -102,13 +102,21 @@ func toMockType(typ types.Type) reflect.Type {
 		}
 		ins := make([]reflect.Type, in, in)
 		outs := make([]reflect.Type, out, out)
-		for i := 0; i < in; i++ {
-			ins[i] = tyEmptyStruct
+		variadic := t.Variadic()
+		if variadic {
+			for i := 0; i < in-1; i++ {
+				ins[i] = tyEmptyStruct
+			}
+			ins[in-1] = tyEmptySlice
+		} else {
+			for i := 0; i < in; i++ {
+				ins[i] = tyEmptyStruct
+			}
 		}
 		for i := 0; i < out; i++ {
 			outs[i] = tyEmptyStruct
 		}
-		return reflect.FuncOf(ins, outs, t.Variadic())
+		return reflect.FuncOf(ins, outs, variadic)
 	default:
 		panic(fmt.Errorf("toEmptyType: unreachable %v", typ))
 	}
