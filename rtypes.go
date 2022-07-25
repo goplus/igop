@@ -426,36 +426,34 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 					}
 				}
 			}
-
-			prt := reflect.PtrTo(rt)
-			ptyp := r.ToType(prt)
-			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
-
 			skip := make(map[string]bool)
-			for _, im := range AllMethod(prt, r.mode&DisableUnexportMethods == 0) {
-				if filter != nil && !filter(im.Name, true) {
-					continue
-				}
-				var sig *types.Signature
-				if im.Type != nil {
-					sig = r.toFunc(pkg, precv, 1, im.Type)
-				} else {
-					sig = typesDummySig
-				}
-				skip[im.Name] = true
-				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
-			}
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
 			for _, im := range AllMethod(rt, r.mode&DisableUnexportMethods == 0) {
-				if skip[im.Name] {
-					continue
-				}
 				if filter != nil && !filter(im.Name, false) {
 					continue
 				}
 				var sig *types.Signature
 				if im.Type != nil {
 					sig = r.toFunc(pkg, recv, 1, im.Type)
+				} else {
+					sig = typesDummySig
+				}
+				skip[im.Name] = true
+				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
+			}
+			prt := reflect.PtrTo(rt)
+			ptyp := r.ToType(prt)
+			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
+			for _, im := range AllMethod(prt, r.mode&DisableUnexportMethods == 0) {
+				if skip[im.Name] {
+					continue
+				}
+				if filter != nil && !filter(im.Name, true) {
+					continue
+				}
+				var sig *types.Signature
+				if im.Type != nil {
+					sig = r.toFunc(pkg, precv, 1, im.Type)
 				} else {
 					sig = typesDummySig
 				}
