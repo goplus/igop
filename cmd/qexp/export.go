@@ -200,7 +200,7 @@ func init() {
 		Path: "$PKGPATH",
 		Deps: map[string]string{$DEPS},
 		Interfaces: map[string]reflect.Type{$INTERFACES},
-		NamedTypes: map[string]igop.NamedType{$NAMEDTYPES},
+		NamedTypes: map[string]reflect.Type{$NAMEDTYPES},
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
