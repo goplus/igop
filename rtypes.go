@@ -436,33 +436,24 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	}
 	if named != nil {
 		if kind != reflect.Interface {
-			var filter func(name string, ptr bool) bool
 			pkg := named.Obj().Pkg()
-			if p, ok := r.installed[pkg.Path()]; ok {
-				if t, ok := p.NamedTypes[named.Obj().Name()]; ok {
-					m := make(map[string]bool)
-					pm := make(map[string]bool)
-					for _, v := range strings.Split(t.Methods, ",") {
-						m[v] = true
-					}
-					for _, v := range strings.Split(t.PtrMethods, ",") {
-						pm[v] = true
-					}
-					filter = func(name string, ptr bool) bool {
-						if ptr {
-							return pm[name]
-						}
-						return m[name]
-					}
+			skip := make(map[string]bool)
+			recv := types.NewVar(token.NoPos, pkg, "", typ)
+			for _, im := range AllMethod(rt, true) {
+				var sig *types.Signature
+				if im.Type != nil {
+					sig = r.toFunc(pkg, recv, 1, im.Type)
+				} else {
+					sig = r.toFunc(pkg, recv, 0, tyEmptyFunc)
 				}
+				skip[im.Name] = true
+				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
-
-			skip := make(map[string]bool)
 			for _, im := range AllMethod(prt, true) {
-				if filter != nil && !filter(im.Name, true) {
+				if skip[im.Name] {
 					continue
 				}
 				var sig *types.Signature
@@ -470,23 +461,6 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 					sig = r.toFunc(pkg, precv, 1, im.Type)
 				} else {
 					sig = r.toFunc(pkg, precv, 0, tyEmptyFunc)
-				}
-				skip[im.Name] = true
-				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
-			}
-			recv := types.NewVar(token.NoPos, pkg, "", typ)
-			for _, im := range AllMethod(rt, true) {
-				if skip[im.Name] {
-					continue
-				}
-				if filter != nil && !filter(im.Name, false) {
-					continue
-				}
-				var sig *types.Signature
-				if im.Type != nil {
-					sig = r.toFunc(pkg, recv, 1, im.Type)
-				} else {
-					sig = r.toFunc(pkg, recv, 0, tyEmptyFunc)
 				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}
