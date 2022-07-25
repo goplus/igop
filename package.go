@@ -45,17 +45,11 @@ type UntypedConst struct {
 	Value constant.Value
 }
 
-type NamedType struct {
-	Typ        reflect.Type
-	Methods    string
-	PtrMethods string
-}
-
 type Package struct {
 	Name          string
 	Path          string
 	Interfaces    map[string]reflect.Type
-	NamedTypes    map[string]NamedType
+	NamedTypes    map[string]reflect.Type
 	AliasTypes    map[string]reflect.Type
 	Vars          map[string]reflect.Value
 	Funcs         map[string]reflect.Value
