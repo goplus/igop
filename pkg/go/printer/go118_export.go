@@ -35,10 +35,10 @@ func init() {
 			"unicode/utf8":        "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"CommentedNode": {reflect.TypeOf((*q.CommentedNode)(nil)).Elem(), "", ""},
-			"Config":        {reflect.TypeOf((*q.Config)(nil)).Elem(), "", "Fprint,fprint"},
-			"Mode":          {reflect.TypeOf((*q.Mode)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"CommentedNode": reflect.TypeOf((*q.CommentedNode)(nil)).Elem(),
+			"Config":        reflect.TypeOf((*q.Config)(nil)).Elem(),
+			"Mode":          reflect.TypeOf((*q.Mode)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

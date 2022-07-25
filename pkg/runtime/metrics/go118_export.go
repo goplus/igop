@@ -24,12 +24,12 @@ func init() {
 			"unsafe":  "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Description":      {reflect.TypeOf((*q.Description)(nil)).Elem(), "", ""},
-			"Float64Histogram": {reflect.TypeOf((*q.Float64Histogram)(nil)).Elem(), "", ""},
-			"Sample":           {reflect.TypeOf((*q.Sample)(nil)).Elem(), "", ""},
-			"Value":            {reflect.TypeOf((*q.Value)(nil)).Elem(), "Float64,Float64Histogram,Kind,Uint64", ""},
-			"ValueKind":        {reflect.TypeOf((*q.ValueKind)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Description":      reflect.TypeOf((*q.Description)(nil)).Elem(),
+			"Float64Histogram": reflect.TypeOf((*q.Float64Histogram)(nil)).Elem(),
+			"Sample":           reflect.TypeOf((*q.Sample)(nil)).Elem(),
+			"Value":            reflect.TypeOf((*q.Value)(nil)).Elem(),
+			"ValueKind":        reflect.TypeOf((*q.ValueKind)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

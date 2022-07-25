@@ -25,10 +25,10 @@ func init() {
 			"time":    "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"BuildInfo": {reflect.TypeOf((*q.BuildInfo)(nil)).Elem(), "", ""},
-			"GCStats":   {reflect.TypeOf((*q.GCStats)(nil)).Elem(), "", ""},
-			"Module":    {reflect.TypeOf((*q.Module)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"BuildInfo": reflect.TypeOf((*q.BuildInfo)(nil)).Elem(),
+			"GCStats":   reflect.TypeOf((*q.GCStats)(nil)).Elem(),
+			"Module":    reflect.TypeOf((*q.Module)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

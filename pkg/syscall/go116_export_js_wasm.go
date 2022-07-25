@@ -1,6 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//+build go1.16,!go1.17
+//go:build go1.16 && !go1.17
+// +build go1.16,!go1.17
 
 package syscall
 
@@ -30,21 +31,21 @@ func init() {
 			"RawConn":  reflect.TypeOf((*q.RawConn)(nil)).Elem(),
 			"Sockaddr": reflect.TypeOf((*q.Sockaddr)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Dirent":        {reflect.TypeOf((*q.Dirent)(nil)).Elem(), "", ""},
-			"Errno":         {reflect.TypeOf((*q.Errno)(nil)).Elem(), "Error,Is,Temporary,Timeout", ""},
-			"Iovec":         {reflect.TypeOf((*q.Iovec)(nil)).Elem(), "", ""},
-			"ProcAttr":      {reflect.TypeOf((*q.ProcAttr)(nil)).Elem(), "", ""},
-			"Rusage":        {reflect.TypeOf((*q.Rusage)(nil)).Elem(), "", ""},
-			"Signal":        {reflect.TypeOf((*q.Signal)(nil)).Elem(), "Signal,String", ""},
-			"SockaddrInet4": {reflect.TypeOf((*q.SockaddrInet4)(nil)).Elem(), "", ""},
-			"SockaddrInet6": {reflect.TypeOf((*q.SockaddrInet6)(nil)).Elem(), "", ""},
-			"SockaddrUnix":  {reflect.TypeOf((*q.SockaddrUnix)(nil)).Elem(), "", ""},
-			"Stat_t":        {reflect.TypeOf((*q.Stat_t)(nil)).Elem(), "", ""},
-			"SysProcAttr":   {reflect.TypeOf((*q.SysProcAttr)(nil)).Elem(), "", ""},
-			"Timespec":      {reflect.TypeOf((*q.Timespec)(nil)).Elem(), "", "Nano,Unix"},
-			"Timeval":       {reflect.TypeOf((*q.Timeval)(nil)).Elem(), "", "Nano,Unix"},
-			"WaitStatus":    {reflect.TypeOf((*q.WaitStatus)(nil)).Elem(), "Continued,CoreDump,ExitStatus,Exited,Signal,Signaled,StopSignal,Stopped,TrapCause", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Dirent":        reflect.TypeOf((*q.Dirent)(nil)).Elem(),
+			"Errno":         reflect.TypeOf((*q.Errno)(nil)).Elem(),
+			"Iovec":         reflect.TypeOf((*q.Iovec)(nil)).Elem(),
+			"ProcAttr":      reflect.TypeOf((*q.ProcAttr)(nil)).Elem(),
+			"Rusage":        reflect.TypeOf((*q.Rusage)(nil)).Elem(),
+			"Signal":        reflect.TypeOf((*q.Signal)(nil)).Elem(),
+			"SockaddrInet4": reflect.TypeOf((*q.SockaddrInet4)(nil)).Elem(),
+			"SockaddrInet6": reflect.TypeOf((*q.SockaddrInet6)(nil)).Elem(),
+			"SockaddrUnix":  reflect.TypeOf((*q.SockaddrUnix)(nil)).Elem(),
+			"Stat_t":        reflect.TypeOf((*q.Stat_t)(nil)).Elem(),
+			"SysProcAttr":   reflect.TypeOf((*q.SysProcAttr)(nil)).Elem(),
+			"Timespec":      reflect.TypeOf((*q.Timespec)(nil)).Elem(),
+			"Timeval":       reflect.TypeOf((*q.Timeval)(nil)).Elem(),
+			"WaitStatus":    reflect.TypeOf((*q.WaitStatus)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

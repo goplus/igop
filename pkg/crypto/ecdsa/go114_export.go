@@ -29,9 +29,9 @@ func init() {
 			"math/big":                 "big",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"PrivateKey": {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "", "Public,Sign"},
-			"PublicKey":  {reflect.TypeOf((*q.PublicKey)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"PrivateKey": reflect.TypeOf((*q.PrivateKey)(nil)).Elem(),
+			"PublicKey":  reflect.TypeOf((*q.PublicKey)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

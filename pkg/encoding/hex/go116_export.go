@@ -23,8 +23,8 @@ func init() {
 			"strings": "strings",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"InvalidByteError": {reflect.TypeOf((*q.InvalidByteError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"InvalidByteError": reflect.TypeOf((*q.InvalidByteError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

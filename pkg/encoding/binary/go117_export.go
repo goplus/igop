@@ -28,7 +28,7 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"ByteOrder": reflect.TypeOf((*q.ByteOrder)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{},
+		NamedTypes: map[string]reflect.Type{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{
 			"BigEndian":    reflect.ValueOf(&q.BigEndian),

@@ -17,8 +17,8 @@ func init() {
 		Path:       "github.com/goplus/gop/builtin",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"IntRange": {reflect.TypeOf((*q.IntRange)(nil)).Elem(), "", "Gop_Enum"},
+		NamedTypes: map[string]reflect.Type{
+			"IntRange": reflect.TypeOf((*q.IntRange)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

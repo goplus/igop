@@ -30,9 +30,9 @@ func init() {
 			"time":           "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"MapFS":   {reflect.TypeOf((*q.MapFS)(nil)).Elem(), "Glob,Open,ReadDir,ReadFile,Stat,Sub", ""},
-			"MapFile": {reflect.TypeOf((*q.MapFile)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"MapFS":   reflect.TypeOf((*q.MapFS)(nil)).Elem(),
+			"MapFile": reflect.TypeOf((*q.MapFile)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

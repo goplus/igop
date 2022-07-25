@@ -28,8 +28,8 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Curve": reflect.TypeOf((*q.Curve)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"CurveParams": {reflect.TypeOf((*q.CurveParams)(nil)).Elem(), "", "Add,Double,IsOnCurve,Params,ScalarBaseMult,ScalarMult,addJacobian,affineFromJacobian,doubleJacobian,polynomial"},
+		NamedTypes: map[string]reflect.Type{
+			"CurveParams": reflect.TypeOf((*q.CurveParams)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

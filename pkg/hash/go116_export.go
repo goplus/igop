@@ -24,7 +24,7 @@ func init() {
 			"Hash32": reflect.TypeOf((*q.Hash32)(nil)).Elem(),
 			"Hash64": reflect.TypeOf((*q.Hash64)(nil)).Elem(),
 		},
-		NamedTypes:    map[string]igop.NamedType{},
+		NamedTypes:    map[string]reflect.Type{},
 		AliasTypes:    map[string]reflect.Type{},
 		Vars:          map[string]reflect.Value{},
 		Funcs:         map[string]reflect.Value{},

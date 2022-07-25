@@ -27,9 +27,9 @@ func init() {
 			"unsafe":      "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Region": {reflect.TypeOf((*q.Region)(nil)).Elem(), "", "End"},
-			"Task":   {reflect.TypeOf((*q.Task)(nil)).Elem(), "", "End"},
+		NamedTypes: map[string]reflect.Type{
+			"Region": reflect.TypeOf((*q.Region)(nil)).Elem(),
+			"Task":   reflect.TypeOf((*q.Task)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

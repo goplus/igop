@@ -30,8 +30,8 @@ func init() {
 			"Signer":        reflect.TypeOf((*q.Signer)(nil)).Elem(),
 			"SignerOpts":    reflect.TypeOf((*q.SignerOpts)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Hash": {reflect.TypeOf((*q.Hash)(nil)).Elem(), "Available,HashFunc,New,Size,String", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Hash": reflect.TypeOf((*q.Hash)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

@@ -28,8 +28,8 @@ func init() {
 			"time":        "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Logger": {reflect.TypeOf((*q.Logger)(nil)).Elem(), "", "Fatal,Fatalf,Fatalln,Flags,Output,Panic,Panicf,Panicln,Prefix,Print,Printf,Println,SetFlags,SetOutput,SetPrefix,Writer,formatHeader"},
+		NamedTypes: map[string]reflect.Type{
+			"Logger": reflect.TypeOf((*q.Logger)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

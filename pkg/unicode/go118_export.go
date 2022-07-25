@@ -20,12 +20,12 @@ func init() {
 		Path:       "unicode",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"CaseRange":   {reflect.TypeOf((*q.CaseRange)(nil)).Elem(), "", ""},
-			"Range16":     {reflect.TypeOf((*q.Range16)(nil)).Elem(), "", ""},
-			"Range32":     {reflect.TypeOf((*q.Range32)(nil)).Elem(), "", ""},
-			"RangeTable":  {reflect.TypeOf((*q.RangeTable)(nil)).Elem(), "", ""},
-			"SpecialCase": {reflect.TypeOf((*q.SpecialCase)(nil)).Elem(), "ToLower,ToTitle,ToUpper", ""},
+		NamedTypes: map[string]reflect.Type{
+			"CaseRange":   reflect.TypeOf((*q.CaseRange)(nil)).Elem(),
+			"Range16":     reflect.TypeOf((*q.Range16)(nil)).Elem(),
+			"Range32":     reflect.TypeOf((*q.Range32)(nil)).Elem(),
+			"RangeTable":  reflect.TypeOf((*q.RangeTable)(nil)).Elem(),
+			"SpecialCase": reflect.TypeOf((*q.SpecialCase)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

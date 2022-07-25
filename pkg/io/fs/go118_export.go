@@ -39,10 +39,10 @@ func init() {
 			"StatFS":      reflect.TypeOf((*q.StatFS)(nil)).Elem(),
 			"SubFS":       reflect.TypeOf((*q.SubFS)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"FileMode":    {reflect.TypeOf((*q.FileMode)(nil)).Elem(), "IsDir,IsRegular,Perm,String,Type", ""},
-			"PathError":   {reflect.TypeOf((*q.PathError)(nil)).Elem(), "", "Error,Timeout,Unwrap"},
-			"WalkDirFunc": {reflect.TypeOf((*q.WalkDirFunc)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"FileMode":    reflect.TypeOf((*q.FileMode)(nil)).Elem(),
+			"PathError":   reflect.TypeOf((*q.PathError)(nil)).Elem(),
+			"WalkDirFunc": reflect.TypeOf((*q.WalkDirFunc)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

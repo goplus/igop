@@ -26,8 +26,8 @@ func init() {
 			"sort":            "sort",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Index": {reflect.TypeOf((*q.Index)(nil)).Elem(), "", "Bytes,FindAllIndex,Lookup,Read,Write,at,lookupAll"},
+		NamedTypes: map[string]reflect.Type{
+			"Index": reflect.TypeOf((*q.Index)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

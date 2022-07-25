@@ -18,9 +18,9 @@ func init() {
 		Path:       "container/list",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Element": {reflect.TypeOf((*q.Element)(nil)).Elem(), "", "Next,Prev"},
-			"List":    {reflect.TypeOf((*q.List)(nil)).Elem(), "", "Back,Front,Init,InsertAfter,InsertBefore,Len,MoveAfter,MoveBefore,MoveToBack,MoveToFront,PushBack,PushBackList,PushFront,PushFrontList,Remove,insert,insertValue,lazyInit,move,remove"},
+		NamedTypes: map[string]reflect.Type{
+			"Element": reflect.TypeOf((*q.Element)(nil)).Elem(),
+			"List":    reflect.TypeOf((*q.List)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

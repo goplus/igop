@@ -38,9 +38,9 @@ func init() {
 			"unsafe":          "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"LabelSet": {reflect.TypeOf((*q.LabelSet)(nil)).Elem(), "", ""},
-			"Profile":  {reflect.TypeOf((*q.Profile)(nil)).Elem(), "", "Add,Count,Name,Remove,WriteTo"},
+		NamedTypes: map[string]reflect.Type{
+			"LabelSet": reflect.TypeOf((*q.LabelSet)(nil)).Elem(),
+			"Profile":  reflect.TypeOf((*q.Profile)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

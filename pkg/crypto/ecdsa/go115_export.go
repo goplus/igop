@@ -30,9 +30,9 @@ func init() {
 			"vendor/golang.org/x/crypto/cryptobyte/asn1": "asn1",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"PrivateKey": {reflect.TypeOf((*q.PrivateKey)(nil)).Elem(), "", "Equal,Public,Sign"},
-			"PublicKey":  {reflect.TypeOf((*q.PublicKey)(nil)).Elem(), "", "Equal"},
+		NamedTypes: map[string]reflect.Type{
+			"PrivateKey": reflect.TypeOf((*q.PrivateKey)(nil)).Elem(),
+			"PublicKey":  reflect.TypeOf((*q.PublicKey)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

@@ -34,10 +34,10 @@ func init() {
 			"unicode/utf8":        "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"ExecError": {reflect.TypeOf((*q.ExecError)(nil)).Elem(), "Error,Unwrap", ""},
-			"FuncMap":   {reflect.TypeOf((*q.FuncMap)(nil)).Elem(), "", ""},
-			"Template":  {reflect.TypeOf((*q.Template)(nil)).Elem(), "", "AddParseTree,Clone,DefinedTemplates,Delims,Execute,ExecuteTemplate,Funcs,Lookup,Name,New,Option,Parse,ParseFiles,ParseGlob,Templates,associate,copy,execute,init,setOption"},
+		NamedTypes: map[string]reflect.Type{
+			"ExecError": reflect.TypeOf((*q.ExecError)(nil)).Elem(),
+			"FuncMap":   reflect.TypeOf((*q.FuncMap)(nil)).Elem(),
+			"Template":  reflect.TypeOf((*q.Template)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

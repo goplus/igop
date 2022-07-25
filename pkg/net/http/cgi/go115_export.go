@@ -38,8 +38,8 @@ func init() {
 			"vendor/golang.org/x/net/http/httpguts": "httpguts",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Handler": {reflect.TypeOf((*q.Handler)(nil)).Elem(), "", "ServeHTTP,handleInternalRedirect,printf,stderr"},
+		NamedTypes: map[string]reflect.Type{
+			"Handler": reflect.TypeOf((*q.Handler)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

@@ -21,7 +21,7 @@ func init() {
 			"image/color": "color",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{},
+		NamedTypes: map[string]reflect.Type{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{
 			"Plan9":   reflect.ValueOf(&q.Plan9),

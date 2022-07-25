@@ -28,9 +28,9 @@ func init() {
 			"time":    "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Priority": {reflect.TypeOf((*q.Priority)(nil)).Elem(), "", ""},
-			"Writer":   {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Alert,Close,Crit,Debug,Emerg,Err,Info,Notice,Warning,Write,connect,write,writeAndRetry"},
+		NamedTypes: map[string]reflect.Type{
+			"Priority": reflect.TypeOf((*q.Priority)(nil)).Elem(),
+			"Writer":   reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

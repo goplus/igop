@@ -29,11 +29,11 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Generator": reflect.TypeOf((*q.Generator)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"CheckEqualError": {reflect.TypeOf((*q.CheckEqualError)(nil)).Elem(), "", "Error"},
-			"CheckError":      {reflect.TypeOf((*q.CheckError)(nil)).Elem(), "", "Error"},
-			"Config":          {reflect.TypeOf((*q.Config)(nil)).Elem(), "", "getMaxCount,getRand"},
-			"SetupError":      {reflect.TypeOf((*q.SetupError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"CheckEqualError": reflect.TypeOf((*q.CheckEqualError)(nil)).Elem(),
+			"CheckError":      reflect.TypeOf((*q.CheckError)(nil)).Elem(),
+			"Config":          reflect.TypeOf((*q.Config)(nil)).Elem(),
+			"SetupError":      reflect.TypeOf((*q.SetupError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

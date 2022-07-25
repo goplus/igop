@@ -40,10 +40,10 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"BufferPool": reflect.TypeOf((*q.BufferPool)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"ClientConn":   {reflect.TypeOf((*q.ClientConn)(nil)).Elem(), "", "Close,Do,Hijack,Pending,Read,Write"},
-			"ReverseProxy": {reflect.TypeOf((*q.ReverseProxy)(nil)).Elem(), "", "ServeHTTP,copyBuffer,copyResponse,defaultErrorHandler,flushInterval,getErrorHandler,handleUpgradeResponse,logf,modifyResponse"},
-			"ServerConn":   {reflect.TypeOf((*q.ServerConn)(nil)).Elem(), "", "Close,Hijack,Pending,Read,Write"},
+		NamedTypes: map[string]reflect.Type{
+			"ClientConn":   reflect.TypeOf((*q.ClientConn)(nil)).Elem(),
+			"ReverseProxy": reflect.TypeOf((*q.ReverseProxy)(nil)).Elem(),
+			"ServerConn":   reflect.TypeOf((*q.ServerConn)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

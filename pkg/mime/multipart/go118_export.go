@@ -36,12 +36,12 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"File": reflect.TypeOf((*q.File)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"FileHeader": {reflect.TypeOf((*q.FileHeader)(nil)).Elem(), "", "Open"},
-			"Form":       {reflect.TypeOf((*q.Form)(nil)).Elem(), "", "RemoveAll"},
-			"Part":       {reflect.TypeOf((*q.Part)(nil)).Elem(), "", "Close,FileName,FormName,Read,parseContentDisposition,populateHeaders"},
-			"Reader":     {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "NextPart,NextRawPart,ReadForm,isBoundaryDelimiterLine,isFinalBoundary,nextPart,readForm"},
-			"Writer":     {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Boundary,Close,CreateFormField,CreateFormFile,CreatePart,FormDataContentType,SetBoundary,WriteField"},
+		NamedTypes: map[string]reflect.Type{
+			"FileHeader": reflect.TypeOf((*q.FileHeader)(nil)).Elem(),
+			"Form":       reflect.TypeOf((*q.Form)(nil)).Elem(),
+			"Part":       reflect.TypeOf((*q.Part)(nil)).Elem(),
+			"Reader":     reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Writer":     reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

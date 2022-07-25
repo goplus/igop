@@ -37,10 +37,10 @@ func init() {
 			"GobDecoder": reflect.TypeOf((*q.GobDecoder)(nil)).Elem(),
 			"GobEncoder": reflect.TypeOf((*q.GobEncoder)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"CommonType": {reflect.TypeOf((*q.CommonType)(nil)).Elem(), "", "id,name,safeString,setId,string"},
-			"Decoder":    {reflect.TypeOf((*q.Decoder)(nil)).Elem(), "", "Decode,DecodeValue,compatibleType,compileDec,compileIgnoreSingle,compileSingle,decIgnoreOpFor,decOpFor,decodeArray,decodeArrayHelper,decodeGobDecoder,decodeIgnoredValue,decodeInterface,decodeMap,decodeSingle,decodeSlice,decodeStruct,decodeTypeSequence,decodeValue,freeDecoderState,getDecEnginePtr,getIgnoreEnginePtr,gobDecodeOpFor,ignoreArray,ignoreArrayHelper,ignoreGobDecoder,ignoreInterface,ignoreMap,ignoreSingle,ignoreSlice,ignoreStruct,newDecoderState,nextInt,nextUint,readMessage,recvMessage,recvType,typeString"},
-			"Encoder":    {reflect.TypeOf((*q.Encoder)(nil)).Elem(), "", "Encode,EncodeValue,encode,encodeArray,encodeGobEncoder,encodeInterface,encodeMap,encodeSingle,encodeStruct,freeEncoderState,newEncoderState,popWriter,pushWriter,sendActualType,sendType,sendTypeDescriptor,sendTypeId,setError,writeMessage,writer"},
+		NamedTypes: map[string]reflect.Type{
+			"CommonType": reflect.TypeOf((*q.CommonType)(nil)).Elem(),
+			"Decoder":    reflect.TypeOf((*q.Decoder)(nil)).Elem(),
+			"Encoder":    reflect.TypeOf((*q.Encoder)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

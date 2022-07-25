@@ -26,8 +26,8 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Symbol": reflect.TypeOf((*q.Symbol)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Plugin": {reflect.TypeOf((*q.Plugin)(nil)).Elem(), "", "Lookup"},
+		NamedTypes: map[string]reflect.Type{
+			"Plugin": reflect.TypeOf((*q.Plugin)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

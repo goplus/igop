@@ -37,11 +37,11 @@ func init() {
 			"time":    "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Format": {reflect.TypeOf((*q.Format)(nil)).Elem(), "String,has", "mayBe,mayOnlyBe,mustNotBe"},
-			"Header": {reflect.TypeOf((*q.Header)(nil)).Elem(), "allowedFormats", "FileInfo"},
-			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Next,Read,handleRegularFile,handleSparseFile,next,readGNUSparsePAXHeaders,readHeader,readOldGNUSparseMap,writeTo"},
-			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Flush,Write,WriteHeader,readFrom,templateV7Plus,writeGNUHeader,writePAXHeader,writeRawFile,writeRawHeader,writeUSTARHeader"},
+		NamedTypes: map[string]reflect.Type{
+			"Format": reflect.TypeOf((*q.Format)(nil)).Elem(),
+			"Header": reflect.TypeOf((*q.Header)(nil)).Elem(),
+			"Reader": reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Writer": reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

@@ -35,8 +35,8 @@ func init() {
 			"unicode":                "unicode",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Mode": {reflect.TypeOf((*q.Mode)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Mode": reflect.TypeOf((*q.Mode)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

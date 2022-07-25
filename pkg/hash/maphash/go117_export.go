@@ -22,9 +22,9 @@ func init() {
 			"unsafe":                "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Hash": {reflect.TypeOf((*q.Hash)(nil)).Elem(), "", "BlockSize,Reset,Seed,SetSeed,Size,Sum,Sum64,Write,WriteByte,WriteString,flush,initSeed"},
-			"Seed": {reflect.TypeOf((*q.Seed)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Hash": reflect.TypeOf((*q.Hash)(nil)).Elem(),
+			"Seed": reflect.TypeOf((*q.Seed)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

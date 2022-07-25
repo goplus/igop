@@ -26,8 +26,8 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Context": reflect.TypeOf((*q.Context)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"CancelFunc": {reflect.TypeOf((*q.CancelFunc)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"CancelFunc": reflect.TypeOf((*q.CancelFunc)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

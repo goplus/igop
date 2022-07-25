@@ -26,12 +26,12 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"File":     {reflect.TypeOf((*q.File)(nil)).Elem(), "", "AddLine,AddLineColumnInfo,AddLineInfo,Base,Line,LineCount,LineStart,MergeLine,Name,Offset,Pos,Position,PositionFor,SetLines,SetLinesForContent,Size,position,unpack"},
-			"FileSet":  {reflect.TypeOf((*q.FileSet)(nil)).Elem(), "", "AddFile,Base,File,Iterate,Position,PositionFor,Read,Write,file"},
-			"Pos":      {reflect.TypeOf((*q.Pos)(nil)).Elem(), "IsValid", ""},
-			"Position": {reflect.TypeOf((*q.Position)(nil)).Elem(), "String", "IsValid"},
-			"Token":    {reflect.TypeOf((*q.Token)(nil)).Elem(), "IsKeyword,IsLiteral,IsOperator,Precedence,String", ""},
+		NamedTypes: map[string]reflect.Type{
+			"File":     reflect.TypeOf((*q.File)(nil)).Elem(),
+			"FileSet":  reflect.TypeOf((*q.FileSet)(nil)).Elem(),
+			"Pos":      reflect.TypeOf((*q.Pos)(nil)).Elem(),
+			"Position": reflect.TypeOf((*q.Position)(nil)).Elem(),
+			"Token":    reflect.TypeOf((*q.Token)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

@@ -31,8 +31,8 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Resetter": reflect.TypeOf((*q.Resetter)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Flush,Reset,Write,writeHeader"},
+		NamedTypes: map[string]reflect.Type{
+			"Writer": reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

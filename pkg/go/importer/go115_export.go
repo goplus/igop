@@ -27,8 +27,8 @@ func init() {
 			"runtime":                   "runtime",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Lookup": {reflect.TypeOf((*q.Lookup)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Lookup": reflect.TypeOf((*q.Lookup)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

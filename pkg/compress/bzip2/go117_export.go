@@ -23,8 +23,8 @@ func init() {
 			"sort":  "sort",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"StructuralError": {reflect.TypeOf((*q.StructuralError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"StructuralError": reflect.TypeOf((*q.StructuralError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

@@ -33,10 +33,10 @@ func init() {
 			"Getter": reflect.TypeOf((*q.Getter)(nil)).Elem(),
 			"Value":  reflect.TypeOf((*q.Value)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"ErrorHandling": {reflect.TypeOf((*q.ErrorHandling)(nil)).Elem(), "", ""},
-			"Flag":          {reflect.TypeOf((*q.Flag)(nil)).Elem(), "", ""},
-			"FlagSet":       {reflect.TypeOf((*q.FlagSet)(nil)).Elem(), "", "Arg,Args,Bool,BoolVar,Duration,DurationVar,ErrorHandling,Float64,Float64Var,Func,Init,Int,Int64,Int64Var,IntVar,Lookup,NArg,NFlag,Name,Output,Parse,Parsed,PrintDefaults,Set,SetOutput,String,StringVar,Uint,Uint64,Uint64Var,UintVar,Var,Visit,VisitAll,defaultUsage,failf,parseOne,sprintf,usage"},
+		NamedTypes: map[string]reflect.Type{
+			"ErrorHandling": reflect.TypeOf((*q.ErrorHandling)(nil)).Elem(),
+			"Flag":          reflect.TypeOf((*q.Flag)(nil)).Elem(),
+			"FlagSet":       reflect.TypeOf((*q.FlagSet)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

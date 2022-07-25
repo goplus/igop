@@ -30,11 +30,11 @@ func init() {
 			"unicode/utf8":  "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Address":       {reflect.TypeOf((*q.Address)(nil)).Elem(), "", "String"},
-			"AddressParser": {reflect.TypeOf((*q.AddressParser)(nil)).Elem(), "", "Parse,ParseList"},
-			"Header":        {reflect.TypeOf((*q.Header)(nil)).Elem(), "AddressList,Date,Get", ""},
-			"Message":       {reflect.TypeOf((*q.Message)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Address":       reflect.TypeOf((*q.Address)(nil)).Elem(),
+			"AddressParser": reflect.TypeOf((*q.AddressParser)(nil)).Elem(),
+			"Header":        reflect.TypeOf((*q.Header)(nil)).Elem(),
+			"Message":       reflect.TypeOf((*q.Message)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{
