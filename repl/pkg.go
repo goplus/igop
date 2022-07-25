@@ -68,24 +68,29 @@ func lookupSymbol(p *igop.Package, sym string) (info string, found bool) {
 	}
 	if t, ok := p.NamedTypes[sym]; ok {
 		var buf bytes.Buffer
-		if t.Typ.Kind() == reflect.Struct {
-			writeStruct(&buf, p.Name+"."+sym, t.Typ)
+		if t.Kind() == reflect.Struct {
+			writeStruct(&buf, p.Name+"."+sym, t)
 			buf.WriteByte('\n')
 		} else {
-			fmt.Fprintf(&buf, "type %v.%v %v\n", p.Name, sym, t.Typ.Kind())
+			fmt.Fprintf(&buf, "type %v.%v %v\n", p.Name, sym, t.Kind())
 		}
-		for _, name := range strings.Split(t.Methods, ",") {
-			if m, ok := t.Typ.MethodByName(name); ok {
-				writeMethod(&buf, m)
-				buf.WriteByte('\n')
-			}
+		n := t.NumMethod()
+		skip := make(map[string]bool)
+		for i := 0; i < n; i++ {
+			m := t.Method(i)
+			skip[m.Name] = true
+			writeMethod(&buf, m)
+			buf.WriteByte('\n')
 		}
-		ptyp := reflect.PtrTo(t.Typ)
-		for _, name := range strings.Split(t.PtrMethods, ",") {
-			if m, ok := ptyp.MethodByName(name); ok {
-				writeMethod(&buf, m)
-				buf.WriteByte('\n')
+		ptyp := reflect.PtrTo(t)
+		n = ptyp.NumMethod()
+		for i := 0; i < n; i++ {
+			m := ptyp.Method(i)
+			if skip[m.Name] {
+				continue
 			}
+			writeMethod(&buf, m)
+			buf.WriteByte('\n')
 		}
 		return buf.String(), true
 	}
@@ -150,21 +155,26 @@ func dumpPkg(p *igop.Package) string {
 	sort.Strings(types)
 	for _, v := range types {
 		t := p.NamedTypes[v]
-		fmt.Fprintf(&buf, "type %v %v\n", v, t.Typ.Kind())
-		for _, name := range strings.Split(t.Methods, ",") {
-			if m, ok := t.Typ.MethodByName(name); ok {
-				buf.WriteString("    ")
-				writeMethod(&buf, m)
-				buf.WriteByte('\n')
-			}
+		fmt.Fprintf(&buf, "type %v %v\n", v, t.Kind())
+		skip := make(map[string]bool)
+		n := t.NumMethod()
+		for i := 0; i < n; i++ {
+			m := t.Method(i)
+			skip[m.Name] = true
+			buf.WriteString("    ")
+			writeMethod(&buf, m)
+			buf.WriteByte('\n')
 		}
-		ptyp := reflect.PtrTo(t.Typ)
-		for _, name := range strings.Split(t.PtrMethods, ",") {
-			if m, ok := ptyp.MethodByName(name); ok {
-				buf.WriteString("    ")
-				writeMethod(&buf, m)
-				buf.WriteByte('\n')
+		ptyp := reflect.PtrTo(t)
+		n = ptyp.NumMethod()
+		for i := 0; i < n; i++ {
+			m := ptyp.Method(i)
+			if skip[m.Name] {
+				continue
 			}
+			buf.WriteString("    ")
+			writeMethod(&buf, m)
+			buf.WriteByte('\n')
 		}
 	}
 	// interface
