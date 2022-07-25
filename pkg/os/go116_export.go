@@ -37,13 +37,13 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Signal": reflect.TypeOf((*q.Signal)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"File":         {reflect.TypeOf((*q.File)(nil)).Elem(), "", "Chdir,Chmod,Chown,Close,Fd,Name,Read,ReadAt,ReadDir,ReadFrom,Readdir,Readdirnames,Seek,SetDeadline,SetReadDeadline,SetWriteDeadline,Stat,Sync,SyscallConn,Truncate,Write,WriteAt,WriteString,checkValid,chmod,pread,pwrite,read,readFrom,readdir,seek,setDeadline,setReadDeadline,setWriteDeadline,wrapErr,write"},
-			"LinkError":    {reflect.TypeOf((*q.LinkError)(nil)).Elem(), "", "Error,Unwrap"},
-			"ProcAttr":     {reflect.TypeOf((*q.ProcAttr)(nil)).Elem(), "", ""},
-			"Process":      {reflect.TypeOf((*q.Process)(nil)).Elem(), "", "Kill,Release,Signal,Wait,blockUntilWaitable,done,kill,release,setDone,signal,wait"},
-			"ProcessState": {reflect.TypeOf((*q.ProcessState)(nil)).Elem(), "", "ExitCode,Exited,Pid,String,Success,Sys,SysUsage,SystemTime,UserTime,exited,success,sys,sysUsage,systemTime,userTime"},
-			"SyscallError": {reflect.TypeOf((*q.SyscallError)(nil)).Elem(), "", "Error,Timeout,Unwrap"},
+		NamedTypes: map[string]reflect.Type{
+			"File":         reflect.TypeOf((*q.File)(nil)).Elem(),
+			"LinkError":    reflect.TypeOf((*q.LinkError)(nil)).Elem(),
+			"ProcAttr":     reflect.TypeOf((*q.ProcAttr)(nil)).Elem(),
+			"Process":      reflect.TypeOf((*q.Process)(nil)).Elem(),
+			"ProcessState": reflect.TypeOf((*q.ProcessState)(nil)).Elem(),
+			"SyscallError": reflect.TypeOf((*q.SyscallError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{
 			"DirEntry":  reflect.TypeOf((*q.DirEntry)(nil)).Elem(),

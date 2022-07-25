@@ -26,9 +26,9 @@ func init() {
 			"unicode/utf8":     "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Buffer": {reflect.TypeOf((*q.Buffer)(nil)).Elem(), "", "Bytes,Cap,Grow,Len,Next,Read,ReadByte,ReadBytes,ReadFrom,ReadRune,ReadString,Reset,String,Truncate,UnreadByte,UnreadRune,Write,WriteByte,WriteRune,WriteString,WriteTo,empty,grow,readSlice,tryGrowByReslice"},
-			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Len,Read,ReadAt,ReadByte,ReadRune,Reset,Seek,Size,UnreadByte,UnreadRune,WriteTo"},
+		NamedTypes: map[string]reflect.Type{
+			"Buffer": reflect.TypeOf((*q.Buffer)(nil)).Elem(),
+			"Reader": reflect.TypeOf((*q.Reader)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

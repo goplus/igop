@@ -23,8 +23,8 @@ func init() {
 			"time":   "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"FS": {reflect.TypeOf((*q.FS)(nil)).Elem(), "Open,ReadDir,ReadFile,lookup,readDir", ""},
+		NamedTypes: map[string]reflect.Type{
+			"FS": reflect.TypeOf((*q.FS)(nil)).Elem(),
 		},
 		AliasTypes:    map[string]reflect.Type{},
 		Vars:          map[string]reflect.Value{},

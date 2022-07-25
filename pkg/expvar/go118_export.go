@@ -34,13 +34,13 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Var": reflect.TypeOf((*q.Var)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Float":    {reflect.TypeOf((*q.Float)(nil)).Elem(), "", "Add,Set,String,Value"},
-			"Func":     {reflect.TypeOf((*q.Func)(nil)).Elem(), "String,Value", ""},
-			"Int":      {reflect.TypeOf((*q.Int)(nil)).Elem(), "", "Add,Set,String,Value"},
-			"KeyValue": {reflect.TypeOf((*q.KeyValue)(nil)).Elem(), "", ""},
-			"Map":      {reflect.TypeOf((*q.Map)(nil)).Elem(), "", "Add,AddFloat,Delete,Do,Get,Init,Set,String,addKey"},
-			"String":   {reflect.TypeOf((*q.String)(nil)).Elem(), "", "Set,String,Value"},
+		NamedTypes: map[string]reflect.Type{
+			"Float":    reflect.TypeOf((*q.Float)(nil)).Elem(),
+			"Func":     reflect.TypeOf((*q.Func)(nil)).Elem(),
+			"Int":      reflect.TypeOf((*q.Int)(nil)).Elem(),
+			"KeyValue": reflect.TypeOf((*q.KeyValue)(nil)).Elem(),
+			"Map":      reflect.TypeOf((*q.Map)(nil)).Elem(),
+			"String":   reflect.TypeOf((*q.String)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

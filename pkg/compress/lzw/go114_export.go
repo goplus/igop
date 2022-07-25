@@ -24,8 +24,8 @@ func init() {
 			"io":     "io",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Order": {reflect.TypeOf((*q.Order)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Order": reflect.TypeOf((*q.Order)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

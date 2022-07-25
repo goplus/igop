@@ -33,7 +33,7 @@ func init() {
 			"time":            "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{},
+		NamedTypes: map[string]reflect.Type{},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{
 			"ErrConnClosed":     reflect.ValueOf(&q.ErrConnClosed),

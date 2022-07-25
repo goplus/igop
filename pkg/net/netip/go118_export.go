@@ -27,10 +27,10 @@ func init() {
 			"strconv":          "strconv",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Addr":     {reflect.TypeOf((*q.Addr)(nil)).Elem(), "AppendTo,As16,As4,AsSlice,BitLen,Compare,Is4,Is4In6,Is6,IsGlobalUnicast,IsInterfaceLocalMulticast,IsLinkLocalMulticast,IsLinkLocalUnicast,IsLoopback,IsMulticast,IsPrivate,IsUnspecified,IsValid,Less,MarshalBinary,MarshalText,Next,Prefix,Prev,String,StringExpanded,Unmap,WithZone,Zone,appendTo4,appendTo6,hasZone,isZero,lessOrEq,marshalBinaryWithTrailingBytes,string4,string6,v4,v6,v6u16,withoutZone", "UnmarshalBinary,UnmarshalText"},
-			"AddrPort": {reflect.TypeOf((*q.AddrPort)(nil)).Elem(), "Addr,AppendTo,IsValid,MarshalBinary,MarshalText,Port,String,isZero", "UnmarshalBinary,UnmarshalText"},
-			"Prefix":   {reflect.TypeOf((*q.Prefix)(nil)).Elem(), "Addr,AppendTo,Bits,Contains,IsSingleIP,IsValid,MarshalBinary,MarshalText,Masked,Overlaps,String,isZero", "UnmarshalBinary,UnmarshalText"},
+		NamedTypes: map[string]reflect.Type{
+			"Addr":     reflect.TypeOf((*q.Addr)(nil)).Elem(),
+			"AddrPort": reflect.TypeOf((*q.AddrPort)(nil)).Elem(),
+			"Prefix":   reflect.TypeOf((*q.Prefix)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

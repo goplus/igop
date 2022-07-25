@@ -211,20 +211,10 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 					}
 					continue
 				}
-				var ms, pms []string
-				recvId := typ.String()
 				typeName := typ.(*types.Named).Obj().Name()
 				methods := IntuitiveMethodSet(typ)
 				for _, method := range methods {
 					name := method.Obj().Name()
-					mid := method.Obj().Type().(*types.Signature).Recv().Type().String()
-					if mid[0] == '*' {
-						if mid[1:] == recvId {
-							pms = append(pms, name)
-						}
-					} else if mid == recvId {
-						ms = append(ms, name)
-					}
 					if token.IsExported(name) {
 						info := fmt.Sprintf("(%v).%v", method.Recv(), name)
 						if pkgPath == pkgName {
@@ -243,8 +233,7 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 				if types.IsInterface(typ) {
 					e.Interfaces = append(e.Interfaces, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
 				} else {
-					e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : {reflect.TypeOf((*%v.%v)(nil)).Elem(),\"%v\",\"%v\"}", typeName, pkgName, typeName,
-						strings.Join(ms, ","), strings.Join(pms, ",")))
+					e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
 				}
 			default:
 				panic("unreachable")

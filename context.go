@@ -543,7 +543,7 @@ var (
 		Path:          "github.com/goplus/igop/builtin",
 		Deps:          make(map[string]string),
 		Interfaces:    map[string]reflect.Type{},
-		NamedTypes:    map[string]NamedType{},
+		NamedTypes:    map[string]reflect.Type{},
 		AliasTypes:    map[string]reflect.Type{},
 		Vars:          map[string]reflect.Value{},
 		Funcs:         map[string]reflect.Value{},

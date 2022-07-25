@@ -21,8 +21,8 @@ func init() {
 			"unsafe": "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Value": {reflect.TypeOf((*q.Value)(nil)).Elem(), "", "CompareAndSwap,Load,Store,Swap"},
+		NamedTypes: map[string]reflect.Type{
+			"Value": reflect.TypeOf((*q.Value)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

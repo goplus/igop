@@ -32,12 +32,12 @@ func init() {
 			"Reader":   reflect.TypeOf((*q.Reader)(nil)).Elem(),
 			"Resetter": reflect.TypeOf((*q.Resetter)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"CorruptInputError": {reflect.TypeOf((*q.CorruptInputError)(nil)).Elem(), "Error", ""},
-			"InternalError":     {reflect.TypeOf((*q.InternalError)(nil)).Elem(), "Error", ""},
-			"ReadError":         {reflect.TypeOf((*q.ReadError)(nil)).Elem(), "", "Error"},
-			"WriteError":        {reflect.TypeOf((*q.WriteError)(nil)).Elem(), "", "Error"},
-			"Writer":            {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Flush,Reset,Write"},
+		NamedTypes: map[string]reflect.Type{
+			"CorruptInputError": reflect.TypeOf((*q.CorruptInputError)(nil)).Elem(),
+			"InternalError":     reflect.TypeOf((*q.InternalError)(nil)).Elem(),
+			"ReadError":         reflect.TypeOf((*q.ReadError)(nil)).Elem(),
+			"WriteError":        reflect.TypeOf((*q.WriteError)(nil)).Elem(),
+			"Writer":            reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

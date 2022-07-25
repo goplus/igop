@@ -23,7 +23,7 @@ func init() {
 			"TextMarshaler":     reflect.TypeOf((*q.TextMarshaler)(nil)).Elem(),
 			"TextUnmarshaler":   reflect.TypeOf((*q.TextUnmarshaler)(nil)).Elem(),
 		},
-		NamedTypes:    map[string]igop.NamedType{},
+		NamedTypes:    map[string]reflect.Type{},
 		AliasTypes:    map[string]reflect.Type{},
 		Vars:          map[string]reflect.Value{},
 		Funcs:         map[string]reflect.Value{},

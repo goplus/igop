@@ -32,9 +32,9 @@ func init() {
 			"unicode/utf8":    "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"WordDecoder": {reflect.TypeOf((*q.WordDecoder)(nil)).Elem(), "", "Decode,DecodeHeader,convert"},
-			"WordEncoder": {reflect.TypeOf((*q.WordEncoder)(nil)).Elem(), "Encode,bEncode,encodeWord,openWord,qEncode,splitWord", ""},
+		NamedTypes: map[string]reflect.Type{
+			"WordDecoder": reflect.TypeOf((*q.WordDecoder)(nil)).Elem(),
+			"WordEncoder": reflect.TypeOf((*q.WordEncoder)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

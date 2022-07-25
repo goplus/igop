@@ -43,12 +43,12 @@ func init() {
 			"unicode/utf8":       "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Context":              {reflect.TypeOf((*q.Context)(nil)).Elem(), "", "Import,ImportDir,MatchFile,SrcDirs,goodOSArchFile,gopath,hasSubdir,importGo,isAbsPath,isDir,isFile,joinPath,makePathsAbsolute,match,matchFile,openFile,readDir,saveCgo,shouldBuild,splitPathList"},
-			"ImportMode":           {reflect.TypeOf((*q.ImportMode)(nil)).Elem(), "", ""},
-			"MultiplePackageError": {reflect.TypeOf((*q.MultiplePackageError)(nil)).Elem(), "", "Error"},
-			"NoGoError":            {reflect.TypeOf((*q.NoGoError)(nil)).Elem(), "", "Error"},
-			"Package":              {reflect.TypeOf((*q.Package)(nil)).Elem(), "", "IsCommand"},
+		NamedTypes: map[string]reflect.Type{
+			"Context":              reflect.TypeOf((*q.Context)(nil)).Elem(),
+			"ImportMode":           reflect.TypeOf((*q.ImportMode)(nil)).Elem(),
+			"MultiplePackageError": reflect.TypeOf((*q.MultiplePackageError)(nil)).Elem(),
+			"NoGoError":            reflect.TypeOf((*q.NoGoError)(nil)).Elem(),
+			"Package":              reflect.TypeOf((*q.Package)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

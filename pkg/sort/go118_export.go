@@ -23,10 +23,10 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Interface": reflect.TypeOf((*q.Interface)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Float64Slice": {reflect.TypeOf((*q.Float64Slice)(nil)).Elem(), "Len,Less,Search,Sort,Swap", ""},
-			"IntSlice":     {reflect.TypeOf((*q.IntSlice)(nil)).Elem(), "Len,Less,Search,Sort,Swap", ""},
-			"StringSlice":  {reflect.TypeOf((*q.StringSlice)(nil)).Elem(), "Len,Less,Search,Sort,Swap", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Float64Slice": reflect.TypeOf((*q.Float64Slice)(nil)).Elem(),
+			"IntSlice":     reflect.TypeOf((*q.IntSlice)(nil)).Elem(),
+			"StringSlice":  reflect.TypeOf((*q.StringSlice)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

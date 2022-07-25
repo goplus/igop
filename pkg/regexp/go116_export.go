@@ -28,8 +28,8 @@ func init() {
 			"unicode/utf8":  "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Regexp": {reflect.TypeOf((*q.Regexp)(nil)).Elem(), "", "Copy,Expand,ExpandString,Find,FindAll,FindAllIndex,FindAllString,FindAllStringIndex,FindAllStringSubmatch,FindAllStringSubmatchIndex,FindAllSubmatch,FindAllSubmatchIndex,FindIndex,FindReaderIndex,FindReaderSubmatchIndex,FindString,FindStringIndex,FindStringSubmatch,FindStringSubmatchIndex,FindSubmatch,FindSubmatchIndex,LiteralPrefix,Longest,Match,MatchReader,MatchString,NumSubexp,ReplaceAll,ReplaceAllFunc,ReplaceAllLiteral,ReplaceAllLiteralString,ReplaceAllString,ReplaceAllStringFunc,Split,String,SubexpIndex,SubexpNames,allMatches,backtrack,doExecute,doMatch,doOnePass,expand,get,pad,put,replaceAll,tryBacktrack"},
+		NamedTypes: map[string]reflect.Type{
+			"Regexp": reflect.TypeOf((*q.Regexp)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

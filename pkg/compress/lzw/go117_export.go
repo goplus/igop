@@ -25,10 +25,10 @@ func init() {
 			"io":     "io",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Order":  {reflect.TypeOf((*q.Order)(nil)).Elem(), "", ""},
-			"Reader": {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Close,Read,Reset,decode,init,readLSB,readMSB"},
-			"Writer": {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Close,Reset,Write,incHi,init,writeLSB,writeMSB"},
+		NamedTypes: map[string]reflect.Type{
+			"Order":  reflect.TypeOf((*q.Order)(nil)).Elem(),
+			"Reader": reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Writer": reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

@@ -26,8 +26,8 @@ func init() {
 			"unicode/utf8":     "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"NumError": {reflect.TypeOf((*q.NumError)(nil)).Elem(), "", "Error,Unwrap"},
+		NamedTypes: map[string]reflect.Type{
+			"NumError": reflect.TypeOf((*q.NumError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

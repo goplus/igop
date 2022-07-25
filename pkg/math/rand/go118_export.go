@@ -25,9 +25,9 @@ func init() {
 			"Source":   reflect.TypeOf((*q.Source)(nil)).Elem(),
 			"Source64": reflect.TypeOf((*q.Source64)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Rand": {reflect.TypeOf((*q.Rand)(nil)).Elem(), "", "ExpFloat64,Float32,Float64,Int,Int31,Int31n,Int63,Int63n,Intn,NormFloat64,Perm,Read,Seed,Shuffle,Uint32,Uint64,int31n"},
-			"Zipf": {reflect.TypeOf((*q.Zipf)(nil)).Elem(), "", "Uint64,h,hinv"},
+		NamedTypes: map[string]reflect.Type{
+			"Rand": reflect.TypeOf((*q.Rand)(nil)).Elem(),
+			"Zipf": reflect.TypeOf((*q.Zipf)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

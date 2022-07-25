@@ -25,8 +25,8 @@ func init() {
 			"strings":         "strings",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"Block": {reflect.TypeOf((*q.Block)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Block": reflect.TypeOf((*q.Block)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

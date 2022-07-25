@@ -30,9 +30,9 @@ func init() {
 			"BlockMode": reflect.TypeOf((*q.BlockMode)(nil)).Elem(),
 			"Stream":    reflect.TypeOf((*q.Stream)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"StreamReader": {reflect.TypeOf((*q.StreamReader)(nil)).Elem(), "Read", ""},
-			"StreamWriter": {reflect.TypeOf((*q.StreamWriter)(nil)).Elem(), "Close,Write", ""},
+		NamedTypes: map[string]reflect.Type{
+			"StreamReader": reflect.TypeOf((*q.StreamReader)(nil)).Elem(),
+			"StreamWriter": reflect.TypeOf((*q.StreamWriter)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

@@ -28,10 +28,10 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"ParseError": {reflect.TypeOf((*q.ParseError)(nil)).Elem(), "", "Error,Unwrap"},
-			"Reader":     {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "FieldPos,Read,ReadAll,readLine,readRecord"},
-			"Writer":     {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Error,Flush,Write,WriteAll,fieldNeedsQuotes"},
+		NamedTypes: map[string]reflect.Type{
+			"ParseError": reflect.TypeOf((*q.ParseError)(nil)).Elem(),
+			"Reader":     reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Writer":     reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

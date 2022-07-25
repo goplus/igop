@@ -26,12 +26,12 @@ func init() {
 			"os":              "os",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"File":          {reflect.TypeOf((*q.File)(nil)).Elem(), "", "Close,Section,Symbols"},
-			"FileHeader":    {reflect.TypeOf((*q.FileHeader)(nil)).Elem(), "", ""},
-			"Section":       {reflect.TypeOf((*q.Section)(nil)).Elem(), "", "Data,Open"},
-			"SectionHeader": {reflect.TypeOf((*q.SectionHeader)(nil)).Elem(), "", ""},
-			"Sym":           {reflect.TypeOf((*q.Sym)(nil)).Elem(), "", ""},
+		NamedTypes: map[string]reflect.Type{
+			"File":          reflect.TypeOf((*q.File)(nil)).Elem(),
+			"FileHeader":    reflect.TypeOf((*q.FileHeader)(nil)).Elem(),
+			"Section":       reflect.TypeOf((*q.Section)(nil)).Elem(),
+			"SectionHeader": reflect.TypeOf((*q.SectionHeader)(nil)).Elem(),
+			"Sym":           reflect.TypeOf((*q.Sym)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

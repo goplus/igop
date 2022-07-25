@@ -27,8 +27,8 @@ func init() {
 			"Image":     reflect.TypeOf((*q.Image)(nil)).Elem(),
 			"Quantizer": reflect.TypeOf((*q.Quantizer)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"Op": {reflect.TypeOf((*q.Op)(nil)).Elem(), "Draw", ""},
+		NamedTypes: map[string]reflect.Type{
+			"Op": reflect.TypeOf((*q.Op)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

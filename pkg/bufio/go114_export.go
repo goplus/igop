@@ -24,12 +24,12 @@ func init() {
 			"unicode/utf8": "utf8",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"ReadWriter": {reflect.TypeOf((*q.ReadWriter)(nil)).Elem(), "", ""},
-			"Reader":     {reflect.TypeOf((*q.Reader)(nil)).Elem(), "", "Buffered,Discard,Peek,Read,ReadByte,ReadBytes,ReadLine,ReadRune,ReadSlice,ReadString,Reset,Size,UnreadByte,UnreadRune,WriteTo,fill,readErr,reset,writeBuf"},
-			"Scanner":    {reflect.TypeOf((*q.Scanner)(nil)).Elem(), "", "Buffer,Bytes,Err,Scan,Split,Text,advance,setErr"},
-			"SplitFunc":  {reflect.TypeOf((*q.SplitFunc)(nil)).Elem(), "", ""},
-			"Writer":     {reflect.TypeOf((*q.Writer)(nil)).Elem(), "", "Available,Buffered,Flush,ReadFrom,Reset,Size,Write,WriteByte,WriteRune,WriteString"},
+		NamedTypes: map[string]reflect.Type{
+			"ReadWriter": reflect.TypeOf((*q.ReadWriter)(nil)).Elem(),
+			"Reader":     reflect.TypeOf((*q.Reader)(nil)).Elem(),
+			"Scanner":    reflect.TypeOf((*q.Scanner)(nil)).Elem(),
+			"SplitFunc":  reflect.TypeOf((*q.SplitFunc)(nil)).Elem(),
+			"Writer":     reflect.TypeOf((*q.Writer)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

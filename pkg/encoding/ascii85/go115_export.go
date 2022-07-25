@@ -21,8 +21,8 @@ func init() {
 			"strconv": "strconv",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
-			"CorruptInputError": {reflect.TypeOf((*q.CorruptInputError)(nil)).Elem(), "Error", ""},
+		NamedTypes: map[string]reflect.Type{
+			"CorruptInputError": reflect.TypeOf((*q.CorruptInputError)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},

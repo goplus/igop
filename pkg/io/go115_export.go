@@ -44,11 +44,11 @@ func init() {
 			"WriterAt":        reflect.TypeOf((*q.WriterAt)(nil)).Elem(),
 			"WriterTo":        reflect.TypeOf((*q.WriterTo)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"LimitedReader": {reflect.TypeOf((*q.LimitedReader)(nil)).Elem(), "", "Read"},
-			"PipeReader":    {reflect.TypeOf((*q.PipeReader)(nil)).Elem(), "", "Close,CloseWithError,Read"},
-			"PipeWriter":    {reflect.TypeOf((*q.PipeWriter)(nil)).Elem(), "", "Close,CloseWithError,Write"},
-			"SectionReader": {reflect.TypeOf((*q.SectionReader)(nil)).Elem(), "", "Read,ReadAt,Seek,Size"},
+		NamedTypes: map[string]reflect.Type{
+			"LimitedReader": reflect.TypeOf((*q.LimitedReader)(nil)).Elem(),
+			"PipeReader":    reflect.TypeOf((*q.PipeReader)(nil)).Elem(),
+			"PipeWriter":    reflect.TypeOf((*q.PipeWriter)(nil)).Elem(),
+			"SectionReader": reflect.TypeOf((*q.SectionReader)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars: map[string]reflect.Value{

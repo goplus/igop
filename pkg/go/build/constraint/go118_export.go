@@ -26,12 +26,12 @@ func init() {
 		Interfaces: map[string]reflect.Type{
 			"Expr": reflect.TypeOf((*q.Expr)(nil)).Elem(),
 		},
-		NamedTypes: map[string]igop.NamedType{
-			"AndExpr":     {reflect.TypeOf((*q.AndExpr)(nil)).Elem(), "", "Eval,String,isExpr"},
-			"NotExpr":     {reflect.TypeOf((*q.NotExpr)(nil)).Elem(), "", "Eval,String,isExpr"},
-			"OrExpr":      {reflect.TypeOf((*q.OrExpr)(nil)).Elem(), "", "Eval,String,isExpr"},
-			"SyntaxError": {reflect.TypeOf((*q.SyntaxError)(nil)).Elem(), "", "Error"},
-			"TagExpr":     {reflect.TypeOf((*q.TagExpr)(nil)).Elem(), "", "Eval,String,isExpr"},
+		NamedTypes: map[string]reflect.Type{
+			"AndExpr":     reflect.TypeOf((*q.AndExpr)(nil)).Elem(),
+			"NotExpr":     reflect.TypeOf((*q.NotExpr)(nil)).Elem(),
+			"OrExpr":      reflect.TypeOf((*q.OrExpr)(nil)).Elem(),
+			"SyntaxError": reflect.TypeOf((*q.SyntaxError)(nil)).Elem(),
+			"TagExpr":     reflect.TypeOf((*q.TagExpr)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
