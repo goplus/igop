@@ -406,32 +406,10 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	}
 	if named != nil {
 		if kind != reflect.Interface {
-			var filter func(name string, ptr bool) bool
 			pkg := named.Obj().Pkg()
-			if p, ok := r.installed[pkg.Path()]; ok {
-				if t, ok := p.NamedTypes[named.Obj().Name()]; ok {
-					m := make(map[string]bool)
-					pm := make(map[string]bool)
-					for _, v := range strings.Split(t.Methods, ",") {
-						m[v] = true
-					}
-					for _, v := range strings.Split(t.PtrMethods, ",") {
-						pm[v] = true
-					}
-					filter = func(name string, ptr bool) bool {
-						if ptr {
-							return pm[name]
-						}
-						return m[name]
-					}
-				}
-			}
 			skip := make(map[string]bool)
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
 			for _, im := range AllMethod(rt, r.mode&DisableUnexportMethods == 0) {
-				if filter != nil && !filter(im.Name, false) {
-					continue
-				}
 				var sig *types.Signature
 				if im.Type != nil {
 					sig = r.toFunc(pkg, recv, 1, im.Type)
@@ -446,9 +424,6 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
 			for _, im := range AllMethod(prt, r.mode&DisableUnexportMethods == 0) {
 				if skip[im.Name] {
-					continue
-				}
-				if filter != nil && !filter(im.Name, true) {
 					continue
 				}
 				var sig *types.Signature
