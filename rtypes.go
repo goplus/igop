@@ -19,6 +19,7 @@ var (
 var (
 	typesDummyStruct    = types.NewStruct(nil, nil)
 	typesDummySig       = types.NewSignature(nil, nil, nil, false)
+	typesDummySlice     = types.NewSlice(typesDummyStruct)
 	typesError          = types.Universe.Lookup("error").Type()
 	typesEmptyInterface = types.NewInterfaceType(nil, nil)
 )
@@ -267,7 +268,7 @@ func (r *TypesLoader) Insert(v reflect.Value) {
 	}
 }
 
-func (r *TypesLoader) toFunc(pkg *types.Package, recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
+func (r *TypesLoader) toMethod(pkg *types.Package, recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
 	numIn := rt.NumIn()
 	numOut := rt.NumOut()
 	in := make([]*types.Var, numIn-inoff, numIn-inoff)
@@ -281,6 +282,41 @@ func (r *TypesLoader) toFunc(pkg *types.Package, recv *types.Var, inoff int, rt 
 		out[i] = types.NewVar(token.NoPos, pkg, "", it)
 	}
 	return types.NewSignature(recv, types.NewTuple(in...), types.NewTuple(out...), rt.IsVariadic())
+}
+
+func (r *TypesLoader) toFunc(pkg *types.Package, rt reflect.Type) *types.Signature {
+	numIn := rt.NumIn()
+	numOut := rt.NumOut()
+	in := make([]*types.Var, numIn, numIn)
+	out := make([]*types.Var, numOut, numOut)
+	// mock type
+	variadic := rt.IsVariadic()
+	if variadic {
+		for i := 0; i < numIn-1; i++ {
+			in[i] = types.NewVar(token.NoPos, pkg, "", typesDummyStruct)
+		}
+		in[numIn-1] = types.NewVar(token.NoPos, pkg, "", typesDummySlice)
+	} else {
+		for i := 0; i < numIn; i++ {
+			in[i] = types.NewVar(token.NoPos, pkg, "", typesDummyStruct)
+		}
+	}
+	for i := 0; i < numOut; i++ {
+		out[i] = types.NewVar(token.NoPos, pkg, "", typesDummyStruct)
+	}
+	typ := types.NewSignature(nil, types.NewTuple(in...), types.NewTuple(out...), variadic)
+	r.rcache[rt] = typ
+	r.tcache.Set(typ, rt)
+	// real type
+	for i := 0; i < numIn; i++ {
+		it := r.ToType(rt.In(i))
+		in[i] = types.NewVar(token.NoPos, pkg, "", it)
+	}
+	for i := 0; i < numOut; i++ {
+		it := r.ToType(rt.Out(i))
+		out[i] = types.NewVar(token.NoPos, pkg, "", it)
+	}
+	return typ
 }
 
 func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
@@ -335,7 +371,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		typ = types.NewChan(dir, elem)
 	case reflect.Func:
 		pkg := r.GetPackage(r.curpkg.Path)
-		typ = r.toFunc(pkg, nil, 0, rt)
+		typ = r.toFunc(pkg, rt)
 	case reflect.Interface:
 		n := rt.NumMethod()
 		imethods = make([]*types.Func, n, n)
@@ -399,7 +435,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		recv := types.NewVar(token.NoPos, pkg, "", typ)
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
-			sig := r.toFunc(pkg, recv, 0, im.Type)
+			sig := r.toMethod(pkg, recv, 0, im.Type)
 			imethods[i] = types.NewFunc(token.NoPos, pkg, im.Name, sig)
 		}
 		typ.Underlying().(*types.Interface).Complete()
@@ -412,7 +448,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			for _, im := range AllMethod(rt, r.mode&DisableUnexportMethods == 0) {
 				var sig *types.Signature
 				if im.Type != nil {
-					sig = r.toFunc(pkg, recv, 1, im.Type)
+					sig = r.toMethod(pkg, recv, 1, im.Type)
 				} else {
 					sig = typesDummySig
 				}
@@ -428,7 +464,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				}
 				var sig *types.Signature
 				if im.Type != nil {
-					sig = r.toFunc(pkg, precv, 1, im.Type)
+					sig = r.toMethod(pkg, precv, 1, im.Type)
 				} else {
 					sig = typesDummySig
 				}
