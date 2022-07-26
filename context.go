@@ -353,7 +353,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	start := time.Now()
 	var testPkgs []*ssa.Package
 	for _, pkg := range pkgs {
-		p, err := CreateTestMainPackage(pkg)
+		p, err := CreateTestMainPackage(c, pkg)
 		if err != nil {
 			return err
 		}
@@ -378,6 +378,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	for _, pkg := range testPkgs {
+		reflectx.Reset()
 		interp, err := NewInterp(c, pkg)
 		if err != nil {
 			failed = true
@@ -425,10 +426,12 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 
 func (c *Context) RunTest(path string, args []string) error {
 	// preload regexp for create testing
-	c.Loader.Import("regexp")
 	pkgs, err := c.LoadDir(path)
 	if err != nil {
 		return err
+	}
+	if filepath.IsAbs(path) {
+		os.Chdir(path)
 	}
 	return c.TestPkg(pkgs, path, args)
 }
