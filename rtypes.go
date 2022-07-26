@@ -343,15 +343,18 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	if t, ok := r.rcache[rt]; ok {
 		return t
 	}
+	var isNamed bool
+	var pkgPath string
 	// check complete pkg named type
-	if path := rt.PkgPath(); path != "" {
-		if pkg, ok := r.packages[path]; ok && pkg.Complete() {
+	if pkgPath = rt.PkgPath(); pkgPath != "" {
+		if pkg, ok := r.packages[pkgPath]; ok && pkg.Complete() {
 			if obj := pkg.Scope().Lookup(rt.Name()); obj != nil {
 				typ := obj.Type()
 				r.rcache[rt] = typ
 				return typ
 			}
 		}
+		isNamed = true
 	}
 	var typ types.Type
 	var fields []*types.Var
@@ -400,8 +403,11 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		dir := toTypeChanDir(rt.ChanDir())
 		typ = types.NewChan(dir, elem)
 	case reflect.Func:
-		pkg := r.GetPackage(r.curpkg.Path)
-		typ = r.toFunc(pkg, rt)
+		if !isNamed {
+			typ = r.toMethod(nil, nil, 0, rt)
+		} else {
+			typ = typesDummySig
+		}
 	case reflect.Interface:
 		n := rt.NumMethod()
 		imethods = make([]*types.Func, n, n)
@@ -442,8 +448,8 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		panic("unreachable")
 	}
 	var named *types.Named
-	if path := rt.PkgPath(); path != "" {
-		pkg := r.GetPackage(path)
+	if isNamed {
+		pkg := r.GetPackage(pkgPath)
 		obj := types.NewTypeName(token.NoPos, pkg, rt.Name(), nil)
 		named = types.NewNamed(obj, typ, nil)
 		typ = named
@@ -453,7 +459,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	r.tcache.Set(typ, rt)
 	if kind == reflect.Struct {
 		n := rt.NumField()
-		pkg := r.GetPackage(rt.PkgPath())
+		pkg := r.GetPackage(pkgPath)
 		for i := 0; i < n; i++ {
 			f := rt.Field(i)
 			ft := r.ToType(f.Type)
@@ -471,6 +477,10 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		typ.Underlying().(*types.Interface).Complete()
 	}
 	if named != nil {
+		switch kind {
+		case reflect.Func:
+			named.SetUnderlying(r.toMethod(named.Obj().Pkg(), nil, 0, rt))
+		}
 		if kind != reflect.Interface {
 			pkg := named.Obj().Pkg()
 			skip := make(map[string]bool)

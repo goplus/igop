@@ -389,7 +389,8 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		return func(fr *frame) {
 			v := reflect.New(typ).Elem()
 			if x := fr.reg(ix); x != nil {
-				SetValue(v, reflect.ValueOf(x))
+				vx := reflect.ValueOf(x)
+				SetValue(v, vx)
 			}
 			fr.setReg(ir, v.Interface())
 		}
