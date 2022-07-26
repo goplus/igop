@@ -90,6 +90,13 @@ type Package struct {
 	UntypedConsts []string
 }
 
+func (p *Package) IsEmpty() bool {
+	return len(p.NamedTypes) == 0 && len(p.Interfaces) == 0 &&
+		len(p.AliasTypes) == 0 && len(p.Vars) == 0 &&
+		len(p.Funcs) == 0 && len(p.Methods) == 0 &&
+		len(p.Consts) == 0 && len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0
+}
+
 /*
 func unmarshalFloat(str string) constant.Value {
 	if sep := strings.IndexByte(str, '/'); sep >= 0 {

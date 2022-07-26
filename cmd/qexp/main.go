@@ -125,7 +125,7 @@ func ExportPkg(pkg string, ctx *build.Context) (string, error) {
 	}
 	data, err := exportPkg(e, "q", "", tags)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	if flagExportDir == "" {
 		fmt.Println(string(data))
