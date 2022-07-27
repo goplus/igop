@@ -1430,12 +1430,12 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		if len(args) == 1 {
 			return args[0]
 		}
-		if s, ok := args[1].(string); ok {
-			// append([]byte, ...string) []byte
-			args[1] = []byte(s)
-		}
 		v0 := reflect.ValueOf(args[0])
 		v1 := reflect.ValueOf(args[1])
+		// append([]byte, ...string) []byte
+		if v1.Kind() == reflect.String {
+			v1 = reflect.ValueOf([]byte(v1.String()))
+		}
 		i0 := v0.Len()
 		i1 := v1.Len()
 		if i0+i1 < i0 {
@@ -1662,12 +1662,12 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 		}
 		arg0 := caller.reg(ia[0])
 		arg1 := caller.reg(ia[1])
-		if s, ok := arg1.(string); ok {
-			// append([]byte, ...string) []byte
-			arg1 = []byte(s)
-		}
 		v0 := reflect.ValueOf(arg0)
 		v1 := reflect.ValueOf(arg1)
+		// append([]byte, ...string) []byte
+		if v1.Kind() == reflect.String {
+			v1 = reflect.ValueOf([]byte(v1.String()))
+		}
 		i0 := v0.Len()
 		i1 := v1.Len()
 		if i0+i1 < i0 {
