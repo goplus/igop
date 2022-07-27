@@ -2277,3 +2277,21 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestLoadImport(t *testing.T) {
+	src := `package main
+import "github.com/goplus/igop/testdata/pkg"
+
+func main() {
+	if pkg.Add(100, 200) != 300 {
+		panic("error pkg.Add")
+	}
+	pkg.Println("Hello")
+}
+`
+	ctx := igop.NewContext(0)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
