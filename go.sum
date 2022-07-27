@@ -7,8 +7,8 @@ github.com/goplus/gop v1.1.2/go.mod h1:RxPV2a2tM4gfAhdFRmELe/a2MW4XOQLf51CtufdVv
 github.com/goplus/gox v1.11.12 h1:zb+hNzKbUJ16tDyGlwDIHzdArRLeDz+wXaBsNXeSDew=
 github.com/goplus/gox v1.11.12/go.mod h1:wRCRSNukie4cDqADF4w0Btc2Gk6V3p3V6hI5+rsVqa8=
 github.com/goplus/igop v0.8.0/go.mod h1:FTibMuDLx4VLQt67UTIpTEkrL/eoPFGunw8n0y650uk=
-github.com/goplus/ipkg v0.0.0-20220725133938-b2e00b2aefaa h1:6akYUlGQ5TJkmTdpF2bf2goX9/2aWsRhkwXcH0DJlyE=
-github.com/goplus/ipkg v0.0.0-20220725133938-b2e00b2aefaa/go.mod h1:ZdaRSzz7z8I8oJVko8IGfxYI2B7v5vhWBI3L6OiV4B0=
+github.com/goplus/ipkg v0.1.0 h1:QDkTxTIn3FZU1SEq1G9EuBFFoDjA6y8XS2oQb2hzm7o=
+github.com/goplus/ipkg v0.1.0/go.mod h1:ZdaRSzz7z8I8oJVko8IGfxYI2B7v5vhWBI3L6OiV4B0=
 github.com/goplus/libc v0.3.10/go.mod h1:gSQ8dVF/iKdoBn1ABeQfAF/ybaYX0pij3iPtC72FtJc=
 github.com/goplus/mod v0.9.12 h1:CjgBGQIYqUTPGl3MrAS5CICzJwxbIfSa4OlEb141Gs4=
 github.com/goplus/mod v0.9.12/go.mod h1:YoPIowz71rnLLROA4YG0AC8bzDtPRyMaQwgTRLr8ri4=

@@ -2,7 +2,6 @@ package igop
 
 import (
 	"reflect"
-	"unsafe"
 
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
@@ -290,7 +289,7 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				v := fr.uintptr(ix)
-				fr.setReg(ir, xtype.ConvertPtr(t, unsafe.Pointer(v)))
+				fr.setReg(ir, xtype.ConvertPtr(t, toUnsafePointer(v)))
 			}
 		} else if xkind == reflect.Ptr {
 			t := xtype.TypeOfType(typ)
