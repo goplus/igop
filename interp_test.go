@@ -2222,3 +2222,33 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestAddImport(t *testing.T) {
+	pkg := `package pkg
+import "fmt"
+
+func Add(i, j int) int {
+	return i+j
+}
+
+func Println(a ...interface{}) {
+	fmt.Println(a...)
+}
+`
+	src := `package main
+import "pkg"
+
+func main() {
+	if pkg.Add(100, 200) != 300 {
+		panic("error pkg.Add")
+	}
+	pkg.Println("Hello")
+}
+`
+	ctx := igop.NewContext(0)
+	ctx.AddImport("pkg", "pkg.go", pkg)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
