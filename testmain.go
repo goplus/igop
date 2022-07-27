@@ -26,7 +26,7 @@ import (
 //
 // Deprecated: Use golang.org/x/tools/go/packages to access synthetic
 // testmain packages.
-func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
+func CreateTestMainPackage(ctx *Context, pkg *ssa.Package) (*ssa.Package, error) {
 	prog := pkg.Prog
 
 	// Template data
@@ -89,10 +89,12 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	conf := types.Config{
 		DisableUnusedImportCheck: true,
-		Importer:                 testImporter{pkg},
+		Importer:                 testImporter{ctx, pkg},
 	}
+
 	files := []*ast.File{f}
 	info := &types.Info{
 		Types:      make(map[ast.Expr]types.TypeAndValue),
@@ -107,6 +109,9 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 		return nil, err
 	}
 
+	rpkg, _ := ctx.Loader.Import("regexp")
+	prog.CreatePackage(rpkg, nil, nil, true)
+
 	// Create and build SSA code.
 	testmain := prog.CreatePackage(testmainPkg, files, info, false)
 	testmain.SetDebugMode(false)
@@ -118,6 +123,7 @@ func CreateTestMainPackage(pkg *ssa.Package) (*ssa.Package, error) {
 
 // An implementation of types.Importer for an already loaded SSA program.
 type testImporter struct {
+	ctx *Context
 	pkg *ssa.Package // package under test; may be non-importable
 }
 
@@ -128,6 +134,7 @@ func (imp testImporter) Import(path string) (*types.Package, error) {
 	if path == imp.pkg.Pkg.Path() {
 		return imp.pkg.Pkg, nil
 	}
+	return imp.ctx.Loader.Import(path)
 	return nil, ErrNotFoundPackage
 }
 

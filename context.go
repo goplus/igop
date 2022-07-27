@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -15,10 +16,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/goplus/reflectx"
-
+	"github.com/visualfc/gomod"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/ssa/ssautil"
 )
@@ -27,12 +29,12 @@ import (
 type Mode uint
 
 const (
-	DisableRecover         Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	DisableCustomBuiltin                    // Disable load custom builtin func
-	DisableUnexportMethods                  // Disable unexport methods
-	EnableTracing                           // Print a trace of all instructions as they are interpreted.
-	EnableDumpInstr                         // Print packages & SSA instruction code
-	EnablePrintAny                          // Enable builtin print for any type ( struct/array )
+	DisableRecover       Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	DisableCustomBuiltin                  // Disable load custom builtin func
+	EnableDumpImports                     // print typesimports
+	EnableDumpInstr                       // Print packages & SSA instruction code
+	EnableTracing                         // Print a trace of all instructions as they are interpreted.
+	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
 )
 
 // Loader types loader interface
@@ -42,23 +44,61 @@ type Loader interface {
 	Packages() []*types.Package
 	LookupReflect(typ types.Type) (reflect.Type, bool)
 	LookupTypes(typ reflect.Type) (types.Type, bool)
+	SetImport(path string, pkg *types.Package, load func() error) error
 }
 
 // Context ssa context
 type Context struct {
-	Loader      Loader                   // types loader
-	Mode        Mode                     // mode
-	ParserMode  parser.Mode              // parser mode
-	BuilderMode ssa.BuilderMode          // ssa builder mode
-	External    types.Importer           // external import
-	Sizes       types.Sizes              // types size for package unsafe
-	debugFunc   func(*DebugInfo)         // debug func
-	override    map[string]reflect.Value // override function
-	output      io.Writer                // capture print/println output
-	callForPool int                      // least call count for enable function pool
-	evalMode    bool                     // eval mode
-	evalInit    map[string]bool          // eval init check
-	evalCallFn  func(interp *Interp, call *ssa.Call, res ...interface{})
+	Loader       Loader                                           // types loader
+	FileSet      *token.FileSet                                   // file set
+	Mode         Mode                                             // mode
+	ParserMode   parser.Mode                                      // parser mode
+	BuilderMode  ssa.BuilderMode                                  // ssa builder mode
+	Sizes        types.Sizes                                      // types size for package unsafe
+	BuildContext build.Context                                    // build context
+	Lookup       func(root, path string) (dir string, found bool) // lookup external import
+	pkgs         map[string]*typesPackage                         // imports
+	override     map[string]reflect.Value                         // override function
+	output       io.Writer                                        // capture print/println output
+	callForPool  int                                              // least call count for enable function pool
+	conf         *types.Config                                    // types check config
+	evalMode     bool                                             // eval mode
+	evalInit     map[string]bool                                  // eval init check
+	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
+	debugFunc    func(*DebugInfo) // debug func
+	root         string           // project root
+	mod          *gomod.Package   // lookup path for go.mod
+}
+
+func (c *Context) setRoot(root string) {
+	c.root = root
+	c.mod = nil
+}
+
+func (c *Context) lookupPath(path string) (dir string, found bool) {
+	if c.Lookup != nil {
+		dir, found = c.Lookup(c.root, path)
+		if found {
+			return
+		}
+	}
+	if c.mod == nil {
+		var err error
+		c.mod, err = gomod.Load(c.root, &c.BuildContext)
+		if err != nil {
+			panic(err)
+		}
+	}
+	_, dir, found = c.mod.Lookup(path)
+	return
+}
+
+type typesPackage struct {
+	Package *types.Package
+	Files   []*ast.File
+	Info    *types.Info
+	Dir     string
+	Load    func() error
 }
 
 func (c *Context) IsEvalMode() bool {
@@ -68,12 +108,15 @@ func (c *Context) IsEvalMode() bool {
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
-		Loader:      NewTypesLoader(mode),
-		Mode:        mode,
-		ParserMode:  parser.AllErrors,
-		BuilderMode: 0, //ssa.SanityCheckFunctions,
-		override:    make(map[string]reflect.Value),
-		callForPool: 64,
+		Loader:       NewTypesLoader(mode),
+		FileSet:      token.NewFileSet(),
+		Mode:         mode,
+		ParserMode:   parser.AllErrors,
+		BuilderMode:  0, //ssa.SanityCheckFunctions,
+		BuildContext: build.Default,
+		pkgs:         make(map[string]*typesPackage),
+		override:     make(map[string]reflect.Value),
+		callForPool:  64,
 	}
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
@@ -114,13 +157,14 @@ func (c *Context) writeOutput(data []byte) (n int, err error) {
 	return os.Stdout.Write(data)
 }
 
-func (c *Context) LoadDir(fset *token.FileSet, path string) (pkgs []*ssa.Package, first error) {
-	apkgs, err := parser.ParseDir(fset, path, nil, c.ParserMode)
+func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
+	apkgs, err := parser.ParseDir(c.FileSet, path, nil, c.ParserMode)
 	if err != nil {
 		return nil, err
 	}
+	c.setRoot(path)
 	for _, apkg := range apkgs {
-		if pkg, err := c.LoadAstPackage(fset, apkg); err == nil {
+		if pkg, err := c.LoadAstPackage(apkg); err == nil {
 			pkgs = append(pkgs, pkg)
 		} else if first == nil {
 			first = err
@@ -139,15 +183,94 @@ var (
 	sourceProcessor = make(map[string]SourceProcessFunc)
 )
 
-func (c *Context) LoadFile(fset *token.FileSet, filename string, src interface{}) (*ssa.Package, error) {
-	file, err := c.ParseFile(fset, filename, src)
+func (c *Context) AddImport(path string, filename string, src interface{}) error {
+	file, err := c.ParseFile(filename, src)
+	if err != nil {
+		return err
+	}
+	pkg := types.NewPackage(path, file.Name.Name)
+	tp := &typesPackage{
+		Package: pkg,
+		Files:   []*ast.File{file},
+	}
+	tp.Load = func() (err error) {
+		if tp.Info == nil {
+			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+		}
+		return
+	}
+	c.pkgs[path] = tp
+	c.Loader.SetImport(path, pkg, tp.Load)
+	return nil
+}
+
+func (c *Context) AddImportDir(path string, dir string) error {
+	files, err := c.parseDir(dir)
+	if err != nil {
+		return err
+	}
+	pkg := types.NewPackage(path, files[0].Name.Name)
+	tp := &typesPackage{
+		Package: pkg,
+		Files:   files,
+		Dir:     dir,
+	}
+	tp.Load = func() (err error) {
+		if tp.Info == nil {
+			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+		}
+		return
+	}
+	c.pkgs[path] = tp
+	c.Loader.SetImport(path, pkg, tp.Load)
+	return nil
+}
+
+func (c *Context) parseDir(dir string) ([]*ast.File, error) {
+	bp, err := build.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
-	return c.LoadAstFile(fset, file)
+	var filenames []string
+	filenames = append(filenames, bp.GoFiles...)
+	filenames = append(filenames, bp.CgoFiles...)
+
+	return c.parseFiles(bp.Dir, filenames)
 }
 
-func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{}) (*ast.File, error) {
+func (c *Context) parseFiles(dir string, filenames []string) ([]*ast.File, error) {
+	files := make([]*ast.File, len(filenames))
+	errors := make([]error, len(filenames))
+
+	var wg sync.WaitGroup
+	wg.Add(len(filenames))
+	for i, filename := range filenames {
+		go func(i int, filepath string) {
+			defer wg.Done()
+			files[i], errors[i] = c.ParseFile(filepath, nil)
+		}(i, filepath.Join(dir, filename))
+	}
+	wg.Wait()
+
+	for _, err := range errors {
+		if err != nil {
+			return nil, err
+		}
+	}
+	return files, nil
+}
+
+func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
+	file, err := c.ParseFile(filename, src)
+	if err != nil {
+		return nil, err
+	}
+	root, _ := filepath.Split(filename)
+	c.setRoot(root)
+	return c.LoadAstFile(file)
+}
+
+func (c *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {
 	if ext := filepath.Ext(filename); ext != "" {
 		if fn, ok := sourceProcessor[ext]; ok {
 			data, err := fn(c, filename, src)
@@ -157,18 +280,18 @@ func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{
 			src = data
 		}
 	}
-	return parser.ParseFile(fset, filename, src, c.ParserMode)
+	return parser.ParseFile(c.FileSet, filename, src, c.ParserMode)
 }
 
-func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package, error) {
+func (c *Context) LoadAstFile(file *ast.File) (*ssa.Package, error) {
 	pkg := types.NewPackage(file.Name.Name, "")
 	files := []*ast.File{file}
 	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParseBuiltin(fset, file.Name.Name); err == nil {
+		if f, err := ParseBuiltin(c.FileSet, file.Name.Name); err == nil {
 			files = []*ast.File{f, file}
 		}
 	}
-	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
+	ssapkg, _, err := c.BuildPackage(pkg, files)
 	if err != nil {
 		return nil, err
 	}
@@ -176,18 +299,18 @@ func (c *Context) LoadAstFile(fset *token.FileSet, file *ast.File) (*ssa.Package
 	return ssapkg, nil
 }
 
-func (c *Context) LoadAstPackage(fset *token.FileSet, apkg *ast.Package) (*ssa.Package, error) {
+func (c *Context) LoadAstPackage(apkg *ast.Package) (*ssa.Package, error) {
 	pkg := types.NewPackage(apkg.Name, "")
 	var files []*ast.File
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParseBuiltin(fset, apkg.Name); err == nil {
+		if f, err := ParseBuiltin(c.FileSet, apkg.Name); err == nil {
 			files = append([]*ast.File{f}, files...)
 		}
 	}
-	ssapkg, _, err := c.BuildPackage(fset, pkg, files)
+	ssapkg, _, err := c.BuildPackage(pkg, files)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +353,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	start := time.Now()
 	var testPkgs []*ssa.Package
 	for _, pkg := range pkgs {
-		p, err := CreateTestMainPackage(pkg)
+		p, err := CreateTestMainPackage(c, pkg)
 		if err != nil {
 			return err
 		}
@@ -255,6 +378,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 	for _, pkg := range testPkgs {
+		reflectx.Reset()
 		interp, err := NewInterp(c, pkg)
 		if err != nil {
 			failed = true
@@ -278,8 +402,7 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 }
 
 func (c *Context) RunFile(filename string, src interface{}, args []string) (exitCode int, err error) {
-	fset := token.NewFileSet()
-	pkg, err := c.LoadFile(fset, filename, src)
+	pkg, err := c.LoadFile(filename, src)
 	if err != nil {
 		return 2, err
 	}
@@ -290,8 +413,7 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
-	fset := token.NewFileSet()
-	pkgs, err := c.LoadDir(fset, path)
+	pkgs, err := c.LoadDir(path)
 	if err != nil {
 		return 2, err
 	}
@@ -303,24 +425,18 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 }
 
 func (c *Context) RunTest(path string, args []string) error {
-	fset := token.NewFileSet()
 	// preload regexp for create testing
-	c.Loader.Import("regexp")
-	pkgs, err := c.LoadDir(fset, path)
+	pkgs, err := c.LoadDir(path)
 	if err != nil {
 		return err
+	}
+	if filepath.IsAbs(path) {
+		os.Chdir(path)
 	}
 	return c.TestPkg(pkgs, path, args)
 }
 
-func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
-	if fset == nil {
-		panic("no token.FileSet")
-	}
-	if pkg.Path() == "" {
-		panic("package has no import path")
-	}
-
+func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
 	info := &types.Info{
 		Types:      make(map[ast.Expr]types.TypeAndValue),
 		Defs:       make(map[*ast.Ident]types.Object),
@@ -329,19 +445,38 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
+	if err := types.NewChecker(ctx.conf, ctx.FileSet, pkg, info).Files(files); err != nil {
+		return nil, err
+	}
+	return info, nil
+}
 
-	tc := &types.Config{
-		Importer: NewImporter(ctx.Loader, ctx.External),
+func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
+	if pkg.Path() == "" {
+		panic("package has no import path")
+	}
+	ctx.conf = &types.Config{
+		Importer: NewImporter(ctx),
 		Sizes:    ctx.Sizes,
 	}
-	if ctx.evalMode {
-		tc.DisableUnusedImportCheck = true
+	var first error
+	ctx.conf.Error = func(err error) {
+		if first == nil {
+			first = err
+		}
 	}
-	if err := types.NewChecker(tc, fset, pkg, info).Files(files); err != nil {
+	if ctx.evalMode {
+		ctx.conf.DisableUnusedImportCheck = true
+	}
+	info, err := ctx.checkTypesInfo(pkg, files)
+	if first != nil {
+		return nil, nil, first
+	}
+	if err != nil {
 		return nil, nil, err
 	}
 
-	prog := ssa.NewProgram(fset, ctx.BuilderMode)
+	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 
 	// Create SSA packages for all imports.
 	// Order is not significant.
@@ -351,25 +486,35 @@ func (ctx *Context) BuildPackage(fset *token.FileSet, pkg *types.Package, files 
 		for _, p := range pkgs {
 			if !created[p] {
 				created[p] = true
-				if !p.Complete() {
-					if ctx.Mode&EnableDumpInstr != 0 {
-						fmt.Println("# indirect", p)
-					}
-					p.MarkComplete()
-				} else {
-					if ctx.Mode&EnableDumpInstr != 0 {
-						fmt.Println("# imported", p)
-					}
-				}
-				prog.CreatePackage(p, nil, nil, true)
 				createAll(p.Imports())
+				if pkg, ok := ctx.pkgs[p.Path()]; ok {
+					if ctx.Mode&EnableDumpImports != 0 {
+						if pkg.Dir != "" {
+							fmt.Println("# imported", p.Path(), pkg.Dir)
+						} else {
+							fmt.Println("# imported", p.Path(), "source")
+						}
+					}
+					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
+				} else {
+					var indirect bool
+					if !p.Complete() {
+						indirect = true
+						p.MarkComplete()
+					}
+					if ctx.Mode&EnableDumpImports != 0 {
+						if indirect {
+							fmt.Println("# indirect", p.Path())
+						} else {
+							fmt.Println("# imported", p.Path())
+						}
+					}
+					prog.CreatePackage(p, nil, nil, true).Build()
+				}
 			}
 		}
 	}
-	// create imports
 	createAll(pkg.Imports())
-	// create indirect depends
-	createAll(ctx.Loader.Packages())
 
 	// Create and build the primary package.
 	ssapkg := prog.CreatePackage(pkg, files, info, false)

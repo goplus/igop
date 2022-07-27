@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"go/format"
 	"io/ioutil"
@@ -31,6 +32,12 @@ func joinList(list []string) string {
 	return "\n\t" + strings.Join(list, ",\n\t") + ",\n"
 }
 
+const EmptyPackage = "empty package"
+
+var (
+	errEmptyPackage = errors.New(EmptyPackage)
+)
+
 func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte, error) {
 	imports := []string{fmt.Sprintf("%v %q\n", sname, pkg.Path)}
 	imports = append(imports, `"reflect"`)
@@ -46,6 +53,9 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 		if hasToken {
 			imports = append(imports, `"go/token"`)
 		}
+	}
+	if pkg.IsEmpty() {
+		return nil, errEmptyPackage
 	}
 
 	r := strings.NewReplacer("$PKGNAME", pkg.Name,

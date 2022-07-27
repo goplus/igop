@@ -3,6 +3,7 @@ package igop
 import (
 	"fmt"
 	"go/constant"
+	"go/importer"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -39,10 +40,12 @@ func init() {
 type TypesLoader struct {
 	packages  map[string]*types.Package
 	installed map[string]*Package
+	pkgloads  map[string]func() error
 	rcache    map[reflect.Type]types.Type
 	tcache    *typeutil.Map
 	curpkg    *Package
 	mode      Mode
+	importer  types.Importer
 }
 
 // NewTypesLoader install package and readonly
@@ -50,6 +53,7 @@ func NewTypesLoader(mode Mode) Loader {
 	r := &TypesLoader{
 		packages:  make(map[string]*types.Package),
 		installed: make(map[string]*Package),
+		pkgloads:  make(map[string]func() error),
 		rcache:    make(map[reflect.Type]types.Type),
 		tcache:    &typeutil.Map{},
 		mode:      mode,
@@ -57,7 +61,16 @@ func NewTypesLoader(mode Mode) Loader {
 	r.packages["unsafe"] = types.Unsafe
 	r.rcache[tyErrorInterface] = typesError
 	r.rcache[tyEmptyInterface] = typesEmptyInterface
+	r.importer = importer.Default()
 	return r
+}
+
+func (r *TypesLoader) SetImport(path string, pkg *types.Package, load func() error) error {
+	r.packages[path] = pkg
+	if load != nil {
+		r.pkgloads[path] = load
+	}
+	return nil
 }
 
 func (r *TypesLoader) Installed(path string) (pkg *Package, ok bool) {
@@ -91,6 +104,11 @@ func (r *TypesLoader) LookupTypes(typ reflect.Type) (types.Type, bool) {
 
 func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	if p, ok := r.packages[path]; ok {
+		if !p.Complete() {
+			if load, ok := r.pkgloads[path]; ok {
+				load()
+			}
+		}
 		return p, nil
 	}
 	pkg, ok := registerPkgs[path]
@@ -99,15 +117,17 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	}
 	p := types.NewPackage(pkg.Path, pkg.Name)
 	r.packages[path] = p
-	var list []*types.Package
 	for dep, _ := range pkg.Deps {
-		p, err := r.Import(dep)
-		if err == nil {
-			list = append(list, p)
-		}
+		r.Import(dep)
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
+	}
+	var list []*types.Package
+	for dep, _ := range pkg.Deps {
+		if p, ok := r.packages[dep]; ok {
+			list = append(list, p)
+		}
 	}
 	p.SetImports(list)
 	p.MarkComplete()
@@ -323,6 +343,19 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	if t, ok := r.rcache[rt]; ok {
 		return t
 	}
+	var isNamed bool
+	var pkgPath string
+	// check complete pkg named type
+	if pkgPath = rt.PkgPath(); pkgPath != "" {
+		if pkg, ok := r.packages[pkgPath]; ok && pkg.Complete() {
+			if obj := pkg.Scope().Lookup(rt.Name()); obj != nil {
+				typ := obj.Type()
+				r.rcache[rt] = typ
+				return typ
+			}
+		}
+		isNamed = true
+	}
 	var typ types.Type
 	var fields []*types.Var
 	var imethods []*types.Func
@@ -370,8 +403,11 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		dir := toTypeChanDir(rt.ChanDir())
 		typ = types.NewChan(dir, elem)
 	case reflect.Func:
-		pkg := r.GetPackage(r.curpkg.Path)
-		typ = r.toFunc(pkg, rt)
+		if !isNamed {
+			typ = r.toMethod(nil, nil, 0, rt)
+		} else {
+			typ = typesDummySig
+		}
 	case reflect.Interface:
 		n := rt.NumMethod()
 		imethods = make([]*types.Func, n, n)
@@ -412,8 +448,8 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		panic("unreachable")
 	}
 	var named *types.Named
-	if path := rt.PkgPath(); path != "" {
-		pkg := r.GetPackage(path)
+	if isNamed {
+		pkg := r.GetPackage(pkgPath)
 		obj := types.NewTypeName(token.NoPos, pkg, rt.Name(), nil)
 		named = types.NewNamed(obj, typ, nil)
 		typ = named
@@ -423,7 +459,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	r.tcache.Set(typ, rt)
 	if kind == reflect.Struct {
 		n := rt.NumField()
-		pkg := r.GetPackage(rt.PkgPath())
+		pkg := r.GetPackage(pkgPath)
 		for i := 0; i < n; i++ {
 			f := rt.Field(i)
 			ft := r.ToType(f.Type)
@@ -441,16 +477,20 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		typ.Underlying().(*types.Interface).Complete()
 	}
 	if named != nil {
+		switch kind {
+		case reflect.Func:
+			named.SetUnderlying(r.toMethod(named.Obj().Pkg(), nil, 0, rt))
+		}
 		if kind != reflect.Interface {
 			pkg := named.Obj().Pkg()
 			skip := make(map[string]bool)
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
-			for _, im := range AllMethod(rt, r.mode&DisableUnexportMethods == 0) {
+			for _, im := range AllMethod(rt, true) {
 				var sig *types.Signature
 				if im.Type != nil {
 					sig = r.toMethod(pkg, recv, 1, im.Type)
 				} else {
-					sig = typesDummySig
+					sig = r.toMethod(pkg, recv, 0, tyEmptyFunc)
 				}
 				skip[im.Name] = true
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
@@ -458,7 +498,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
-			for _, im := range AllMethod(prt, r.mode&DisableUnexportMethods == 0) {
+			for _, im := range AllMethod(prt, true) {
 				if skip[im.Name] {
 					continue
 				}
@@ -466,7 +506,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 				if im.Type != nil {
 					sig = r.toMethod(pkg, precv, 1, im.Type)
 				} else {
-					sig = typesDummySig
+					sig = r.toMethod(pkg, precv, 0, tyEmptyFunc)
 				}
 				named.AddMethod(types.NewFunc(token.NoPos, pkg, im.Name, sig))
 			}

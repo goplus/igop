@@ -54,8 +54,7 @@ func BuildFile(ctx *igop.Context, filename string, src interface{}) (data []byte
 		}
 	}()
 	c := NewContext(ctx)
-	fset := token.NewFileSet()
-	pkg, err := c.ParseFile(fset, filename, src)
+	pkg, err := c.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +69,7 @@ func BuildFSDir(ctx *igop.Context, fs parser.FileSystem, dir string) (data []byt
 		}
 	}()
 	c := NewContext(ctx)
-	fset := token.NewFileSet()
-	pkg, err := c.ParseFSDir(fset, fs, dir)
+	pkg, err := c.ParseFSDir(fs, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +84,7 @@ func BuildDir(ctx *igop.Context, dir string) (data []byte, err error) {
 		}
 	}()
 	c := NewContext(ctx)
-	fset := token.NewFileSet()
-	pkg, err := c.ParseDir(fset, dir)
+	pkg, err := c.ParseDir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -112,8 +109,9 @@ func (p *Package) ToAst() *goast.File {
 }
 
 type Context struct {
-	ctx *igop.Context
-	gop igop.Loader
+	ctx  *igop.Context
+	fset *token.FileSet
+	gop  igop.Loader
 }
 
 func IsClass(ext string) (isProj bool, ok bool) {
@@ -124,7 +122,7 @@ func IsClass(ext string) (isProj bool, ok bool) {
 }
 
 func NewContext(ctx *igop.Context) *Context {
-	return &Context{ctx: ctx, gop: igop.NewTypesLoader(0)}
+	return &Context{ctx: ctx, fset: token.NewFileSet(), gop: igop.NewTypesLoader(0)}
 }
 
 func isGopPackage(path string) bool {
@@ -143,29 +141,29 @@ func (c *Context) Import(path string) (*types.Package, error) {
 	return c.ctx.Loader.Import(path)
 }
 
-func (c *Context) ParseDir(fset *token.FileSet, dir string) (*Package, error) {
-	pkgs, err := parser.ParseDirEx(fset, dir, parser.Config{
+func (c *Context) ParseDir(dir string) (*Package, error) {
+	pkgs, err := parser.ParseDirEx(c.fset, dir, parser.Config{
 		IsClass: IsClass,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return c.loadPackage(dir, fset, pkgs)
+	return c.loadPackage(dir, pkgs)
 }
 
-func (c *Context) ParseFSDir(fset *token.FileSet, fs parser.FileSystem, dir string) (*Package, error) {
-	pkgs, err := parser.ParseFSDir(fset, fs, dir, parser.Config{
+func (c *Context) ParseFSDir(fs parser.FileSystem, dir string) (*Package, error) {
+	pkgs, err := parser.ParseFSDir(c.fset, fs, dir, parser.Config{
 		IsClass: IsClass,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return c.loadPackage(dir, fset, pkgs)
+	return c.loadPackage(dir, pkgs)
 }
 
-func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{}) (*Package, error) {
+func (c *Context) ParseFile(filename string, src interface{}) (*Package, error) {
 	srcDir, _ := filepath.Split(filename)
-	f, err := parser.ParseFile(fset, filename, src, 0)
+	f, err := parser.ParseFile(c.fset, filename, src, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -179,19 +177,19 @@ func (c *Context) ParseFile(fset *token.FileSet, filename string, src interface{
 			},
 		},
 	}
-	return c.loadPackage(srcDir, fset, pkgs)
+	return c.loadPackage(srcDir, pkgs)
 }
 
-func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[string]*ast.Package) (*Package, error) {
+func (c *Context) loadPackage(srcDir string, pkgs map[string]*ast.Package) (*Package, error) {
 	mainPkg, ok := pkgs["main"]
 	if !ok {
 		return nil, fmt.Errorf("not a main package")
 	}
-	if f, err := igop.ParseBuiltin(fset, "main"); err == nil {
+	if f, err := igop.ParseBuiltin(c.fset, "main"); err == nil {
 		mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
 	}
 	conf := &cl.Config{
-		WorkingDir: srcDir, TargetDir: srcDir, Fset: fset}
+		WorkingDir: srcDir, TargetDir: srcDir, Fset: c.fset}
 	conf.Importer = c
 	conf.LookupClass = func(ext string) (c *cl.Class, ok bool) {
 		c, ok = classfile[ext]
@@ -204,5 +202,5 @@ func (c *Context) loadPackage(srcDir string, fset *token.FileSet, pkgs map[strin
 	if err != nil {
 		return nil, err
 	}
-	return &Package{fset, out}, nil
+	return &Package{c.fset, out}, nil
 }
