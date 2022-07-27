@@ -2,6 +2,7 @@ package igop
 
 import (
 	"reflect"
+	"unsafe"
 
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
@@ -266,6 +267,12 @@ func makeTypeChangeInstr(pfn *function, instr *ssa.ChangeType) func(fr *frame) {
 				fr.setReg(ir, xtype.ConvertString(t, x))
 			}
 		}
+	case reflect.UnsafePointer:
+		t := xtype.TypeOfType(typ)
+		return func(fr *frame) {
+			x := fr.reg(ix)
+			fr.setReg(ir, xtype.ConvertPtr(t, x))
+		}
 	}
 	panic("unreachable")
 }
@@ -280,21 +287,24 @@ func makeConvertInstr(pfn *function, interp *Interp, instr *ssa.Convert) func(fr
 	switch kind {
 	case reflect.UnsafePointer:
 		if xkind == reflect.Uintptr {
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				v := fr.uintptr(ix)
-				fr.setReg(ir, toUnsafePointer(v))
+				fr.setReg(ir, xtype.ConvertPtr(t, unsafe.Pointer(v)))
 			}
 		} else if xkind == reflect.Ptr {
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
-				v := fr.pointer(ix)
-				fr.setReg(ir, v)
+				v := fr.reg(ix)
+				fr.setReg(ir, xtype.ConvertPtr(t, v))
 			}
 		}
 	case reflect.Uintptr:
 		if xkind == reflect.UnsafePointer {
+			t := xtype.TypeOfType(typ)
 			return func(fr *frame) {
 				v := fr.pointer(ix)
-				fr.setReg(ir, uintptr(v))
+				fr.setReg(ir, xtype.MakeUintptr(t, uintptr(v)))
 			}
 		}
 	case reflect.Ptr:
