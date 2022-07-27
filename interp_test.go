@@ -2222,3 +2222,76 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestAddImport(t *testing.T) {
+	pkg := `package pkg
+import "fmt"
+
+func Add(i, j int) int {
+	return i+j
+}
+
+func Println(a ...interface{}) {
+	fmt.Println(a...)
+}
+`
+	src := `package main
+import "pkg"
+
+func main() {
+	if pkg.Add(100, 200) != 300 {
+		panic("error pkg.Add")
+	}
+	pkg.Println("Hello")
+}
+`
+	ctx := igop.NewContext(0)
+	err := ctx.AddImport("pkg", "pkg.go", pkg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAddImportDir(t *testing.T) {
+	src := `package main
+import "igop/pkg"
+
+func main() {
+	if pkg.Add(100, 200) != 300 {
+		panic("error pkg.Add")
+	}
+	pkg.Println("Hello")
+}
+`
+	ctx := igop.NewContext(0)
+	err := ctx.AddImportDir("igop/pkg", "./testdata/pkg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestLoadImport(t *testing.T) {
+	src := `package main
+import "github.com/goplus/igop/testdata/pkg"
+
+func main() {
+	if pkg.Add(100, 200) != 300 {
+		panic("error pkg.Add")
+	}
+	pkg.Println("Hello")
+}
+`
+	ctx := igop.NewContext(0)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -47,16 +47,13 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		return pkg.Package, nil
 	}
 	if dir, found := i.ctx.lookupPath(path); found {
-		err := i.ctx.AddImportDir(path, dir)
+		pkg, err := i.ctx.addImportDir(path, dir)
 		if err != nil {
 			return nil, err
 		}
-		pkg := i.ctx.pkgs[path]
-		info, err := i.ctx.checkTypesInfo(pkg.Package, pkg.Files)
-		if err != nil {
+		if err := pkg.Load(); err != nil {
 			return nil, err
 		}
-		pkg.Info = info
 		return pkg.Package, nil
 	}
 	return nil, ErrNotFoundPackage
