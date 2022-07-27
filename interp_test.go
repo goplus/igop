@@ -2246,8 +2246,33 @@ func main() {
 }
 `
 	ctx := igop.NewContext(0)
-	ctx.AddImport("pkg", "pkg.go", pkg)
-	_, err := ctx.RunFile("main.go", src, nil)
+	err := ctx.AddImport("pkg", "pkg.go", pkg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAddImportDir(t *testing.T) {
+	src := `package main
+import "igop/pkg"
+
+func main() {
+	if pkg.Add(100, 200) != 300 {
+		panic("error pkg.Add")
+	}
+	pkg.Println("Hello")
+}
+`
+	ctx := igop.NewContext(0)
+	err := ctx.AddImportDir("igop/pkg", "./testdata/pkg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
