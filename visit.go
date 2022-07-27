@@ -11,11 +11,13 @@ import (
 )
 
 func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
-	defer func() {
-		if v := recover(); v != nil {
-			err = v.(error)
-		}
-	}()
+	if intp.mode&DisableRecover == 0 {
+		defer func() {
+			if v := recover(); v != nil {
+				err = v.(error)
+			}
+		}()
+	}
 	visit := visitor{
 		intp: intp,
 		prog: intp.prog,
@@ -65,7 +67,7 @@ func (visit *visitor) program() {
 			sel := mset.At(i)
 			obj := sel.Obj()
 			// skip embed extern type method
-			if !chks[obj.Pkg().Path()] {
+			if pkg := obj.Pkg(); pkg != nil && !chks[pkg.Path()] {
 				continue
 			}
 			fn := visit.prog.MethodValue(sel)

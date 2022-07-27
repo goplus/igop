@@ -2295,3 +2295,23 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestAppend(t *testing.T) {
+	src := `package main
+
+type T string
+
+func main() {
+	a := []uint8("hello")
+	b := "world"
+	c := T("world")
+	_ = append(a,b...)
+	_ = append(a,c...)
+}
+	`
+	ctx := igop.NewContext(0)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
