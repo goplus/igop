@@ -183,10 +183,20 @@ var (
 	sourceProcessor = make(map[string]SourceProcessFunc)
 )
 
-func (c *Context) AddImport(path string, filename string, src interface{}) error {
+func (c *Context) AddImport(path string, filename string, src interface{}) (err error) {
+	_, err = c.addImport(path, filename, src)
+	return
+}
+
+func (c *Context) AddImportDir(path string, dir string) (err error) {
+	_, err = c.addImportDir(path, dir)
+	return
+}
+
+func (c *Context) addImport(path string, filename string, src interface{}) (*typesPackage, error) {
 	file, err := c.ParseFile(filename, src)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	pkg := types.NewPackage(path, file.Name.Name)
 	tp := &typesPackage{
@@ -201,13 +211,13 @@ func (c *Context) AddImport(path string, filename string, src interface{}) error
 	}
 	c.pkgs[path] = tp
 	c.Loader.SetImport(path, pkg, tp.Load)
-	return nil
+	return tp, nil
 }
 
-func (c *Context) AddImportDir(path string, dir string) error {
+func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
 	files, err := c.parseDir(dir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	pkg := types.NewPackage(path, files[0].Name.Name)
 	tp := &typesPackage{
@@ -223,7 +233,7 @@ func (c *Context) AddImportDir(path string, dir string) error {
 	}
 	c.pkgs[path] = tp
 	c.Loader.SetImport(path, pkg, tp.Load)
-	return nil
+	return tp, nil
 }
 
 func (c *Context) parseDir(dir string) ([]*ast.File, error) {
