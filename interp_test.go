@@ -2191,3 +2191,34 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestUnsafePointer(t *testing.T) {
+	src := `package main
+
+import (
+	"unsafe"
+)
+
+func main() {
+	type T1 unsafe.Pointer
+	type T2 unsafe.Pointer
+	i := 10
+	p := unsafe.Pointer(&i)
+	p1 := T1(uintptr(unsafe.Pointer(&i)))
+	p2 := T2(&i)
+	if T1(p) != p1 {
+		panic("error T1")
+	}
+	if T2(p1) != (p2) {
+		panic("error T2")
+	}
+	if unsafe.Pointer(p1) != unsafe.Pointer(p2) {
+		panic("error unsafe")
+	}
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
