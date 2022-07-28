@@ -386,6 +386,7 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) {
 		idx := methods[i].Index()
 		if len(idx) > 1 {
 			isptr := isPointer(fn.Type().Underlying().(*types.Signature).Recv().Type())
+			variadic := mtyp.IsVariadic()
 			mfn = func(args []reflect.Value) []reflect.Value {
 				v := args[0]
 				for v.Kind() == reflect.Ptr {
@@ -396,10 +397,16 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) {
 					v = v.Addr()
 				}
 				if v.Kind() == reflect.Interface {
+					if variadic {
+						return v.MethodByName(fn.Name()).CallSlice(args[1:])
+					}
 					return v.MethodByName(fn.Name()).Call(args[1:])
 				}
 				m, _ := reflectx.MethodByName(v.Type(), fn.Name())
 				args[0] = v
+				if variadic {
+					return m.Func.CallSlice(args)
+				}
 				return m.Func.Call(args)
 			}
 		} else {
