@@ -395,6 +395,9 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) {
 				if isptr && v.Kind() != reflect.Ptr {
 					v = v.Addr()
 				}
+				if v.Kind() == reflect.Interface {
+					return v.MethodByName(fn.Name()).Call(args[1:])
+				}
 				m, _ := reflectx.MethodByName(v.Type(), fn.Name())
 				args[0] = v
 				return m.Func.Call(args)
