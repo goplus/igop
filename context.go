@@ -157,12 +157,24 @@ func (c *Context) writeOutput(data []byte) (n int, err error) {
 	return os.Stdout.Write(data)
 }
 
-func (c *Context) LoadDir(path string) (pkgs []*ssa.Package, first error) {
-	apkgs, err := parser.ParseDir(c.FileSet, path, nil, c.ParserMode)
+func (c *Context) LoadDir(dir string, test bool) (pkgs []*ssa.Package, first error) {
+	files, err := c.parseDir(dir, test)
 	if err != nil {
 		return nil, err
 	}
-	c.setRoot(path)
+	apkgs := make(map[string]*ast.Package)
+	for _, f := range files {
+		name := f.Name.Name
+		pkg, found := apkgs[name]
+		if !found {
+			pkg = &ast.Package{
+				Name:  name,
+				Files: make(map[string]*ast.File),
+			}
+			apkgs[name] = pkg
+		}
+		pkg.Files[c.FileSet.Position(f.Package).Filename] = f
+	}
 	for _, apkg := range apkgs {
 		if pkg, err := c.LoadAstPackage(apkg); err == nil {
 			pkgs = append(pkgs, pkg)
@@ -215,7 +227,7 @@ func (c *Context) addImport(path string, filename string, src interface{}) (*typ
 }
 
 func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
-	files, err := c.parseDir(dir)
+	files, err := c.parseDir(dir, false)
 	if err != nil {
 		return nil, err
 	}
@@ -236,15 +248,18 @@ func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
 	return tp, nil
 }
 
-func (c *Context) parseDir(dir string) ([]*ast.File, error) {
-	bp, err := build.ImportDir(dir, 0)
+func (c *Context) parseDir(dir string, test bool) ([]*ast.File, error) {
+	bp, err := c.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
 	var filenames []string
 	filenames = append(filenames, bp.GoFiles...)
 	filenames = append(filenames, bp.CgoFiles...)
-
+	if test {
+		filenames = append(filenames, bp.TestGoFiles...)
+		filenames = append(filenames, bp.XTestGoFiles...)
+	}
 	return c.parseFiles(bp.Dir, filenames)
 }
 
@@ -423,7 +438,7 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
-	pkgs, err := c.LoadDir(path)
+	pkgs, err := c.LoadDir(path, false)
 	if err != nil {
 		return 2, err
 	}
@@ -434,16 +449,16 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 	return c.RunPkg(mainPkgs[0], path, args)
 }
 
-func (c *Context) RunTest(path string, args []string) error {
+func (c *Context) RunTest(dir string, args []string) error {
 	// preload regexp for create testing
-	pkgs, err := c.LoadDir(path)
+	pkgs, err := c.LoadDir(dir, true)
 	if err != nil {
 		return err
 	}
-	if filepath.IsAbs(path) {
-		os.Chdir(path)
+	if filepath.IsAbs(dir) {
+		os.Chdir(dir)
 	}
-	return c.TestPkg(pkgs, path, args)
+	return c.TestPkg(pkgs, dir, args)
 }
 
 func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {

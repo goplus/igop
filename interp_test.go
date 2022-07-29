@@ -2371,3 +2371,42 @@ func check(info info.Info) {
 		t.Fatal(err)
 	}
 }
+
+func TestBuildTags(t *testing.T) {
+	src1 := `package main
+
+import (
+	"github.com/goplus/igop/testdata/msg"
+)
+
+func main() {
+	if msg.Info != "nomsg" {
+		panic(msg.Info)
+	}
+}
+`
+	ctx1 := igop.NewContext(0)
+	_, err := ctx1.RunFile("main.go", src1, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	src2 := `package main
+
+import (
+	"github.com/goplus/igop/testdata/msg"
+)
+
+func main() {
+	if msg.Info != "msg" {
+		panic(msg.Info)
+	}
+}
+`
+	ctx2 := igop.NewContext(0)
+	ctx2.BuildContext.BuildTags = []string{"msg"}
+	_, err = ctx2.RunFile("main.go", src2, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -21,6 +21,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
@@ -38,12 +39,14 @@ var (
 	flag          = &Cmd.Flag
 	flagDumpInstr bool
 	flagTrace     bool
+	flagTags      string
 )
 
 func init() {
 	Cmd.Run = runCmd
 	flag.BoolVar(&flagDumpInstr, "dump", false, "dump SSA instruction code")
 	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
+	flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -65,6 +68,9 @@ func runCmd(cmd *base.Command, args []string) {
 		mode |= igop.EnableTracing
 	}
 	ctx := igop.NewContext(mode)
+	if flagTags != "" {
+		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
+	}
 	if isDir {
 		if fnGopBuildDir != nil && containsExt(path, ".gop") {
 			err := fnGopBuildDir(ctx, path)
