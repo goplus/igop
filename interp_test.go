@@ -27,6 +27,8 @@ import (
 	"time"
 
 	"github.com/goplus/igop"
+	"github.com/goplus/igop/testdata/info"
+
 	_ "github.com/goplus/igop/pkg/bytes"
 	_ "github.com/goplus/igop/pkg/errors"
 	_ "github.com/goplus/igop/pkg/fmt"
@@ -2311,6 +2313,60 @@ func main() {
 	`
 	ctx := igop.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestEmbed(t *testing.T) {
+	p := &igop.Package{
+		Name: "info",
+		Path: "github.com/goplus/igop/testdata/info",
+		Interfaces: map[string]reflect.Type{
+			"Info": reflect.TypeOf((*info.Info)(nil)).Elem(),
+		},
+		NamedTypes: map[string]reflect.Type{
+			"MyInfo": reflect.TypeOf((*info.MyInfo)(nil)).Elem(),
+		},
+		Funcs: map[string]reflect.Value{
+			"NewInfo": reflect.ValueOf(info.NewInfo),
+		},
+	}
+	igop.RegisterPackage(p)
+
+	src := `package main
+
+import (
+	"github.com/goplus/igop/testdata/info"
+)
+
+type MyInfo struct {
+	*info.MyInfo
+}
+
+type MyInfo2 struct {
+	info.Info
+}
+
+func main() {
+	info := info.NewInfo(1)
+	m := &MyInfo{info}
+	check(m)
+	m2 := &MyInfo2{info}
+	check(m2)
+}
+
+func check(info info.Info) {
+	info.SetMode(-1)
+	if info.Mode() != -1 {
+		panic("mode")
+	}
+	if info.Count(1, 2, 3) != 3 {
+		panic("count")
+	}
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
