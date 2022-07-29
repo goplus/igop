@@ -35,8 +35,13 @@ var Cmd = &base.Command{
 	Short:     "test package",
 }
 
+var (
+	flagTags string
+)
+
 func init() {
 	Cmd.Run = runCmd
+	Cmd.Flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -86,8 +91,12 @@ func runCmd(cmd *base.Command, args []string) {
 			}
 		}
 	})
+	ctx := igop.NewContext(0)
+	if flagTags != "" {
+		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
+	}
 	for _, pkg := range pkgs {
-		if err := igop.RunTest(pkg, testArgs, 0); err != nil {
+		if err := ctx.RunTest(pkg, testArgs); err != nil {
 			log.Println("igop test failed:", pkg, err)
 		}
 	}
