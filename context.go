@@ -237,14 +237,30 @@ func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
 }
 
 func (c *Context) parseDir(dir string) ([]*ast.File, error) {
-	bp, err := build.ImportDir(dir, 0)
+	bp, err := build.Default.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
 	var filenames []string
 	filenames = append(filenames, bp.GoFiles...)
 	filenames = append(filenames, bp.CgoFiles...)
+	return c.parseFiles(bp.Dir, filenames)
+}
 
+func (c *Context) parseDirEx(dir string, test bool, tags []string) ([]*ast.File, error) {
+	ctx := build.Default
+	ctx.BuildTags = tags
+	bp, err := ctx.ImportDir(dir, 0)
+	if err != nil {
+		return nil, err
+	}
+	var filenames []string
+	filenames = append(filenames, bp.GoFiles...)
+	filenames = append(filenames, bp.CgoFiles...)
+	if test {
+		filenames = append(filenames, bp.TestGoFiles...)
+		filenames = append(filenames, bp.XTestGoFiles...)
+	}
 	return c.parseFiles(bp.Dir, filenames)
 }
 
