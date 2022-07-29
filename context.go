@@ -157,8 +157,8 @@ func (c *Context) writeOutput(data []byte) (n int, err error) {
 	return os.Stdout.Write(data)
 }
 
-func (c *Context) LoadDir(dir string, test bool, tags []string) (pkgs []*ssa.Package, first error) {
-	files, err := c.parseDirEx(dir, test, tags)
+func (c *Context) LoadDir(dir string, test bool) (pkgs []*ssa.Package, first error) {
+	files, err := c.parseDirEx(dir, test)
 	if err != nil {
 		return nil, err
 	}
@@ -259,10 +259,8 @@ func (c *Context) parseDir(dir string) ([]*ast.File, error) {
 	return c.parseFiles(bp.Dir, filenames)
 }
 
-func (c *Context) parseDirEx(dir string, test bool, tags []string) ([]*ast.File, error) {
-	ctx := build.Default
-	ctx.BuildTags = tags
-	bp, err := ctx.ImportDir(dir, 0)
+func (c *Context) parseDirEx(dir string, test bool) ([]*ast.File, error) {
+	bp, err := c.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +449,7 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
-	pkgs, err := c.LoadDir(path, false, nil)
+	pkgs, err := c.LoadDir(path, false)
 	if err != nil {
 		return 2, err
 	}
@@ -464,7 +462,7 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 
 func (c *Context) RunTest(dir string, args []string) error {
 	// preload regexp for create testing
-	pkgs, err := c.LoadDir(dir, true, nil)
+	pkgs, err := c.LoadDir(dir, true)
 	if err != nil {
 		return err
 	}
