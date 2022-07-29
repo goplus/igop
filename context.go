@@ -158,7 +158,7 @@ func (c *Context) writeOutput(data []byte) (n int, err error) {
 }
 
 func (c *Context) LoadDir(dir string, test bool) (pkgs []*ssa.Package, first error) {
-	files, err := c.parseDirEx(dir, test)
+	files, err := c.parseDir(dir, test)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (c *Context) addImport(path string, filename string, src interface{}) (*typ
 }
 
 func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
-	files, err := c.parseDir(dir)
+	files, err := c.parseDir(dir, false)
 	if err != nil {
 		return nil, err
 	}
@@ -248,18 +248,7 @@ func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
 	return tp, nil
 }
 
-func (c *Context) parseDir(dir string) ([]*ast.File, error) {
-	bp, err := build.Default.ImportDir(dir, 0)
-	if err != nil {
-		return nil, err
-	}
-	var filenames []string
-	filenames = append(filenames, bp.GoFiles...)
-	filenames = append(filenames, bp.CgoFiles...)
-	return c.parseFiles(bp.Dir, filenames)
-}
-
-func (c *Context) parseDirEx(dir string, test bool) ([]*ast.File, error) {
+func (c *Context) parseDir(dir string, test bool) ([]*ast.File, error) {
 	bp, err := c.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
