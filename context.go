@@ -175,6 +175,12 @@ func (c *Context) LoadDir(dir string, test bool) (pkgs []*ssa.Package, first err
 		}
 		pkg.Files[c.FileSet.Position(f.Package).Filename] = f
 	}
+	if dir != "." {
+		if wd, err := os.Getwd(); err == nil {
+			os.Chdir(dir)
+			defer os.Chdir(wd)
+		}
+	}
 	for _, apkg := range apkgs {
 		if pkg, err := c.LoadAstPackage(apkg); err == nil {
 			pkgs = append(pkgs, pkg)
