@@ -18,6 +18,7 @@
 package run
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -38,13 +39,15 @@ var Cmd = &base.Command{
 var (
 	flag          = &Cmd.Flag
 	flagDumpInstr bool
+	flagDumpPkg   bool
 	flagTrace     bool
 	flagTags      string
 )
 
 func init() {
 	Cmd.Run = runCmd
-	flag.BoolVar(&flagDumpInstr, "dump", false, "dump SSA instruction code")
+	flag.BoolVar(&flagDumpInstr, "dumpssa", false, "print SSA instruction code")
+	flag.BoolVar(&flagDumpPkg, "dumppkg", false, "print load import packages")
 	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
 	flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
 }
@@ -66,6 +69,9 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	if flagTrace {
 		mode |= igop.EnableTracing
+	}
+	if flagDumpPkg {
+		mode |= igop.EnableDumpImports
 	}
 	ctx := igop.NewContext(mode)
 	if flagTags != "" {
@@ -98,7 +104,7 @@ func IsDir(target string) (bool, error) {
 func runFile(ctx *igop.Context, target string, args []string) {
 	exitCode, err := ctx.RunFile(target, nil, args)
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 	}
 	os.Exit(exitCode)
 }
@@ -106,7 +112,7 @@ func runFile(ctx *igop.Context, target string, args []string) {
 func runDir(ctx *igop.Context, dir string, args []string) {
 	exitCode, err := ctx.Run(dir, args)
 	if err != nil {
-		log.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 	}
 	os.Exit(exitCode)
 }
