@@ -240,6 +240,13 @@ func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
 	tp.Load = func() (err error) {
 		if tp.Info == nil {
 			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+			if c.Mode&EnableDumpImports != 0 {
+				if err == nil {
+					fmt.Printf("load %v %v\n", path, dir)
+				} else {
+					fmt.Printf("load %v %v error: %v\n", path, dir, err)
+				}
+			}
 		}
 		return
 	}
