@@ -175,6 +175,12 @@ func (c *Context) LoadDir(dir string, test bool) (pkgs []*ssa.Package, first err
 		}
 		pkg.Files[c.FileSet.Position(f.Package).Filename] = f
 	}
+	if dir != "." {
+		if wd, err := os.Getwd(); err == nil {
+			os.Chdir(dir)
+			defer os.Chdir(wd)
+		}
+	}
 	for _, apkg := range apkgs {
 		if pkg, err := c.LoadAstPackage(apkg); err == nil {
 			pkgs = append(pkgs, pkg)
@@ -240,6 +246,13 @@ func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
 	tp.Load = func() (err error) {
 		if tp.Info == nil {
 			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
+			if c.Mode&EnableDumpImports != 0 {
+				if err == nil {
+					fmt.Printf("load %v %v\n", path, dir)
+				} else {
+					fmt.Printf("load %v %v error: %v\n", path, dir, err)
+				}
+			}
 		}
 		return
 	}

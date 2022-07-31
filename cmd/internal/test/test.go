@@ -20,7 +20,7 @@ package test
 import (
 	"flag"
 	"fmt"
-	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -97,7 +97,8 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	for _, pkg := range pkgs {
 		if err := ctx.RunTest(pkg, testArgs); err != nil {
-			log.Println("igop test failed:", pkg, err)
+			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintf(os.Stderr, "FAIL\t%v [run failed]\n", pkg)
 		}
 	}
 }
