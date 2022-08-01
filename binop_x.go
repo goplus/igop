@@ -47,7 +47,9 @@ func makeBinOpEQL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		}
 	case reflect.Array:
 		return func(fr *frame) {
-			fr.setReg(ir, fr.reg(ix) == fr.reg(iy))
+			x := fr.reg(ix)
+			y := fr.reg(iy)
+			fr.setReg(ir, equalArray(reflect.ValueOf(x), reflect.ValueOf(y)))
 		}
 	case reflect.Struct:
 		return func(fr *frame) {
@@ -137,7 +139,9 @@ func makeBinOpNEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		}
 	case reflect.Array:
 		return func(fr *frame) {
-			fr.setReg(ir, fr.reg(ix) != fr.reg(iy))
+			x := fr.reg(ix)
+			y := fr.reg(iy)
+			fr.setReg(ir, !equalArray(reflect.ValueOf(x), reflect.ValueOf(y)))
 		}
 	case reflect.Struct:
 		return func(fr *frame) {

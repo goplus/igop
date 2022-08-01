@@ -2447,3 +2447,34 @@ func check(b1 bool, b2 bool) {
 		t.Fatal(err)
 	}
 }
+
+func TestIssue23545(t *testing.T) {
+	src := `package main
+
+func main() {
+	if a := Get(); a != dummyID(1234) {
+		panic("FAIL")
+	}
+}
+
+func dummyID(x int) [Size]interface{} {
+	var out [Size]interface{}
+	out[0] = x
+	return out
+}
+
+const Size = 32
+
+type OutputID [Size]interface{}
+
+//go:noinline
+func Get() OutputID {
+	return dummyID(1234)
+}
+`
+	ctx := igop.NewContext(0)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

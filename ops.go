@@ -1169,11 +1169,6 @@ func equalValue(vx, vy reflect.Value) bool {
 }
 
 func equalArray(vx, vy reflect.Value) bool {
-	if vx.Type() != vy.Type() {
-		return false
-	}
-	return vx.Interface() == vy.Interface()
-
 	xlen := vx.Len()
 	if xlen != vy.Len() {
 		return false
