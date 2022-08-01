@@ -2455,6 +2455,11 @@ func main() {
 	if a := Get(); a != dummyID(1234) {
 		panic("FAIL")
 	}
+	var i1 interface{} = Get()
+	var i2 interface{} = dummyID(1234)
+	if i1 == i2 {
+		panic("FAIL")
+	}
 }
 
 func dummyID(x int) [Size]interface{} {
