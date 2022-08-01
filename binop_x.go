@@ -133,21 +133,15 @@ func makeBinOpNEQ(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		}
 	case reflect.Interface:
 		return func(fr *frame) {
-			x := fr.reg(ix)
-			y := fr.reg(iy)
-			fr.setReg(ir, !equalValue(reflect.ValueOf(x), reflect.ValueOf(y)))
+			fr.setReg(ir, fr.reg(ix) != fr.reg(iy))
 		}
 	case reflect.Array:
 		return func(fr *frame) {
-			x := fr.reg(ix)
-			y := fr.reg(iy)
-			fr.setReg(ir, !equalArray(reflect.ValueOf(x), reflect.ValueOf(y)))
+			fr.setReg(ir, fr.reg(ix) != fr.reg(iy))
 		}
 	case reflect.Struct:
 		return func(fr *frame) {
-			x := fr.reg(ix)
-			y := fr.reg(iy)
-			fr.setReg(ir, !equalStruct(reflect.ValueOf(x), reflect.ValueOf(y)))
+			fr.setReg(ir, fr.reg(ix) != fr.reg(iy))
 		}
 	case reflect.UnsafePointer:
 		return func(fr *frame) {
