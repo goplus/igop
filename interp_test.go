@@ -2410,3 +2410,40 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestEqualChan(t *testing.T) {
+	src := `package main
+
+func main() {
+	ch := make(chan bool)
+	ch1 := (<-chan bool)(ch)
+	ch2 := (chan<- bool)(ch)
+	var i interface{} = ch
+	var i1 interface{} = ch1
+	var i2 interface{} = ch2
+
+	check(ch == ch1, true)
+	check(ch == ch2, true)
+	check(i == i1, false)
+	check(i == i2, false)
+	check(i1 == i2, false)
+
+	check(ch != ch1, false)
+	check(ch != ch2, false)
+	check(i != i1, true)
+	check(i != i2, true)
+	check(i1 != i2, true)
+}
+
+func check(b1 bool, b2 bool) {
+	if b1 != b2 {
+		panic("error")
+	}
+}
+`
+	ctx := igop.NewContext(0)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
