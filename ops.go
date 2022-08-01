@@ -14,7 +14,6 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -1192,25 +1191,26 @@ func equalStruct(vx, vy reflect.Value) bool {
 	if typ != vy.Type() {
 		return false
 	}
-	n := typ.NumField()
-	for i := 0; i < n; i++ {
-		f := typ.Field(i)
-		if f.Name == "_" {
-			continue
-		}
-		fx := reflectx.FieldByIndexX(vx, f.Index)
-		fy := reflectx.FieldByIndexX(vy, f.Index)
-		// check uncomparable
-		switch f.Type.Kind() {
-		case reflect.Slice, reflect.Map, reflect.Func:
-			if fx.Interface() != fy.Interface() {
-				return false
-			}
-		}
-		if !equalNil(fx, fy) {
-			return false
-		}
-	}
+	return vx.Interface() == vy.Interface()
+	// n := typ.NumField()
+	// for i := 0; i < n; i++ {
+	// 	f := typ.Field(i)
+	// 	if f.Name == "_" {
+	// 		continue
+	// 	}
+	// 	fx := reflectx.FieldByIndexX(vx, f.Index)
+	// 	fy := reflectx.FieldByIndexX(vy, f.Index)
+	// 	// check uncomparable
+	// 	switch f.Type.Kind() {
+	// 	case reflect.Slice, reflect.Map, reflect.Func:
+	// 		if fx.Interface() != fy.Interface() {
+	// 			return false
+	// 		}
+	// 	}
+	// 	if !equalNil(fx, fy) {
+	// 		return false
+	// 	}
+	// }
 	return true
 }
 

@@ -55,9 +55,7 @@ func makeBinOpEQL(pfn *function, instr *ssa.BinOp) func(fr *frame) {
 		}
 	case reflect.Struct:
 		return func(fr *frame) {
-			x := fr.reg(ix)
-			y := fr.reg(iy)
-			fr.setReg(ir, equalStruct(reflect.ValueOf(x), reflect.ValueOf(y)))
+			fr.setReg(ir, fr.reg(ix) == fr.reg(iy))
 		}
 	case reflect.UnsafePointer:
 		return func(fr *frame) {
