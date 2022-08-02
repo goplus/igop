@@ -1,4 +1,5 @@
-//+build go1.16,!go1.17
+//go:build go1.16 && !go1.17
+// +build go1.16,!go1.17
 
 package pkg
 
@@ -137,6 +138,7 @@ import (
 	_ "github.com/goplus/igop/pkg/sync"
 	_ "github.com/goplus/igop/pkg/sync/atomic"
 	_ "github.com/goplus/igop/pkg/syscall"
+	_ "github.com/goplus/igop/pkg/testing"
 	_ "github.com/goplus/igop/pkg/text/scanner"
 	_ "github.com/goplus/igop/pkg/text/tabwriter"
 	_ "github.com/goplus/igop/pkg/text/template"

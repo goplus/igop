@@ -85,7 +85,7 @@ func makepkg(fname string, tags []string, std []string) error {
 	//_ github.com/goplus/igop/pkg
 	var pkgs []string
 	for _, v := range std {
-		if strings.HasPrefix(v, "testing") {
+		if strings.HasPrefix(v, "testing/") {
 			continue
 		}
 		if v == "log/syslog" {
