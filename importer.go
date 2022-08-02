@@ -33,7 +33,7 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 	defer func() {
 		i.importing[path] = false
 	}()
-	if pkg, err := i.ctx.Loader.Import(path); err == nil {
+	if pkg, err := i.ctx.Loader.Import(path); err == nil && pkg.Complete() {
 		i.pkgs[path] = pkg
 		return pkg, nil
 	}
