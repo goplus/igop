@@ -128,12 +128,11 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		return pfn
 	}
 	pfn := &function{
-		Interp:           i,
-		Fn:               fn,
-		mapUnderscoreKey: make(map[types.Type]bool),
-		index:            make(map[ssa.Value]uint32),
-		narg:             len(fn.Params),
-		nenv:             len(fn.FreeVars),
+		Interp: i,
+		Fn:     fn,
+		index:  make(map[ssa.Value]uint32),
+		narg:   len(fn.Params),
+		nenv:   len(fn.FreeVars),
 	}
 	if len(fn.Blocks) > 0 {
 		pfn.Main = fn.Blocks[0]
