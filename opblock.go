@@ -90,22 +90,21 @@ type closure struct {
 }
 
 type function struct {
-	Interp           *Interp
-	Fn               *ssa.Function        // ssa function
-	Main             *ssa.BasicBlock      // Fn.Blocks[0]
-	pool             *sync.Pool           // create frame pool
-	Instrs           []func(fr *frame)    // main instrs
-	Recover          []func(fr *frame)    // recover instrs
-	Blocks           []int                // block offset
-	stack            []value              // results args envs datas
-	ssaInstrs        []ssa.Instruction    // org ssa instr
-	index            map[ssa.Value]uint32 // stack index
-	mapUnderscoreKey map[types.Type]bool  // struct has _ key
-	nres             int                  // results count
-	narg             int                  // arguments count
-	nenv             int                  // closure free vars count
-	used             int32                // function used count
-	cached           int32                // enable cached by pool
+	Interp    *Interp
+	Fn        *ssa.Function        // ssa function
+	Main      *ssa.BasicBlock      // Fn.Blocks[0]
+	pool      *sync.Pool           // create frame pool
+	Instrs    []func(fr *frame)    // main instrs
+	Recover   []func(fr *frame)    // recover instrs
+	Blocks    []int                // block offset
+	stack     []value              // results args envs datas
+	ssaInstrs []ssa.Instruction    // org ssa instr
+	index     map[ssa.Value]uint32 // stack index
+	nres      int                  // results count
+	narg      int                  // arguments count
+	nenv      int                  // closure free vars count
+	used      int32                // function used count
+	cached    int32                // enable cached by pool
 }
 
 func (p *function) initPool() {
@@ -426,10 +425,6 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	case *ssa.MakeMap:
 		typ := instr.Type()
 		rtyp := interp.preToType(typ)
-		key := typ.Underlying().(*types.Map).Key()
-		if st, ok := key.Underlying().(*types.Struct); ok && hasUnderscore(st) {
-			pfn.mapUnderscoreKey[typ] = true
-		}
 		ir := pfn.regIndex(instr)
 		if instr.Reserve == nil {
 			return func(fr *frame) {
@@ -546,33 +541,6 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				fr.setReg(ir, reflect.ValueOf(v).String()[asInt(idx)])
 			}
 		case reflect.Map:
-			if pfn.mapUnderscoreKey[instr.X.Type()] {
-				return func(fr *frame) {
-					m := fr.reg(ix)
-					idx := fr.reg(ii)
-					vm := reflect.ValueOf(m)
-					vk := reflect.ValueOf(idx)
-					for _, vv := range vm.MapKeys() {
-						if equalStruct(vk, vv) {
-							vk = vv
-							break
-						}
-					}
-					v := vm.MapIndex(vk)
-					ok := v.IsValid()
-					var rv value
-					if ok {
-						rv = v.Interface()
-					} else {
-						rv = reflect.New(typ.Elem()).Elem().Interface()
-					}
-					if instr.CommaOk {
-						fr.setReg(ir, tuple{rv, ok})
-					} else {
-						fr.setReg(ir, rv)
-					}
-				}
-			}
 			return func(fr *frame) {
 				m := fr.reg(ix)
 				idx := fr.reg(ii)
@@ -903,33 +871,6 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		im := pfn.regIndex(instr.Map)
 		ik := pfn.regIndex(instr.Key)
 		iv, kv, vv := pfn.regIndex3(instr.Value)
-		if pfn.mapUnderscoreKey[instr.Map.Type()] {
-			if kv.isStatic() {
-				return func(fr *frame) {
-					vm := reflect.ValueOf(fr.reg(im))
-					vk := reflect.ValueOf(fr.reg(ik))
-					for _, v := range vm.MapKeys() {
-						if equalStruct(vk, v) {
-							vk = v
-							break
-						}
-					}
-					vm.SetMapIndex(vk, reflect.ValueOf(vv))
-				}
-			}
-			return func(fr *frame) {
-				vm := reflect.ValueOf(fr.reg(im))
-				vk := reflect.ValueOf(fr.reg(ik))
-				v := fr.reg(iv)
-				for _, vv := range vm.MapKeys() {
-					if equalStruct(vk, vv) {
-						vk = vv
-						break
-					}
-				}
-				vm.SetMapIndex(vk, reflect.ValueOf(v))
-			}
-		}
 		if kv.isStatic() {
 			return func(fr *frame) {
 				vm := reflect.ValueOf(fr.reg(im))
