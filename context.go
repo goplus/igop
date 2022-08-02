@@ -90,6 +90,12 @@ func (c *Context) lookupPath(path string) (dir string, found bool) {
 		}
 	}
 	_, dir, found = c.mod.Lookup(path)
+	if !found {
+		bp, err := build.Import(path, c.root, build.FindOnly)
+		if err == nil && bp.ImportPath == path {
+			return bp.Dir, true
+		}
+	}
 	return
 }
 
