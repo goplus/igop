@@ -26,7 +26,6 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
-	_ "github.com/goplus/igop/pkg/testing"
 )
 
 // Cmd - igop test
