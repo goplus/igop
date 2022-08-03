@@ -55,8 +55,7 @@ type Package struct {
 	Funcs         map[string]reflect.Value
 	TypedConsts   map[string]TypedConst
 	UntypedConsts map[string]UntypedConst
-	Deps          map[string]string        // path -> name
-	methods       map[string]reflect.Value // methods cached
+	Deps          map[string]string // path -> name
 }
 
 // merge same package
