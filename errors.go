@@ -15,6 +15,7 @@ var (
 	ErrGoexitDeadlock   = errors.New("fatal error: no goroutines (main called runtime.Goexit) - deadlock!")
 	ErrNoFunction       = errors.New("no function")
 	ErrNoCustomBuiltin  = errors.New("no custom builtin")
+	ErrNoTestFiles      = errors.New("[no test files]")
 )
 
 type ExitError int

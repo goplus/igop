@@ -11,6 +11,7 @@ import (
 	"go/types"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -103,9 +104,11 @@ type sourcePackage struct {
 	Package      *types.Package
 	XTestPackage *types.Package
 	Info         *types.Info
+	XInfo        *types.Info
 	Files        []*ast.File
 	XTestFiles   []*ast.File
 	Dir          string
+	HasTestFiles bool
 }
 
 func (sp *sourcePackage) Load() (err error) {
@@ -120,6 +123,36 @@ func (sp *sourcePackage) Load() (err error) {
 		}
 		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
 			return err
+		}
+	}
+	return
+}
+
+func (sp *sourcePackage) LoadTest() (err error) {
+	if sp.Info == nil {
+		sp.Info = &types.Info{
+			Types:      make(map[ast.Expr]types.TypeAndValue),
+			Defs:       make(map[*ast.Ident]types.Object),
+			Uses:       make(map[*ast.Ident]types.Object),
+			Implicits:  make(map[ast.Node]types.Object),
+			Scopes:     make(map[ast.Node]*types.Scope),
+			Selections: make(map[*ast.SelectorExpr]*types.Selection),
+		}
+		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
+			return err
+		}
+		if len(sp.XTestFiles) > 0 {
+			sp.XInfo = &types.Info{
+				Types:      make(map[ast.Expr]types.TypeAndValue),
+				Defs:       make(map[*ast.Ident]types.Object),
+				Uses:       make(map[*ast.Ident]types.Object),
+				Implicits:  make(map[ast.Node]types.Object),
+				Scopes:     make(map[ast.Node]*types.Scope),
+				Selections: make(map[*ast.SelectorExpr]*types.Selection),
+			}
+			if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.XTestPackage, sp.XInfo).Files(sp.XTestFiles); err != nil {
+				return err
+			}
 		}
 	}
 	return
@@ -181,10 +214,27 @@ func (c *Context) writeOutput(data []byte) (n int, err error) {
 	return os.Stdout.Write(data)
 }
 
+func importPathForDir(dir string) (string, error) {
+	cmd := exec.Command("go", "list")
+	cmd.Dir = dir
+	data, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
+}
+
 func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
-	sp, err := c.loadPackage("", dir)
+	var path string
+	if test {
+		path, _ = importPathForDir(dir)
+	}
+	sp, err := c.loadPackage(path, dir, test)
 	if err != nil {
 		return nil, err
+	}
+	if test && !sp.HasTestFiles {
+		return nil, ErrNoTestFiles
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := ParseBuiltin(c.FileSet, sp.Package.Name()); err == nil {
@@ -208,14 +258,25 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 			defer os.Chdir(wd)
 		}
 	}
-	err = sp.Load()
+	if test {
+		err = sp.LoadTest()
+	} else {
+		err = sp.Load()
+	}
 	if first != nil {
 		return nil, first
 	}
 	if err != nil {
 		return nil, err
 	}
-	return c.buildPackage(sp)
+	pkg, err := c.buildPackage(sp)
+	if err != nil {
+		return nil, err
+	}
+	if test {
+		return CreateTestMainPackage(c, pkg)
+	}
+	return pkg, nil
 }
 
 func (c *Context) _LoadDir(dir string, test bool) (pkgs []*ssa.Package, first error) {
@@ -289,7 +350,7 @@ func (c *Context) addImport(path string, filename string, src interface{}) (*sou
 }
 
 func (c *Context) addImportDir(path string, dir string) (*sourcePackage, error) {
-	tp, err := c.loadPackage(path, dir)
+	tp, err := c.loadPackage(path, dir, false)
 	if err != nil {
 		return nil, err
 	}
@@ -298,17 +359,21 @@ func (c *Context) addImportDir(path string, dir string) (*sourcePackage, error) 
 	return tp, nil
 }
 
-func (c *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
+func (c *Context) loadPackage(path string, dir string, test bool) (*sourcePackage, error) {
 	bp, err := c.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
-	files, err := c.parseFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
+	filenames := append(bp.GoFiles, bp.CgoFiles...)
+	if test {
+		filenames = append(filenames, bp.TestGoFiles...)
+	}
+	files, err := c.parseFiles(dir, filenames)
 	if err != nil {
 		return nil, err
 	}
 	if path == "" {
-		path = bp.ImportPath
+		path = bp.Name
 	}
 	pkg := types.NewPackage(path, bp.Name)
 	tp := &sourcePackage{
@@ -316,6 +381,17 @@ func (c *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
 		Files:   files,
 		Dir:     dir,
 		Context: c,
+	}
+	if test {
+		if len(bp.XTestGoFiles) > 0 {
+			files, err = c.parseFiles(dir, bp.XTestGoFiles)
+			if err != nil {
+				return nil, err
+			}
+			tp.XTestPackage = types.NewPackage(path+"_test", bp.Name+"_")
+			tp.XTestFiles = files
+		}
+		tp.HasTestFiles = len(bp.TestGoFiles) > 0 || len(bp.XTestGoFiles) > 0
 	}
 	return tp, nil
 }
@@ -445,19 +521,9 @@ func (c *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
 	return NewInterp(c, mainPkg)
 }
 
-func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) error {
+func (c *Context) TestPkg(pkg *ssa.Package, input string, args []string) error {
 	var failed bool
 	start := time.Now()
-	var testPkgs []*ssa.Package
-	for _, pkg := range pkgs {
-		p, err := CreateTestMainPackage(c, pkg)
-		if err != nil {
-			return err
-		}
-		if p != nil {
-			testPkgs = append(testPkgs, p)
-		}
-	}
 	defer func() {
 		sec := time.Since(start).Seconds()
 		if failed {
@@ -466,31 +532,27 @@ func (c *Context) TestPkg(pkgs []*ssa.Package, input string, args []string) erro
 			fmt.Printf("ok\t%s %0.3fs\n", input, sec)
 		}
 	}()
-	if len(testPkgs) == 0 {
+	if pkg == nil {
 		fmt.Println("testing: warning: no tests to run")
+		return nil
 	}
 	os.Args = []string{input}
 	if args != nil {
 		os.Args = append(os.Args, args...)
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	for _, pkg := range testPkgs {
-		reflectx.Reset()
-		interp, err := NewInterp(c, pkg)
-		if err != nil {
-			failed = true
-			fmt.Printf("create interp failed: %v\n", err)
-			continue
-		}
-		if err = interp.RunInit(); err != nil {
-			failed = true
-			fmt.Printf("init error: %v\n", err)
-			continue
-		}
-		exitCode, _ := interp.RunMain()
-		if exitCode != 0 {
-			failed = true
-		}
+	interp, err := NewInterp(c, pkg)
+	if err != nil {
+		failed = true
+		fmt.Printf("create interp failed: %v\n", err)
+	}
+	if err = interp.RunInit(); err != nil {
+		failed = true
+		fmt.Printf("init error: %v\n", err)
+	}
+	exitCode, _ := interp.RunMain()
+	if exitCode != 0 {
+		failed = true
 	}
 	if failed {
 		return ErrTestFailed
@@ -525,16 +587,18 @@ func isMainPkg(pkg *ssa.Package) bool {
 }
 
 func (c *Context) RunTest(dir string, args []string) error {
-	return nil
-	// preload regexp for create testing
-	// pkgs, err := c.LoadDir(dir, true)
-	// if err != nil {
-	// 	return err
-	// }
-	// if filepath.IsAbs(dir) {
-	// 	os.Chdir(dir)
-	// }
-	// return c.TestPkg(pkgs, dir, args)
+	pkg, err := c.LoadDir(dir, true)
+	if err != nil {
+		if err == ErrNoTestFiles {
+			fmt.Println("?", err)
+			return nil
+		}
+		return err
+	}
+	if filepath.IsAbs(dir) {
+		os.Chdir(dir)
+	}
+	return c.TestPkg(pkg, dir, args)
 }
 
 func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
