@@ -22,7 +22,6 @@ import (
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/gomod"
 	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/ssa/ssautil"
 )
 
 // Mode is a bitmask of options affecting the interpreter.
@@ -57,7 +56,7 @@ type Context struct {
 	Sizes        types.Sizes                                      // types size for package unsafe
 	BuildContext build.Context                                    // build context
 	Lookup       func(root, path string) (dir string, found bool) // lookup external import
-	pkgs         map[string]*typesPackage                         // imports
+	pkgs         map[string]*sourcePackage                        // imports
 	override     map[string]reflect.Value                         // override function
 	output       io.Writer                                        // capture print/println output
 	callForPool  int                                              // least call count for enable function pool
@@ -99,12 +98,31 @@ func (c *Context) lookupPath(path string) (dir string, found bool) {
 	return
 }
 
-type typesPackage struct {
-	Package *types.Package
-	Files   []*ast.File
-	Info    *types.Info
-	Dir     string
-	Load    func() error
+type sourcePackage struct {
+	Context      *Context
+	Package      *types.Package
+	XTestPackage *types.Package
+	Info         *types.Info
+	Files        []*ast.File
+	XTestFiles   []*ast.File
+	Dir          string
+}
+
+func (sp *sourcePackage) Load() (err error) {
+	if sp.Info == nil {
+		sp.Info = &types.Info{
+			Types:      make(map[ast.Expr]types.TypeAndValue),
+			Defs:       make(map[*ast.Ident]types.Object),
+			Uses:       make(map[*ast.Ident]types.Object),
+			Implicits:  make(map[ast.Node]types.Object),
+			Scopes:     make(map[ast.Node]*types.Scope),
+			Selections: make(map[*ast.SelectorExpr]*types.Selection),
+		}
+		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
+			return err
+		}
+	}
+	return
 }
 
 func (c *Context) IsEvalMode() bool {
@@ -120,7 +138,7 @@ func NewContext(mode Mode) *Context {
 		ParserMode:   parser.AllErrors,
 		BuilderMode:  0, //ssa.SanityCheckFunctions,
 		BuildContext: build.Default,
-		pkgs:         make(map[string]*typesPackage),
+		pkgs:         make(map[string]*sourcePackage),
 		override:     make(map[string]reflect.Value),
 		callForPool:  64,
 	}
@@ -163,7 +181,44 @@ func (c *Context) writeOutput(data []byte) (n int, err error) {
 	return os.Stdout.Write(data)
 }
 
-func (c *Context) LoadDir(dir string, test bool) (pkgs []*ssa.Package, first error) {
+func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
+	sp, err := c.loadPackage("", dir)
+	if err != nil {
+		return nil, err
+	}
+	if c.Mode&DisableCustomBuiltin == 0 {
+		if f, err := ParseBuiltin(c.FileSet, sp.Package.Name()); err == nil {
+			sp.Files = append([]*ast.File{f}, sp.Files...)
+		}
+	}
+	c.setRoot(dir)
+	var first error
+	c.conf = &types.Config{
+		Importer: NewImporter(c),
+		Sizes:    c.Sizes,
+		Error: func(err error) {
+			if first == nil {
+				first = err
+			}
+		},
+	}
+	if dir != "." {
+		if wd, err := os.Getwd(); err == nil {
+			os.Chdir(dir)
+			defer os.Chdir(wd)
+		}
+	}
+	err = sp.Load()
+	if first != nil {
+		return nil, first
+	}
+	if err != nil {
+		return nil, err
+	}
+	return c.buildPackage(sp)
+}
+
+func (c *Context) _LoadDir(dir string, test bool) (pkgs []*ssa.Package, first error) {
 	files, err := c.parseDir(dir, test)
 	if err != nil {
 		return nil, err
@@ -217,53 +272,51 @@ func (c *Context) AddImportDir(path string, dir string) (err error) {
 	return
 }
 
-func (c *Context) addImport(path string, filename string, src interface{}) (*typesPackage, error) {
+func (c *Context) addImport(path string, filename string, src interface{}) (*sourcePackage, error) {
 	file, err := c.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
 	}
 	pkg := types.NewPackage(path, file.Name.Name)
-	tp := &typesPackage{
+	tp := &sourcePackage{
+		Context: c,
 		Package: pkg,
 		Files:   []*ast.File{file},
-	}
-	tp.Load = func() (err error) {
-		if tp.Info == nil {
-			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
-		}
-		return
 	}
 	c.pkgs[path] = tp
 	c.Loader.SetImport(path, pkg, tp.Load)
 	return tp, nil
 }
 
-func (c *Context) addImportDir(path string, dir string) (*typesPackage, error) {
-	files, err := c.parseDir(dir, false)
+func (c *Context) addImportDir(path string, dir string) (*sourcePackage, error) {
+	tp, err := c.loadPackage(path, dir)
 	if err != nil {
 		return nil, err
 	}
-	pkg := types.NewPackage(path, files[0].Name.Name)
-	tp := &typesPackage{
+	c.pkgs[path] = tp
+	c.Loader.SetImport(path, tp.Package, tp.Load)
+	return tp, nil
+}
+
+func (c *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
+	bp, err := c.BuildContext.ImportDir(dir, 0)
+	if err != nil {
+		return nil, err
+	}
+	files, err := c.parseFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
+	if err != nil {
+		return nil, err
+	}
+	if path == "" {
+		path = bp.ImportPath
+	}
+	pkg := types.NewPackage(path, bp.Name)
+	tp := &sourcePackage{
 		Package: pkg,
 		Files:   files,
 		Dir:     dir,
+		Context: c,
 	}
-	tp.Load = func() (err error) {
-		if tp.Info == nil {
-			tp.Info, err = c.checkTypesInfo(pkg, tp.Files)
-			if c.Mode&EnableDumpImports != 0 {
-				if err == nil {
-					fmt.Printf("load %v %v\n", path, dir)
-				} else {
-					fmt.Printf("load %v %v error: %v\n", path, dir, err)
-				}
-			}
-		}
-		return
-	}
-	c.pkgs[path] = tp
-	c.Loader.SetImport(path, pkg, tp.Load)
 	return tp, nil
 }
 
@@ -457,27 +510,31 @@ func (c *Context) Run(path string, args []string) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
 		return c.RunFile(path, nil, args)
 	}
-	pkgs, err := c.LoadDir(path, false)
+	pkg, err := c.LoadDir(path, false)
 	if err != nil {
 		return 2, err
 	}
-	mainPkgs := ssautil.MainPackages(pkgs)
-	if len(mainPkgs) == 0 {
+	if !isMainPkg(pkg) {
 		return 2, ErrNotFoundMain
 	}
-	return c.RunPkg(mainPkgs[0], path, args)
+	return c.RunPkg(pkg, path, args)
+}
+
+func isMainPkg(pkg *ssa.Package) bool {
+	return pkg.Pkg.Name() == "main" && pkg.Func("main") != nil
 }
 
 func (c *Context) RunTest(dir string, args []string) error {
+	return nil
 	// preload regexp for create testing
-	pkgs, err := c.LoadDir(dir, true)
-	if err != nil {
-		return err
-	}
-	if filepath.IsAbs(dir) {
-		os.Chdir(dir)
-	}
-	return c.TestPkg(pkgs, dir, args)
+	// pkgs, err := c.LoadDir(dir, true)
+	// if err != nil {
+	// 	return err
+	// }
+	// if filepath.IsAbs(dir) {
+	// 	os.Chdir(dir)
+	// }
+	// return c.TestPkg(pkgs, dir, args)
 }
 
 func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
@@ -493,6 +550,51 @@ func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*type
 		return nil, err
 	}
 	return info, nil
+}
+
+func (ctx *Context) buildPackage(pkg *sourcePackage) (*ssa.Package, error) {
+	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
+	// Create SSA packages for all imports.
+	// Order is not significant.
+	created := make(map[*types.Package]bool)
+	var createAll func(pkgs []*types.Package)
+	createAll = func(pkgs []*types.Package) {
+		for _, p := range pkgs {
+			if !created[p] {
+				created[p] = true
+				createAll(p.Imports())
+				if pkg, ok := ctx.pkgs[p.Path()]; ok {
+					if ctx.Mode&EnableDumpImports != 0 {
+						if pkg.Dir != "" {
+							fmt.Println("# imported", p.Path(), pkg.Dir)
+						} else {
+							fmt.Println("# imported", p.Path(), "source")
+						}
+					}
+					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
+				} else {
+					var indirect bool
+					if !p.Complete() {
+						indirect = true
+						p.MarkComplete()
+					}
+					if ctx.Mode&EnableDumpImports != 0 {
+						if indirect {
+							fmt.Println("# indirect", p.Path())
+						} else {
+							fmt.Println("# imported", p.Path())
+						}
+					}
+					prog.CreatePackage(p, nil, nil, true).Build()
+				}
+			}
+		}
+	}
+	createAll(pkg.Package.Imports())
+	// Create and build the primary package.
+	ssapkg := prog.CreatePackage(pkg.Package, pkg.Files, pkg.Info, false)
+	ssapkg.Build()
+	return ssapkg, nil
 }
 
 func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
