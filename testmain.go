@@ -26,40 +26,49 @@ import (
 //
 // Deprecated: Use golang.org/x/tools/go/packages to access synthetic
 // testmain packages.
-func CreateTestMainPackage(ctx *Context, pkg *ssa.Package) (*ssa.Package, error) {
+func CreateTestMainPackage(ctx *Context, pkg *ssa.Package, xtestpkg *ssa.Package) (*ssa.Package, error) {
 	prog := pkg.Prog
 
 	// Template data
 	var data struct {
-		Pkg                         *ssa.Package
-		Tests, Benchmarks, Examples []*ssa.Function
-		FuzzTargets                 []*ssa.Function
-		Main                        *ssa.Function
+		TestPkg                                    *ssa.Package
+		XTestPkg                                   *ssa.Package
+		Tests, Benchmarks, Examples                []*ssa.Function
+		FuzzTargets                                []*ssa.Function
+		XTestTests, XTestBenchmarks, XTestExamples []*ssa.Function
+		XTestFuzzTargets                           []*ssa.Function
+		Main                                       *ssa.Function
+		Go118                                      bool
 	}
-	data.Pkg = pkg
-
+	sortFunc := func(funcs []*ssa.Function) {
+		sort.Slice(funcs, func(i, j int) bool {
+			return funcs[i].Pos() < funcs[j].Pos()
+		})
+	}
 	// Enumerate tests.
 	data.Tests, data.Benchmarks, data.Examples, data.Main = FindTests(pkg)
-	if data.Main == nil &&
-		data.Tests == nil && data.Benchmarks == nil && data.Examples == nil {
-		return nil, nil
+	sortFunc(data.Tests)
+	sortFunc(data.Benchmarks)
+	sortFunc(data.Examples)
+	if len(data.Tests) != 0 || len(data.Benchmarks) != 0 || len(data.Examples) != 0 {
+		data.TestPkg = pkg
 	}
-	sort.Slice(data.Tests, func(i, j int) bool {
-		return data.Tests[i].Pos() < data.Tests[j].Pos()
-	})
-	sort.Slice(data.Benchmarks, func(i, j int) bool {
-		return data.Benchmarks[i].Pos() < data.Benchmarks[j].Pos()
-	})
-	sort.Slice(data.Examples, func(i, j int) bool {
-		return data.Examples[i].Pos() < data.Examples[j].Pos()
-	})
+	if xtestpkg != nil {
+		data.XTestTests, data.XTestBenchmarks, data.XTestExamples, _ = FindTests(xtestpkg)
+		sortFunc(data.XTestTests)
+		sortFunc(data.XTestBenchmarks)
+		sortFunc(data.XTestExamples)
+		if len(data.XTestTests) != 0 || len(data.XTestBenchmarks) != 0 || len(data.XTestExamples) != 0 {
+			data.XTestPkg = xtestpkg
+		}
+	}
 
 	// Synthesize source for testmain package.
 	path := pkg.Pkg.Path() + "$testmain"
 	tmpl := testmainTmpl
 	if testingPkg := prog.ImportedPackage("testing"); testingPkg != nil {
 		if testingPkg.Type("InternalFuzzTarget") != nil {
-			tmpl = testmainTmpl_go118
+			data.Go118 = true
 		}
 		// In Go 1.8, testing.MainStart's first argument is an interface, not a func.
 		// data.Go18 = types.IsInterface(testingPkg.Func("MainStart").Signature.Params().At(0).Type())
@@ -84,15 +93,19 @@ func CreateTestMainPackage(ctx *Context, pkg *ssa.Package) (*ssa.Package, error)
 		fmt.Fprintln(os.Stderr, buf.String())
 	}
 
+	// check import regexp
+	if prog.ImportedPackage("regexp") == nil {
+		rpkg, err := ctx.Loader.Import("regexp")
+		if err != nil {
+			return nil, err
+		}
+		prog.CreatePackage(rpkg, nil, nil, true)
+	}
+
 	// Parse and type-check the testmain package.
 	f, err := parser.ParseFile(prog.Fset, path+".go", &buf, parser.Mode(0))
 	if err != nil {
 		return nil, err
-	}
-
-	conf := types.Config{
-		DisableUnusedImportCheck: true,
-		Importer:                 testImporter{ctx, pkg},
 	}
 
 	files := []*ast.File{f}
@@ -104,13 +117,13 @@ func CreateTestMainPackage(ctx *Context, pkg *ssa.Package) (*ssa.Package, error)
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
+	conf := types.Config{
+		Importer: testImporter{ctx, pkg.Prog},
+	}
 	testmainPkg, err := conf.Check(path, prog.Fset, files, info)
 	if err != nil {
 		return nil, err
 	}
-
-	rpkg, _ := ctx.Loader.Import("regexp")
-	prog.CreatePackage(rpkg, nil, nil, true)
 
 	// Create and build SSA code.
 	testmain := prog.CreatePackage(testmainPkg, files, info, false)
@@ -123,19 +136,15 @@ func CreateTestMainPackage(ctx *Context, pkg *ssa.Package) (*ssa.Package, error)
 
 // An implementation of types.Importer for an already loaded SSA program.
 type testImporter struct {
-	ctx *Context
-	pkg *ssa.Package // package under test; may be non-importable
+	ctx  *Context
+	prog *ssa.Program
 }
 
 func (imp testImporter) Import(path string) (*types.Package, error) {
-	if p := imp.pkg.Prog.ImportedPackage(path); p != nil {
+	if p := imp.prog.ImportedPackage(path); p != nil {
 		return p.Pkg, nil
 	}
-	if path == imp.pkg.Pkg.Path() {
-		return imp.pkg.Pkg, nil
-	}
 	return imp.ctx.Loader.Import(path)
-	return nil, ErrNotFoundPackage
 }
 
 var testmainTmpl = template.Must(template.New("testmain").Parse(`
@@ -146,74 +155,16 @@ import (
 	"os"
 	"regexp"
 	"testing"
-	_test {{printf "%q" .Pkg.Pkg.Path}}
-)
-
-type deps struct{}
-
-func (deps) ImportPath() string { return "" }
-func (deps) SetPanicOnExit0(bool) {}
-func (deps) StartCPUProfile(io.Writer) error { return nil }
-func (deps) StartTestLog(io.Writer) {}
-func (deps) StopCPUProfile() {}
-func (deps) StopTestLog() error { return nil }
-func (deps) WriteHeapProfile(io.Writer) error { return nil }
-func (deps) WriteProfileTo(string, io.Writer, int) error { return nil }
-
-var matchPat string
-var matchRe *regexp.Regexp
-
-func (deps) MatchString(pat, str string) (result bool, err error) {
-	if matchRe == nil || matchPat != pat {
-		matchPat = pat
-		matchRe, err = regexp.Compile(matchPat)
-		if err != nil {
-			return
-		}
-	}
-	return matchRe.MatchString(str), nil
-}
-
-var tests = []testing.InternalTest{
-{{range .Tests}}
-	{ {{printf "%q" .Name}}, _test.{{.Name}} },
-{{end}}
-}
-
-var benchmarks = []testing.InternalBenchmark{
-{{range .Benchmarks}}
-	{ {{printf "%q" .Name}}, _test.{{.Name}} },
-{{end}}
-}
-
-var examples = []testing.InternalExample{
-{{range .Examples}}
-	{Name: {{printf "%q" .Name}}, F: _test.{{.Name}}},
-{{end}}
-}
-
-func main() {
-	m := testing.MainStart(deps{}, tests, benchmarks, examples)
-{{with .Main}}
-	_test.{{.Name}}(m)
-{{else}}
-	os.Exit(m.Run())
-{{end}}
-}
-
-`))
-
-var testmainTmpl_go118 = template.Must(template.New("testmain").Parse(`
-package main
-
-import (
-	"io"
-	"os"
-	"regexp"
-	"testing"
+	{{if .Go118}}
 	"time"
 	"reflect"
-	_test {{printf "%q" .Pkg.Pkg.Path}}
+	{{end}}
+	{{if .TestPkg}}
+	_test {{printf "%q" .TestPkg.Pkg.Path}}
+	{{end}}
+	{{if .XTestPkg}}
+	_xtest {{printf "%q" .XTestPkg.Pkg.Path}}
+	{{end}}
 )
 
 type deps struct{}
@@ -227,6 +178,7 @@ func (deps) StopTestLog() error { return nil }
 func (deps) WriteHeapProfile(io.Writer) error { return nil }
 func (deps) WriteProfileTo(string, io.Writer, int) error { return nil }
 
+{{if .Go118}}
 type corpusEntry = struct {
 	Parent     string
 	Path       string
@@ -246,6 +198,7 @@ func (deps) ReadCorpus(string, []reflect.Type) ([]corpusEntry, error) {
 func (f deps) CheckCorpus([]any, []reflect.Type) error { return nil }
 func (f deps) ResetCoverage() {}
 func (f deps) SnapshotCoverage() {}
+{{end}}
 
 var matchPat string
 var matchRe *regexp.Regexp
@@ -265,17 +218,21 @@ var tests = []testing.InternalTest{
 {{range .Tests}}
 	{ {{printf "%q" .Name}}, _test.{{.Name}} },
 {{end}}
+{{if .XTestPkg}}
+{{range .XTestTests}}
+	{ {{printf "%q" .Name}}, _xtest.{{.Name}} },
+{{end}}
+{{end}}
 }
 
 var benchmarks = []testing.InternalBenchmark{
 {{range .Benchmarks}}
 	{ {{printf "%q" .Name}}, _test.{{.Name}} },
 {{end}}
-}
-
-var fuzzTargets = []testing.InternalFuzzTarget{
-{{range .FuzzTargets}}
-	{ {{printf "%q" .Name}}, _test.{{.Name}} },
+{{if .XTestPkg}}
+{{range .XTestBenchmarks}}
+	{ {{printf "%q" .Name}}, _xtest.{{.Name}} },
+{{end}}
 {{end}}
 }
 
@@ -283,10 +240,32 @@ var examples = []testing.InternalExample{
 {{range .Examples}}
 	{Name: {{printf "%q" .Name}}, F: _test.{{.Name}}},
 {{end}}
+{{if .XTestPkg}}
+{{range .XTestExamples}}
+	{Name: {{printf "%q" .Name}}, F: _xtest.{{.Name}}},
+{{end}}
+{{end}}
 }
 
+{{if .Go118}}
+var fuzzTargets = []testing.InternalFuzzTarget{
+{{range .FuzzTargets}}
+	{ {{printf "%q" .Name}}, _test.{{.Name}} },
+{{end}}
+{{if .XTestPkg}}
+{{range .XTestFuzzTargets}}
+	{ {{printf "%q" .Name}}, _xtest.{{.Name}} },
+{{end}}
+{{end}}
+}
+{{end}}
+
 func main() {
+{{if .Go118}}
 	m := testing.MainStart(deps{}, tests, benchmarks, fuzzTargets, examples)
+{{else}}
+	m := testing.MainStart(deps{}, tests, benchmarks, examples)
+{{end}}
 {{with .Main}}
 	_test.{{.Name}}(m)
 {{else}}

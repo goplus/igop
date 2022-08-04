@@ -102,11 +102,9 @@ func (c *Context) lookupPath(path string) (dir string, found bool) {
 type sourcePackage struct {
 	Context      *Context
 	Package      *types.Package
-	XTestPackage *types.Package
 	Info         *types.Info
-	XInfo        *types.Info
+	XTestPackage *sourcePackage
 	Files        []*ast.File
-	XTestFiles   []*ast.File
 	Dir          string
 	HasTestFiles bool
 }
@@ -123,36 +121,6 @@ func (sp *sourcePackage) Load() (err error) {
 		}
 		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
 			return err
-		}
-	}
-	return
-}
-
-func (sp *sourcePackage) LoadTest() (err error) {
-	if sp.Info == nil {
-		sp.Info = &types.Info{
-			Types:      make(map[ast.Expr]types.TypeAndValue),
-			Defs:       make(map[*ast.Ident]types.Object),
-			Uses:       make(map[*ast.Ident]types.Object),
-			Implicits:  make(map[ast.Node]types.Object),
-			Scopes:     make(map[ast.Node]*types.Scope),
-			Selections: make(map[*ast.SelectorExpr]*types.Selection),
-		}
-		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
-			return err
-		}
-		if len(sp.XTestFiles) > 0 {
-			sp.XInfo = &types.Info{
-				Types:      make(map[ast.Expr]types.TypeAndValue),
-				Defs:       make(map[*ast.Ident]types.Object),
-				Uses:       make(map[*ast.Ident]types.Object),
-				Implicits:  make(map[ast.Node]types.Object),
-				Scopes:     make(map[ast.Node]*types.Scope),
-				Selections: make(map[*ast.SelectorExpr]*types.Selection),
-			}
-			if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.XTestPackage, sp.XInfo).Files(sp.XTestFiles); err != nil {
-				return err
-			}
 		}
 	}
 	return
@@ -233,11 +201,14 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
+	if test && !sp.HasTestFiles {
+		return nil, ErrNoTestFiles
+	}
 	if name := sp.Package.Name(); name != "main" {
 		c.pkgs[sp.Package.Path()] = sp
 	}
-	if test && !sp.HasTestFiles {
-		return nil, ErrNoTestFiles
+	if sp.XTestPackage != nil {
+		c.pkgs[sp.XTestPackage.Package.Path()] = sp.XTestPackage
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := ParseBuiltin(c.FileSet, sp.Package.Name()); err == nil {
@@ -261,10 +232,9 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 			defer os.Chdir(wd)
 		}
 	}
-	if test {
-		err = sp.LoadTest()
-	} else {
-		err = sp.Load()
+	err = sp.Load()
+	if test && err == nil && sp.XTestPackage != nil {
+		err = sp.XTestPackage.Load()
 	}
 	if first != nil {
 		return nil, first
@@ -272,12 +242,9 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
-	pkg, err := c.buildPackage(sp)
-	if err != nil {
-		return nil, err
-	}
+	pkg, xtestpkg := c.buildPackage(sp, test)
 	if test {
-		return CreateTestMainPackage(c, pkg)
+		return CreateTestMainPackage(c, pkg, xtestpkg)
 	}
 	return pkg, nil
 }
@@ -391,8 +358,12 @@ func (c *Context) loadPackage(path string, dir string, test bool) (*sourcePackag
 			if err != nil {
 				return nil, err
 			}
-			tp.XTestPackage = types.NewPackage(path+"_test", bp.Name+"_test")
-			tp.XTestFiles = files
+			tp.XTestPackage = &sourcePackage{
+				Package: types.NewPackage(path+"_test", bp.Name+"_test"),
+				Files:   files,
+				Dir:     dir,
+				Context: c,
+			}
 		}
 		tp.HasTestFiles = len(bp.TestGoFiles) > 0 || len(bp.XTestGoFiles) > 0
 	}
@@ -530,15 +501,11 @@ func (c *Context) TestPkg(pkg *ssa.Package, input string, args []string) error {
 	defer func() {
 		sec := time.Since(start).Seconds()
 		if failed {
-			fmt.Printf("FAIL\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stderr, "FAIL\t%s %0.3fs\n", input, sec)
 		} else {
-			fmt.Printf("ok\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stderr, "ok\t%s %0.3fs\n", input, sec)
 		}
 	}()
-	if pkg == nil {
-		fmt.Println("testing: warning: no tests to run")
-		return nil
-	}
 	os.Args = []string{input}
 	if args != nil {
 		os.Args = append(os.Args, args...)
@@ -619,7 +586,7 @@ func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*type
 	return info, nil
 }
 
-func (ctx *Context) buildPackage(pkg *sourcePackage) (*ssa.Package, error) {
+func (ctx *Context) buildPackage(sp *sourcePackage, test bool) (pkg *ssa.Package, xtestpkg *ssa.Package) {
 	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 	// Create SSA packages for all imports.
 	// Order is not significant.
@@ -657,17 +624,18 @@ func (ctx *Context) buildPackage(pkg *sourcePackage) (*ssa.Package, error) {
 			}
 		}
 	}
-	createAll(pkg.Package.Imports())
+	createAll(sp.Package.Imports())
 	// Create and build the primary package.
-	ssapkg := prog.CreatePackage(pkg.Package, pkg.Files, pkg.Info, false)
-	ssapkg.Build()
-	if pkg.XTestPackage != nil {
-		created[pkg.Package] = true
-		createAll(pkg.XTestPackage.Imports())
-		xpkg := prog.CreatePackage(pkg.XTestPackage, pkg.XTestFiles, pkg.XInfo, false)
-		xpkg.Build()
+	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, test)
+	pkg.Build()
+	if sp.XTestPackage != nil {
+		created[sp.Package] = true
+		xpkg := sp.XTestPackage
+		createAll(xpkg.Package.Imports())
+		xtestpkg = prog.CreatePackage(xpkg.Package, xpkg.Files, xpkg.Info, true)
+		xtestpkg.Build()
 	}
-	return ssapkg, nil
+	return
 }
 
 func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
