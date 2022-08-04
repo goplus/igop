@@ -233,6 +233,9 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
+	if name := sp.Package.Name(); name != "main" {
+		c.pkgs[sp.Package.Path()] = sp
+	}
 	if test && !sp.HasTestFiles {
 		return nil, ErrNoTestFiles
 	}
@@ -388,7 +391,7 @@ func (c *Context) loadPackage(path string, dir string, test bool) (*sourcePackag
 			if err != nil {
 				return nil, err
 			}
-			tp.XTestPackage = types.NewPackage(path+"_test", bp.Name+"_")
+			tp.XTestPackage = types.NewPackage(path+"_test", bp.Name+"_test")
 			tp.XTestFiles = files
 		}
 		tp.HasTestFiles = len(bp.TestGoFiles) > 0 || len(bp.XTestGoFiles) > 0
@@ -658,6 +661,12 @@ func (ctx *Context) buildPackage(pkg *sourcePackage) (*ssa.Package, error) {
 	// Create and build the primary package.
 	ssapkg := prog.CreatePackage(pkg.Package, pkg.Files, pkg.Info, false)
 	ssapkg.Build()
+	if pkg.XTestPackage != nil {
+		created[pkg.Package] = true
+		createAll(pkg.XTestPackage.Imports())
+		xpkg := prog.CreatePackage(pkg.XTestPackage, pkg.XTestFiles, pkg.XInfo, false)
+		xpkg.Build()
+	}
 	return ssapkg, nil
 }
 
