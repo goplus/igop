@@ -58,7 +58,6 @@ func emptyType(kind reflect.Kind) reflect.Type {
 	default:
 		return xtypeTypes[kind]
 	}
-	panic(fmt.Errorf("emptyType: unreachable kind %v", kind))
 }
 
 func toMockType(typ types.Type) reflect.Type {

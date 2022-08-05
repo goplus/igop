@@ -491,7 +491,6 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 	default:
 		return i.callExternal(caller, reflect.ValueOf(fn), args, nil)
 	}
-	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }
 
 // call interprets a call to a function (function, builtin or closure)
