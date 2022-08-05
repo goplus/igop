@@ -160,6 +160,9 @@ func (visit *visitor) function(fn *ssa.Function) {
 				continue
 			}
 			if visit.intp.ctx.evalMode && fn.String() == "main.init" {
+				if visit.intp.ctx.evalInit == nil {
+					visit.intp.ctx.evalInit = make(map[string]bool)
+				}
 				if call, ok := instr.(*ssa.Call); ok {
 					key := call.String()
 					if strings.HasPrefix(key, "init#") {

@@ -54,7 +54,6 @@ type Context struct {
 	Mode         Mode                                             // mode
 	ParserMode   parser.Mode                                      // parser mode
 	BuilderMode  ssa.BuilderMode                                  // ssa builder mode
-	Sizes        types.Sizes                                      // types size for package unsafe
 	BuildContext build.Context                                    // build context
 	Lookup       func(root, path string) (dir string, found bool) // lookup external import
 	pkgs         map[string]*sourcePackage                        // imports
@@ -126,10 +125,6 @@ func (sp *sourcePackage) Load() (err error) {
 	return
 }
 
-func (c *Context) IsEvalMode() bool {
-	return c.evalMode
-}
-
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
@@ -146,7 +141,19 @@ func NewContext(mode Mode) *Context {
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
+	ctx.conf = &types.Config{
+		Importer: NewImporter(ctx),
+	}
 	return ctx
+}
+
+func (c *Context) IsEvalMode() bool {
+	return c.evalMode
+}
+
+func (c *Context) SetEvalMode(b bool) {
+	c.evalMode = b
+	c.conf.DisableUnusedImportCheck = b
 }
 
 // SetLeastCallForEnablePool set least call count for enable function pool, default 64
@@ -216,16 +223,6 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 		}
 	}
 	c.setRoot(dir)
-	var first error
-	c.conf = &types.Config{
-		Importer: NewImporter(c),
-		Sizes:    c.Sizes,
-		Error: func(err error) {
-			if first == nil {
-				first = err
-			}
-		},
-	}
 	if dir != "." {
 		if wd, err := os.Getwd(); err == nil {
 			os.Chdir(dir)
@@ -236,9 +233,6 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 	if test && err == nil && sp.XTestPackage != nil {
 		err = sp.XTestPackage.Load()
 	}
-	if first != nil {
-		return nil, first
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -247,40 +241,6 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 		return CreateTestMainPackage(c, pkg, xtestpkg)
 	}
 	return pkg, nil
-}
-
-func (c *Context) _LoadDir(dir string, test bool) (pkgs []*ssa.Package, first error) {
-	files, err := c.parseDir(dir, test)
-	if err != nil {
-		return nil, err
-	}
-	apkgs := make(map[string]*ast.Package)
-	for _, f := range files {
-		name := f.Name.Name
-		pkg, found := apkgs[name]
-		if !found {
-			pkg = &ast.Package{
-				Name:  name,
-				Files: make(map[string]*ast.File),
-			}
-			apkgs[name] = pkg
-		}
-		pkg.Files[c.FileSet.Position(f.Package).Filename] = f
-	}
-	if dir != "." {
-		if wd, err := os.Getwd(); err == nil {
-			os.Chdir(dir)
-			defer os.Chdir(wd)
-		}
-	}
-	for _, apkg := range apkgs {
-		if pkg, err := c.LoadAstPackage(apkg); err == nil {
-			pkgs = append(pkgs, pkg)
-		} else if first == nil {
-			first = err
-		}
-	}
-	return
 }
 
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
@@ -431,23 +391,26 @@ func (c *Context) ParseFile(filename string, src interface{}) (*ast.File, error)
 }
 
 func (c *Context) LoadAstFile(file *ast.File) (*ssa.Package, error) {
-	pkg := types.NewPackage(file.Name.Name, "")
 	files := []*ast.File{file}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := ParseBuiltin(c.FileSet, file.Name.Name); err == nil {
 			files = []*ast.File{f, file}
 		}
 	}
-	ssapkg, _, err := c.BuildPackage(pkg, files)
+	sp := &sourcePackage{
+		Context: c,
+		Package: types.NewPackage(file.Name.Name, ""),
+		Files:   files,
+	}
+	err := sp.Load()
 	if err != nil {
 		return nil, err
 	}
-	ssapkg.Build()
-	return ssapkg, nil
+	pkg, _ := c.buildPackage(sp, false)
+	return pkg, nil
 }
 
 func (c *Context) LoadAstPackage(apkg *ast.Package) (*ssa.Package, error) {
-	pkg := types.NewPackage(apkg.Name, "")
 	var files []*ast.File
 	for _, f := range apkg.Files {
 		files = append(files, f)
@@ -457,12 +420,17 @@ func (c *Context) LoadAstPackage(apkg *ast.Package) (*ssa.Package, error) {
 			files = append([]*ast.File{f}, files...)
 		}
 	}
-	ssapkg, _, err := c.BuildPackage(pkg, files)
+	sp := &sourcePackage{
+		Context: c,
+		Package: types.NewPackage(apkg.Name, ""),
+		Files:   files,
+	}
+	err := sp.Load()
 	if err != nil {
 		return nil, err
 	}
-	ssapkg.Build()
-	return ssapkg, nil
+	pkg, _ := c.buildPackage(sp, false)
+	return pkg, nil
 }
 
 func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exitCode int, err error) {
@@ -636,77 +604,6 @@ func (ctx *Context) buildPackage(sp *sourcePackage, test bool) (pkg *ssa.Package
 		xtestpkg.Build()
 	}
 	return
-}
-
-func (ctx *Context) BuildPackage(pkg *types.Package, files []*ast.File) (*ssa.Package, *types.Info, error) {
-	if pkg.Path() == "" {
-		panic("package has no import path")
-	}
-	ctx.conf = &types.Config{
-		Importer: NewImporter(ctx),
-		Sizes:    ctx.Sizes,
-	}
-	var first error
-	ctx.conf.Error = func(err error) {
-		if first == nil {
-			first = err
-		}
-	}
-	if ctx.evalMode {
-		ctx.conf.DisableUnusedImportCheck = true
-	}
-	info, err := ctx.checkTypesInfo(pkg, files)
-	if first != nil {
-		return nil, nil, first
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-
-	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
-
-	// Create SSA packages for all imports.
-	// Order is not significant.
-	created := make(map[*types.Package]bool)
-	var createAll func(pkgs []*types.Package)
-	createAll = func(pkgs []*types.Package) {
-		for _, p := range pkgs {
-			if !created[p] {
-				created[p] = true
-				createAll(p.Imports())
-				if pkg, ok := ctx.pkgs[p.Path()]; ok {
-					if ctx.Mode&EnableDumpImports != 0 {
-						if pkg.Dir != "" {
-							fmt.Println("# imported", p.Path(), pkg.Dir)
-						} else {
-							fmt.Println("# imported", p.Path(), "source")
-						}
-					}
-					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
-				} else {
-					var indirect bool
-					if !p.Complete() {
-						indirect = true
-						p.MarkComplete()
-					}
-					if ctx.Mode&EnableDumpImports != 0 {
-						if indirect {
-							fmt.Println("# indirect", p.Path())
-						} else {
-							fmt.Println("# imported", p.Path())
-						}
-					}
-					prog.CreatePackage(p, nil, nil, true).Build()
-				}
-			}
-		}
-	}
-	createAll(pkg.Imports())
-
-	// Create and build the primary package.
-	ssapkg := prog.CreatePackage(pkg, files, info, false)
-	ssapkg.Build()
-	return ssapkg, info, nil
 }
 
 func RunFile(filename string, src interface{}, args []string, mode Mode) (exitCode int, err error) {

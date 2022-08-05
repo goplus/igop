@@ -59,8 +59,7 @@ func NewRepl(ctx *Context) *Repl {
 		ctx:       ctx,
 		globalMap: make(map[string]interface{}),
 	}
-	ctx.evalMode = true
-	ctx.evalInit = make(map[string]bool)
+	ctx.SetEvalMode(true)
 	RegisterCustomBuiltin("__igop_repl_used__", func(v interface{}) {})
 	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
@@ -268,7 +267,6 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 	}
 	tc := &types.Config{
 		Importer:                 NewImporter(r.ctx),
-		Sizes:                    r.ctx.Sizes,
 		DisableUnusedImportCheck: true,
 	}
 	tc.Error = func(err error) {
