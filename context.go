@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goplus/igop/testmain"
 	"github.com/visualfc/gomod"
 	"golang.org/x/tools/go/ssa"
 )
@@ -98,28 +99,11 @@ func (c *Context) lookupPath(path string) (dir string, found bool) {
 }
 
 type sourcePackage struct {
-	Context  *Context
-	Package  *types.Package
-	Info     *types.Info
-	TestData *testData
-	Files    []*ast.File
-	Dir      string
-}
-
-type testData struct {
-	Files        []*ast.File
-	XTestPackage *sourcePackage
-}
-
-func (sp *sourcePackage) XTestPackage() *sourcePackage {
-	if sp.TestData != nil {
-		return sp.TestData.XTestPackage
-	}
-	return nil
-}
-
-func (sp *sourcePackage) HasTest() bool {
-	return sp.TestData != nil
+	Context *Context
+	Package *types.Package
+	Info    *types.Info
+	Files   []*ast.File
+	Dir     string
 }
 
 func (sp *sourcePackage) Load() (err error) {
@@ -213,23 +197,15 @@ func importPathForDir(dir string) (string, error) {
 	return strings.TrimSpace(string(data)), nil
 }
 
-func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
-	var path string
+func (c *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
+	var sp *sourcePackage
 	if test {
-		path, _ = importPathForDir(dir)
+		sp, err = c.loadTestPackage(dir)
+	} else {
+		sp, err = c.loadPackage("main", dir)
 	}
-	sp, err := c.loadPackage(path, dir, test)
 	if err != nil {
 		return nil, err
-	}
-	if test && !sp.HasTest() {
-		return nil, ErrNoTestFiles
-	}
-	if name := sp.Package.Name(); name != "main" {
-		c.pkgs[sp.Package.Path()] = sp
-	}
-	if xpkg := sp.XTestPackage(); xpkg != nil {
-		c.pkgs[xpkg.Package.Path()] = xpkg
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := ParseBuiltin(c.FileSet, sp.Package.Name()); err == nil {
@@ -244,19 +220,10 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 		}
 	}
 	err = sp.Load()
-	if test && err == nil {
-		if xpkg := sp.XTestPackage(); xpkg != nil {
-			err = xpkg.Load()
-		}
-	}
 	if err != nil {
 		return nil, err
 	}
-	pkg, xtestpkg := c.buildPackage(sp, test)
-	if test {
-		return CreateTestMainPackage(c, pkg, xtestpkg)
-	}
-	return pkg, nil
+	return c.buildPackage(sp)
 }
 
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
@@ -296,7 +263,7 @@ func (c *Context) addImport(path string, filename string, src interface{}) (*sou
 }
 
 func (c *Context) addImportDir(path string, dir string) (*sourcePackage, error) {
-	tp, err := c.loadPackage(path, dir, false)
+	tp, err := c.loadPackage(path, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -305,71 +272,79 @@ func (c *Context) addImportDir(path string, dir string) (*sourcePackage, error) 
 	return tp, nil
 }
 
-func (c *Context) loadPackage(path string, dir string, test bool) (*sourcePackage, error) {
+func (c *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
 	bp, err := c.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
-	files, err := c.parseFiles(dir, append(bp.GoFiles, bp.CgoFiles...), c.ParserMode)
+	files, err := c.parseGoFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
 	if err != nil {
 		return nil, err
 	}
-	if path == "" {
-		path = bp.Name
-	}
-	pkg := types.NewPackage(path, bp.Name)
 	tp := &sourcePackage{
-		Package: pkg,
+		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
 		Dir:     dir,
 		Context: c,
 	}
-	if test && (len(bp.TestGoFiles) > 0 || len(bp.XTestGoFiles) > 0) {
-		tp.TestData = &testData{}
-		if len(bp.TestGoFiles) > 0 {
-			files, err := c.parseFiles(dir, bp.TestGoFiles, parser.ParseComments)
-			if err != nil {
-				return nil, err
-			}
-			tp.Files = append(tp.Files, files...)
-			tp.TestData.Files = files
-		}
-		if len(bp.XTestGoFiles) > 0 {
-			files, err = c.parseFiles(dir, bp.XTestGoFiles, parser.ParseComments)
-			if err != nil {
-				return nil, err
-			}
-			tp.TestData.XTestPackage = &sourcePackage{
-				Package: types.NewPackage(path+"_test", bp.Name+"_test"),
-				Files:   files,
-				Dir:     dir,
-				Context: c,
-			}
-		}
-	}
+	c.pkgs[path] = tp
 	return tp, nil
 }
 
-func (c *Context) parseDir(dir string, test bool) ([]*ast.File, error) {
+func (c *Context) loadTestPackage(dir string) (*sourcePackage, error) {
+	importPath, err := importPathForDir(dir)
+	if err != nil {
+		return nil, err
+	}
 	bp, err := c.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
-	var filenames []string
-	filenames = append(filenames, bp.GoFiles...)
-	filenames = append(filenames, bp.CgoFiles...)
-	if test {
-		filenames = append(filenames, bp.TestGoFiles...)
-		filenames = append(filenames, bp.XTestGoFiles...)
+	if len(bp.TestGoFiles) == 0 && len(bp.XTestGoFiles) == 0 {
+		return nil, ErrNoTestFiles
 	}
-	mode := c.ParserMode
-	if test {
-		mode |= parser.ParseComments
+	bp.ImportPath = importPath
+	files, err := c.parseGoFiles(dir, append(append(bp.GoFiles, bp.CgoFiles...), bp.TestGoFiles...))
+	if err != nil {
+		return nil, err
 	}
-	return c.parseFiles(bp.Dir, filenames, mode)
+	tp := &sourcePackage{
+		Package: types.NewPackage(importPath, bp.Name),
+		Files:   files,
+		Dir:     dir,
+		Context: c,
+	}
+	c.pkgs[importPath] = tp
+	if len(bp.XTestGoFiles) > 0 {
+		files, err := c.parseGoFiles(dir, bp.XTestGoFiles)
+		if err != nil {
+			return nil, err
+		}
+		tp := &sourcePackage{
+			Package: types.NewPackage(importPath+"_test", bp.Name+"_test"),
+			Files:   files,
+			Dir:     dir,
+			Context: c,
+		}
+		c.pkgs[importPath+"_test"] = tp
+	}
+	data, err := testmain.Load(bp)
+	if err != nil {
+		return nil, err
+	}
+	f, err := parser.ParseFile(c.FileSet, "_testmain.go", data, 0)
+	if err != nil {
+		return nil, err
+	}
+	return &sourcePackage{
+		Package: types.NewPackage(importPath+"$testmain", "main"),
+		Files:   []*ast.File{f},
+		Dir:     dir,
+		Context: c,
+	}, nil
 }
 
-func (c *Context) parseFiles(dir string, filenames []string, mode parser.Mode) ([]*ast.File, error) {
+func (c *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, error) {
 	files := make([]*ast.File, len(filenames))
 	errors := make([]error, len(filenames))
 
@@ -378,7 +353,7 @@ func (c *Context) parseFiles(dir string, filenames []string, mode parser.Mode) (
 	for i, filename := range filenames {
 		go func(i int, filepath string) {
 			defer wg.Done()
-			files[i], errors[i] = c.parseFile(filepath, nil, mode)
+			files[i], errors[i] = parser.ParseFile(c.FileSet, filepath, nil, 0)
 		}(i, filepath.Join(dir, filename))
 	}
 	wg.Wait()
@@ -398,7 +373,7 @@ func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, erro
 	}
 	root, _ := filepath.Split(filename)
 	c.setRoot(root)
-	return c.LoadAstFile(file)
+	return c.LoadAstFile("main", file)
 }
 
 func (c *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {
@@ -418,7 +393,7 @@ func (c *Context) parseFile(filename string, src interface{}, mode parser.Mode) 
 	return parser.ParseFile(c.FileSet, filename, src, mode)
 }
 
-func (c *Context) LoadAstFile(file *ast.File) (*ssa.Package, error) {
+func (c *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, error) {
 	files := []*ast.File{file}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := ParseBuiltin(c.FileSet, file.Name.Name); err == nil {
@@ -427,18 +402,17 @@ func (c *Context) LoadAstFile(file *ast.File) (*ssa.Package, error) {
 	}
 	sp := &sourcePackage{
 		Context: c,
-		Package: types.NewPackage(file.Name.Name, ""),
+		Package: types.NewPackage(path, file.Name.Name),
 		Files:   files,
 	}
 	err := sp.Load()
 	if err != nil {
 		return nil, err
 	}
-	pkg, _ := c.buildPackage(sp, false)
-	return pkg, nil
+	return c.buildPackage(sp)
 }
 
-func (c *Context) LoadAstPackage(apkg *ast.Package) (*ssa.Package, error) {
+func (c *Context) LoadAstPackage(path string, apkg *ast.Package) (*ssa.Package, error) {
 	var files []*ast.File
 	for _, f := range apkg.Files {
 		files = append(files, f)
@@ -450,15 +424,14 @@ func (c *Context) LoadAstPackage(apkg *ast.Package) (*ssa.Package, error) {
 	}
 	sp := &sourcePackage{
 		Context: c,
-		Package: types.NewPackage(apkg.Name, ""),
+		Package: types.NewPackage(path, apkg.Name),
 		Files:   files,
 	}
 	err := sp.Load()
 	if err != nil {
 		return nil, err
 	}
-	pkg, _ := c.buildPackage(sp, false)
-	return pkg, nil
+	return c.buildPackage(sp)
 }
 
 func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exitCode int, err error) {
@@ -497,9 +470,9 @@ func (c *Context) TestPkg(pkg *ssa.Package, input string, args []string) error {
 	defer func() {
 		sec := time.Since(start).Seconds()
 		if failed {
-			fmt.Fprintf(os.Stderr, "FAIL\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stdout, "FAIL\t%s %0.3fs\n", input, sec)
 		} else {
-			fmt.Fprintf(os.Stderr, "ok\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stdout, "ok\t%s %0.3fs\n", input, sec)
 		}
 	}()
 	os.Args = []string{input}
@@ -582,7 +555,7 @@ func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*type
 	return info, nil
 }
 
-func (ctx *Context) buildPackage(sp *sourcePackage, test bool) (pkg *ssa.Package, xtestpkg *ssa.Package) {
+func (ctx *Context) buildPackage(sp *sourcePackage) (*ssa.Package, error) {
 	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 	// Create SSA packages for all imports.
 	// Order is not significant.
@@ -622,15 +595,9 @@ func (ctx *Context) buildPackage(sp *sourcePackage, test bool) (pkg *ssa.Package
 	}
 	createAll(sp.Package.Imports())
 	// Create and build the primary package.
-	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, test)
+	pkg := prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
 	pkg.Build()
-	if xpkg := sp.XTestPackage(); xpkg != nil {
-		created[sp.Package] = true
-		createAll(xpkg.Package.Imports())
-		xtestpkg = prog.CreatePackage(xpkg.Package, xpkg.Files, xpkg.Info, true)
-		xtestpkg.Build()
-	}
-	return
+	return pkg, nil
 }
 
 func RunFile(filename string, src interface{}, args []string, mode Mode) (exitCode int, err error) {
