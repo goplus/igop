@@ -50,6 +50,7 @@ func CreateTestMainPackage(ctx *Context, pkg *ssa.Package, xtestpkg *ssa.Package
 	sortFunc(data.Tests)
 	sortFunc(data.Benchmarks)
 	sortFunc(data.Examples)
+
 	if len(data.Tests) != 0 || len(data.Benchmarks) != 0 || len(data.Examples) != 0 {
 		data.TestPkg = pkg
 	}

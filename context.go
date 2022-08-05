@@ -98,13 +98,28 @@ func (c *Context) lookupPath(path string) (dir string, found bool) {
 }
 
 type sourcePackage struct {
-	Context      *Context
-	Package      *types.Package
-	Info         *types.Info
-	XTestPackage *sourcePackage
+	Context  *Context
+	Package  *types.Package
+	Info     *types.Info
+	TestData *testData
+	Files    []*ast.File
+	Dir      string
+}
+
+type testData struct {
 	Files        []*ast.File
-	Dir          string
-	HasTestFiles bool
+	XTestPackage *sourcePackage
+}
+
+func (sp *sourcePackage) XTestPackage() *sourcePackage {
+	if sp.TestData != nil {
+		return sp.TestData.XTestPackage
+	}
+	return nil
+}
+
+func (sp *sourcePackage) HasTest() bool {
+	return sp.TestData != nil
 }
 
 func (sp *sourcePackage) Load() (err error) {
@@ -207,14 +222,14 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 	if err != nil {
 		return nil, err
 	}
-	if test && !sp.HasTestFiles {
+	if test && !sp.HasTest() {
 		return nil, ErrNoTestFiles
 	}
 	if name := sp.Package.Name(); name != "main" {
 		c.pkgs[sp.Package.Path()] = sp
 	}
-	if sp.XTestPackage != nil {
-		c.pkgs[sp.XTestPackage.Package.Path()] = sp.XTestPackage
+	if xpkg := sp.XTestPackage(); xpkg != nil {
+		c.pkgs[xpkg.Package.Path()] = xpkg
 	}
 	if c.Mode&DisableCustomBuiltin == 0 {
 		if f, err := ParseBuiltin(c.FileSet, sp.Package.Name()); err == nil {
@@ -229,8 +244,10 @@ func (c *Context) LoadDir(dir string, test bool) (*ssa.Package, error) {
 		}
 	}
 	err = sp.Load()
-	if test && err == nil && sp.XTestPackage != nil {
-		err = sp.XTestPackage.Load()
+	if test && err == nil {
+		if xpkg := sp.XTestPackage(); xpkg != nil {
+			err = xpkg.Load()
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -293,11 +310,7 @@ func (c *Context) loadPackage(path string, dir string, test bool) (*sourcePackag
 	if err != nil {
 		return nil, err
 	}
-	filenames := append(bp.GoFiles, bp.CgoFiles...)
-	if test {
-		filenames = append(filenames, bp.TestGoFiles...)
-	}
-	files, err := c.parseFiles(dir, filenames)
+	files, err := c.parseFiles(dir, append(bp.GoFiles, bp.CgoFiles...), c.ParserMode)
 	if err != nil {
 		return nil, err
 	}
@@ -311,20 +324,28 @@ func (c *Context) loadPackage(path string, dir string, test bool) (*sourcePackag
 		Dir:     dir,
 		Context: c,
 	}
-	if test {
-		if len(bp.XTestGoFiles) > 0 {
-			files, err = c.parseFiles(dir, bp.XTestGoFiles)
+	if test && (len(bp.TestGoFiles) > 0 || len(bp.XTestGoFiles) > 0) {
+		tp.TestData = &testData{}
+		if len(bp.TestGoFiles) > 0 {
+			files, err := c.parseFiles(dir, bp.TestGoFiles, parser.ParseComments)
 			if err != nil {
 				return nil, err
 			}
-			tp.XTestPackage = &sourcePackage{
+			tp.Files = append(tp.Files, files...)
+			tp.TestData.Files = files
+		}
+		if len(bp.XTestGoFiles) > 0 {
+			files, err = c.parseFiles(dir, bp.XTestGoFiles, parser.ParseComments)
+			if err != nil {
+				return nil, err
+			}
+			tp.TestData.XTestPackage = &sourcePackage{
 				Package: types.NewPackage(path+"_test", bp.Name+"_test"),
 				Files:   files,
 				Dir:     dir,
 				Context: c,
 			}
 		}
-		tp.HasTestFiles = len(bp.TestGoFiles) > 0 || len(bp.XTestGoFiles) > 0
 	}
 	return tp, nil
 }
@@ -341,10 +362,14 @@ func (c *Context) parseDir(dir string, test bool) ([]*ast.File, error) {
 		filenames = append(filenames, bp.TestGoFiles...)
 		filenames = append(filenames, bp.XTestGoFiles...)
 	}
-	return c.parseFiles(bp.Dir, filenames)
+	mode := c.ParserMode
+	if test {
+		mode |= parser.ParseComments
+	}
+	return c.parseFiles(bp.Dir, filenames, mode)
 }
 
-func (c *Context) parseFiles(dir string, filenames []string) ([]*ast.File, error) {
+func (c *Context) parseFiles(dir string, filenames []string, mode parser.Mode) ([]*ast.File, error) {
 	files := make([]*ast.File, len(filenames))
 	errors := make([]error, len(filenames))
 
@@ -353,7 +378,7 @@ func (c *Context) parseFiles(dir string, filenames []string) ([]*ast.File, error
 	for i, filename := range filenames {
 		go func(i int, filepath string) {
 			defer wg.Done()
-			files[i], errors[i] = c.ParseFile(filepath, nil)
+			files[i], errors[i] = c.parseFile(filepath, nil, mode)
 		}(i, filepath.Join(dir, filename))
 	}
 	wg.Wait()
@@ -377,6 +402,10 @@ func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, erro
 }
 
 func (c *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {
+	return c.parseFile(filename, src, c.ParserMode)
+}
+
+func (c *Context) parseFile(filename string, src interface{}, mode parser.Mode) (*ast.File, error) {
 	if ext := filepath.Ext(filename); ext != "" {
 		if fn, ok := sourceProcessor[ext]; ok {
 			data, err := fn(c, filename, src)
@@ -386,7 +415,7 @@ func (c *Context) ParseFile(filename string, src interface{}) (*ast.File, error)
 			src = data
 		}
 	}
-	return parser.ParseFile(c.FileSet, filename, src, c.ParserMode)
+	return parser.ParseFile(c.FileSet, filename, src, mode)
 }
 
 func (c *Context) LoadAstFile(file *ast.File) (*ssa.Package, error) {
@@ -595,9 +624,8 @@ func (ctx *Context) buildPackage(sp *sourcePackage, test bool) (pkg *ssa.Package
 	// Create and build the primary package.
 	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, test)
 	pkg.Build()
-	if sp.XTestPackage != nil {
+	if xpkg := sp.XTestPackage(); xpkg != nil {
 		created[sp.Package] = true
-		xpkg := sp.XTestPackage
 		createAll(xpkg.Package.Imports())
 		xtestpkg = prog.CreatePackage(xpkg.Package, xpkg.Files, xpkg.Info, true)
 		xtestpkg.Build()
