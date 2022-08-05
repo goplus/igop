@@ -12,7 +12,7 @@ var (
 
 // PackageList return all register packages
 func PackageList() (list []string) {
-	for pkg, _ := range registerPkgs {
+	for pkg := range registerPkgs {
 		list = append(list, pkg)
 	}
 	sort.Strings(list)
@@ -81,7 +81,7 @@ var (
 	externValues = make(map[string]reflect.Value)
 )
 
-// register external function for no function body
+// RegisterExternal is register external function for no function body
 func RegisterExternal(key string, i interface{}) {
 	externValues[key] = reflect.ValueOf(i)
 }

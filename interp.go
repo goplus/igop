@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package ssa/interp defines an interpreter for the SSA
+// Package igop defines an interpreter for the SSA
 // representation of Go programs.
 //
 // This interpreter is provided as an adjunct for testing the SSA
@@ -91,7 +91,6 @@ func (e runtimeError) Error() string {
 	return "runtime error: " + string(e)
 }
 
-// State shared between all interpreted goroutines.
 type Interp struct {
 	ctx          *Context
 	fset         *token.FileSet
@@ -158,7 +157,7 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 
 func (i *Interp) tryDeferFrame() *frame {
 	if atomic.LoadInt32(&i.deferCount) != 0 {
-		if f, ok := i.deferMap.Load(goroutineId()); ok {
+		if f, ok := i.deferMap.Load(goroutineID()); ok {
 			return f.(*frame)
 		}
 	}
@@ -339,7 +338,7 @@ func (fr *frame) runDefer(d *deferred) {
 func (fr *frame) runDefers() {
 	interp := fr.pfn.Interp
 	atomic.AddInt32(&interp.deferCount, 1)
-	fr.deferid = goroutineId()
+	fr.deferid = goroutineID()
 	interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
@@ -438,7 +437,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv register, ia []
 			}
 		case *ssa.MakeClosure:
 			var bindings []value
-			for i, _ := range f.Bindings {
+			for i := range f.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
 			fv = &closure{i.funcs[f.Fn.(*ssa.Function)], bindings}
@@ -468,7 +467,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv register, ia []
 		}
 		args = append(args, v)
 	}
-	for i, _ := range call.Args {
+	for i := range call.Args {
 		v := fr.reg(ia[i])
 		args = append(args, v)
 	}
@@ -925,7 +924,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		funcs:        make(map[*ssa.Function]*function),
 		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
 		chexit:       make(chan int),
-		mainid:       goroutineId(),
+		mainid:       goroutineID(),
 	}
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
@@ -1157,6 +1156,6 @@ func deref(typ types.Type) types.Type {
 	return typ
 }
 
-func goroutineId() int64 {
+func goroutineID() int64 {
 	return goid.Get()
 }

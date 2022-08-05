@@ -223,7 +223,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	} else if fnName == "runtime.Goexit" {
 		return reflect.ValueOf(func() {
 			// main goroutine use panic
-			if goroutineId() == interp.mainid {
+			if goroutineID() == interp.mainid {
 				atomic.StoreInt32(&interp.goexited, 1)
 				panic(goexitPanic(0))
 			} else {
@@ -266,19 +266,18 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			return func(fr *frame) {
 				fr.setReg(ir, xtype.New(t, pt))
 			}
-		} else {
-			typ := interp.preToType(instr.Type())
-			ir := pfn.regIndex(instr)
-			t := xtype.TypeOfType(typ.Elem())
-			pt := xtype.TypeOfType(typ)
-			// ptr := xtype.NewPointer(t)
-			elem := reflect.New(typ.Elem()).Elem()
-			return func(fr *frame) {
-				if v := fr.reg(ir); v != nil {
-					reflect.ValueOf(v).Elem().Set(elem)
-				} else {
-					fr.setReg(ir, xtype.New(t, pt))
-				}
+		}
+		typ := interp.preToType(instr.Type())
+		ir := pfn.regIndex(instr)
+		t := xtype.TypeOfType(typ.Elem())
+		pt := xtype.TypeOfType(typ)
+		// ptr := xtype.NewPointer(t)
+		elem := reflect.New(typ.Elem()).Elem()
+		return func(fr *frame) {
+			if v := fr.reg(ir); v != nil {
+				reflect.ValueOf(v).Elem().Set(elem)
+			} else {
+				fr.setReg(ir, xtype.New(t, pt))
 			}
 		}
 	case *ssa.Phi:
@@ -404,7 +403,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		pfn := interp.loadFunction(fn)
 		return func(fr *frame) {
 			var bindings []value
-			for i, _ := range instr.Bindings {
+			for i := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
 			v := interp.makeFunction(typ, pfn, bindings)
@@ -430,12 +429,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			return func(fr *frame) {
 				fr.setReg(ir, reflect.MakeMap(rtyp).Interface())
 			}
-		} else {
-			iv := pfn.regIndex(instr.Reserve)
-			return func(fr *frame) {
-				reserve := asInt(fr.reg(iv))
-				fr.setReg(ir, reflect.MakeMapWithSize(rtyp, reserve).Interface())
-			}
+		}
+		iv := pfn.regIndex(instr.Reserve)
+		return func(fr *frame) {
+			reserve := asInt(fr.reg(iv))
+			fr.setReg(ir, reflect.MakeMapWithSize(rtyp, reserve).Interface())
 		}
 	case *ssa.MakeSlice:
 		typ := interp.preToType(instr.Type())
@@ -466,16 +464,15 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			return func(fr *frame) {
 				fr.setReg(ir, slice(fr, instr, makesliceCheck, ix, ih, il, im).Convert(typ).Interface())
 			}
-		} else {
-			return func(fr *frame) {
-				fr.setReg(ir, slice(fr, instr, makesliceCheck, ix, ih, il, im).Interface())
-			}
+		}
+		return func(fr *frame) {
+			fr.setReg(ir, slice(fr, instr, makesliceCheck, ix, ih, il, im).Interface())
 		}
 	case *ssa.FieldAddr:
 		ir := pfn.regIndex(instr)
 		ix := pfn.regIndex(instr.X)
 		return func(fr *frame) {
-			v, err := FieldAddr(fr.reg(ix), instr.Field)
+			v, err := fieldAddrX(fr.reg(ix), instr.Field)
 			if err != nil {
 				panic(runtimeError(err.Error()))
 			}
@@ -485,7 +482,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		ir := pfn.regIndex(instr)
 		ix := pfn.regIndex(instr.X)
 		return func(fr *frame) {
-			v, err := Field(fr.reg(ix), instr.Field)
+			v, err := fieldX(fr.reg(ix), instr.Field)
 			if err != nil {
 				panic(runtimeError(err.Error()))
 			}
@@ -661,10 +658,9 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			return func(fr *frame) {
 				fr.setReg(ir, fr.reg(ii).(*stringIter).next())
 			}
-		} else {
-			return func(fr *frame) {
-				fr.setReg(ir, fr.reg(ii).(*mapIter).next())
-			}
+		}
+		return func(fr *frame) {
+			fr.setReg(ir, fr.reg(ii).(*mapIter).next())
 		}
 	case *ssa.TypeAssert:
 		typ := interp.preToType(instr.AssertedType)
@@ -703,12 +699,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 					fr.block = fr.block.Succs[0]
 					fr.pc = fr.pfn.Blocks[fr.block.Index]
 				}
-			} else {
-				return func(fr *frame) {
-					fr.pred = fr.block.Index
-					fr.block = fr.block.Succs[1]
-					fr.pc = fr.pfn.Blocks[fr.block.Index]
-				}
+			}
+			return func(fr *frame) {
+				fr.pred = fr.block.Index
+				fr.block = fr.block.Succs[1]
+				fr.pc = fr.pfn.Blocks[fr.block.Index]
 			}
 		}
 		switch instr.Cond.Type().(type) {
@@ -877,13 +872,12 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				vk := reflect.ValueOf(fr.reg(ik))
 				vm.SetMapIndex(vk, reflect.ValueOf(vv))
 			}
-		} else {
-			return func(fr *frame) {
-				vm := reflect.ValueOf(fr.reg(im))
-				vk := reflect.ValueOf(fr.reg(ik))
-				v := fr.reg(iv)
-				vm.SetMapIndex(vk, reflect.ValueOf(v))
-			}
+		}
+		return func(fr *frame) {
+			vm := reflect.ValueOf(fr.reg(im))
+			vk := reflect.ValueOf(fr.reg(ik))
+			v := fr.reg(iv)
+			vm.SetMapIndex(vk, reflect.ValueOf(v))
 		}
 	case *ssa.DebugRef:
 		if v, ok := instr.Object().(*types.Var); ok {

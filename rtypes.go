@@ -117,14 +117,14 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	}
 	p := types.NewPackage(pkg.Path, pkg.Name)
 	r.packages[path] = p
-	for dep, _ := range pkg.Deps {
+	for dep := range pkg.Deps {
 		r.Import(dep)
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
 	}
 	var list []*types.Package
-	for dep, _ := range pkg.Deps {
+	for dep := range pkg.Deps {
 		if p, ok := r.packages[dep]; ok {
 			list = append(list, p)
 		}
@@ -485,7 +485,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			pkg := named.Obj().Pkg()
 			skip := make(map[string]bool)
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
-			for _, im := range AllMethod(rt, true) {
+			for _, im := range allMethodX(rt) {
 				var sig *types.Signature
 				if im.Type != nil {
 					sig = r.toMethod(pkg, recv, 1, im.Type)
@@ -498,7 +498,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
-			for _, im := range AllMethod(prt, true) {
+			for _, im := range allMethodX(prt) {
 				if skip[im.Name] {
 					continue
 				}

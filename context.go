@@ -69,28 +69,28 @@ type Context struct {
 	mod          *gomod.Package   // lookup path for go.mod
 }
 
-func (c *Context) setRoot(root string) {
-	c.root = root
-	c.mod = nil
+func (ctx *Context) setRoot(root string) {
+	ctx.root = root
+	ctx.mod = nil
 }
 
-func (c *Context) lookupPath(path string) (dir string, found bool) {
-	if c.Lookup != nil {
-		dir, found = c.Lookup(c.root, path)
+func (ctx *Context) lookupPath(path string) (dir string, found bool) {
+	if ctx.Lookup != nil {
+		dir, found = ctx.Lookup(ctx.root, path)
 		if found {
 			return
 		}
 	}
-	if c.mod == nil {
+	if ctx.mod == nil {
 		var err error
-		c.mod, err = gomod.Load(c.root, &c.BuildContext)
+		ctx.mod, err = gomod.Load(ctx.root, &ctx.BuildContext)
 		if err != nil {
 			panic(err)
 		}
 	}
-	_, dir, found = c.mod.Lookup(path)
+	_, dir, found = ctx.mod.Lookup(path)
 	if !found {
-		bp, err := build.Import(path, c.root, build.FindOnly)
+		bp, err := build.Import(path, ctx.root, build.FindOnly)
 		if err == nil && bp.ImportPath == path {
 			return bp.Dir, true
 		}
@@ -145,44 +145,44 @@ func NewContext(mode Mode) *Context {
 	return ctx
 }
 
-func (c *Context) IsEvalMode() bool {
-	return c.evalMode
+func (ctx *Context) IsEvalMode() bool {
+	return ctx.evalMode
 }
 
-func (c *Context) SetEvalMode(b bool) {
-	c.evalMode = b
-	c.conf.DisableUnusedImportCheck = b
+func (ctx *Context) SetEvalMode(b bool) {
+	ctx.evalMode = b
+	ctx.conf.DisableUnusedImportCheck = b
 }
 
 // SetLeastCallForEnablePool set least call count for enable function pool, default 64
-func (c *Context) SetLeastCallForEnablePool(count int) {
-	c.callForPool = count
+func (ctx *Context) SetLeastCallForEnablePool(count int) {
+	ctx.callForPool = count
 }
 
-func (c *Context) SetDebug(fn func(*DebugInfo)) {
-	c.BuilderMode |= ssa.GlobalDebug
-	c.debugFunc = fn
+func (ctx *Context) SetDebug(fn func(*DebugInfo)) {
+	ctx.BuilderMode |= ssa.GlobalDebug
+	ctx.debugFunc = fn
 }
 
 // SetOverrideFunction register external function to override function.
 // match func fullname and signature
-func (c *Context) SetOverrideFunction(key string, fn interface{}) {
-	c.override[key] = reflect.ValueOf(fn)
+func (ctx *Context) SetOverrideFunction(key string, fn interface{}) {
+	ctx.override[key] = reflect.ValueOf(fn)
 }
 
 // ClearOverrideFunction reset override function
-func (c *Context) ClearOverrideFunction(key string) {
-	delete(c.override, key)
+func (ctx *Context) ClearOverrideFunction(key string) {
+	delete(ctx.override, key)
 }
 
-// set builtin print/println captured output
-func (c *Context) SetPrintOutput(output *bytes.Buffer) {
-	c.output = output
+// SetPrintOutput is captured builtin print/println output
+func (ctx *Context) SetPrintOutput(output *bytes.Buffer) {
+	ctx.output = output
 }
 
-func (c *Context) writeOutput(data []byte) (n int, err error) {
-	if c.output != nil {
-		return c.output.Write(data)
+func (ctx *Context) writeOutput(data []byte) (n int, err error) {
+	if ctx.output != nil {
+		return ctx.output.Write(data)
 	}
 	return os.Stdout.Write(data)
 }
@@ -197,22 +197,22 @@ func importPathForDir(dir string) (string, error) {
 	return strings.TrimSpace(string(data)), nil
 }
 
-func (c *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
+func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
 	var sp *sourcePackage
 	if test {
-		sp, err = c.loadTestPackage(dir)
+		sp, err = ctx.loadTestPackage(dir)
 	} else {
-		sp, err = c.loadPackage("main", dir)
+		sp, err = ctx.loadPackage("main", dir)
 	}
 	if err != nil {
 		return nil, err
 	}
-	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParseBuiltin(c.FileSet, sp.Package.Name()); err == nil {
+	if ctx.Mode&DisableCustomBuiltin == 0 {
+		if f, err := ParseBuiltin(ctx.FileSet, sp.Package.Name()); err == nil {
 			sp.Files = append([]*ast.File{f}, sp.Files...)
 		}
 	}
-	c.setRoot(dir)
+	ctx.setRoot(dir)
 	if dir != "." {
 		if wd, err := os.Getwd(); err == nil {
 			os.Chdir(dir)
@@ -223,7 +223,7 @@ func (c *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.buildPackage(sp)
+	return ctx.buildPackage(sp)
 }
 
 func RegisterFileProcess(ext string, fn SourceProcessFunc) {
@@ -236,48 +236,48 @@ var (
 	sourceProcessor = make(map[string]SourceProcessFunc)
 )
 
-func (c *Context) AddImport(path string, filename string, src interface{}) (err error) {
-	_, err = c.addImport(path, filename, src)
+func (ctx *Context) AddImport(path string, filename string, src interface{}) (err error) {
+	_, err = ctx.addImport(path, filename, src)
 	return
 }
 
-func (c *Context) AddImportDir(path string, dir string) (err error) {
-	_, err = c.addImportDir(path, dir)
+func (ctx *Context) AddImportDir(path string, dir string) (err error) {
+	_, err = ctx.addImportDir(path, dir)
 	return
 }
 
-func (c *Context) addImport(path string, filename string, src interface{}) (*sourcePackage, error) {
-	file, err := c.ParseFile(filename, src)
+func (ctx *Context) addImport(path string, filename string, src interface{}) (*sourcePackage, error) {
+	file, err := ctx.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
 	}
 	pkg := types.NewPackage(path, file.Name.Name)
 	tp := &sourcePackage{
-		Context: c,
+		Context: ctx,
 		Package: pkg,
 		Files:   []*ast.File{file},
 	}
-	c.pkgs[path] = tp
-	c.Loader.SetImport(path, pkg, tp.Load)
+	ctx.pkgs[path] = tp
+	ctx.Loader.SetImport(path, pkg, tp.Load)
 	return tp, nil
 }
 
-func (c *Context) addImportDir(path string, dir string) (*sourcePackage, error) {
-	tp, err := c.loadPackage(path, dir)
+func (ctx *Context) addImportDir(path string, dir string) (*sourcePackage, error) {
+	tp, err := ctx.loadPackage(path, dir)
 	if err != nil {
 		return nil, err
 	}
-	c.pkgs[path] = tp
-	c.Loader.SetImport(path, tp.Package, tp.Load)
+	ctx.pkgs[path] = tp
+	ctx.Loader.SetImport(path, tp.Package, tp.Load)
 	return tp, nil
 }
 
-func (c *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
-	bp, err := c.BuildContext.ImportDir(dir, 0)
+func (ctx *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
+	bp, err := ctx.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
-	files, err := c.parseGoFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
+	files, err := ctx.parseGoFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
 	if err != nil {
 		return nil, err
 	}
@@ -285,18 +285,18 @@ func (c *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
 		Dir:     dir,
-		Context: c,
+		Context: ctx,
 	}
-	c.pkgs[path] = tp
+	ctx.pkgs[path] = tp
 	return tp, nil
 }
 
-func (c *Context) loadTestPackage(dir string) (*sourcePackage, error) {
+func (ctx *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 	importPath, err := importPathForDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	bp, err := c.BuildContext.ImportDir(dir, 0)
+	bp, err := ctx.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (c *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 		return nil, ErrNoTestFiles
 	}
 	bp.ImportPath = importPath
-	files, err := c.parseGoFiles(dir, append(append(bp.GoFiles, bp.CgoFiles...), bp.TestGoFiles...))
+	files, err := ctx.parseGoFiles(dir, append(append(bp.GoFiles, bp.CgoFiles...), bp.TestGoFiles...))
 	if err != nil {
 		return nil, err
 	}
@@ -312,11 +312,11 @@ func (c *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 		Package: types.NewPackage(importPath, bp.Name),
 		Files:   files,
 		Dir:     dir,
-		Context: c,
+		Context: ctx,
 	}
-	c.pkgs[importPath] = tp
+	ctx.pkgs[importPath] = tp
 	if len(bp.XTestGoFiles) > 0 {
-		files, err := c.parseGoFiles(dir, bp.XTestGoFiles)
+		files, err := ctx.parseGoFiles(dir, bp.XTestGoFiles)
 		if err != nil {
 			return nil, err
 		}
@@ -324,15 +324,15 @@ func (c *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 			Package: types.NewPackage(importPath+"_test", bp.Name+"_test"),
 			Files:   files,
 			Dir:     dir,
-			Context: c,
+			Context: ctx,
 		}
-		c.pkgs[importPath+"_test"] = tp
+		ctx.pkgs[importPath+"_test"] = tp
 	}
 	data, err := testmain.Load(bp)
 	if err != nil {
 		return nil, err
 	}
-	f, err := parser.ParseFile(c.FileSet, "_testmain.go", data, 0)
+	f, err := parser.ParseFile(ctx.FileSet, "_testmain.go", data, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -340,11 +340,11 @@ func (c *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 		Package: types.NewPackage(importPath+"$testmain", "main"),
 		Files:   []*ast.File{f},
 		Dir:     dir,
-		Context: c,
+		Context: ctx,
 	}, nil
 }
 
-func (c *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, error) {
+func (ctx *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, error) {
 	files := make([]*ast.File, len(filenames))
 	errors := make([]error, len(filenames))
 
@@ -353,7 +353,7 @@ func (c *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, err
 	for i, filename := range filenames {
 		go func(i int, filepath string) {
 			defer wg.Done()
-			files[i], errors[i] = parser.ParseFile(c.FileSet, filepath, nil, 0)
+			files[i], errors[i] = parser.ParseFile(ctx.FileSet, filepath, nil, 0)
 		}(i, filepath.Join(dir, filename))
 	}
 	wg.Wait()
@@ -366,42 +366,42 @@ func (c *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, err
 	return files, nil
 }
 
-func (c *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
-	file, err := c.ParseFile(filename, src)
+func (ctx *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
+	file, err := ctx.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
 	}
 	root, _ := filepath.Split(filename)
-	c.setRoot(root)
-	return c.LoadAstFile("main", file)
+	ctx.setRoot(root)
+	return ctx.LoadAstFile("main", file)
 }
 
-func (c *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {
-	return c.parseFile(filename, src, c.ParserMode)
+func (ctx *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {
+	return ctx.parseFile(filename, src, ctx.ParserMode)
 }
 
-func (c *Context) parseFile(filename string, src interface{}, mode parser.Mode) (*ast.File, error) {
+func (ctx *Context) parseFile(filename string, src interface{}, mode parser.Mode) (*ast.File, error) {
 	if ext := filepath.Ext(filename); ext != "" {
 		if fn, ok := sourceProcessor[ext]; ok {
-			data, err := fn(c, filename, src)
+			data, err := fn(ctx, filename, src)
 			if err != nil {
 				return nil, err
 			}
 			src = data
 		}
 	}
-	return parser.ParseFile(c.FileSet, filename, src, mode)
+	return parser.ParseFile(ctx.FileSet, filename, src, mode)
 }
 
-func (c *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, error) {
+func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, error) {
 	files := []*ast.File{file}
-	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParseBuiltin(c.FileSet, file.Name.Name); err == nil {
+	if ctx.Mode&DisableCustomBuiltin == 0 {
+		if f, err := ParseBuiltin(ctx.FileSet, file.Name.Name); err == nil {
 			files = []*ast.File{f, file}
 		}
 	}
 	sp := &sourcePackage{
-		Context: c,
+		Context: ctx,
 		Package: types.NewPackage(path, file.Name.Name),
 		Files:   files,
 	}
@@ -409,21 +409,21 @@ func (c *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, error)
 	if err != nil {
 		return nil, err
 	}
-	return c.buildPackage(sp)
+	return ctx.buildPackage(sp)
 }
 
-func (c *Context) LoadAstPackage(path string, apkg *ast.Package) (*ssa.Package, error) {
+func (ctx *Context) LoadAstPackage(path string, apkg *ast.Package) (*ssa.Package, error) {
 	var files []*ast.File
 	for _, f := range apkg.Files {
 		files = append(files, f)
 	}
-	if c.Mode&DisableCustomBuiltin == 0 {
-		if f, err := ParseBuiltin(c.FileSet, apkg.Name); err == nil {
+	if ctx.Mode&DisableCustomBuiltin == 0 {
+		if f, err := ParseBuiltin(ctx.FileSet, apkg.Name); err == nil {
 			files = append([]*ast.File{f}, files...)
 		}
 	}
 	sp := &sourcePackage{
-		Context: c,
+		Context: ctx,
 		Package: types.NewPackage(path, apkg.Name),
 		Files:   files,
 	}
@@ -431,10 +431,10 @@ func (c *Context) LoadAstPackage(path string, apkg *ast.Package) (*ssa.Package, 
 	if err != nil {
 		return nil, err
 	}
-	return c.buildPackage(sp)
+	return ctx.buildPackage(sp)
 }
 
-func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exitCode int, err error) {
+func (ctx *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exitCode int, err error) {
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
@@ -442,7 +442,7 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exi
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
-	interp, err := c.NewInterp(mainPkg)
+	interp, err := ctx.NewInterp(mainPkg)
 	if err != nil {
 		return 2, err
 	}
@@ -452,19 +452,19 @@ func (c *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exi
 	return interp.RunMain()
 }
 
-func (c *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (ret Value, err error) {
-	interp, err := c.NewInterp(mainPkg)
+func (ctx *Context) RunFunc(mainPkg *ssa.Package, fnname string, args ...Value) (ret Value, err error) {
+	interp, err := ctx.NewInterp(mainPkg)
 	if err != nil {
 		return nil, err
 	}
 	return interp.RunFunc(fnname, args...)
 }
 
-func (c *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
-	return NewInterp(c, mainPkg)
+func (ctx *Context) NewInterp(mainPkg *ssa.Package) (*Interp, error) {
+	return NewInterp(ctx, mainPkg)
 }
 
-func (c *Context) TestPkg(pkg *ssa.Package, input string, args []string) error {
+func (ctx *Context) TestPkg(pkg *ssa.Package, input string, args []string) error {
 	var failed bool
 	start := time.Now()
 	defer func() {
@@ -480,7 +480,7 @@ func (c *Context) TestPkg(pkg *ssa.Package, input string, args []string) error {
 		os.Args = append(os.Args, args...)
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	interp, err := NewInterp(c, pkg)
+	interp, err := NewInterp(ctx, pkg)
 	if err != nil {
 		failed = true
 		fmt.Printf("create interp failed: %v\n", err)
@@ -499,34 +499,34 @@ func (c *Context) TestPkg(pkg *ssa.Package, input string, args []string) error {
 	return nil
 }
 
-func (c *Context) RunFile(filename string, src interface{}, args []string) (exitCode int, err error) {
-	pkg, err := c.LoadFile(filename, src)
+func (ctx *Context) RunFile(filename string, src interface{}, args []string) (exitCode int, err error) {
+	pkg, err := ctx.LoadFile(filename, src)
 	if err != nil {
 		return 2, err
 	}
-	return c.RunPkg(pkg, filename, args)
+	return ctx.RunPkg(pkg, filename, args)
 }
 
-func (c *Context) Run(path string, args []string) (exitCode int, err error) {
+func (ctx *Context) Run(path string, args []string) (exitCode int, err error) {
 	if strings.HasSuffix(path, ".go") {
-		return c.RunFile(path, nil, args)
+		return ctx.RunFile(path, nil, args)
 	}
-	pkg, err := c.LoadDir(path, false)
+	pkg, err := ctx.LoadDir(path, false)
 	if err != nil {
 		return 2, err
 	}
 	if !isMainPkg(pkg) {
 		return 2, ErrNotFoundMain
 	}
-	return c.RunPkg(pkg, path, args)
+	return ctx.RunPkg(pkg, path, args)
 }
 
 func isMainPkg(pkg *ssa.Package) bool {
 	return pkg.Pkg.Name() == "main" && pkg.Func("main") != nil
 }
 
-func (c *Context) RunTest(dir string, args []string) error {
-	pkg, err := c.LoadDir(dir, true)
+func (ctx *Context) RunTest(dir string, args []string) error {
+	pkg, err := ctx.LoadDir(dir, true)
 	if err != nil {
 		if err == ErrNoTestFiles {
 			fmt.Println("?", err)
@@ -537,7 +537,7 @@ func (c *Context) RunTest(dir string, args []string) error {
 	if filepath.IsAbs(dir) {
 		os.Chdir(dir)
 	}
-	return c.TestPkg(pkg, dir, args)
+	return ctx.TestPkg(pkg, dir, args)
 }
 
 func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
