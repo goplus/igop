@@ -20,7 +20,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goplus/reflectx"
 	"github.com/visualfc/gomod"
 	"golang.org/x/tools/go/ssa"
 )
@@ -607,19 +606,16 @@ func (ctx *Context) buildPackage(sp *sourcePackage, test bool) (pkg *ssa.Package
 }
 
 func RunFile(filename string, src interface{}, args []string, mode Mode) (exitCode int, err error) {
-	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.RunFile(filename, src, args)
 }
 
 func Run(path string, args []string, mode Mode) (exitCode int, err error) {
-	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.Run(path, args)
 }
 
 func RunTest(path string, args []string, mode Mode) error {
-	reflectx.Reset()
 	ctx := NewContext(mode)
 	return ctx.RunTest(path, args)
 }

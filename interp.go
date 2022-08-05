@@ -56,6 +56,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/reflectx"
 	"github.com/petermattis/goid"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
@@ -906,6 +907,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 //
 
 func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
+	reflectx.Reset()
 	return newInterp(ctx, mainpkg, nil)
 }
 
