@@ -236,17 +236,35 @@ var (
 	sourceProcessor = make(map[string]SourceProcessFunc)
 )
 
-func (ctx *Context) AddImport(path string, filename string, src interface{}) (err error) {
-	_, err = ctx.addImport(path, filename, src)
+func (ctx *Context) AddImportFile(path string, filename string, src interface{}) (err error) {
+	_, err = ctx.addImportFile(path, filename, src)
 	return
 }
 
-func (ctx *Context) AddImportDir(path string, dir string) (err error) {
-	_, err = ctx.addImportDir(path, dir)
+func (ctx *Context) AddImport(path string, dir string) (err error) {
+	_, err = ctx.addImport(path, dir)
 	return
 }
 
-func (ctx *Context) addImport(path string, filename string, src interface{}) (*sourcePackage, error) {
+func (ctx *Context) addImportFile(path string, filename string, src interface{}) (*sourcePackage, error) {
+	tp, err := ctx.loadPackageFile(path, filename, src)
+	if err != nil {
+		return nil, err
+	}
+	ctx.Loader.SetImport(path, tp.Package, tp.Load)
+	return tp, nil
+}
+
+func (ctx *Context) addImport(path string, dir string) (*sourcePackage, error) {
+	tp, err := ctx.loadPackage(path, dir)
+	if err != nil {
+		return nil, err
+	}
+	ctx.Loader.SetImport(path, tp.Package, tp.Load)
+	return tp, nil
+}
+
+func (ctx *Context) loadPackageFile(path string, filename string, src interface{}) (*sourcePackage, error) {
 	file, err := ctx.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
@@ -258,17 +276,6 @@ func (ctx *Context) addImport(path string, filename string, src interface{}) (*s
 		Files:   []*ast.File{file},
 	}
 	ctx.pkgs[path] = tp
-	ctx.Loader.SetImport(path, pkg, tp.Load)
-	return tp, nil
-}
-
-func (ctx *Context) addImportDir(path string, dir string) (*sourcePackage, error) {
-	tp, err := ctx.loadPackage(path, dir)
-	if err != nil {
-		return nil, err
-	}
-	ctx.pkgs[path] = tp
-	ctx.Loader.SetImport(path, tp.Package, tp.Load)
 	return tp, nil
 }
 
@@ -377,10 +384,6 @@ func (ctx *Context) LoadFile(filename string, src interface{}) (*ssa.Package, er
 }
 
 func (ctx *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {
-	return ctx.parseFile(filename, src, ctx.ParserMode)
-}
-
-func (ctx *Context) parseFile(filename string, src interface{}, mode parser.Mode) (*ast.File, error) {
 	if ext := filepath.Ext(filename); ext != "" {
 		if fn, ok := sourceProcessor[ext]; ok {
 			data, err := fn(ctx, filename, src)
@@ -390,7 +393,7 @@ func (ctx *Context) parseFile(filename string, src interface{}, mode parser.Mode
 			src = data
 		}
 	}
-	return parser.ParseFile(ctx.FileSet, filename, src, mode)
+	return parser.ParseFile(ctx.FileSet, filename, src, ctx.ParserMode)
 }
 
 func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, error) {
@@ -555,7 +558,12 @@ func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*type
 	return info, nil
 }
 
-func (ctx *Context) buildPackage(sp *sourcePackage) (*ssa.Package, error) {
+func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = fmt.Errorf("build ssa package error: %v", e)
+		}
+	}()
 	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 	// Create SSA packages for all imports.
 	// Order is not significant.
@@ -595,9 +603,9 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (*ssa.Package, error) {
 	}
 	createAll(sp.Package.Imports())
 	// Create and build the primary package.
-	pkg := prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
+	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
 	pkg.Build()
-	return pkg, nil
+	return
 }
 
 func RunFile(filename string, src interface{}, args []string, mode Mode) (exitCode int, err error) {
