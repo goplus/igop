@@ -774,7 +774,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				fr.pc = -1
 			}
 		default:
-			ir := make([]register, n, n)
+			ir := make([]register, n)
 			for i, v := range instr.Results {
 				ir[i] = pfn.regIndex(v)
 			}
@@ -904,12 +904,12 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 
 func getCallIndex(pfn *function, call *ssa.CallCommon) (iv register, ia []register, ib []register) {
 	iv = pfn.regIndex(call.Value)
-	ia = make([]register, len(call.Args), len(call.Args))
+	ia = make([]register, len(call.Args))
 	for i, v := range call.Args {
 		ia[i] = pfn.regIndex(v)
 	}
 	if f, ok := call.Value.(*ssa.MakeClosure); ok {
-		ib = make([]register, len(f.Bindings), len(f.Bindings))
+		ib = make([]register, len(f.Bindings))
 		for i, binding := range f.Bindings {
 			ib[i] = pfn.regIndex(binding)
 		}

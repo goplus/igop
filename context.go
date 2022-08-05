@@ -65,8 +65,8 @@ type Context struct {
 	evalInit     map[string]bool                                  // eval init check
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
 	debugFunc    func(*DebugInfo) // debug func
-	root         string           // project root
 	mod          *gomod.Package   // lookup path for go.mod
+	root         string           // project root
 }
 
 func (ctx *Context) setRoot(root string) {
@@ -543,25 +543,10 @@ func (ctx *Context) RunTest(dir string, args []string) error {
 	return ctx.TestPkg(pkg, dir, args)
 }
 
-func (ctx *Context) checkTypesInfo(pkg *types.Package, files []*ast.File) (*types.Info, error) {
-	info := &types.Info{
-		Types:      make(map[ast.Expr]types.TypeAndValue),
-		Defs:       make(map[*ast.Ident]types.Object),
-		Uses:       make(map[*ast.Ident]types.Object),
-		Implicits:  make(map[ast.Node]types.Object),
-		Scopes:     make(map[ast.Node]*types.Scope),
-		Selections: make(map[*ast.SelectorExpr]*types.Selection),
-	}
-	if err := types.NewChecker(ctx.conf, ctx.FileSet, pkg, info).Files(files); err != nil {
-		return nil, err
-	}
-	return info, nil
-}
-
 func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error) {
 	defer func() {
 		if e := recover(); e != nil {
-			err = fmt.Errorf("build ssa package error: %v", e)
+			err = fmt.Errorf("build SSA package error: %v", e)
 		}
 	}()
 	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)

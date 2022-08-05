@@ -81,7 +81,7 @@ func toMockType(typ types.Type) reflect.Type {
 		return tyEmptyChan
 	case *types.Struct:
 		n := t.NumFields()
-		fs := make([]reflect.StructField, n, n)
+		fs := make([]reflect.StructField, n)
 		for i := 0; i < n; i++ {
 			ft := t.Field(i)
 			fs[i].Name = "F" + strconv.Itoa(i)
@@ -99,8 +99,8 @@ func toMockType(typ types.Type) reflect.Type {
 		if in+out == 0 {
 			return tyEmptyFunc
 		}
-		ins := make([]reflect.Type, in, in)
-		outs := make([]reflect.Type, out, out)
+		ins := make([]reflect.Type, in)
+		outs := make([]reflect.Type, out)
 		variadic := t.Variadic()
 		if variadic {
 			for i := 0; i < in-1; i++ {
@@ -258,7 +258,7 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 	if n == 0 {
 		return tyEmptyInterface
 	}
-	ms := make([]reflect.Method, n, n)
+	ms := make([]reflect.Method, n)
 	for i := 0; i < n; i++ {
 		fn := t.Method(i)
 		mtyp := r.ToType(fn.Type())
@@ -360,7 +360,7 @@ func (r *TypesRecord) ToTypeList(tuple *types.Tuple) []reflect.Type {
 	if n == 0 {
 		return nil
 	}
-	list := make([]reflect.Type, n, n)
+	list := make([]reflect.Type, n)
 	for i := 0; i < n; i++ {
 		list[i] = r.ToType(tuple.At(i).Type())
 	}

@@ -28,7 +28,6 @@ type Repl struct {
 	pkg       *ssa.Package
 	builtin   *ast.File
 	interp    *Interp  // last interp
-	frame     *frame   // last frame
 	fsInit    *fnState // func init
 	fsMain    *fnState // func main
 	imports   []string // import lines
@@ -226,7 +225,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		return err
 	}
 	if evalConst {
-		m, _ := i.mainpkg.Members["__igop_repl_const__"]
+		m := i.mainpkg.Members["__igop_repl_const__"]
 		c, _ := m.(*ssa.NamedConst)
 		s, _ := xconst.ExactConstantEx(c.Value.Value, true)
 		kind := c.Value.Value.Kind()

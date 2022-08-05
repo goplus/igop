@@ -31,7 +31,7 @@ func allMethodX(typ reflect.Type) []reflect.Method {
 	if n == 0 {
 		return nil
 	}
-	ms := make([]reflect.Method, n, n)
+	ms := make([]reflect.Method, n)
 	for i := 0; i < n; i++ {
 		ms[i] = reflectx.MethodX(typ, i)
 	}

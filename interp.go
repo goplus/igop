@@ -381,16 +381,6 @@ func SetValue(v reflect.Value, x reflect.Value) {
 	}
 }
 
-func hasUnderscore(st *types.Struct) bool {
-	n := st.NumFields()
-	for i := 0; i < n; i++ {
-		if st.Field(i).Name() == "_" {
-			return true
-		}
-	}
-	return false
-}
-
 type DebugInfo struct {
 	*ssa.DebugRef
 	fset    *token.FileSet
@@ -540,7 +530,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 	}
 	fr.run()
 	if pfn.nres > 0 {
-		results = make([]reflect.Value, pfn.nres, pfn.nres)
+		results = make([]reflect.Value, pfn.nres)
 		for i := 0; i < pfn.nres; i++ {
 			v := fr.stack[i]
 			if v == nil {
@@ -705,7 +695,7 @@ func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env
 		}
 		ins = append(ins, reflect.ValueOf(args[len(args)-1]))
 	} else {
-		ins = make([]reflect.Value, len(args), len(args))
+		ins = make([]reflect.Value, len(args))
 		for i := 0; i < len(args); i++ {
 			if args[i] == nil {
 				ins[i] = reflect.New(typ.In(i)).Elem()
@@ -751,7 +741,7 @@ func (i *Interp) callExternalDiscardsResult(caller *frame, fn reflect.Value, arg
 		ins = append(ins, reflect.ValueOf(args[len(args)-1]))
 		fn.CallSlice(ins)
 	} else {
-		ins = make([]reflect.Value, len(args), len(args))
+		ins = make([]reflect.Value, len(args))
 		for i := 0; i < len(args); i++ {
 			if args[i] == nil {
 				ins[i] = reflect.New(typ.In(i)).Elem()
@@ -783,7 +773,7 @@ func (i *Interp) callExternalByStack(caller *frame, fn reflect.Value, ir registe
 		ins = append(ins, reflect.ValueOf(caller.reg(ia[i])))
 	} else {
 		n := len(ia)
-		ins = make([]reflect.Value, n, n)
+		ins = make([]reflect.Value, n)
 		for i := 0; i < n; i++ {
 			arg := caller.reg(ia[i])
 			if arg == nil {
@@ -873,8 +863,6 @@ func doRecover(caller *frame) value {
 			return p
 		case plainError:
 			return p
-		case runtimeError:
-			return p
 		case *reflect.ValueError:
 			return p
 		default:
@@ -882,15 +870,6 @@ func doRecover(caller *frame) value {
 		}
 	}
 	return nil //iface{}
-}
-
-// setGlobal sets the value of a system-initialized global variable.
-func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
-	// if g, ok := i.globals[pkg.Var(name)]; ok {
-	// 	*g = v
-	// 	return
-	// }
-	panic("no global variable: " + pkg.Pkg.Path() + "." + name)
 }
 
 // Interpret interprets the Go program whose main package is mainpkg.
@@ -945,7 +924,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		}
 	}
 	if globals != nil {
-		for k, _ := range i.globals {
+		for k := range i.globals {
 			if fv, ok := globals[k.String()]; ok {
 				i.globals[k] = fv
 			}
