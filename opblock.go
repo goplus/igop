@@ -94,12 +94,12 @@ type function struct {
 	Fn        *ssa.Function        // ssa function
 	Main      *ssa.BasicBlock      // Fn.Blocks[0]
 	pool      *sync.Pool           // create frame pool
+	index     map[ssa.Value]uint32 // stack index
 	Instrs    []func(fr *frame)    // main instrs
 	Recover   []func(fr *frame)    // recover instrs
 	Blocks    []int                // block offset
 	stack     []value              // results args envs datas
 	ssaInstrs []ssa.Instruction    // org ssa instr
-	index     map[ssa.Value]uint32 // stack index
 	nres      int                  // results count
 	narg      int                  // arguments count
 	nenv      int                  // closure free vars count

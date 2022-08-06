@@ -38,14 +38,14 @@ func init() {
 }
 
 type TypesLoader struct {
+	importer  types.Importer
+	tcache    *typeutil.Map
+	curpkg    *Package
 	packages  map[string]*types.Package
 	installed map[string]*Package
 	pkgloads  map[string]func() error
 	rcache    map[reflect.Type]types.Type
-	tcache    *typeutil.Map
-	curpkg    *Package
 	mode      Mode
-	importer  types.Importer
 }
 
 // NewTypesLoader install package and readonly

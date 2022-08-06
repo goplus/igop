@@ -92,24 +92,24 @@ func (e runtimeError) Error() string {
 }
 
 type Interp struct {
+	loader       Loader // loader types
 	ctx          *Context
 	fset         *token.FileSet
 	prog         *ssa.Program                                // the SSA program
 	mainpkg      *ssa.Package                                // the SSA main package
+	record       *TypesRecord                                // lookup type and ToType
 	globals      map[ssa.Value]value                         // addresses of global variables (immutable)
+	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
+	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
+	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
+	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
+	deferMap     sync.Map                                    // defer goroutine id -> call frame
+	typesMutex   sync.RWMutex                                // findType/toType mutex
+	mainid       int64                                       // main goroutine id
+	exitCode     int                                         // call os.Exit code
 	mode         Mode                                        // interpreter options
 	goroutines   int32                                       // atomically updated
 	deferCount   int32                                       // fast has defer check
-	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
-	deferMap     sync.Map                                    // defer goroutine id -> call frame
-	loader       Loader                                      // loader types
-	record       *TypesRecord                                // lookup type and ToType
-	typesMutex   sync.RWMutex                                // findType/toType mutex
-	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
-	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
-	mainid       int64                                       // main goroutine id
-	exitCode     int                                         // call os.Exit code
-	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
 	goexited     int32                                       // is call runtime.Goexit
 	exited       int32                                       // is call os.Exit
 }
@@ -194,10 +194,10 @@ func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) refl
 
 type deferred struct {
 	fn      value
-	args    []value
-	ssaArgs []ssa.Value
 	instr   *ssa.Defer
 	tail    *deferred
+	args    []value
+	ssaArgs []ssa.Value
 }
 
 type frame struct {
@@ -206,10 +206,10 @@ type frame struct {
 	defers    *deferred
 	panicking *panicking
 	block     *ssa.BasicBlock
+	stack     []value // result args env datas
 	pc        int
 	pred      int
 	deferid   int64
-	stack     []value // result args env datas
 }
 
 func (fr *frame) setReg(ir register, v value) {

@@ -50,23 +50,23 @@ type Loader interface {
 // Context ssa context
 type Context struct {
 	Loader       Loader                                           // types loader
-	FileSet      *token.FileSet                                   // file set
-	Mode         Mode                                             // mode
-	ParserMode   parser.Mode                                      // parser mode
-	BuilderMode  ssa.BuilderMode                                  // ssa builder mode
 	BuildContext build.Context                                    // build context
-	Lookup       func(root, path string) (dir string, found bool) // lookup external import
-	pkgs         map[string]*sourcePackage                        // imports
-	override     map[string]reflect.Value                         // override function
 	output       io.Writer                                        // capture print/println output
-	callForPool  int                                              // least call count for enable function pool
+	FileSet      *token.FileSet                                   // file set
 	conf         *types.Config                                    // types check config
-	evalMode     bool                                             // eval mode
-	evalInit     map[string]bool                                  // eval init check
+	mod          *gomod.Package                                   // lookup path for go.mod
+	Lookup       func(root, path string) (dir string, found bool) // lookup external import
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
-	debugFunc    func(*DebugInfo) // debug func
-	mod          *gomod.Package   // lookup path for go.mod
-	root         string           // project root
+	debugFunc    func(*DebugInfo)          // debug func
+	pkgs         map[string]*sourcePackage // imports
+	override     map[string]reflect.Value  // override function
+	evalInit     map[string]bool           // eval init check
+	root         string                    // project root
+	callForPool  int                       // least call count for enable function pool
+	Mode         Mode                      // mode
+	ParserMode   parser.Mode               // parser mode
+	BuilderMode  ssa.BuilderMode           // ssa builder mode
+	evalMode     bool                      // eval mode
 }
 
 func (ctx *Context) setRoot(root string) {
@@ -102,8 +102,8 @@ type sourcePackage struct {
 	Context *Context
 	Package *types.Package
 	Info    *types.Info
-	Files   []*ast.File
 	Dir     string
+	Files   []*ast.File
 }
 
 func (sp *sourcePackage) Load() (err error) {

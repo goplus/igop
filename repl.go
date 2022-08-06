@@ -30,13 +30,13 @@ type Repl struct {
 	interp    *Interp  // last interp
 	fsInit    *fnState // func init
 	fsMain    *fnState // func main
+	globalMap map[string]interface{}
+	fileName  string
+	source    string   // all source
 	imports   []string // import lines
 	globals   []string // global var/func/type
 	infuncs   []string // in main func
 	lastDump  []string // last __igop_repl_dump__
-	source    string   // all source
-	fileName  string
-	globalMap map[string]interface{}
 }
 
 func toDump(i []interface{}) (dump []string) {
@@ -326,9 +326,9 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 }
 
 type tokenLit struct {
+	Lit string
 	Pos token.Pos
 	Tok token.Token
-	Lit string
 }
 
 // extractConstant extract constant int and overflows float/complex
@@ -341,7 +341,7 @@ func extractConstant(src []byte) (constant *tokenLit, ok bool) {
 	if tok == token.EOF {
 		return
 	}
-	first := &tokenLit{pos, tok, lit}
+	first := &tokenLit{lit, pos, tok}
 	var check int
 	for {
 		_, tok, lit := s.Scan()
@@ -371,7 +371,7 @@ func extractConstant(src []byte) (constant *tokenLit, ok bool) {
 							break loop
 						}
 					default:
-						nodes = append(nodes, &tokenLit{pos, tok, lit})
+						nodes = append(nodes, &tokenLit{lit, pos, tok})
 					}
 				}
 				switch len(nodes) {
@@ -390,7 +390,7 @@ func extractConstant(src []byte) (constant *tokenLit, ok bool) {
 					}
 				default:
 					last := nodes[len(nodes)-1]
-					return &tokenLit{nodes[0].Pos, token.IMAG, string(src[int(nodes[0].Pos)-1 : int(last.Pos)+len(last.Lit)])}, true
+					return &tokenLit{string(src[int(nodes[0].Pos)-1 : int(last.Pos)+len(last.Lit)]), nodes[0].Pos, token.IMAG}, true
 				}
 			}
 		}
