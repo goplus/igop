@@ -46,8 +46,6 @@ type UntypedConst struct {
 }
 
 type Package struct {
-	Name          string
-	Path          string
 	Interfaces    map[string]reflect.Type
 	NamedTypes    map[string]reflect.Type
 	AliasTypes    map[string]reflect.Type
@@ -56,6 +54,8 @@ type Package struct {
 	TypedConsts   map[string]TypedConst
 	UntypedConsts map[string]UntypedConst
 	Deps          map[string]string // path -> name
+	Name          string
+	Path          string
 }
 
 // merge same package

@@ -62,19 +62,13 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-var (
-	maxMemLen int
-)
-
 const intSize = 32 << (^uint(0) >> 63)
 
-func init() {
+func maxMemLen() int {
 	if intSize == 32 {
-		maxMemLen = 1<<31 - 1
-	} else {
-		v := int64(1) << 59
-		maxMemLen = int(v)
+		return 1<<31 - 1
 	}
+	return int(int64(1) << 59)
 }
 
 type plainError string
@@ -93,23 +87,19 @@ func (e runtimeError) Error() string {
 
 type Interp struct {
 	ctx          *Context
-	fset         *token.FileSet
-	prog         *ssa.Program                                // the SSA program
 	mainpkg      *ssa.Package                                // the SSA main package
-	globals      map[ssa.Value]value                         // addresses of global variables (immutable)
-	mode         Mode                                        // interpreter options
-	goroutines   int32                                       // atomically updated
-	deferCount   int32                                       // fast has defer check
-	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
-	deferMap     sync.Map                                    // defer goroutine id -> call frame
-	loader       Loader                                      // loader types
 	record       *TypesRecord                                // lookup type and ToType
-	typesMutex   sync.RWMutex                                // findType/toType mutex
+	globals      map[ssa.Value]value                         // addresses of global variables (immutable)
+	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
 	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
+	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
+	deferMap     sync.Map                                    // defer goroutine id -> call frame
+	typesMutex   sync.RWMutex                                // findType/toType mutex
 	mainid       int64                                       // main goroutine id
 	exitCode     int                                         // call os.Exit code
-	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
+	goroutines   int32                                       // atomically updated
+	deferCount   int32                                       // fast has defer check
 	goexited     int32                                       // is call runtime.Goexit
 	exited       int32                                       // is call os.Exit
 }
@@ -119,7 +109,7 @@ func (i *Interp) MainPkg() *ssa.Package {
 }
 
 func (i *Interp) installed(path string) (pkg *Package, ok bool) {
-	pkg, ok = i.loader.Installed(path)
+	pkg, ok = i.ctx.Loader.Installed(path)
 	return
 }
 
@@ -166,7 +156,7 @@ func (i *Interp) tryDeferFrame() *frame {
 
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
-	if f := i.prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
+	if f := i.mainpkg.Prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 		pfn := i.loadFunction(f)
 		return func(args []reflect.Value) []reflect.Value {
 			return i.callFunctionByReflect(i.tryDeferFrame(), mtyp, pfn, args, nil)
@@ -194,10 +184,10 @@ func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) refl
 
 type deferred struct {
 	fn      value
-	args    []value
-	ssaArgs []ssa.Value
 	instr   *ssa.Defer
 	tail    *deferred
+	args    []value
+	ssaArgs []ssa.Value
 }
 
 type frame struct {
@@ -206,10 +196,10 @@ type frame struct {
 	defers    *deferred
 	panicking *panicking
 	block     *ssa.BasicBlock
+	stack     []value // result args env datas
 	pc        int
 	pred      int
 	deferid   int64
-	stack     []value // result args env datas
 }
 
 func (fr *frame) setReg(ir register, v value) {
@@ -355,7 +345,7 @@ func (fr *frame) runDefers() {
 // lookupMethod returns the method set for type typ, which may be one
 // of the interpreter's fake types.
 func lookupMethod(i *Interp, typ types.Type, meth *types.Func) *ssa.Function {
-	return i.prog.LookupMethod(typ, meth.Pkg(), meth.Name())
+	return i.mainpkg.Prog.LookupMethod(typ, meth.Pkg(), meth.Name())
 }
 
 func SetValue(v reflect.Value, x reflect.Value) {
@@ -845,7 +835,7 @@ func doRecover(caller *frame) value {
 	// function (two levels beneath the panicking function) to
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
-	if caller.pfn.Interp.mode&DisableRecover == 0 &&
+	if caller.pfn.Interp.ctx.Mode&DisableRecover == 0 &&
 		caller.panicking == nil &&
 		caller.caller != nil && caller.caller.panicking != nil {
 		p := caller.caller.panicking.value
@@ -891,12 +881,8 @@ func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
 func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{}) (*Interp, error) {
 	i := &Interp{
 		ctx:          ctx,
-		fset:         mainpkg.Prog.Fset,
-		prog:         mainpkg.Prog,
 		mainpkg:      mainpkg,
 		globals:      make(map[ssa.Value]value),
-		mode:         ctx.Mode,
-		loader:       ctx.Loader,
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*function),
@@ -904,7 +890,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		chexit:       make(chan int),
 		mainid:       goroutineID(),
 	}
-	i.record = NewTypesRecord(i.loader, i)
+	i.record = NewTypesRecord(i.ctx.Loader, i)
 	i.record.Load(mainpkg)
 
 	var pkgs []*ssa.Package
@@ -966,7 +952,7 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 
 func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 	defer func() {
-		if i.mode&DisableRecover != 0 {
+		if i.ctx.Mode&DisableRecover != 0 {
 			return
 		}
 		switch p := recover().(type) {
@@ -1085,7 +1071,7 @@ func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
 	case 1:
 		pkg = i.mainpkg
 	case 2:
-		pkgs := i.prog.AllPackages()
+		pkgs := i.mainpkg.Prog.AllPackages()
 		for _, p := range pkgs {
 			if p.Pkg.Path() == ar[0] || p.Pkg.Name() == ar[0] {
 				pkg = p

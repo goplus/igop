@@ -94,12 +94,12 @@ type function struct {
 	Fn        *ssa.Function        // ssa function
 	Main      *ssa.BasicBlock      // Fn.Blocks[0]
 	pool      *sync.Pool           // create frame pool
+	index     map[ssa.Value]uint32 // stack index
 	Instrs    []func(fr *frame)    // main instrs
 	Recover   []func(fr *frame)    // recover instrs
 	Blocks    []int                // block offset
 	stack     []value              // results args envs datas
 	ssaInstrs []ssa.Instruction    // org ssa instr
-	index     map[ssa.Value]uint32 // stack index
 	nres      int                  // results count
 	narg      int                  // arguments count
 	nenv      int                  // closure free vars count
@@ -246,7 +246,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 			if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
 				ext, ok = pkg.Funcs[fn.Name()]
 			}
-		} else if typ, found := interp.loader.LookupReflect(recv.Type()); found {
+		} else if typ, found := interp.ctx.Loader.LookupReflect(recv.Type()); found {
 			if m, found := reflectx.MethodByName(typ, fn.Name()); found {
 				ext, ok = m.Func, true
 			}
@@ -442,11 +442,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		ic := pfn.regIndex(instr.Cap)
 		return func(fr *frame) {
 			Len := asInt(fr.reg(il))
-			if Len < 0 || Len >= maxMemLen {
+			if Len < 0 || Len >= maxMemLen() {
 				panic(runtimeError("makeslice: len out of range"))
 			}
 			Cap := asInt(fr.reg(ic))
-			if Cap < 0 || Cap >= maxMemLen {
+			if Cap < 0 || Cap >= maxMemLen() {
 				panic(runtimeError("makeslice: cap out of range"))
 			}
 			fr.setReg(ir, reflect.MakeSlice(typ, Len, Cap).Interface())
@@ -883,7 +883,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		if v, ok := instr.Object().(*types.Var); ok {
 			ix := pfn.regIndex(instr.X)
 			return func(fr *frame) {
-				ref := &DebugInfo{DebugRef: instr, fset: interp.fset}
+				ref := &DebugInfo{DebugRef: instr, fset: interp.ctx.FileSet}
 				ref.toValue = func() (*types.Var, interface{}, bool) {
 					return v, fr.reg(ix), true
 				}
@@ -891,7 +891,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 		return func(fr *frame) {
-			ref := &DebugInfo{DebugRef: instr, fset: interp.fset}
+			ref := &DebugInfo{DebugRef: instr, fset: interp.ctx.FileSet}
 			ref.toValue = func() (*types.Var, interface{}, bool) {
 				return nil, nil, false
 			}
