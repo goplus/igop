@@ -28,7 +28,6 @@ type Repl struct {
 	pkg       *ssa.Package
 	builtin   *ast.File
 	interp    *Interp  // last interp
-	frame     *frame   // last frame
 	fsInit    *fnState // func init
 	fsMain    *fnState // func main
 	imports   []string // import lines
@@ -59,8 +58,7 @@ func NewRepl(ctx *Context) *Repl {
 		ctx:       ctx,
 		globalMap: make(map[string]interface{}),
 	}
-	ctx.evalMode = true
-	ctx.evalInit = make(map[string]bool)
+	ctx.SetEvalMode(true)
 	RegisterCustomBuiltin("__igop_repl_used__", func(v interface{}) {})
 	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
@@ -227,7 +225,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		return err
 	}
 	if evalConst {
-		m, _ := i.mainpkg.Members["__igop_repl_const__"]
+		m := i.mainpkg.Members["__igop_repl_const__"]
 		c, _ := m.(*ssa.NamedConst)
 		s, _ := xconst.ExactConstantEx(c.Value.Value, true)
 		kind := c.Value.Value.Kind()
@@ -268,7 +266,6 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 	}
 	tc := &types.Config{
 		Importer:                 NewImporter(r.ctx),
-		Sizes:                    r.ctx.Sizes,
 		DisableUnusedImportCheck: true,
 	}
 	tc.Error = func(err error) {

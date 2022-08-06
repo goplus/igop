@@ -111,8 +111,8 @@ func (visit *visitor) function(fn *ssa.Function) {
 	}
 	var buf [32]*ssa.Value // avoid alloc in common case
 	for _, b := range fn.Blocks {
-		Instrs := make([]func(*frame), len(b.Instrs), len(b.Instrs))
-		ssaInstrs := make([]ssa.Instruction, len(b.Instrs), len(b.Instrs))
+		Instrs := make([]func(*frame), len(b.Instrs))
+		ssaInstrs := make([]ssa.Instruction, len(b.Instrs))
 		var index int
 		n := len(b.Instrs)
 		for i := 0; i < n; i++ {
@@ -160,6 +160,9 @@ func (visit *visitor) function(fn *ssa.Function) {
 				continue
 			}
 			if visit.intp.ctx.evalMode && fn.String() == "main.init" {
+				if visit.intp.ctx.evalInit == nil {
+					visit.intp.ctx.evalInit = make(map[string]bool)
+				}
 				if call, ok := instr.(*ssa.Call); ok {
 					key := call.String()
 					if strings.HasPrefix(key, "init#") {

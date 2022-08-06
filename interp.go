@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package ssa/interp defines an interpreter for the SSA
+// Package igop defines an interpreter for the SSA
 // representation of Go programs.
 //
 // This interpreter is provided as an adjunct for testing the SSA
@@ -56,6 +56,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/reflectx"
 	"github.com/petermattis/goid"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
@@ -90,7 +91,6 @@ func (e runtimeError) Error() string {
 	return "runtime error: " + string(e)
 }
 
-// State shared between all interpreted goroutines.
 type Interp struct {
 	ctx          *Context
 	fset         *token.FileSet
@@ -157,7 +157,7 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 
 func (i *Interp) tryDeferFrame() *frame {
 	if atomic.LoadInt32(&i.deferCount) != 0 {
-		if f, ok := i.deferMap.Load(goroutineId()); ok {
+		if f, ok := i.deferMap.Load(goroutineID()); ok {
 			return f.(*frame)
 		}
 	}
@@ -338,7 +338,7 @@ func (fr *frame) runDefer(d *deferred) {
 func (fr *frame) runDefers() {
 	interp := fr.pfn.Interp
 	atomic.AddInt32(&interp.deferCount, 1)
-	fr.deferid = goroutineId()
+	fr.deferid = goroutineID()
 	interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
@@ -379,16 +379,6 @@ func SetValue(v reflect.Value, x reflect.Value) {
 	default:
 		v.Set(x)
 	}
-}
-
-func hasUnderscore(st *types.Struct) bool {
-	n := st.NumFields()
-	for i := 0; i < n; i++ {
-		if st.Field(i).Name() == "_" {
-			return true
-		}
-	}
-	return false
 }
 
 type DebugInfo struct {
@@ -437,7 +427,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv register, ia []
 			}
 		case *ssa.MakeClosure:
 			var bindings []value
-			for i, _ := range f.Bindings {
+			for i := range f.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
 			fv = &closure{i.funcs[f.Fn.(*ssa.Function)], bindings}
@@ -467,7 +457,7 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv register, ia []
 		}
 		args = append(args, v)
 	}
-	for i, _ := range call.Args {
+	for i := range call.Args {
 		v := fr.reg(ia[i])
 		args = append(args, v)
 	}
@@ -491,7 +481,6 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 	default:
 		return i.callExternal(caller, reflect.ValueOf(fn), args, nil)
 	}
-	panic(fmt.Sprintf("cannot call %T %v", fn, reflect.ValueOf(fn).Kind()))
 }
 
 // call interprets a call to a function (function, builtin or closure)
@@ -541,7 +530,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 	}
 	fr.run()
 	if pfn.nres > 0 {
-		results = make([]reflect.Value, pfn.nres, pfn.nres)
+		results = make([]reflect.Value, pfn.nres)
 		for i := 0; i < pfn.nres; i++ {
 			v := fr.stack[i]
 			if v == nil {
@@ -706,7 +695,7 @@ func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env
 		}
 		ins = append(ins, reflect.ValueOf(args[len(args)-1]))
 	} else {
-		ins = make([]reflect.Value, len(args), len(args))
+		ins = make([]reflect.Value, len(args))
 		for i := 0; i < len(args); i++ {
 			if args[i] == nil {
 				ins[i] = reflect.New(typ.In(i)).Elem()
@@ -752,7 +741,7 @@ func (i *Interp) callExternalDiscardsResult(caller *frame, fn reflect.Value, arg
 		ins = append(ins, reflect.ValueOf(args[len(args)-1]))
 		fn.CallSlice(ins)
 	} else {
-		ins = make([]reflect.Value, len(args), len(args))
+		ins = make([]reflect.Value, len(args))
 		for i := 0; i < len(args); i++ {
 			if args[i] == nil {
 				ins[i] = reflect.New(typ.In(i)).Elem()
@@ -784,7 +773,7 @@ func (i *Interp) callExternalByStack(caller *frame, fn reflect.Value, ir registe
 		ins = append(ins, reflect.ValueOf(caller.reg(ia[i])))
 	} else {
 		n := len(ia)
-		ins = make([]reflect.Value, n, n)
+		ins = make([]reflect.Value, n)
 		for i := 0; i < n; i++ {
 			arg := caller.reg(ia[i])
 			if arg == nil {
@@ -874,8 +863,6 @@ func doRecover(caller *frame) value {
 			return p
 		case plainError:
 			return p
-		case runtimeError:
-			return p
 		case *reflect.ValueError:
 			return p
 		default:
@@ -883,15 +870,6 @@ func doRecover(caller *frame) value {
 		}
 	}
 	return nil //iface{}
-}
-
-// setGlobal sets the value of a system-initialized global variable.
-func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
-	// if g, ok := i.globals[pkg.Var(name)]; ok {
-	// 	*g = v
-	// 	return
-	// }
-	panic("no global variable: " + pkg.Pkg.Path() + "." + name)
 }
 
 // Interpret interprets the Go program whose main package is mainpkg.
@@ -906,6 +884,7 @@ func setGlobal(i *Interp, pkg *ssa.Package, name string, v value) {
 //
 
 func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
+	reflectx.Reset()
 	return newInterp(ctx, mainpkg, nil)
 }
 
@@ -923,7 +902,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		funcs:        make(map[*ssa.Function]*function),
 		msets:        make(map[reflect.Type](map[string]*ssa.Function)),
 		chexit:       make(chan int),
-		mainid:       goroutineId(),
+		mainid:       goroutineID(),
 	}
 	i.record = NewTypesRecord(i.loader, i)
 	i.record.Load(mainpkg)
@@ -945,7 +924,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		}
 	}
 	if globals != nil {
-		for k, _ := range i.globals {
+		for k := range i.globals {
 			if fv, ok := globals[k.String()]; ok {
 				i.globals[k] = fv
 			}
@@ -1155,6 +1134,6 @@ func deref(typ types.Type) types.Type {
 	return typ
 }
 
-func goroutineId() int64 {
+func goroutineID() int64 {
 	return goid.Get()
 }

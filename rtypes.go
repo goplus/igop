@@ -113,18 +113,18 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	}
 	pkg, ok := registerPkgs[path]
 	if !ok {
-		return nil, fmt.Errorf("Not found package %v", path)
+		return nil, fmt.Errorf("not found package %v", path)
 	}
 	p := types.NewPackage(pkg.Path, pkg.Name)
 	r.packages[path] = p
-	for dep, _ := range pkg.Deps {
+	for dep := range pkg.Deps {
 		r.Import(dep)
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
 	}
 	var list []*types.Package
-	for dep, _ := range pkg.Deps {
+	for dep := range pkg.Deps {
 		if p, ok := r.packages[dep]; ok {
 			list = append(list, p)
 		}
@@ -291,8 +291,8 @@ func (r *TypesLoader) Insert(v reflect.Value) {
 func (r *TypesLoader) toMethod(pkg *types.Package, recv *types.Var, inoff int, rt reflect.Type) *types.Signature {
 	numIn := rt.NumIn()
 	numOut := rt.NumOut()
-	in := make([]*types.Var, numIn-inoff, numIn-inoff)
-	out := make([]*types.Var, numOut, numOut)
+	in := make([]*types.Var, numIn-inoff)
+	out := make([]*types.Var, numOut)
 	for i := inoff; i < numIn; i++ {
 		it := r.ToType(rt.In(i))
 		in[i-inoff] = types.NewVar(token.NoPos, pkg, "", it)
@@ -307,8 +307,8 @@ func (r *TypesLoader) toMethod(pkg *types.Package, recv *types.Var, inoff int, r
 func (r *TypesLoader) toFunc(pkg *types.Package, rt reflect.Type) *types.Signature {
 	numIn := rt.NumIn()
 	numOut := rt.NumOut()
-	in := make([]*types.Var, numIn, numIn)
-	out := make([]*types.Var, numOut, numOut)
+	in := make([]*types.Var, numIn)
+	out := make([]*types.Var, numOut)
 	// mock type
 	variadic := rt.IsVariadic()
 	if variadic {
@@ -410,7 +410,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		}
 	case reflect.Interface:
 		n := rt.NumMethod()
-		imethods = make([]*types.Func, n, n)
+		imethods = make([]*types.Func, n)
 		pkg := r.GetPackage(rt.PkgPath())
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
@@ -432,8 +432,8 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		typ = types.Typ[types.String]
 	case reflect.Struct:
 		n := rt.NumField()
-		fields = make([]*types.Var, n, n)
-		tags := make([]string, n, n)
+		fields = make([]*types.Var, n)
+		tags := make([]string, n)
 		pkg := r.GetPackage(rt.PkgPath())
 		for i := 0; i < n; i++ {
 			f := rt.Field(i)
@@ -485,7 +485,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			pkg := named.Obj().Pkg()
 			skip := make(map[string]bool)
 			recv := types.NewVar(token.NoPos, pkg, "", typ)
-			for _, im := range AllMethod(rt, true) {
+			for _, im := range allMethodX(rt) {
 				var sig *types.Signature
 				if im.Type != nil {
 					sig = r.toMethod(pkg, recv, 1, im.Type)
@@ -498,7 +498,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			prt := reflect.PtrTo(rt)
 			ptyp := r.ToType(prt)
 			precv := types.NewVar(token.NoPos, pkg, "", ptyp)
-			for _, im := range AllMethod(prt, true) {
+			for _, im := range allMethodX(prt) {
 				if skip[im.Name] {
 					continue
 				}

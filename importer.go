@@ -47,7 +47,7 @@ func (i *Importer) Import(path string) (*types.Package, error) {
 		return pkg.Package, nil
 	}
 	if dir, found := i.ctx.lookupPath(path); found {
-		pkg, err := i.ctx.addImportDir(path, dir)
+		pkg, err := i.ctx.addImport(path, dir)
 		if err != nil {
 			return nil, err
 		}

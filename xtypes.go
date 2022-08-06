@@ -58,7 +58,6 @@ func emptyType(kind reflect.Kind) reflect.Type {
 	default:
 		return xtypeTypes[kind]
 	}
-	panic(fmt.Errorf("emptyType: unreachable kind %v", kind))
 }
 
 func toMockType(typ types.Type) reflect.Type {
@@ -82,7 +81,7 @@ func toMockType(typ types.Type) reflect.Type {
 		return tyEmptyChan
 	case *types.Struct:
 		n := t.NumFields()
-		fs := make([]reflect.StructField, n, n)
+		fs := make([]reflect.StructField, n)
 		for i := 0; i < n; i++ {
 			ft := t.Field(i)
 			fs[i].Name = "F" + strconv.Itoa(i)
@@ -100,8 +99,8 @@ func toMockType(typ types.Type) reflect.Type {
 		if in+out == 0 {
 			return tyEmptyFunc
 		}
-		ins := make([]reflect.Type, in, in)
-		outs := make([]reflect.Type, out, out)
+		ins := make([]reflect.Type, in)
+		outs := make([]reflect.Type, out)
 		variadic := t.Variadic()
 		if variadic {
 			for i := 0; i < in-1; i++ {
@@ -246,7 +245,7 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 		r.ToTypeList(t)
 		rt = reflect.TypeOf((*_tuple)(nil)).Elem()
 	default:
-		panic(fmt.Errorf("ToType: not handled %v\n", typ))
+		panic(fmt.Errorf("ToType: not handled %v", typ))
 	}
 	r.saveType(typ, rt)
 	return rt
@@ -259,7 +258,7 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 	if n == 0 {
 		return tyEmptyInterface
 	}
-	ms := make([]reflect.Method, n, n)
+	ms := make([]reflect.Method, n)
 	for i := 0; i < n; i++ {
 		fn := t.Method(i)
 		mtyp := r.ToType(fn.Type())
@@ -292,27 +291,26 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
 		return typ
-	} else {
-		var mcount, pcount int
-		for i := 0; i < numMethods; i++ {
-			sig := methods[i].Type().(*types.Signature)
-			if !isPointer(sig.Recv().Type()) {
-				mcount++
-			}
-			pcount++
-		}
-		// toMockType for size/align
-		etyp := toMockType(ut)
-		styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
-		typ := reflectx.NewMethodSet(styp, mcount, pcount)
-		r.saveType(t, typ)
-		utype := r.ToType(ut)
-		reflectx.SetUnderlying(typ, utype)
-		if typ.Kind() != reflect.Interface {
-			r.setMethods(typ, methods)
-		}
-		return typ
 	}
+	var mcount, pcount int
+	for i := 0; i < numMethods; i++ {
+		sig := methods[i].Type().(*types.Signature)
+		if !isPointer(sig.Recv().Type()) {
+			mcount++
+		}
+		pcount++
+	}
+	// toMockType for size/align
+	etyp := toMockType(ut)
+	styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
+	typ := reflectx.NewMethodSet(styp, mcount, pcount)
+	r.saveType(t, typ)
+	utype := r.ToType(ut)
+	reflectx.SetUnderlying(typ, utype)
+	if typ.Kind() != reflect.Interface {
+		r.setMethods(typ, methods)
+	}
+	return typ
 }
 
 func (r *TypesRecord) toStructType(t *types.Struct) reflect.Type {
@@ -362,7 +360,7 @@ func (r *TypesRecord) ToTypeList(tuple *types.Tuple) []reflect.Type {
 	if n == 0 {
 		return nil
 	}
-	list := make([]reflect.Type, n, n)
+	list := make([]reflect.Type, n)
 	for i := 0; i < n; i++ {
 		list[i] = r.ToType(tuple.At(i).Type())
 	}
@@ -452,7 +450,7 @@ func (r *TypesRecord) Load(pkg *ssa.Package) {
 	}
 }
 
-// golang.org/x/tools/go/types/typeutil.IntuitiveMethodSet
+// IntuitiveMethodSet copy from golang.org/x/tools/go/types/typeutil.IntuitiveMethodSet
 func IntuitiveMethodSet(T types.Type) []*types.Selection {
 	isPointerToConcrete := func(T types.Type) bool {
 		ptr, ok := T.(*types.Pointer)

@@ -2248,7 +2248,7 @@ func main() {
 }
 `
 	ctx := igop.NewContext(0)
-	err := ctx.AddImport("pkg", "pkg.go", pkg)
+	err := ctx.AddImportFile("pkg", "pkg.go", pkg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2270,7 +2270,7 @@ func main() {
 }
 `
 	ctx := igop.NewContext(0)
-	err := ctx.AddImportDir("igop/pkg", "./testdata/pkg")
+	err := ctx.AddImport("igop/pkg", "./testdata/pkg")
 	if err != nil {
 		t.Fatal(err)
 	}
