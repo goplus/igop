@@ -442,11 +442,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		ic := pfn.regIndex(instr.Cap)
 		return func(fr *frame) {
 			Len := asInt(fr.reg(il))
-			if Len < 0 || Len >= maxMemLen {
+			if Len < 0 || Len >= maxMemLen() {
 				panic(runtimeError("makeslice: len out of range"))
 			}
 			Cap := asInt(fr.reg(ic))
-			if Cap < 0 || Cap >= maxMemLen {
+			if Cap < 0 || Cap >= maxMemLen() {
 				panic(runtimeError("makeslice: cap out of range"))
 			}
 			fr.setReg(ir, reflect.MakeSlice(typ, Len, Cap).Interface())
