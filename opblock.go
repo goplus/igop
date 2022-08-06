@@ -246,7 +246,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 			if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
 				ext, ok = pkg.Funcs[fn.Name()]
 			}
-		} else if typ, found := interp.loader.LookupReflect(recv.Type()); found {
+		} else if typ, found := interp.ctx.Loader.LookupReflect(recv.Type()); found {
 			if m, found := reflectx.MethodByName(typ, fn.Name()); found {
 				ext, ok = m.Func, true
 			}
@@ -883,7 +883,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		if v, ok := instr.Object().(*types.Var); ok {
 			ix := pfn.regIndex(instr.X)
 			return func(fr *frame) {
-				ref := &DebugInfo{DebugRef: instr, fset: interp.fset}
+				ref := &DebugInfo{DebugRef: instr, fset: interp.ctx.FileSet}
 				ref.toValue = func() (*types.Var, interface{}, bool) {
 					return v, fr.reg(ix), true
 				}
@@ -891,7 +891,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 		return func(fr *frame) {
-			ref := &DebugInfo{DebugRef: instr, fset: interp.fset}
+			ref := &DebugInfo{DebugRef: instr, fset: interp.ctx.FileSet}
 			ref.toValue = func() (*types.Var, interface{}, bool) {
 				return nil, nil, false
 			}

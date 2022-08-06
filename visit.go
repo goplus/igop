@@ -11,7 +11,7 @@ import (
 )
 
 func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
-	if intp.mode&DisableRecover == 0 {
+	if intp.ctx.Mode&DisableRecover == 0 {
 		defer func() {
 			if v := recover(); v != nil {
 				err = v.(error)
@@ -20,7 +20,7 @@ func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 	}
 	visit := visitor{
 		intp: intp,
-		prog: intp.prog,
+		prog: intp.mainpkg.Prog,
 		pkgs: make(map[*ssa.Package]bool),
 		seen: make(map[*ssa.Function]bool),
 	}
@@ -92,7 +92,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
 			if _, ok = externValues[fnPath]; !ok {
-				panic(fmt.Errorf("%v: missing function body", visit.intp.fset.Position(fn.Pos())))
+				panic(fmt.Errorf("%v: missing function body", visit.intp.ctx.FileSet.Position(fn.Pos())))
 			}
 		}
 		return
@@ -199,7 +199,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 					}
 				}
 			}
-			if visit.intp.mode&EnableTracing != 0 {
+			if visit.intp.ctx.Mode&EnableTracing != 0 {
 				ofn := ifn
 				ifn = func(fr *frame) {
 					if v, ok := instr.(ssa.Value); ok {
@@ -220,7 +220,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 				if index == 0 && b.Index == 0 {
 					ofn := ifn
 					ifn = func(fr *frame) {
-						log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.pfn.Interp.fset, fr.pfn.Fn.Pos()))
+						log.Printf("Entering %v%v.", fr.pfn.Fn, loc(fr.pfn.Interp.ctx.FileSet, fr.pfn.Fn.Pos()))
 						ofn(fr)
 					}
 				}
@@ -236,7 +236,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 							log.Printf("Leaving %v.\n", fr.pfn.Fn)
 						} else {
 							log.Printf("Leaving %v, resuming %v call %v%v.\n",
-								fr.pfn.Fn, fr.caller.pfn.Fn, caller, loc(fr.pfn.Interp.fset, caller.Pos()))
+								fr.pfn.Fn, fr.caller.pfn.Fn, caller, loc(fr.pfn.Interp.ctx.FileSet, caller.Pos()))
 						}
 					}
 				}
@@ -250,7 +250,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 		pfn.Blocks = append(pfn.Blocks, offset)
 		pfn.Instrs = append(pfn.Instrs, Instrs...)
 		pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs...)
-		if b == fn.Recover && visit.intp.mode&DisableRecover == 0 {
+		if b == fn.Recover && visit.intp.ctx.Mode&DisableRecover == 0 {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
