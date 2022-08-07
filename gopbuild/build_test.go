@@ -94,3 +94,49 @@ func TestBuiltin(t *testing.T) {
 		t.Fail()
 	}
 }
+
+var test_iox = `
+import "io"
+
+var r io.Reader
+
+for line <- lines(r) {
+	println line
+}
+`
+var test_iox_go = `package main
+
+import (
+	fmt "fmt"
+	iox "github.com/goplus/gop/builtin/iox"
+	io "io"
+)
+
+var r io.Reader
+
+func main() {
+//line main.gop:6
+	for _gop_it := iox.Lines(r).Gop_Enum(); ; {
+		var _gop_ok bool
+		line, _gop_ok := _gop_it.Next()
+		if !_gop_ok {
+			break
+		}
+//line main.gop:7
+		fmt.Println(line)
+	}
+}
+`
+
+func TestIox(t *testing.T) {
+	ctx := igop.NewContext(0)
+	data, err := BuildFile(ctx, "main.gop", test_iox)
+	if err != nil {
+		t.Fatalf("build gop error: %v", err)
+	}
+	if string(data) != test_iox_go {
+		fmt.Println("build gop error:")
+		fmt.Println(string(data))
+		t.Fail()
+	}
+}
