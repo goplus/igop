@@ -20,7 +20,8 @@ support ABI0 and ABIInternal
 ### unsupport features
 
 - Go1.18 type parameters
-- Go1.18 fuzzing
+- test -fuzz
+- test -cover
 
 ### igop command line
 
