@@ -562,9 +562,9 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 				if pkg, ok := ctx.pkgs[p.Path()]; ok {
 					if ctx.Mode&EnableDumpImports != 0 {
 						if pkg.Dir != "" {
-							fmt.Println("# sources", p.Path(), pkg.Dir)
+							fmt.Println("# package", p.Path(), pkg.Dir)
 						} else {
-							fmt.Println("# sources", p.Path(), "<memory>")
+							fmt.Println("# package", p.Path(), "<memory>")
 						}
 					}
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
@@ -599,6 +599,13 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 		createAll(addin)
 	}
 	createAll(sp.Package.Imports())
+	if ctx.Mode&EnableDumpImports != 0 {
+		if sp.Dir != "" {
+			fmt.Println("# package", sp.Package.Path(), sp.Dir)
+		} else {
+			fmt.Println("# package", sp.Package.Path(), "<source>")
+		}
+	}
 	// Create and build the primary package.
 	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
 	pkg.Build()
