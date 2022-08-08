@@ -90,6 +90,7 @@ func init() {
 		gorootTestSkips["fixedbugs/issue50672.go"] = "type param"
 		gorootTestSkips["fixedbugs/issue53137.go"] = "type param"
 		gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
+		gorootTestSkips["fixedbugs/issue53635.go"] = "type param"
 
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
