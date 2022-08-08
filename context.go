@@ -562,9 +562,9 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 				if pkg, ok := ctx.pkgs[p.Path()]; ok {
 					if ctx.Mode&EnableDumpImports != 0 {
 						if pkg.Dir != "" {
-							fmt.Println("# imported", p.Path(), pkg.Dir)
+							fmt.Println("# package", p.Path(), pkg.Dir)
 						} else {
-							fmt.Println("# imported", p.Path(), "source")
+							fmt.Println("# package", p.Path(), "<memory>")
 						}
 					}
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
@@ -576,9 +576,9 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 					}
 					if ctx.Mode&EnableDumpImports != 0 {
 						if indirect {
-							fmt.Println("# indirect", p.Path())
+							fmt.Println("# virtual", p.Path())
 						} else {
-							fmt.Println("# imported", p.Path())
+							fmt.Println("# builtin", p.Path())
 						}
 					}
 					prog.CreatePackage(p, nil, nil, true).Build()
@@ -592,8 +592,20 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 			addin = append(addin, pkg)
 		}
 	}
-	createAll(addin)
+	if len(addin) > 0 {
+		sort.Slice(addin, func(i, j int) bool {
+			return addin[i].Path() < addin[j].Path()
+		})
+		createAll(addin)
+	}
 	createAll(sp.Package.Imports())
+	if ctx.Mode&EnableDumpImports != 0 {
+		if sp.Dir != "" {
+			fmt.Println("# package", sp.Package.Path(), sp.Dir)
+		} else {
+			fmt.Println("# package", sp.Package.Path(), "<source>")
+		}
+	}
 	// Create and build the primary package.
 	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
 	pkg.Build()
