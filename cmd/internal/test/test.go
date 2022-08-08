@@ -71,7 +71,11 @@ func runCmd(cmd *base.Command, args []string) {
 		cf.Var(cf.Lookup(name).Value, "test."+name, "")
 	}
 
-	cf.Parse(args)
+	err := cf.Parse(args)
+	if err != nil {
+		os.Exit(2)
+		return
+	}
 	pkgs := cf.Args()
 	if len(pkgs) == 0 {
 		pkgs = []string{"."}

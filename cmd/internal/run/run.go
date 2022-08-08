@@ -53,7 +53,10 @@ func init() {
 }
 
 func runCmd(cmd *base.Command, args []string) {
-	flag.Parse(args)
+	err := flag.Parse(args)
+	if err != nil {
+		os.Exit(2)
+	}
 	if flag.NArg() < 1 {
 		cmd.Usage(os.Stderr)
 	}

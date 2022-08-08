@@ -3,6 +3,7 @@ package repl
 import (
 	"fmt"
 	"io"
+	"os"
 	"runtime"
 	"strings"
 
@@ -59,7 +60,11 @@ var (
 )
 
 func runCmd(cmd *base.Command, args []string) {
-	flag.Parse(args)
+	err := flag.Parse(args)
+	if err != nil {
+		os.Exit(2)
+	}
+
 	if supportGoplus && flagGoplus {
 		fmt.Println(welcomeGop)
 	} else {
