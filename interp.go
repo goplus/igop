@@ -68,7 +68,8 @@ func maxMemLen() int {
 	if intSize == 32 {
 		return 1<<31 - 1
 	}
-	return int(int64(1) << 59)
+	v := int64(1) << 59
+	return int(v)
 }
 
 type plainError string
