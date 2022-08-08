@@ -26,6 +26,7 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/igop/cmd/internal/load"
 )
 
 // -----------------------------------------------------------------------------
@@ -62,7 +63,7 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	args = flag.Args()[1:]
 	path, _ := filepath.Abs(flag.Arg(0))
-	isDir, err := IsDir(path)
+	isDir, err := load.IsDir(path)
 	if err != nil {
 		log.Fatalln("input arg check failed:", err)
 	}
@@ -81,27 +82,17 @@ func runCmd(cmd *base.Command, args []string) {
 		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
 	}
 	if isDir {
-		if fnGopBuildDir != nil && containsExt(path, ".gop") {
-			err := fnGopBuildDir(ctx, path)
+		if load.SupportGop && load.IsGopProject(path) {
+			err := load.BuildGopDir(ctx, path)
 			if err != nil {
-				log.Fatalln(err)
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(2)
 			}
 		}
 		runDir(ctx, path, args)
 	} else {
 		runFile(ctx, path, args)
 	}
-}
-
-var fnGopBuildDir func(ctx *igop.Context, path string) error
-
-// IsDir checks a target path is dir or not.
-func IsDir(target string) (bool, error) {
-	fi, err := os.Stat(target)
-	if err != nil {
-		return false, err
-	}
-	return fi.IsDir(), nil
 }
 
 func runFile(ctx *igop.Context, target string, args []string) {
@@ -119,18 +110,3 @@ func runDir(ctx *igop.Context, dir string, args []string) {
 	}
 	os.Exit(exitCode)
 }
-
-func containsExt(srcDir string, ext string) bool {
-	if f, err := os.Open(srcDir); err == nil {
-		defer f.Close()
-		fis, _ := f.Readdir(-1)
-		for _, fi := range fis {
-			if !fi.IsDir() && filepath.Ext(fi.Name()) == ext {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// -----------------------------------------------------------------------------

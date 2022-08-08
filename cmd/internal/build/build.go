@@ -26,6 +26,7 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/igop/cmd/internal/load"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -58,12 +59,12 @@ func buildCmd(cmd *base.Command, args []string) {
 	if err != nil {
 		os.Exit(2)
 	}
-	if flag.NArg() < 1 {
-		cmd.Usage(os.Stderr)
+	paths := flag.Args()
+	if len(paths) == 0 {
+		paths = []string{"."}
 	}
-	args = flag.Args()[1:]
-	path, _ := filepath.Abs(flag.Arg(0))
-	isDir, err := IsDir(path)
+	path, _ := filepath.Abs(paths[0])
+	isDir, err := load.IsDir(path)
 	if err != nil {
 		log.Fatalln("input arg check failed:", err)
 	}
@@ -80,10 +81,11 @@ func buildCmd(cmd *base.Command, args []string) {
 	}
 	var pkg *ssa.Package
 	if isDir {
-		if fnGopBuildDir != nil && containsExt(path, ".gop") {
-			err := fnGopBuildDir(ctx, path)
+		if load.SupportGop && load.IsGopProject(path) {
+			err := load.BuildGopDir(ctx, path)
 			if err != nil {
-				log.Fatalln(err)
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(2)
 			}
 		}
 		pkg, err = ctx.LoadDir(path, false)
@@ -102,30 +104,6 @@ func buildCmd(cmd *base.Command, args []string) {
 	if flagVerbose {
 		fmt.Println("igop build pass")
 	}
-}
-
-var fnGopBuildDir func(ctx *igop.Context, path string) error
-
-// IsDir checks a target path is dir or not.
-func IsDir(target string) (bool, error) {
-	fi, err := os.Stat(target)
-	if err != nil {
-		return false, err
-	}
-	return fi.IsDir(), nil
-}
-
-func containsExt(srcDir string, ext string) bool {
-	if f, err := os.Open(srcDir); err == nil {
-		defer f.Close()
-		fis, _ := f.Readdir(-1)
-		for _, fi := range fis {
-			if !fi.IsDir() && filepath.Ext(fi.Name()) == ext {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // -----------------------------------------------------------------------------
