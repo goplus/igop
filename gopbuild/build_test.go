@@ -6,37 +6,40 @@ import (
 	"testing"
 
 	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/pkg/reflect"
 )
 
-var test_gop = `println "Go+"`
-var test_gop_go = `package main
-
-import fmt "fmt"
-
-func main() {
-//line main.gop:1
-	fmt.Println("Go+")
-}
-`
-
-func TestGop(t *testing.T) {
+func gopClTest(t *testing.T, gopcode, expected string) {
 	ctx := igop.NewContext(0)
-	data, err := BuildFile(ctx, "main.gop", test_gop)
+	data, err := BuildFile(ctx, "main.gop", gopcode)
 	if err != nil {
 		t.Fatalf("build gop error: %v", err)
 	}
-	if string(data) != test_gop_go {
+	if string(data) != expected {
 		fmt.Println("build gop error:")
 		fmt.Println(string(data))
 		t.Fail()
 	}
 }
 
-var test_big = `a := 1/2r
+func TestGop(t *testing.T) {
+	gopClTest(t, `
+println "Go+"
+`, `package main
+
+import fmt "fmt"
+
+func main() {
+//line main.gop:2
+	fmt.Println("Go+")
+}
+`)
+}
+
+func TestBig(t *testing.T) {
+	gopClTest(t, `
+a := 1/2r
 println a+1/2r
-`
-var test_big_go = `package main
+`, `package main
 
 import (
 	fmt "fmt"
@@ -45,31 +48,20 @@ import (
 )
 
 func main() {
-//line main.gop:1
-	a := ng.Bigrat_Init__2(big.NewRat(1, 2))
 //line main.gop:2
+	a := ng.Bigrat_Init__2(big.NewRat(1, 2))
+//line main.gop:3
 	fmt.Println(a.Gop_Add(ng.Bigrat_Init__2(big.NewRat(1, 2))))
 }
-`
-
-func TestBig(t *testing.T) {
-	ctx := igop.NewContext(0)
-	data, err := BuildFile(ctx, "main.gop", test_big)
-	if err != nil {
-		t.Fatalf("build gop error: %v", err)
-	}
-	if string(data) != test_big_go {
-		fmt.Println("build gop error:")
-		fmt.Println(string(data))
-		t.Fail()
-	}
+`)
 }
 
-var test_builtin = `
+func TestBuiltin(t *testing.T) {
+	igop.RegisterCustomBuiltin("typeof", reflect.TypeOf)
+	gopClTest(t, `
 v := typeof(100)
 println(v)
-`
-var test_builtin_go = `package main
+`, `package main
 
 import fmt "fmt"
 
@@ -79,23 +71,11 @@ func main() {
 //line main.gop:3
 	fmt.Println(v)
 }
-`
-
-func TestBuiltin(t *testing.T) {
-	ctx := igop.NewContext(0)
-	igop.RegisterCustomBuiltin("typeof", reflect.TypeOf)
-	data, err := BuildFile(ctx, "main.gop", test_builtin)
-	if err != nil {
-		t.Fatalf("build gop error: %v", err)
-	}
-	if string(data) != test_builtin_go {
-		fmt.Println("build gop error:")
-		fmt.Println(string(data))
-		t.Fail()
-	}
+`)
 }
 
-var test_iox = `
+func TestIoxLines(t *testing.T) {
+	gopClTest(t, `
 import "io"
 
 var r io.Reader
@@ -103,8 +83,7 @@ var r io.Reader
 for line <- lines(r) {
 	println line
 }
-`
-var test_iox_go = `package main
+`, `package main
 
 import (
 	fmt "fmt"
@@ -126,17 +105,5 @@ func main() {
 		fmt.Println(line)
 	}
 }
-`
-
-func TestIox(t *testing.T) {
-	ctx := igop.NewContext(0)
-	data, err := BuildFile(ctx, "main.gop", test_iox)
-	if err != nil {
-		t.Fatalf("build gop error: %v", err)
-	}
-	if string(data) != test_iox_go {
-		fmt.Println("build gop error:")
-		fmt.Println(string(data))
-		t.Fail()
-	}
+`)
 }
