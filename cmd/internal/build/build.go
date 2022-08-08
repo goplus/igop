@@ -26,6 +26,7 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
+	"golang.org/x/tools/go/ssa"
 )
 
 // -----------------------------------------------------------------------------
@@ -40,11 +41,13 @@ var (
 	flag          = &Cmd.Flag
 	flagDumpInstr bool
 	flagDumpPkg   bool
+	flagVerbose   bool
 	flagTags      string
 )
 
 func init() {
 	Cmd.Run = buildCmd
+	flag.BoolVar(&flagVerbose, "v", false, "print build pass infomation")
 	flag.BoolVar(&flagDumpInstr, "dumpssa", false, "print SSA instruction code")
 	flag.BoolVar(&flagDumpPkg, "dumppkg", false, "print load import packages")
 	flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
@@ -75,6 +78,7 @@ func buildCmd(cmd *base.Command, args []string) {
 	if flagTags != "" {
 		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
 	}
+	var pkg *ssa.Package
 	if isDir {
 		if fnGopBuildDir != nil && containsExt(path, ".gop") {
 			err := fnGopBuildDir(ctx, path)
@@ -82,9 +86,21 @@ func buildCmd(cmd *base.Command, args []string) {
 				log.Fatalln(err)
 			}
 		}
-		buildDir(ctx, path, args)
+		pkg, err = ctx.LoadDir(path, false)
 	} else {
-		buildFile(ctx, path, args)
+		pkg, err = ctx.LoadFile(path, nil)
+	}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	_, err = ctx.NewInterp(pkg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	if flagVerbose {
+		fmt.Println("igop build pass")
 	}
 }
 
@@ -97,20 +113,6 @@ func IsDir(target string) (bool, error) {
 		return false, err
 	}
 	return fi.IsDir(), nil
-}
-
-func buildFile(ctx *igop.Context, target string, args []string) {
-	_, err := ctx.LoadFile(target, nil)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-	}
-}
-
-func buildDir(ctx *igop.Context, dir string, args []string) {
-	_, err := ctx.LoadDir(dir, false)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-	}
 }
 
 func containsExt(srcDir string, ext string) bool {
