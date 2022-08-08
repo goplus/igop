@@ -14,8 +14,8 @@
  limitations under the License.
 */
 
-// Package run implements the ``gop run'' command.
-package run
+// Package build implements the ``igop build'' command.
+package build
 
 import (
 	"fmt"
@@ -30,29 +30,27 @@ import (
 
 // -----------------------------------------------------------------------------
 
-// Cmd - igop run
+// Cmd - igop build
 var Cmd = &base.Command{
-	UsageLine: "igop run <gopSrcDir|gopSrcFile> [arguments]",
-	Short:     "Run a Go/Go+ program",
+	UsageLine: "igop build <gopSrcDir|gopSrcFile> [arguments]",
+	Short:     "Build a Go/Go+ program",
 }
 
 var (
 	flag          = &Cmd.Flag
 	flagDumpInstr bool
 	flagDumpPkg   bool
-	flagTrace     bool
 	flagTags      string
 )
 
 func init() {
-	Cmd.Run = runCmd
+	Cmd.Run = buildCmd
 	flag.BoolVar(&flagDumpInstr, "dumpssa", false, "print SSA instruction code")
 	flag.BoolVar(&flagDumpPkg, "dumppkg", false, "print load import packages")
-	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
 	flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
 }
 
-func runCmd(cmd *base.Command, args []string) {
+func buildCmd(cmd *base.Command, args []string) {
 	err := flag.Parse(args)
 	if err != nil {
 		os.Exit(2)
@@ -70,9 +68,6 @@ func runCmd(cmd *base.Command, args []string) {
 	if flagDumpInstr {
 		mode |= igop.EnableDumpInstr
 	}
-	if flagTrace {
-		mode |= igop.EnableTracing
-	}
 	if flagDumpPkg {
 		mode |= igop.EnableDumpImports
 	}
@@ -87,9 +82,9 @@ func runCmd(cmd *base.Command, args []string) {
 				log.Fatalln(err)
 			}
 		}
-		runDir(ctx, path, args)
+		buildDir(ctx, path, args)
 	} else {
-		runFile(ctx, path, args)
+		buildFile(ctx, path, args)
 	}
 }
 
@@ -104,20 +99,18 @@ func IsDir(target string) (bool, error) {
 	return fi.IsDir(), nil
 }
 
-func runFile(ctx *igop.Context, target string, args []string) {
-	exitCode, err := ctx.RunFile(target, nil, args)
+func buildFile(ctx *igop.Context, target string, args []string) {
+	_, err := ctx.LoadFile(target, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
-	os.Exit(exitCode)
 }
 
-func runDir(ctx *igop.Context, dir string, args []string) {
-	exitCode, err := ctx.Run(dir, args)
+func buildDir(ctx *igop.Context, dir string, args []string) {
+	_, err := ctx.LoadDir(dir, false)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
-	os.Exit(exitCode)
 }
 
 func containsExt(srcDir string, ext string) bool {
