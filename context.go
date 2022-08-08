@@ -586,6 +586,13 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 			}
 		}
 	}
+	var addin []*types.Package
+	for _, pkg := range ctx.Loader.Packages() {
+		if !pkg.Complete() {
+			addin = append(addin, pkg)
+		}
+	}
+	createAll(addin)
 	createAll(sp.Package.Imports())
 	// Create and build the primary package.
 	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
