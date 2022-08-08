@@ -62,14 +62,19 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+var (
+	maxMemLen int
+)
+
 const intSize = 32 << (^uint(0) >> 63)
 
-func maxMemLen() int {
+func init() {
 	if intSize == 32 {
-		return 1<<31 - 1
+		maxMemLen = 1<<31 - 1
+	} else {
+		v := int64(1) << 59
+		maxMemLen = int(v)
 	}
-	v := int64(1) << 59
-	return int(v)
 }
 
 type plainError string
