@@ -52,7 +52,7 @@ type Command struct {
 // igop command
 var Igop = &Command{
 	UsageLine: "igop",
-	Short:     `igop is a SSA interpreter of Go source code.`,
+	Short:     `igop is a SSA interpreter of Go/Go+ source code.`,
 	// Commands initialized in package main
 }
 

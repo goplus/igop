@@ -14,8 +14,8 @@
  limitations under the License.
 */
 
-// Package run implements the ``gop run'' command.
-package run
+// Package build implements the ``igop build'' command.
+package build
 
 import (
 	"fmt"
@@ -27,42 +27,43 @@ import (
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
 	"github.com/goplus/igop/cmd/internal/load"
+	"golang.org/x/tools/go/ssa"
 )
 
 // -----------------------------------------------------------------------------
 
-// Cmd - igop run
+// Cmd - igop build
 var Cmd = &base.Command{
-	UsageLine: "igop run <gopSrcDir|gopSrcFile> [arguments]",
-	Short:     "Run a Go/Go+ program",
+	UsageLine: "igop build <gopSrcDir|gopSrcFile> [arguments]",
+	Short:     "Build a Go/Go+ program",
 }
 
 var (
 	flag          = &Cmd.Flag
 	flagDumpInstr bool
 	flagDumpPkg   bool
-	flagTrace     bool
+	flagVerbose   bool
 	flagTags      string
 )
 
 func init() {
-	Cmd.Run = runCmd
+	Cmd.Run = buildCmd
+	flag.BoolVar(&flagVerbose, "v", false, "print build pass infomation")
 	flag.BoolVar(&flagDumpInstr, "dumpssa", false, "print SSA instruction code")
 	flag.BoolVar(&flagDumpPkg, "dumppkg", false, "print load import packages")
-	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
 	flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
 }
 
-func runCmd(cmd *base.Command, args []string) {
+func buildCmd(cmd *base.Command, args []string) {
 	err := flag.Parse(args)
 	if err != nil {
 		os.Exit(2)
 	}
-	if flag.NArg() < 1 {
-		cmd.Usage(os.Stderr)
+	paths := flag.Args()
+	if len(paths) == 0 {
+		paths = []string{"."}
 	}
-	args = flag.Args()[1:]
-	path, _ := filepath.Abs(flag.Arg(0))
+	path, _ := filepath.Abs(paths[0])
 	isDir, err := load.IsDir(path)
 	if err != nil {
 		log.Fatalln("input arg check failed:", err)
@@ -71,9 +72,6 @@ func runCmd(cmd *base.Command, args []string) {
 	if flagDumpInstr {
 		mode |= igop.EnableDumpInstr
 	}
-	if flagTrace {
-		mode |= igop.EnableTracing
-	}
 	if flagDumpPkg {
 		mode |= igop.EnableDumpImports
 	}
@@ -81,6 +79,7 @@ func runCmd(cmd *base.Command, args []string) {
 	if flagTags != "" {
 		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
 	}
+	var pkg *ssa.Package
 	if isDir {
 		if load.SupportGop && load.IsGopProject(path) {
 			err := load.BuildGopDir(ctx, path)
@@ -89,24 +88,22 @@ func runCmd(cmd *base.Command, args []string) {
 				os.Exit(2)
 			}
 		}
-		runDir(ctx, path, args)
+		pkg, err = ctx.LoadDir(path, false)
 	} else {
-		runFile(ctx, path, args)
+		pkg, err = ctx.LoadFile(path, nil)
+	}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	_, err = ctx.NewInterp(pkg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	if flagVerbose {
+		fmt.Println("igop build pass")
 	}
 }
 
-func runFile(ctx *igop.Context, target string, args []string) {
-	exitCode, err := ctx.RunFile(target, nil, args)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-	}
-	os.Exit(exitCode)
-}
-
-func runDir(ctx *igop.Context, dir string, args []string) {
-	exitCode, err := ctx.Run(dir, args)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-	}
-	os.Exit(exitCode)
-}
+// -----------------------------------------------------------------------------

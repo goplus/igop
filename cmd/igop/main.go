@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/igop/cmd/internal/build"
 	"github.com/goplus/igop/cmd/internal/help"
 	"github.com/goplus/igop/cmd/internal/repl"
 	"github.com/goplus/igop/cmd/internal/run"
@@ -39,6 +40,7 @@ func init() {
 	base.Usage = mainUsage
 	base.Igop.Commands = []*base.Command{
 		run.Cmd,
+		build.Cmd,
 		test.Cmd,
 		repl.Cmd,
 	}

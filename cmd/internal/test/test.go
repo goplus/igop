@@ -26,6 +26,7 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/igop/cmd/internal/load"
 )
 
 // Cmd - igop test
@@ -71,10 +72,14 @@ func runCmd(cmd *base.Command, args []string) {
 		cf.Var(cf.Lookup(name).Value, "test."+name, "")
 	}
 
-	cf.Parse(args)
-	pkgs := cf.Args()
-	if len(pkgs) == 0 {
-		pkgs = []string{"."}
+	err := cf.Parse(args)
+	if err != nil {
+		os.Exit(2)
+		return
+	}
+	paths := cf.Args()
+	if len(paths) == 0 {
+		paths = []string{"."}
 	}
 
 	var testArgs []string
@@ -94,10 +99,17 @@ func runCmd(cmd *base.Command, args []string) {
 	if flagTags != "" {
 		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
 	}
-	for _, pkg := range pkgs {
-		if err := ctx.RunTest(pkg, testArgs); err != nil {
+	for _, path := range paths {
+		if load.SupportGop && load.IsGopProject(path) {
+			err := load.BuildGopDir(ctx, path)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(2)
+			}
+		}
+		if err := ctx.RunTest(path, testArgs); err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			fmt.Fprintf(os.Stderr, "FAIL\t%v [run failed]\n", pkg)
+			fmt.Fprintf(os.Stderr, "FAIL\t%v [run failed]\n", path)
 		}
 	}
 }
