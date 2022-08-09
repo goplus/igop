@@ -24,7 +24,7 @@ func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 		d.root = root
 		err := d.Parse(root)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "igop:", "warning", err)
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 	dir, found = d.pkgs[path]
@@ -83,7 +83,7 @@ func (d *ModuleDriver) Lookup(root string, path string) (dir string, found bool)
 		var err error
 		d.mod, err = gomod.Load(root, &build.Default)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "igop:", "warning", err)
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 	_, dir, found = d.mod.Lookup(path)
