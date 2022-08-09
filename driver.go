@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/build"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -54,11 +53,9 @@ func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 }
 
 func (d *ListDriver) Parse(root string) error {
-	cmd := exec.Command("go", "list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}", ".")
-	cmd.Dir = root
-	data, err := cmd.CombinedOutput()
+	data, err := runGoCommand(root, "list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}", ".")
 	if err != nil {
-		return fmt.Errorf("go list error\n%v", string(data))
+		return err
 	}
 	d.pkgs = make(map[string]string)
 	for _, line := range strings.Split(string(data), "\n") {

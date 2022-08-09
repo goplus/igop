@@ -2,6 +2,7 @@ package igop
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -172,16 +173,6 @@ func (ctx *Context) writeOutput(data []byte) (n int, err error) {
 		return ctx.output.Write(data)
 	}
 	return os.Stdout.Write(data)
-}
-
-func importPathForDir(dir string) (string, error) {
-	cmd := exec.Command("go", "list")
-	cmd.Dir = dir
-	data, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("go list error\n%v", string(data))
-	}
-	return strings.TrimSpace(string(data)), nil
 }
 
 func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
@@ -720,4 +711,27 @@ import (
 %v
 `, pkg, strings.Join(deps, "\n"), strings.Join(list, "\n"))
 	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
+}
+
+func importPathForDir(dir string) (string, error) {
+	data, err := runGoCommand(dir, "list")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
+}
+
+func runGoCommand(dir string, args ...string) (ret []byte, err error) {
+	var stdout, stderr bytes.Buffer
+	cmd := exec.Command("go", args...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	cmd.Dir = dir
+	err = cmd.Run()
+	if err == nil {
+		ret = stdout.Bytes()
+	} else if stderr.Len() > 0 {
+		err = errors.New(stderr.String())
+	}
+	return
 }
