@@ -2,6 +2,7 @@ package igop
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -21,7 +22,6 @@ import (
 	"time"
 
 	"github.com/goplus/igop/testmain"
-	"github.com/visualfc/gomod"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -54,7 +54,6 @@ type Context struct {
 	output       io.Writer                                        // capture print/println output
 	FileSet      *token.FileSet                                   // file set
 	conf         *types.Config                                    // types check config
-	mod          *gomod.Package                                   // lookup path for go.mod
 	Lookup       func(root, path string) (dir string, found bool) // lookup external import
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
 	debugFunc    func(*DebugInfo)          // debug func
@@ -71,24 +70,12 @@ type Context struct {
 
 func (ctx *Context) setRoot(root string) {
 	ctx.root = root
-	ctx.mod = nil
 }
 
 func (ctx *Context) lookupPath(path string) (dir string, found bool) {
 	if ctx.Lookup != nil {
 		dir, found = ctx.Lookup(ctx.root, path)
-		if found {
-			return
-		}
 	}
-	if ctx.mod == nil {
-		var err error
-		ctx.mod, err = gomod.Load(ctx.root, &ctx.BuildContext)
-		if err != nil {
-			panic(err)
-		}
-	}
-	_, dir, found = ctx.mod.Lookup(path)
 	if !found {
 		bp, err := build.Import(path, ctx.root, build.FindOnly)
 		if err == nil && bp.ImportPath == path {
@@ -142,6 +129,7 @@ func NewContext(mode Mode) *Context {
 	ctx.conf = &types.Config{
 		Importer: NewImporter(ctx),
 	}
+	ctx.Lookup = new(ListDriver).Lookup
 	return ctx
 }
 
@@ -185,16 +173,6 @@ func (ctx *Context) writeOutput(data []byte) (n int, err error) {
 		return ctx.output.Write(data)
 	}
 	return os.Stdout.Write(data)
-}
-
-func importPathForDir(dir string) (string, error) {
-	cmd := exec.Command("go", "list")
-	cmd.Dir = dir
-	data, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(data)), nil
 }
 
 func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
@@ -733,4 +711,27 @@ import (
 %v
 `, pkg, strings.Join(deps, "\n"), strings.Join(list, "\n"))
 	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
+}
+
+func importPathForDir(dir string) (string, error) {
+	data, err := runGoCommand(dir, "list")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
+}
+
+func runGoCommand(dir string, args ...string) (ret []byte, err error) {
+	var stdout, stderr bytes.Buffer
+	cmd := exec.Command("go", args...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	cmd.Dir = dir
+	err = cmd.Run()
+	if err == nil {
+		ret = stdout.Bytes()
+	} else if stderr.Len() > 0 {
+		err = errors.New(stderr.String())
+	}
+	return
 }

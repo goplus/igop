@@ -16,6 +16,7 @@ var (
 	ErrNoFunction       = errors.New("no function")
 	ErrNoCustomBuiltin  = errors.New("no custom builtin")
 	ErrNoTestFiles      = errors.New("[no test files]")
+	ErrGoList           = errors.New("error go list")
 )
 
 type ExitError int

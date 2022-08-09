@@ -26,7 +26,6 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
-	"github.com/goplus/igop/cmd/internal/load"
 )
 
 // Cmd - igop test
@@ -100,13 +99,6 @@ func runCmd(cmd *base.Command, args []string) {
 		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
 	}
 	for _, path := range paths {
-		if load.SupportGop && load.IsGopProject(path) {
-			err := load.BuildGopDir(ctx, path)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(2)
-			}
-		}
 		if err := ctx.RunTest(path, testArgs); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			fmt.Fprintf(os.Stderr, "FAIL\t%v [run failed]\n", path)
