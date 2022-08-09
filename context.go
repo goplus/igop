@@ -75,6 +75,12 @@ func (ctx *Context) lookupPath(path string) (dir string, found bool) {
 	if ctx.Lookup != nil {
 		dir, found = ctx.Lookup(ctx.root, path)
 	}
+	if !found {
+		bp, err := build.Import(path, ctx.root, build.FindOnly)
+		if err == nil && bp.ImportPath == path {
+			return bp.Dir, true
+		}
+	}
 	return
 }
 
@@ -173,7 +179,7 @@ func importPathForDir(dir string) (string, error) {
 	cmd.Dir = dir
 	data, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("go list error\n%v", string(data))
 	}
 	return strings.TrimSpace(string(data)), nil
 }

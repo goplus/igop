@@ -41,18 +41,14 @@ func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 	case 0:
 	case 1:
 		v := list[0]
-		return filepath.Join(d.pkgs[v], path[len(v+"/"):]), true
+		dir, found = filepath.Join(d.pkgs[v], path[len(v+"/"):]), true
 	default:
 		// check path/v2
 		sort.Slice(list, func(i, j int) bool {
 			return list[i] > list[j]
 		})
 		v := list[0]
-		return filepath.Join(d.pkgs[v], path[len(v+"/"):]), true
-	}
-	bp, err := build.Import(path, root, build.FindOnly)
-	if err == nil && bp.ImportPath == path {
-		return bp.Dir, true
+		dir, found = filepath.Join(d.pkgs[v], path[len(v+"/"):]), true
 	}
 	return
 }
@@ -62,7 +58,7 @@ func (d *ListDriver) Parse(root string) error {
 	cmd.Dir = root
 	data, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("go list error: %v", strings.TrimSpace(string(data)))
+		return fmt.Errorf("go list error\n%v", string(data))
 	}
 	d.pkgs = make(map[string]string)
 	for _, line := range strings.Split(string(data), "\n") {
@@ -91,11 +87,5 @@ func (d *ModuleDriver) Lookup(root string, path string) (dir string, found bool)
 		}
 	}
 	_, dir, found = d.mod.Lookup(path)
-	if !found {
-		bp, err := build.Import(path, root, build.FindOnly)
-		if err == nil && bp.ImportPath == path {
-			return bp.Dir, true
-		}
-	}
 	return
 }
