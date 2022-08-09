@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/goplus/igop/testmain"
-	"github.com/visualfc/gomod"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -54,7 +53,6 @@ type Context struct {
 	output       io.Writer                                        // capture print/println output
 	FileSet      *token.FileSet                                   // file set
 	conf         *types.Config                                    // types check config
-	mod          *gomod.Package                                   // lookup path for go.mod
 	Lookup       func(root, path string) (dir string, found bool) // lookup external import
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
 	debugFunc    func(*DebugInfo)          // debug func
@@ -71,29 +69,11 @@ type Context struct {
 
 func (ctx *Context) setRoot(root string) {
 	ctx.root = root
-	ctx.mod = nil
 }
 
 func (ctx *Context) lookupPath(path string) (dir string, found bool) {
 	if ctx.Lookup != nil {
 		dir, found = ctx.Lookup(ctx.root, path)
-		if found {
-			return
-		}
-	}
-	if ctx.mod == nil {
-		var err error
-		ctx.mod, err = gomod.Load(ctx.root, &ctx.BuildContext)
-		if err != nil {
-			panic(err)
-		}
-	}
-	_, dir, found = ctx.mod.Lookup(path)
-	if !found {
-		bp, err := build.Import(path, ctx.root, build.FindOnly)
-		if err == nil && bp.ImportPath == path {
-			return bp.Dir, true
-		}
 	}
 	return
 }
@@ -142,6 +122,7 @@ func NewContext(mode Mode) *Context {
 	ctx.conf = &types.Config{
 		Importer: NewImporter(ctx),
 	}
+	ctx.Lookup = new(ListDriver).Lookup
 	return ctx
 }
 
