@@ -31,20 +31,20 @@ const (
 
 // AddBuildFlags adds the flags common to the build, run, and test commands.
 func AddBuildFlags(cmd *Command, mask BuildFlagMask) {
-	cmd.Flag.BoolVar(&BuildX, "x", false, "")
-	if mask&OmitVFlag == 0 {
-		cmd.Flag.BoolVar(&BuildV, "v", false, "")
+	cmd.Flag.BoolVar(&BuildX, "x", false, "print the commands.")
+	if mask&OmitVFlag != 0 {
+		cmd.Flag.BoolVar(&BuildV, "v", false, "print the names of packages as they are compiled.")
 	}
-	if mask&OmitModFlag == 0 {
-		cmd.Flag.Var(explicitStringFlag{value: &BuildMod, explicit: &BuildModExplicit}, "mod", "")
+	if mask&OmitModFlag != 0 {
+		cmd.Flag.Var(explicitStringFlag{value: &BuildMod, explicit: &BuildModExplicit}, "mod", "module download mode to use: readonly, vendor, or mod.")
 	}
-	if mask&OmitSSAFlag == 0 {
-		cmd.Flag.BoolVar(&BuildSSA, "ssa", false, "")
+	if mask&OmitSSAFlag != 0 {
+		cmd.Flag.BoolVar(&BuildSSA, "ssa", false, "print SSA instruction code")
 	}
-	if mask&OmitSSATraceFlag == 0 {
-		cmd.Flag.BoolVar(&DebugSSATrace, "ssa-trace", false, "")
+	if mask&OmitSSATraceFlag != 0 {
+		cmd.Flag.BoolVar(&DebugSSATrace, "ssa-trace", false, "trace SSA interpreter code")
 	}
-	cmd.Flag.Var((*tagsFlag)(&BuildContext.BuildTags), "tags", "")
+	cmd.Flag.Var((*tagsFlag)(&BuildContext.BuildTags), "tags", "a comma-separated list of build tags to consider satisfied during the build")
 }
 
 // tagsFlag is the implementation of the -tags flag.

@@ -22,7 +22,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
@@ -39,19 +38,12 @@ var Cmd = &base.Command{
 }
 
 var (
-	flag          = &Cmd.Flag
-	flagDumpInstr bool
-	flagDumpPkg   bool
-	flagVerbose   bool
-	flagTags      string
+	flag = &Cmd.Flag
 )
 
 func init() {
 	Cmd.Run = buildCmd
-	flag.BoolVar(&flagVerbose, "v", false, "print build pass infomation")
-	flag.BoolVar(&flagDumpInstr, "dumpssa", false, "print SSA instruction code")
-	flag.BoolVar(&flagDumpPkg, "dumppkg", false, "print load import packages")
-	flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
+	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitVFlag)
 }
 
 func buildCmd(cmd *base.Command, args []string) {
@@ -69,16 +61,14 @@ func buildCmd(cmd *base.Command, args []string) {
 		log.Fatalln("input arg check failed:", err)
 	}
 	var mode igop.Mode
-	if flagDumpInstr {
+	if base.BuildSSA {
 		mode |= igop.EnableDumpInstr
 	}
-	if flagDumpPkg {
+	if base.BuildX {
 		mode |= igop.EnableDumpImports
 	}
 	ctx := igop.NewContext(mode)
-	if flagTags != "" {
-		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
-	}
+	ctx.BuildContext = base.BuildContext
 	var pkg *ssa.Package
 	if isDir {
 		if load.SupportGop && load.IsGopProject(path) {
@@ -101,7 +91,7 @@ func buildCmd(cmd *base.Command, args []string) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
-	if flagVerbose {
+	if base.BuildV {
 		fmt.Println("igop build pass")
 	}
 }
