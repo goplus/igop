@@ -2,13 +2,10 @@ package igop
 
 import (
 	"fmt"
-	"go/build"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/visualfc/gomod"
 )
 
 type ListDriver struct {
@@ -65,24 +62,4 @@ func (d *ListDriver) Parse(root string) error {
 		}
 	}
 	return nil
-}
-
-type ModuleDriver struct {
-	init bool
-	root string
-	mod  *gomod.Package
-}
-
-func (d *ModuleDriver) Lookup(root string, path string) (dir string, found bool) {
-	if !d.init || d.root != root {
-		d.init = true
-		d.root = root
-		var err error
-		d.mod, err = gomod.Load(root, &build.Default)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
-	}
-	_, dir, found = d.mod.Lookup(path)
-	return
 }
