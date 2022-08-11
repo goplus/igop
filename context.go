@@ -22,8 +22,6 @@ import (
 	"time"
 
 	"github.com/goplus/igop/load"
-
-	"github.com/goplus/igop/testmain"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -315,7 +313,7 @@ func (ctx *Context) loadTestPackage(path string, dir string) (*sourcePackage, er
 		}
 		ctx.pkgs[path+"_test"] = tp
 	}
-	data, err := testmain.Load(bp)
+	data, err := load.LoadTestMain(bp)
 	if err != nil {
 		return nil, err
 	}

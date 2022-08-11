@@ -1,4 +1,4 @@
-package testmain
+package load
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ import (
 	"unicode/utf8"
 )
 
-func Load(bp *build.Package) ([]byte, error) {
+func LoadTestMain(bp *build.Package) ([]byte, error) {
 	t, err := loadTestFuncs(bp)
 	if err != nil {
 		return nil, err
