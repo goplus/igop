@@ -92,7 +92,7 @@ func buildCmd(cmd *base.Command, args []string) {
 		os.Exit(2)
 	}
 	if base.BuildV {
-		fmt.Println("igop build pass")
+		fmt.Println(pkg.Pkg.Path())
 	}
 }
 

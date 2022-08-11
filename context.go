@@ -21,6 +21,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goplus/igop/load"
+
 	"github.com/goplus/igop/testmain"
 	"golang.org/x/tools/go/ssa"
 )
@@ -176,11 +178,15 @@ func (ctx *Context) writeOutput(data []byte) (n int, err error) {
 }
 
 func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
+	importPath, err := load.GetModulePath(dir)
+	if err != nil {
+		return nil, err
+	}
 	var sp *sourcePackage
 	if test {
-		sp, err = ctx.loadTestPackage(dir)
+		sp, err = ctx.loadTestPackage(importPath, dir)
 	} else {
-		sp, err = ctx.loadPackage("main", dir)
+		sp, err = ctx.loadPackage(importPath, dir)
 	}
 	if err != nil {
 		return nil, err
@@ -276,11 +282,7 @@ func (ctx *Context) loadPackage(path string, dir string) (*sourcePackage, error)
 	return tp, nil
 }
 
-func (ctx *Context) loadTestPackage(dir string) (*sourcePackage, error) {
-	importPath, err := importPathForDir(dir)
-	if err != nil {
-		return nil, err
-	}
+func (ctx *Context) loadTestPackage(path string, dir string) (*sourcePackage, error) {
 	bp, err := ctx.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
@@ -288,30 +290,30 @@ func (ctx *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 	if len(bp.TestGoFiles) == 0 && len(bp.XTestGoFiles) == 0 {
 		return nil, ErrNoTestFiles
 	}
-	bp.ImportPath = importPath
+	bp.ImportPath = path
 	files, err := ctx.parseGoFiles(dir, append(append(bp.GoFiles, bp.CgoFiles...), bp.TestGoFiles...))
 	if err != nil {
 		return nil, err
 	}
 	tp := &sourcePackage{
-		Package: types.NewPackage(importPath, bp.Name),
+		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
 		Dir:     dir,
 		Context: ctx,
 	}
-	ctx.pkgs[importPath] = tp
+	ctx.pkgs[path] = tp
 	if len(bp.XTestGoFiles) > 0 {
 		files, err := ctx.parseGoFiles(dir, bp.XTestGoFiles)
 		if err != nil {
 			return nil, err
 		}
 		tp := &sourcePackage{
-			Package: types.NewPackage(importPath+"_test", bp.Name+"_test"),
+			Package: types.NewPackage(path+"_test", bp.Name+"_test"),
 			Files:   files,
 			Dir:     dir,
 			Context: ctx,
 		}
-		ctx.pkgs[importPath+"_test"] = tp
+		ctx.pkgs[path+"_test"] = tp
 	}
 	data, err := testmain.Load(bp)
 	if err != nil {
@@ -322,7 +324,7 @@ func (ctx *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 		return nil, err
 	}
 	return &sourcePackage{
-		Package: types.NewPackage(importPath+"$testmain", "main"),
+		Package: types.NewPackage(path+"$testmain", "main"),
 		Files:   []*ast.File{f},
 		Dir:     dir,
 		Context: ctx,
@@ -711,14 +713,6 @@ import (
 %v
 `, pkg, strings.Join(deps, "\n"), strings.Join(list, "\n"))
 	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
-}
-
-func importPathForDir(dir string) (string, error) {
-	data, err := runGoCommand(dir, "list")
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(data)), nil
 }
 
 func runGoCommand(dir string, args ...string) (ret []byte, err error) {
