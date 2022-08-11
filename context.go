@@ -2,7 +2,6 @@ package igop
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -12,7 +11,6 @@ import (
 	"go/types"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -129,7 +127,7 @@ func NewContext(mode Mode) *Context {
 	ctx.conf = &types.Config{
 		Importer: NewImporter(ctx),
 	}
-	ctx.Lookup = new(ListDriver).Lookup
+	ctx.Lookup = new(load.ListDriver).Lookup
 	return ctx
 }
 
@@ -711,19 +709,4 @@ import (
 %v
 `, pkg, strings.Join(deps, "\n"), strings.Join(list, "\n"))
 	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
-}
-
-func runGoCommand(dir string, args ...string) (ret []byte, err error) {
-	var stdout, stderr bytes.Buffer
-	cmd := exec.Command("go", args...)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	cmd.Dir = dir
-	err = cmd.Run()
-	if err == nil {
-		ret = stdout.Bytes()
-	} else if stderr.Len() > 0 {
-		err = errors.New(stderr.String())
-	}
-	return
 }

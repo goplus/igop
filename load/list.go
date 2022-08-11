@@ -1,8 +1,11 @@
-package igop
+package load
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -62,4 +65,19 @@ func (d *ListDriver) Parse(root string) error {
 		}
 	}
 	return nil
+}
+
+func runGoCommand(dir string, args ...string) (ret []byte, err error) {
+	var stdout, stderr bytes.Buffer
+	cmd := exec.Command("go", args...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	cmd.Dir = dir
+	err = cmd.Run()
+	if err == nil {
+		ret = stdout.Bytes()
+	} else if stderr.Len() > 0 {
+		err = errors.New(stderr.String())
+	}
+	return
 }
