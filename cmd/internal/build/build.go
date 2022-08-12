@@ -19,7 +19,6 @@ package build
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -55,11 +54,7 @@ func buildCmd(cmd *base.Command, args []string) {
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
-	path, _ := filepath.Abs(paths[0])
-	isDir, err := load.IsDir(path)
-	if err != nil {
-		log.Fatalln("input arg check failed:", err)
-	}
+	path := paths[0]
 	var mode igop.Mode
 	if base.BuildSSA {
 		mode |= igop.EnableDumpInstr
@@ -69,6 +64,12 @@ func buildCmd(cmd *base.Command, args []string) {
 	}
 	ctx := igop.NewContext(mode)
 	ctx.BuildContext = base.BuildContext
+	path, _ = filepath.Abs(path)
+	isDir, err := load.IsDir(path)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
 	var pkg *ssa.Package
 	if isDir {
 		if load.SupportGop && load.IsGopProject(path) {

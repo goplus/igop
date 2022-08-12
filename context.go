@@ -321,7 +321,7 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		return nil, err
 	}
 	return &sourcePackage{
-		Package: types.NewPackage(path+"$testmain", "main"),
+		Package: types.NewPackage(path, "main"),
 		Files:   []*ast.File{f},
 		Dir:     dir,
 		Context: ctx,
@@ -453,9 +453,9 @@ func (ctx *Context) TestPkg(pkg *ssa.Package, input string, args []string) error
 	defer func() {
 		sec := time.Since(start).Seconds()
 		if failed {
-			fmt.Fprintf(os.Stdout, "FAIL\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stdout, "FAIL\t%s %0.3fs\n", pkg.Pkg.Path(), sec)
 		} else {
-			fmt.Fprintf(os.Stdout, "ok\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stdout, "ok\t%s %0.3fs\n", pkg.Pkg.Path(), sec)
 		}
 	}()
 	os.Args = []string{input}
