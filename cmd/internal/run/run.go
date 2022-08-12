@@ -43,7 +43,7 @@ var (
 
 func init() {
 	Cmd.Run = runCmd
-	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitVFlag)
+	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|base.OmitVFlag)
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -64,6 +64,9 @@ func runCmd(cmd *base.Command, args []string) {
 	var mode igop.Mode
 	if base.BuildSSA {
 		mode |= igop.EnableDumpInstr
+	}
+	if base.DebugSSATrace {
+		mode |= igop.EnableTracing
 	}
 	if base.BuildX {
 		mode |= igop.EnableDumpImports
