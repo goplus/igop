@@ -28,7 +28,7 @@ func GetImportPath(pkgName string, dir string) (string, error) {
 	if pkgName == "" || pkgName == "main" {
 		_, pkgName = filepath.Split(dir)
 	}
-	mod, found := gomod(dir)
+	mod, found := findModule(dir)
 	if !found {
 		return pkgName, nil
 	}
@@ -54,7 +54,7 @@ func absDir(dir string) (string, error) {
 	return filepath.Abs(dir)
 }
 
-func gomod(dir string) (file string, found bool) {
+func findModule(dir string) (file string, found bool) {
 	for dir != "" {
 		file = filepath.Join(dir, "go.mod")
 		if fi, e := os.Lstat(file); e == nil && !fi.IsDir() {
