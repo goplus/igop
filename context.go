@@ -415,17 +415,20 @@ func (ctx *Context) LoadAstPackage(path string, apkg *ast.Package) (*ssa.Package
 }
 
 func (ctx *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exitCode int, err error) {
+	interp, err := ctx.NewInterp(mainPkg)
+	if err != nil {
+		return 2, err
+	}
+	return ctx.RunInterp(interp, input, args)
+}
+
+func (ctx *Context) RunInterp(interp *Interp, input string, args []string) (exitCode int, err error) {
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
 		os.Args = append(os.Args, args...)
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-
-	interp, err := ctx.NewInterp(mainPkg)
-	if err != nil {
-		return 2, err
-	}
 	if err = interp.RunInit(); err != nil {
 		return 2, err
 	}
