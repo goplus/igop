@@ -174,15 +174,20 @@ func (ctx *Context) writeOutput(data []byte) (n int, err error) {
 }
 
 func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
-	importPath, err := load.GetModulePath(dir)
+	bp, err := ctx.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
+	importPath, err := load.GetImportPath(bp.Name, dir)
+	if err != nil {
+		return nil, err
+	}
+	bp.ImportPath = importPath
 	var sp *sourcePackage
 	if test {
-		sp, err = ctx.loadTestPackage(importPath, dir)
+		sp, err = ctx.loadTestPackage(bp, importPath, dir)
 	} else {
-		sp, err = ctx.loadPackage(importPath, dir)
+		sp, err = ctx.loadPackage(bp, importPath, dir)
 	}
 	if err != nil {
 		return nil, err
@@ -236,7 +241,12 @@ func (ctx *Context) addImportFile(path string, filename string, src interface{})
 }
 
 func (ctx *Context) addImport(path string, dir string) (*sourcePackage, error) {
-	tp, err := ctx.loadPackage(path, dir)
+	bp, err := ctx.BuildContext.ImportDir(dir, 0)
+	if err != nil {
+		return nil, err
+	}
+	bp.ImportPath = path
+	tp, err := ctx.loadPackage(bp, path, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -259,11 +269,7 @@ func (ctx *Context) loadPackageFile(path string, filename string, src interface{
 	return tp, nil
 }
 
-func (ctx *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
-	bp, err := ctx.BuildContext.ImportDir(dir, 0)
-	if err != nil {
-		return nil, err
-	}
+func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*sourcePackage, error) {
 	files, err := ctx.parseGoFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
 	if err != nil {
 		return nil, err
@@ -278,15 +284,10 @@ func (ctx *Context) loadPackage(path string, dir string) (*sourcePackage, error)
 	return tp, nil
 }
 
-func (ctx *Context) loadTestPackage(path string, dir string) (*sourcePackage, error) {
-	bp, err := ctx.BuildContext.ImportDir(dir, 0)
-	if err != nil {
-		return nil, err
-	}
+func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) (*sourcePackage, error) {
 	if len(bp.TestGoFiles) == 0 && len(bp.XTestGoFiles) == 0 {
 		return nil, ErrNoTestFiles
 	}
-	bp.ImportPath = path
 	files, err := ctx.parseGoFiles(dir, append(append(bp.GoFiles, bp.CgoFiles...), bp.TestGoFiles...))
 	if err != nil {
 		return nil, err

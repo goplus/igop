@@ -5,44 +5,59 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"golang.org/x/mod/modfile"
 )
 
-func GetModulePath(dir string) (string, error) {
-	mod, err := GOMOD(dir)
+func GetImportPath(pkgName string, dir string) (string, error) {
+	dir, err := absDir(dir)
 	if err != nil {
 		return "", err
+	}
+	if pkgName == "" || pkgName == "main" {
+		_, pkgName = filepath.Split(dir)
+	}
+	mod, found := gomod(dir)
+	if !found {
+		return pkgName, nil
 	}
 	f, err := LoadModFile(mod)
 	if err != nil {
 		return "", err
 	}
-	if f.Module != nil {
-		return f.Module.Mod.Path, nil
+	root := filepath.Dir(f.Syntax.Name)
+	modPath := f.Module.Mod.Path
+	dir = filepath.ToSlash(dir)
+	root = filepath.ToSlash(root)
+	if dir == root {
+		return modPath, nil
 	}
-	return "", errors.New("not found mod path")
+	_dir, _ := path.Split(dir[len(root)+1:])
+	return path.Join(modPath, _dir, pkgName), nil
 }
 
-func GOMOD(dir string) (file string, err error) {
+func absDir(dir string) (string, error) {
 	if dir == "" {
 		dir = "."
 	}
-	if dir, err = filepath.Abs(dir); err != nil {
-		return
-	}
+	return filepath.Abs(dir)
+}
+
+func gomod(dir string) (file string, found bool) {
 	for dir != "" {
 		file = filepath.Join(dir, "go.mod")
 		if fi, e := os.Lstat(file); e == nil && !fi.IsDir() {
+			found = true
 			return
 		}
 		if dir, file = filepath.Split(strings.TrimRight(dir, "/\\")); file == "" {
 			break
 		}
 	}
-	return "", errors.New("not found go.mod")
+	return
 }
 
 func LoadModFile(file string) (*modfile.File, error) {
@@ -57,6 +72,9 @@ func LoadModFile(file string) (*modfile.File, error) {
 	f, err := modfile.Parse(file, data, fix)
 	if err != nil {
 		return nil, fmt.Errorf("parse go.mod error %w", err)
+	}
+	if f.Module == nil {
+		return nil, errors.New("no module declaration in go.mod.")
 	}
 	return f, nil
 }
