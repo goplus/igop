@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+var (
+	BuildMod string // mod, readonly, vendor or empty
+)
+
 type ListDriver struct {
 	init bool
 	root string
@@ -53,7 +57,11 @@ func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 }
 
 func (d *ListDriver) Parse(root string) error {
-	data, err := runGoCommand(root, "list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}", ".")
+	args := []string{"list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}"}
+	if BuildMod != "" {
+		args = append(args, "-mod", BuildMod)
+	}
+	data, err := runGoCommand(root, args...)
 	if err != nil {
 		return err
 	}

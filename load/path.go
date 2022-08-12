@@ -1,6 +1,7 @@
 package load
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +14,13 @@ import (
 )
 
 func GetImportPath(pkgName string, dir string) (string, error) {
+	if BuildMod == "mod" {
+		data, err := runGoCommand(dir, "list", "-e", "-mod=mod")
+		if err != nil {
+			return "", err
+		}
+		return string(bytes.TrimSuffix(data, []byte{'\n'})), nil
+	}
 	dir, err := absDir(dir)
 	if err != nil {
 		return "", err

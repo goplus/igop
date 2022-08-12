@@ -3,16 +3,18 @@ package base
 import (
 	"go/build"
 	"strings"
+
+	"github.com/goplus/igop/load"
 )
 
 var (
-	BuildContext     = defaultContext()
-	BuildMod         string // -mod flag
-	BuildModExplicit bool   // whether -mod was set explicitly
-	BuildX           bool   // -x flag
-	BuildV           bool   // -v flag
-	BuildSSA         bool   // -ssa flag
-	DebugSSATrace    bool   // -ssa-trace flag
+	BuildContext = defaultContext()
+	// BuildMod         string // -mod flag
+	BuildModExplicit bool // whether -mod was set explicitly
+	BuildX           bool // -x flag
+	BuildV           bool // -v flag
+	BuildSSA         bool // -ssa flag
+	DebugSSATrace    bool // -ssa-trace flag
 )
 
 func defaultContext() build.Context {
@@ -36,7 +38,7 @@ func AddBuildFlags(cmd *Command, mask BuildFlagMask) {
 		cmd.Flag.BoolVar(&BuildV, "v", false, "print the names of packages as they are compiled.")
 	}
 	if mask&OmitModFlag != 0 {
-		cmd.Flag.Var(explicitStringFlag{value: &BuildMod, explicit: &BuildModExplicit}, "mod", "module download mode to use: readonly, vendor, or mod.")
+		cmd.Flag.Var(explicitStringFlag{value: &load.BuildMod, explicit: &BuildModExplicit}, "mod", "module download mode to use: readonly, vendor, or mod.")
 	}
 	if mask&OmitSSAFlag != 0 {
 		cmd.Flag.BoolVar(&BuildSSA, "ssa", false, "print SSA instruction code")
