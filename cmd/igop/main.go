@@ -19,6 +19,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/goplus/igop/cmd/internal/version"
+
 	"github.com/goplus/igop/cmd/internal/base"
 	"github.com/goplus/igop/cmd/internal/build"
 	"github.com/goplus/igop/cmd/internal/help"
@@ -43,6 +45,7 @@ func init() {
 		build.Cmd,
 		test.Cmd,
 		repl.Cmd,
+		version.Cmd,
 	}
 }
 
