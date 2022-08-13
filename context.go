@@ -312,7 +312,7 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		}
 		ctx.pkgs[path+"_test"] = tp
 	}
-	data, err := load.LoadTestMain(bp)
+	data, err := load.TestMain(bp)
 	if err != nil {
 		return nil, err
 	}

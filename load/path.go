@@ -13,6 +13,9 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
+// GetImportPath get import path from dir.
+// - lookup go.mod and check modpath+dir+pkgname
+// - use go list check if BuildMod == "mod".
 func GetImportPath(pkgName string, dir string) (string, error) {
 	if BuildMod == "mod" {
 		data, err := runGoCommand(dir, "list", "-e", "-mod=mod")
@@ -32,7 +35,7 @@ func GetImportPath(pkgName string, dir string) (string, error) {
 	if !found {
 		return pkgName, nil
 	}
-	f, err := LoadModFile(mod)
+	f, err := ParseModFile(mod)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +71,8 @@ func findModule(dir string) (file string, found bool) {
 	return
 }
 
-func LoadModFile(file string) (*modfile.File, error) {
+// ParseModFile parse go.mod
+func ParseModFile(file string) (*modfile.File, error) {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
@@ -82,7 +86,7 @@ func LoadModFile(file string) (*modfile.File, error) {
 		return nil, fmt.Errorf("parse go.mod error %w", err)
 	}
 	if f.Module == nil {
-		return nil, errors.New("no module declaration in go.mod.")
+		return nil, errors.New("no module declaration in go.mod")
 	}
 	return f, nil
 }

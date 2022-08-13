@@ -12,15 +12,17 @@ import (
 )
 
 var (
-	BuildMod string // mod, readonly, vendor or empty
+	BuildMod string // BuildMod can be set readonly, vendor, or mod.
 )
 
+// ListDriver implement (*igop.Context).Lookup use go list
 type ListDriver struct {
 	init bool
 	root string
 	pkgs map[string]string // path -> dir
 }
 
+// Lookup implement (*igop.Context).Lookup
 func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 	if !d.init || d.root != root {
 		d.init = true
@@ -56,6 +58,7 @@ func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 	return
 }
 
+// Parse parse deps by go list
 func (d *ListDriver) Parse(root string) error {
 	args := []string{"list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}"}
 	if BuildMod != "" {
