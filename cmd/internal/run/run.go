@@ -34,7 +34,7 @@ import (
 // Cmd - igop run
 var Cmd = &base.Command{
 	UsageLine: "igop run [build flags] [package] [arguments...]",
-	Short:     "Run a Go/Go+ program",
+	Short:     "run a Go/Go+ package",
 }
 
 var (

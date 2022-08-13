@@ -29,7 +29,7 @@ import (
 // Cmd - igop build
 var Cmd = &base.Command{
 	UsageLine: "igop version",
-	Short:     "Version prints the build information for igop",
+	Short:     "print version",
 }
 
 var (
@@ -41,5 +41,5 @@ func init() {
 }
 
 func versionCmd(cmd *base.Command, args []string) {
-	fmt.Printf("igop The Go/Go+ Interpreter\nbuild %v %v/%v\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("igop build %v %v/%v\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 }

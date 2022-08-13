@@ -37,9 +37,11 @@ go install github.com/goplus/igop/cmd/igop@latest
 
 Commands
 ```
-igop             # repl mode
-igop run         # interpret package
-igop test        # test package
+igop             # igop repl mode
+igop run         # run a Go/Go+ package
+igop build       # compile a Go/Go+ package
+igop test        # test a package
+igop verson      # print version
 ```
 
 ### igop repl mode

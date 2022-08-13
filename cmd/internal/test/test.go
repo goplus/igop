@@ -31,7 +31,7 @@ import (
 // Cmd - igop test
 var Cmd = &base.Command{
 	UsageLine: "igop test [build/test flags] [package]",
-	Short:     "test package",
+	Short:     "test a package",
 }
 
 func init() {
