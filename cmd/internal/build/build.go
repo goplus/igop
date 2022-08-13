@@ -19,10 +19,8 @@ package build
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
@@ -34,24 +32,17 @@ import (
 
 // Cmd - igop build
 var Cmd = &base.Command{
-	UsageLine: "igop build <gopSrcDir|gopSrcFile> [arguments]",
+	UsageLine: "igop build [build flags] [package]",
 	Short:     "Build a Go/Go+ program",
 }
 
 var (
-	flag          = &Cmd.Flag
-	flagDumpInstr bool
-	flagDumpPkg   bool
-	flagVerbose   bool
-	flagTags      string
+	flag = &Cmd.Flag
 )
 
 func init() {
 	Cmd.Run = buildCmd
-	flag.BoolVar(&flagVerbose, "v", false, "print build pass infomation")
-	flag.BoolVar(&flagDumpInstr, "dumpssa", false, "print SSA instruction code")
-	flag.BoolVar(&flagDumpPkg, "dumppkg", false, "print load import packages")
-	flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
+	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitVFlag)
 }
 
 func buildCmd(cmd *base.Command, args []string) {
@@ -63,21 +54,21 @@ func buildCmd(cmd *base.Command, args []string) {
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
-	path, _ := filepath.Abs(paths[0])
-	isDir, err := load.IsDir(path)
-	if err != nil {
-		log.Fatalln("input arg check failed:", err)
-	}
+	path := paths[0]
 	var mode igop.Mode
-	if flagDumpInstr {
+	if base.BuildSSA {
 		mode |= igop.EnableDumpInstr
 	}
-	if flagDumpPkg {
+	if base.BuildX {
 		mode |= igop.EnableDumpImports
 	}
 	ctx := igop.NewContext(mode)
-	if flagTags != "" {
-		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
+	ctx.BuildContext = base.BuildContext
+	path, _ = filepath.Abs(path)
+	isDir, err := load.IsDir(path)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
 	}
 	var pkg *ssa.Package
 	if isDir {
@@ -101,8 +92,8 @@ func buildCmd(cmd *base.Command, args []string) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
-	if flagVerbose {
-		fmt.Println("igop build pass")
+	if base.BuildV {
+		fmt.Println(pkg.Pkg.Path())
 	}
 }
 

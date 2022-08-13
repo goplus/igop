@@ -2,7 +2,6 @@ package igop
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -12,7 +11,6 @@ import (
 	"go/types"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -21,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goplus/igop/testmain"
+	"github.com/goplus/igop/load"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -129,7 +127,7 @@ func NewContext(mode Mode) *Context {
 	ctx.conf = &types.Config{
 		Importer: NewImporter(ctx),
 	}
-	ctx.Lookup = new(ListDriver).Lookup
+	ctx.Lookup = new(load.ListDriver).Lookup
 	return ctx
 }
 
@@ -176,11 +174,20 @@ func (ctx *Context) writeOutput(data []byte) (n int, err error) {
 }
 
 func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
+	bp, err := ctx.BuildContext.ImportDir(dir, 0)
+	if err != nil {
+		return nil, err
+	}
+	importPath, err := load.GetImportPath(bp.Name, dir)
+	if err != nil {
+		return nil, err
+	}
+	bp.ImportPath = importPath
 	var sp *sourcePackage
 	if test {
-		sp, err = ctx.loadTestPackage(dir)
+		sp, err = ctx.loadTestPackage(bp, importPath, dir)
 	} else {
-		sp, err = ctx.loadPackage("main", dir)
+		sp, err = ctx.loadPackage(bp, importPath, dir)
 	}
 	if err != nil {
 		return nil, err
@@ -234,7 +241,12 @@ func (ctx *Context) addImportFile(path string, filename string, src interface{})
 }
 
 func (ctx *Context) addImport(path string, dir string) (*sourcePackage, error) {
-	tp, err := ctx.loadPackage(path, dir)
+	bp, err := ctx.BuildContext.ImportDir(dir, 0)
+	if err != nil {
+		return nil, err
+	}
+	bp.ImportPath = path
+	tp, err := ctx.loadPackage(bp, path, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -257,11 +269,7 @@ func (ctx *Context) loadPackageFile(path string, filename string, src interface{
 	return tp, nil
 }
 
-func (ctx *Context) loadPackage(path string, dir string) (*sourcePackage, error) {
-	bp, err := ctx.BuildContext.ImportDir(dir, 0)
-	if err != nil {
-		return nil, err
-	}
+func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*sourcePackage, error) {
 	files, err := ctx.parseGoFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
 	if err != nil {
 		return nil, err
@@ -276,44 +284,35 @@ func (ctx *Context) loadPackage(path string, dir string) (*sourcePackage, error)
 	return tp, nil
 }
 
-func (ctx *Context) loadTestPackage(dir string) (*sourcePackage, error) {
-	importPath, err := importPathForDir(dir)
-	if err != nil {
-		return nil, err
-	}
-	bp, err := ctx.BuildContext.ImportDir(dir, 0)
-	if err != nil {
-		return nil, err
-	}
+func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) (*sourcePackage, error) {
 	if len(bp.TestGoFiles) == 0 && len(bp.XTestGoFiles) == 0 {
 		return nil, ErrNoTestFiles
 	}
-	bp.ImportPath = importPath
 	files, err := ctx.parseGoFiles(dir, append(append(bp.GoFiles, bp.CgoFiles...), bp.TestGoFiles...))
 	if err != nil {
 		return nil, err
 	}
 	tp := &sourcePackage{
-		Package: types.NewPackage(importPath, bp.Name),
+		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
 		Dir:     dir,
 		Context: ctx,
 	}
-	ctx.pkgs[importPath] = tp
+	ctx.pkgs[path] = tp
 	if len(bp.XTestGoFiles) > 0 {
 		files, err := ctx.parseGoFiles(dir, bp.XTestGoFiles)
 		if err != nil {
 			return nil, err
 		}
 		tp := &sourcePackage{
-			Package: types.NewPackage(importPath+"_test", bp.Name+"_test"),
+			Package: types.NewPackage(path+"_test", bp.Name+"_test"),
 			Files:   files,
 			Dir:     dir,
 			Context: ctx,
 		}
-		ctx.pkgs[importPath+"_test"] = tp
+		ctx.pkgs[path+"_test"] = tp
 	}
-	data, err := testmain.Load(bp)
+	data, err := load.TestMain(bp)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +321,7 @@ func (ctx *Context) loadTestPackage(dir string) (*sourcePackage, error) {
 		return nil, err
 	}
 	return &sourcePackage{
-		Package: types.NewPackage(importPath+"$testmain", "main"),
+		Package: types.NewPackage(path, "main"),
 		Files:   []*ast.File{f},
 		Dir:     dir,
 		Context: ctx,
@@ -416,17 +415,20 @@ func (ctx *Context) LoadAstPackage(path string, apkg *ast.Package) (*ssa.Package
 }
 
 func (ctx *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (exitCode int, err error) {
+	interp, err := ctx.NewInterp(mainPkg)
+	if err != nil {
+		return 2, err
+	}
+	return ctx.RunInterp(interp, input, args)
+}
+
+func (ctx *Context) RunInterp(interp *Interp, input string, args []string) (exitCode int, err error) {
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
 		os.Args = append(os.Args, args...)
 	}
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-
-	interp, err := ctx.NewInterp(mainPkg)
-	if err != nil {
-		return 2, err
-	}
 	if err = interp.RunInit(); err != nil {
 		return 2, err
 	}
@@ -451,9 +453,9 @@ func (ctx *Context) TestPkg(pkg *ssa.Package, input string, args []string) error
 	defer func() {
 		sec := time.Since(start).Seconds()
 		if failed {
-			fmt.Fprintf(os.Stdout, "FAIL\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stdout, "FAIL\t%s %0.3fs\n", pkg.Pkg.Path(), sec)
 		} else {
-			fmt.Fprintf(os.Stdout, "ok\t%s %0.3fs\n", input, sec)
+			fmt.Fprintf(os.Stdout, "ok\t%s %0.3fs\n", pkg.Pkg.Path(), sec)
 		}
 	}()
 	os.Args = []string{input}
@@ -711,27 +713,4 @@ import (
 %v
 `, pkg, strings.Join(deps, "\n"), strings.Join(list, "\n"))
 	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
-}
-
-func importPathForDir(dir string) (string, error) {
-	data, err := runGoCommand(dir, "list")
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(data)), nil
-}
-
-func runGoCommand(dir string, args ...string) (ret []byte, err error) {
-	var stdout, stderr bytes.Buffer
-	cmd := exec.Command("go", args...)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	cmd.Dir = dir
-	err = cmd.Run()
-	if err == nil {
-		ret = stdout.Bytes()
-	} else if stderr.Len() > 0 {
-		err = errors.New(stderr.String())
-	}
-	return
 }

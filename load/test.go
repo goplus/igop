@@ -1,4 +1,4 @@
-package testmain
+package load
 
 import (
 	"bytes"
@@ -17,7 +17,8 @@ import (
 	"unicode/utf8"
 )
 
-func Load(bp *build.Package) ([]byte, error) {
+// TestMain create testmain data form package
+func TestMain(bp *build.Package) ([]byte, error) {
 	t, err := loadTestFuncs(bp)
 	if err != nil {
 		return nil, err
@@ -25,6 +26,7 @@ func Load(bp *build.Package) ([]byte, error) {
 	return formatTestmain(t)
 }
 
+// TestCover not used
 type TestCover struct {
 	Mode     string
 	Local    bool

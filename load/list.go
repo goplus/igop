@@ -1,22 +1,28 @@
-package igop
+package load
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
-	"go/build"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/visualfc/gomod"
 )
 
+var (
+	BuildMod string // BuildMod can be set readonly, vendor, or mod.
+)
+
+// ListDriver implement (*igop.Context).Lookup use go list
 type ListDriver struct {
 	init bool
 	root string
 	pkgs map[string]string // path -> dir
 }
 
+// Lookup implement (*igop.Context).Lookup
 func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 	if !d.init || d.root != root {
 		d.init = true
@@ -52,8 +58,13 @@ func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 	return
 }
 
+// Parse parse deps by go list
 func (d *ListDriver) Parse(root string) error {
-	data, err := runGoCommand(root, "list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}", ".")
+	args := []string{"list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}"}
+	if BuildMod != "" {
+		args = append(args, "-mod", BuildMod)
+	}
+	data, err := runGoCommand(root, args...)
 	if err != nil {
 		return err
 	}
@@ -67,22 +78,17 @@ func (d *ListDriver) Parse(root string) error {
 	return nil
 }
 
-type ModuleDriver struct {
-	init bool
-	root string
-	mod  *gomod.Package
-}
-
-func (d *ModuleDriver) Lookup(root string, path string) (dir string, found bool) {
-	if !d.init || d.root != root {
-		d.init = true
-		d.root = root
-		var err error
-		d.mod, err = gomod.Load(root, &build.Default)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
+func runGoCommand(dir string, args ...string) (ret []byte, err error) {
+	var stdout, stderr bytes.Buffer
+	cmd := exec.Command("go", args...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	cmd.Dir = dir
+	err = cmd.Run()
+	if err == nil {
+		ret = stdout.Bytes()
+	} else if stderr.Len() > 0 {
+		err = errors.New(stderr.String())
 	}
-	_, dir, found = d.mod.Lookup(path)
 	return
 }

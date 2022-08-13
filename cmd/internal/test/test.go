@@ -30,17 +30,13 @@ import (
 
 // Cmd - igop test
 var Cmd = &base.Command{
-	UsageLine: "igop test [-v] package",
+	UsageLine: "igop test [build/test flags] [package]",
 	Short:     "test package",
 }
 
-var (
-	flagTags string
-)
-
 func init() {
 	Cmd.Run = runCmd
-	Cmd.Flag.StringVar(&flagTags, "tags", "", "a comma-separated list of build tags to consider satisfied during the build.")
+	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|base.OmitVFlag)
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -66,7 +62,6 @@ func runCmd(cmd *base.Command, args []string) {
 	cf.Bool("short", false, "")
 	cf.Duration("timeout", 10*time.Minute, "")
 	cf.String("trace", "", "")
-	cf.Bool("v", false, "")
 	for name, _ := range passFlagToTest {
 		cf.Var(cf.Lookup(name).Value, "test."+name, "")
 	}
@@ -80,7 +75,7 @@ func runCmd(cmd *base.Command, args []string) {
 	if len(paths) == 0 {
 		paths = []string{"."}
 	}
-
+	path := paths[0]
 	var testArgs []string
 	cf.VisitAll(func(f *flag.Flag) {
 		if strings.HasPrefix(f.Name, "test.") && f.Value.String() != f.DefValue {
@@ -94,14 +89,27 @@ func runCmd(cmd *base.Command, args []string) {
 			}
 		}
 	})
-	ctx := igop.NewContext(0)
-	if flagTags != "" {
-		ctx.BuildContext.BuildTags = strings.Split(flagTags, ",")
+	var mode igop.Mode
+	if base.BuildSSA {
+		mode |= igop.EnableDumpInstr
 	}
-	for _, path := range paths {
-		if err := ctx.RunTest(path, testArgs); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			fmt.Fprintf(os.Stderr, "FAIL\t%v [run failed]\n", path)
-		}
+	if base.DebugSSATrace {
+		mode |= igop.EnableTracing
+	}
+	if base.BuildX {
+		mode |= igop.EnableDumpImports
+	}
+	ctx := igop.NewContext(mode)
+	ctx.BuildContext = base.BuildContext
+
+	pkg, err := ctx.LoadDir(path, true)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+
+	err = ctx.TestPkg(pkg, path, testArgs)
+	if err != nil {
+		os.Exit(2)
 	}
 }
