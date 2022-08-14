@@ -274,6 +274,13 @@ func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*so
 	if err != nil {
 		return nil, err
 	}
+	if data, found := load.Embed(bp, ctx.FileSet, files, false, false); found {
+		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", data, 0)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+	}
 	tp := &sourcePackage{
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
@@ -292,6 +299,13 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if err != nil {
 		return nil, err
 	}
+	if data, found := load.Embed(bp, ctx.FileSet, files, true, false); found {
+		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", data, 0)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+	}
 	tp := &sourcePackage{
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
@@ -303,6 +317,13 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		files, err := ctx.parseGoFiles(dir, bp.XTestGoFiles)
 		if err != nil {
 			return nil, err
+		}
+		if data, found := load.Embed(bp, ctx.FileSet, files, false, true); found {
+			f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data_test.go", data, 0)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, f)
 		}
 		tp := &sourcePackage{
 			Package: types.NewPackage(path+"_test", bp.Name+"_test"),
