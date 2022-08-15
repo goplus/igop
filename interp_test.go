@@ -2318,7 +2318,7 @@ func main() {
 	}
 }
 
-func TestEmbed(t *testing.T) {
+func TestStructEmbed(t *testing.T) {
 	p := &igop.Package{
 		Name: "info",
 		Path: "github.com/goplus/igop/testdata/info",

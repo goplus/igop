@@ -69,7 +69,7 @@ func runCmd(cmd *base.Command, args []string) {
 		mode |= igop.EnableTracing
 	}
 	if base.BuildX {
-		mode |= igop.EnableDumpImports
+		mode |= igop.EnableDumpImports | igop.EnableDumpEmbed
 	}
 	ctx := igop.NewContext(mode)
 	ctx.BuildContext = base.BuildContext

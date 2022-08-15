@@ -29,7 +29,8 @@ type Mode uint
 const (
 	DisableRecover       Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
 	DisableCustomBuiltin                  // Disable load custom builtin func
-	EnableDumpImports                     // print typesimports
+	EnableDumpImports                     // print import packages
+	EnableDumpEmbed                       // print embed files
 	EnableDumpInstr                       // Print packages & SSA instruction code
 	EnableTracing                         // Print a trace of all instructions as they are interpreted.
 	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
@@ -274,6 +275,17 @@ func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*so
 	if err != nil {
 		return nil, err
 	}
+	if data, found := load.Embed(bp, ctx.FileSet, files, false, false); found {
+		if ctx.Mode&EnableDumpEmbed != 0 {
+			fmt.Println("# embed", bp.Dir)
+			fmt.Println(string(data))
+		}
+		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", data, 0)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+	}
 	tp := &sourcePackage{
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
@@ -292,6 +304,17 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if err != nil {
 		return nil, err
 	}
+	if data, found := load.Embed(bp, ctx.FileSet, files, true, false); found {
+		if ctx.Mode&EnableDumpEmbed != 0 {
+			fmt.Println("# embed", bp.Dir)
+			fmt.Println(string(data))
+		}
+		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", data, 0)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+	}
 	tp := &sourcePackage{
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
@@ -303,6 +326,17 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		files, err := ctx.parseGoFiles(dir, bp.XTestGoFiles)
 		if err != nil {
 			return nil, err
+		}
+		if data, found := load.Embed(bp, ctx.FileSet, files, false, true); found {
+			if ctx.Mode&EnableDumpEmbed != 0 {
+				fmt.Println("# embed xtest", bp.Dir)
+				fmt.Println(string(data))
+			}
+			f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data_test.go", data, 0)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, f)
 		}
 		tp := &sourcePackage{
 			Package: types.NewPackage(path+"_test", bp.Name+"_test"),
