@@ -11,7 +11,7 @@ import (
 )
 
 func TestEmbed(t *testing.T) {
-	_, err := igop.Run("./testdata/embed", nil, 0)
+	_, err := igop.Run("./testdata/embed", nil, igop.EnableDumpEmbed)
 	if err != nil {
 		t.Fatal(err)
 	}

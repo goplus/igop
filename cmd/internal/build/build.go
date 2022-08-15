@@ -60,7 +60,7 @@ func buildCmd(cmd *base.Command, args []string) {
 		mode |= igop.EnableDumpInstr
 	}
 	if base.BuildX {
-		mode |= igop.EnableDumpImports
+		mode |= igop.EnableDumpImports | igop.EnableDumpEmbed
 	}
 	ctx := igop.NewContext(mode)
 	ctx.BuildContext = base.BuildContext
