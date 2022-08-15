@@ -899,7 +899,10 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 	}
 	i.record = NewTypesRecord(i.ctx.Loader, i)
 	i.record.Load(mainpkg)
-	RegisterExternal("runtime.FuncForPC", i.FuncForPC)
+	if i.ctx.Mode&ExperimentFuncForPC != 0 {
+		RegisterExternal("(reflect.Value).Pointer", reflectPointer)
+		RegisterExternal("runtime.FuncForPC", i.FuncForPC)
+	}
 
 	var pkgs []*ssa.Package
 	for _, pkg := range mainpkg.Prog.AllPackages() {
@@ -1130,10 +1133,6 @@ func deref(typ types.Type) types.Type {
 
 func goroutineID() int64 {
 	return goid.Get()
-}
-
-func init() {
-	RegisterExternal("(reflect.Value).Pointer", reflectPointer)
 }
 
 func reflectPointer(v reflect.Value) uintptr {
