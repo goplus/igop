@@ -58,6 +58,7 @@ import (
 
 	"github.com/goplus/reflectx"
 	"github.com/petermattis/goid"
+	"github.com/visualfc/funcval"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
@@ -898,6 +899,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 	}
 	i.record = NewTypesRecord(i.ctx.Loader, i)
 	i.record.Load(mainpkg)
+	RegisterExternal("runtime.FuncForPC", i.FuncForPC)
 
 	var pkgs []*ssa.Package
 	for _, pkg := range mainpkg.Prog.AllPackages() {
@@ -1128,4 +1130,52 @@ func deref(typ types.Type) types.Type {
 
 func goroutineID() int64 {
 	return goid.Get()
+}
+
+func init() {
+	RegisterExternal("(reflect.Value).Pointer", reflectPointer)
+}
+
+func reflectPointer(v reflect.Value) uintptr {
+	if v.Kind() == reflect.Func {
+		if fv, n := funcval.Get(v.Interface()); n == 1 {
+			return uintptr(unsafe.Pointer(fv))
+		}
+	}
+	return v.Pointer()
+}
+
+func (i *Interp) FuncForPC(pc uintptr) *runtime.Func {
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		if fv := (*makeFuncVal)(unsafe.Pointer(pc)); fv.interp == i {
+			var f funcinl
+			f.ones = ^uint32(0)
+			f.entry = pc
+			if fv.pfn.Fn.Pkg != nil {
+				if pkgName := fv.pfn.Fn.Pkg.Pkg.Name(); pkgName == "main" {
+					f.name = "main." + fv.pfn.Fn.Name()
+				} else {
+					f.name = fv.pfn.Fn.Pkg.Pkg.Path() + "." + fv.pfn.Fn.Name()
+				}
+			} else {
+				f.name = fv.pfn.Fn.String()
+			}
+			if pos := fv.pfn.Fn.Pos(); pos != token.NoPos {
+				fpos := i.ctx.FileSet.Position(pos)
+				f.file = fpos.Filename
+				f.line = fpos.Line
+			}
+			return (*runtime.Func)(unsafe.Pointer(&f))
+		}
+	}
+	return fn
+}
+
+type funcinl struct {
+	ones  uint32  // set to ^0 to distinguish from _func
+	entry uintptr // entry of the real (the "outermost") frame
+	name  string
+	file  string
+	line  int
 }
