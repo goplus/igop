@@ -74,9 +74,8 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 			buf.WriteString(fmt.Sprintf("\t%v = %v\n", v.Name, buildIdent(fs[0].Name)))
 		case goembed.EmbedFiles:
 			fs = goembed.BuildFS(fs)
-			buf.WriteString(fmt.Sprintf("\t%v=", v.Name))
-			buf.WriteString(`__igop_embed_buildFS__(
-[]struct {
+			buf.WriteString(fmt.Sprintf("\t%v = ", v.Name))
+			buf.WriteString(`__igop_embed_buildFS__([]struct {
 	name string
 	data string
 	hash [16]byte
