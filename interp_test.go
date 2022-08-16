@@ -2483,3 +2483,40 @@ func Get() OutputID {
 		t.Fatal(err)
 	}
 }
+
+func TestExperimentFuncForPC(t *testing.T) {
+	src := `package main
+
+import (
+	"fmt"
+	"reflect"
+	"runtime"
+)
+
+func test() {
+	println("hello")
+}
+
+func main() {
+	pc := reflect.ValueOf(test).Pointer()
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		panic("error runtime.FuncForPC")
+	}
+	if fn.Name() != "main.test" {
+		panic("error name: " + fn.Name())
+	}
+	file, line := fn.FileLine(fn.Entry())
+	if file != "main.go" {
+		panic("error file:" + file)
+	}
+	if line != 9 {
+		panic(fmt.Errorf("error line: %v", line))
+	}
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, igop.ExperimentFuncForPC)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -58,6 +58,7 @@ import (
 
 	"github.com/goplus/reflectx"
 	"github.com/petermattis/goid"
+	"github.com/visualfc/funcval"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
@@ -101,6 +102,7 @@ type Interp struct {
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
 	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
 	deferMap     sync.Map                                    // defer goroutine id -> call frame
+	rfuncMap     sync.Map                                    // reflect.Value(fn).Pointer -> *function
 	typesMutex   sync.RWMutex                                // findType/toType mutex
 	mainid       int64                                       // main goroutine id
 	exitCode     int                                         // call os.Exit code
@@ -898,6 +900,9 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 	}
 	i.record = NewTypesRecord(i.ctx.Loader, i)
 	i.record.Load(mainpkg)
+	if i.ctx.Mode&ExperimentFuncForPC != 0 {
+		i.registerFuncForPC()
+	}
 
 	var pkgs []*ssa.Package
 	for _, pkg := range mainpkg.Prog.AllPackages() {
@@ -1128,4 +1133,43 @@ func deref(typ types.Type) types.Type {
 
 func goroutineID() int64 {
 	return goid.Get()
+}
+
+func (i *Interp) registerFuncForPC() {
+	RegisterExternal("(reflect.Value).Pointer", i.reflectPointer)
+	RegisterExternal("runtime.FuncForPC", i.FuncForPC)
+}
+
+func (i *Interp) reflectPointer(v reflect.Value) uintptr {
+	if v.Kind() == reflect.Func {
+		if fv, n := funcval.Get(v.Interface()); n == 1 {
+			pc := uintptr(unsafe.Pointer(fv))
+			i.rfuncMap.Store(pc, (*makeFuncVal)(unsafe.Pointer(fv)).pfn)
+			return pc
+		}
+	}
+	return v.Pointer()
+}
+
+func (i *Interp) FuncForPC(pc uintptr) *runtime.Func {
+	if v, ok := i.rfuncMap.Load(pc); ok {
+		fn := v.(*function).Fn
+		f := inlineFunc(pc)
+		if fn.Pkg != nil {
+			if pkgName := fn.Pkg.Pkg.Name(); pkgName == "main" {
+				f.name = "main." + fn.Name()
+			} else {
+				f.name = fn.Pkg.Pkg.Path() + "." + fn.Name()
+			}
+		} else {
+			f.name = fn.String()
+		}
+		if pos := fn.Pos(); pos != token.NoPos {
+			fpos := i.ctx.FileSet.Position(pos)
+			f.file = fpos.Filename
+			f.line = fpos.Line
+		}
+		return (*runtime.Func)(unsafe.Pointer(f))
+	}
+	return runtime.FuncForPC(pc)
 }
