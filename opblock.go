@@ -120,6 +120,12 @@ func (p *function) allocFrame(caller *frame) *frame {
 	var fr *frame
 	if atomic.LoadInt32(&p.cached) == 1 {
 		fr = p.pool.Get().(*frame)
+		fr.block = p.Main
+		fr.defers = nil
+		fr.panicking = nil
+		fr.pc = 0
+		fr.pred = 0
+		fr.next = nil
 	} else {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
 			atomic.StoreInt32(&p.cached, 1)
@@ -129,21 +135,23 @@ func (p *function) allocFrame(caller *frame) *frame {
 	}
 	fr.caller = caller
 	if caller != nil {
-		fr.deferid = caller.deferid
-	}
-	if fr.pc == -1 {
-		fr.block = p.Main
-		fr.defers = nil
-		fr.panicking = nil
-		fr.pc = 0
-		fr.pred = 0
+		caller.next = fr
+		fr.gid = caller.gid
+	} else {
+		fr.gid = goroutineID()
+		p.Interp.frames.Store(fr.gid, fr)
 	}
 	return fr
 }
 
-func (p *function) deleteFrame(fr *frame) {
+func (p *function) deleteFrame(fr *frame, caller *frame) {
 	if atomic.LoadInt32(&p.cached) == 1 {
 		p.pool.Put(fr)
+	}
+	if caller == nil {
+		p.Interp.frames.Delete(fr.gid)
+	} else {
+		caller.next = nil
 	}
 	fr = nil
 }

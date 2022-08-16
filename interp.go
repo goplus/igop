@@ -101,7 +101,7 @@ type Interp struct {
 	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
 	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
-	deferMap     sync.Map                                    // defer goroutine id -> call frame
+	frames       sync.Map                                    // goroutine id -> call frame
 	rfuncMap     sync.Map                                    // reflect.Value(fn).Pointer -> *function
 	typesMutex   sync.RWMutex                                // findType/toType mutex
 	mainid       int64                                       // main goroutine id
@@ -155,9 +155,14 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 
 func (i *Interp) tryDeferFrame() *frame {
 	if atomic.LoadInt32(&i.deferCount) != 0 {
-		if f, ok := i.deferMap.Load(goroutineID()); ok {
-			return f.(*frame)
-		}
+		return i.currentFrame()
+	}
+	return nil
+}
+
+func (i *Interp) currentFrame() *frame {
+	if f, ok := i.frames.Load(goroutineID()); ok {
+		return f.(*frame).currentFrame()
 	}
 	return nil
 }
@@ -200,6 +205,7 @@ type deferred struct {
 
 type frame struct {
 	caller    *frame
+	next      *frame
 	pfn       *function
 	defers    *deferred
 	panicking *panicking
@@ -207,7 +213,15 @@ type frame struct {
 	stack     []value // result args env datas
 	pc        int
 	pred      int
-	deferid   int64
+	gid       int64
+}
+
+func (fr *frame) currentFrame() (cur *frame) {
+	cur = fr
+	for cur.next != nil {
+		cur = cur.next
+	}
+	return cur
 }
 
 func (fr *frame) setReg(ir register, v value) {
@@ -336,14 +350,10 @@ func (fr *frame) runDefer(d *deferred) {
 func (fr *frame) runDefers() {
 	interp := fr.pfn.Interp
 	atomic.AddInt32(&interp.deferCount, 1)
-	fr.deferid = goroutineID()
-	interp.deferMap.Store(fr.deferid, fr)
 	for d := fr.defers; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
-	interp.deferMap.Delete(fr.deferid)
 	atomic.AddInt32(&interp.deferCount, -1)
-	fr.deferid = 0
 	// runtime.Goexit() fr.panic == nil
 	if fr.panicking != nil {
 		panic(fr.panicking.value) // new panic, or still panicking
@@ -514,7 +524,7 @@ func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []
 	} else if pfn.nres > 1 {
 		result = tuple(fr.stack[0:pfn.nres])
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 	return
 }
 
@@ -538,7 +548,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 			}
 		}
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 	return
 }
 
@@ -551,7 +561,7 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *function, args [
 		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register, ia []register) {
@@ -560,7 +570,7 @@ func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register,
 		fr.stack[i] = caller.reg(ia[i])
 	}
 	fr.run()
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register, ia []register) {
@@ -570,7 +580,7 @@ func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register,
 	}
 	fr.run()
 	caller.setReg(ir, fr.stack[0])
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register, ia []register) {
@@ -580,7 +590,7 @@ func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register,
 	}
 	fr.run()
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, ia []register) {
@@ -594,7 +604,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, 
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir register, ia []register) {
@@ -607,7 +617,7 @@ func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir 
 		fr.pc++
 		fn(fr)
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir register, ia []register) {
@@ -621,7 +631,7 @@ func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir 
 		fn(fr)
 	}
 	caller.setReg(ir, fr.stack[0])
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir register, ia []register) {
@@ -635,7 +645,7 @@ func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir 
 		fn(fr)
 	}
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
@@ -652,7 +662,7 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir reg
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
@@ -673,13 +683,10 @@ func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *functio
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(fr, caller)
 }
 
 func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env []value) value {
-	if caller != nil && caller.deferid != 0 {
-		i.deferMap.Store(caller.deferid, caller)
-	}
 	var ins []reflect.Value
 	typ := fn.Type()
 	isVariadic := fn.Type().IsVariadic()
@@ -722,9 +729,6 @@ func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env
 	}
 }
 func (i *Interp) callExternalDiscardsResult(caller *frame, fn reflect.Value, args []value, env []value) {
-	if caller != nil && caller.deferid != 0 {
-		i.deferMap.Store(caller.deferid, caller)
-	}
 	var ins []reflect.Value
 	typ := fn.Type()
 	isVariadic := fn.Type().IsVariadic()
@@ -752,9 +756,6 @@ func (i *Interp) callExternalDiscardsResult(caller *frame, fn reflect.Value, arg
 }
 
 func (i *Interp) callExternalByStack(caller *frame, fn reflect.Value, ir register, ia []register) {
-	if caller.deferid != 0 {
-		i.deferMap.Store(caller.deferid, caller)
-	}
 	var ins []reflect.Value
 	typ := fn.Type()
 	isVariadic := fn.Type().IsVariadic()
