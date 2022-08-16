@@ -34,6 +34,7 @@ import (
 	_ "github.com/goplus/igop/pkg/fmt"
 	_ "github.com/goplus/igop/pkg/math"
 	_ "github.com/goplus/igop/pkg/os"
+	_ "github.com/goplus/igop/pkg/path/filepath"
 	_ "github.com/goplus/igop/pkg/reflect"
 	_ "github.com/goplus/igop/pkg/runtime"
 	_ "github.com/goplus/igop/pkg/strings"
@@ -2479,6 +2480,45 @@ func Get() OutputID {
 `
 	ctx := igop.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestExperimentFuncForPC(t *testing.T) {
+	src := `package main
+
+import (
+	"fmt"
+	"path/filepath"
+	"reflect"
+	"runtime"
+)
+
+func test() {
+	println("hello")
+}
+
+func main() {
+	pc := reflect.ValueOf(test).Pointer()
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		panic("error runtime.FuncForPC")
+	}
+	if fn.Name() != "main.test" {
+		panic("error name: " + fn.Name())
+	}
+	file, line := fn.FileLine(fn.Entry())
+	_, fileName := filepath.Split(file)
+	if fileName != "main.go" {
+		panic("error file:" + file)
+	}
+	if line != 10 {
+		panic(fmt.Errorf("error line: %v", line))
+	}
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, igop.ExperimentFuncForPC)
 	if err != nil {
 		t.Fatal(err)
 	}
