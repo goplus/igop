@@ -102,6 +102,7 @@ type Interp struct {
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
 	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
 	deferMap     sync.Map                                    // defer goroutine id -> call frame
+	rfuncMap     sync.Map                                    // reflect.Value(fn).Pointer -> *function
 	typesMutex   sync.RWMutex                                // findType/toType mutex
 	mainid       int64                                       // main goroutine id
 	exitCode     int                                         // call os.Exit code
@@ -1135,44 +1136,44 @@ func goroutineID() int64 {
 }
 
 func (i *Interp) registerFuncForPC() {
-	RegisterExternal("(reflect.Value).Pointer", reflectPointer)
+	RegisterExternal("(reflect.Value).Pointer", i.reflectPointer)
 	RegisterExternal("runtime.FuncForPC", i.FuncForPC)
 }
 
-func reflectPointer(v reflect.Value) uintptr {
+func (i *Interp) reflectPointer(v reflect.Value) uintptr {
 	if v.Kind() == reflect.Func {
 		if fv, n := funcval.Get(v.Interface()); n == 1 {
-			return uintptr(unsafe.Pointer(fv))
+			pc := uintptr(unsafe.Pointer(fv))
+			i.rfuncMap.Store(pc, (*makeFuncVal)(unsafe.Pointer(fv)).pfn)
+			return pc
 		}
 	}
 	return v.Pointer()
 }
 
 func (i *Interp) FuncForPC(pc uintptr) *runtime.Func {
-	fn := runtime.FuncForPC(pc)
-	if fn == nil {
-		if fv := (*makeFuncVal)(unsafe.Pointer(pc)); fv.interp == i {
-			var f funcinl
-			f.ones = ^uint32(0)
-			f.entry = pc
-			if fv.pfn.Fn.Pkg != nil {
-				if pkgName := fv.pfn.Fn.Pkg.Pkg.Name(); pkgName == "main" {
-					f.name = "main." + fv.pfn.Fn.Name()
-				} else {
-					f.name = fv.pfn.Fn.Pkg.Pkg.Path() + "." + fv.pfn.Fn.Name()
-				}
+	if v, ok := i.rfuncMap.Load(pc); ok {
+		fn := v.(*function).Fn
+		var f funcinl
+		f.ones = ^uint32(0)
+		f.entry = pc
+		if fn.Pkg != nil {
+			if pkgName := fn.Pkg.Pkg.Name(); pkgName == "main" {
+				f.name = "main." + fn.Name()
 			} else {
-				f.name = fv.pfn.Fn.String()
+				f.name = fn.Pkg.Pkg.Path() + "." + fn.Name()
 			}
-			if pos := fv.pfn.Fn.Pos(); pos != token.NoPos {
-				fpos := i.ctx.FileSet.Position(pos)
-				f.file = fpos.Filename
-				f.line = fpos.Line
-			}
-			return (*runtime.Func)(unsafe.Pointer(&f))
+		} else {
+			f.name = fn.String()
 		}
+		if pos := fn.Pos(); pos != token.NoPos {
+			fpos := i.ctx.FileSet.Position(pos)
+			f.file = fpos.Filename
+			f.line = fpos.Line
+		}
+		return (*runtime.Func)(unsafe.Pointer(&f))
 	}
-	return fn
+	return runtime.FuncForPC(pc)
 }
 
 type funcinl struct {
