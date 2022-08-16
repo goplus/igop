@@ -34,7 +34,6 @@ import (
 	_ "github.com/goplus/igop/pkg/fmt"
 	_ "github.com/goplus/igop/pkg/math"
 	_ "github.com/goplus/igop/pkg/os"
-	_ "github.com/goplus/igop/pkg/path/filepath"
 	_ "github.com/goplus/igop/pkg/reflect"
 	_ "github.com/goplus/igop/pkg/runtime"
 	_ "github.com/goplus/igop/pkg/strings"
@@ -2490,7 +2489,6 @@ func TestExperimentFuncForPC(t *testing.T) {
 
 import (
 	"fmt"
-	"path/filepath"
 	"reflect"
 	"runtime"
 )
@@ -2509,11 +2507,10 @@ func main() {
 		panic("error name: " + fn.Name())
 	}
 	file, line := fn.FileLine(fn.Entry())
-	_, fileName := filepath.Split(file)
-	if fileName != "main.go" {
+	if file != "main.go" {
 		panic("error file:" + file)
 	}
-	if line != 10 {
+	if line != 9 {
 		panic(fmt.Errorf("error line: %v", line))
 	}
 }
