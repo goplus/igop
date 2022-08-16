@@ -1154,9 +1154,7 @@ func (i *Interp) reflectPointer(v reflect.Value) uintptr {
 func (i *Interp) FuncForPC(pc uintptr) *runtime.Func {
 	if v, ok := i.rfuncMap.Load(pc); ok {
 		fn := v.(*function).Fn
-		var f funcinl
-		f.ones = ^uint32(0)
-		f.entry = pc
+		f := inlineFunc(pc)
 		if fn.Pkg != nil {
 			if pkgName := fn.Pkg.Pkg.Name(); pkgName == "main" {
 				f.name = "main." + fn.Name()
@@ -1171,15 +1169,7 @@ func (i *Interp) FuncForPC(pc uintptr) *runtime.Func {
 			f.file = fpos.Filename
 			f.line = fpos.Line
 		}
-		return (*runtime.Func)(unsafe.Pointer(&f))
+		return (*runtime.Func)(unsafe.Pointer(f))
 	}
 	return runtime.FuncForPC(pc)
-}
-
-type funcinl struct {
-	ones  uint32  // set to ^0 to distinguish from _func
-	entry uintptr // entry of the real (the "outermost") frame
-	name  string
-	file  string
-	line  int
 }
