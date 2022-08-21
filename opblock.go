@@ -120,6 +120,11 @@ func (p *function) allocFrame(caller *frame) *frame {
 	var fr *frame
 	if atomic.LoadInt32(&p.cached) == 1 {
 		fr = p.pool.Get().(*frame)
+		fr.block = p.Main
+		fr.defers = nil
+		fr.panicking = nil
+		fr.pc = 0
+		fr.pred = 0
 	} else {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
 			atomic.StoreInt32(&p.cached, 1)
@@ -130,13 +135,6 @@ func (p *function) allocFrame(caller *frame) *frame {
 	fr.caller = caller
 	if caller != nil {
 		fr.deferid = caller.deferid
-	}
-	if fr.pc == -1 {
-		fr.block = p.Main
-		fr.defers = nil
-		fr.panicking = nil
-		fr.pc = 0
-		fr.pred = 0
 	}
 	return fr
 }
