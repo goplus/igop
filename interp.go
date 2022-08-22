@@ -800,6 +800,57 @@ func (i *Interp) callExternalByStack(caller *frame, fn reflect.Value, ir registe
 	}
 }
 
+func (i *Interp) callExternalWithFrameByStack(caller *frame, fn reflect.Value, ir register, ia []register) {
+	if caller.deferid != 0 {
+		i.deferMap.Store(caller.deferid, caller)
+	}
+	var ins []reflect.Value
+	typ := fn.Type()
+	isVariadic := fn.Type().IsVariadic()
+	if isVariadic {
+		ins = append(ins, reflect.ValueOf(caller))
+		var i int
+		for n := len(ia) - 1; i < n; i++ {
+			arg := caller.reg(ia[i])
+			if arg == nil {
+				ins = append(ins, reflect.New(typ.In(i)).Elem())
+			} else {
+				ins = append(ins, reflect.ValueOf(arg))
+			}
+		}
+		ins = append(ins, reflect.ValueOf(caller.reg(ia[i])))
+	} else {
+		n := len(ia)
+		ins = make([]reflect.Value, n+1)
+		ins[0] = reflect.ValueOf(caller)
+		for i := 0; i < n; i++ {
+			arg := caller.reg(ia[i])
+			if arg == nil {
+				ins[i+1] = reflect.New(typ.In(i)).Elem()
+			} else {
+				ins[i+1] = reflect.ValueOf(arg)
+			}
+		}
+	}
+	var results []reflect.Value
+	if isVariadic {
+		results = fn.CallSlice(ins)
+	} else {
+		results = fn.Call(ins)
+	}
+	switch len(results) {
+	case 0:
+	case 1:
+		caller.setReg(ir, results[0].Interface())
+	default:
+		var res []value
+		for _, r := range results {
+			res = append(res, r.Interface())
+		}
+		caller.setReg(ir, tuple(res))
+	}
+}
+
 // runFrame executes SSA instructions starting at fr.block and
 // continuing until a return, a panic, or a recovered panic.
 //
