@@ -915,6 +915,10 @@ func getCallIndex(pfn *function, call *ssa.CallCommon) (iv register, ia []regist
 	return
 }
 
+var (
+	typFramePtr = reflect.TypeOf((*frame)(nil))
+)
+
 func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.CallCommon) func(fr *frame) {
 	ir := pfn.regIndex(instr)
 	iv, ia, ib := getCallIndex(pfn, call)
@@ -967,6 +971,11 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 					return nil
 				}
 				panic(fmt.Errorf("no code for function: %v", fn))
+			}
+			if typ := ext.Type(); typ.NumIn() > 0 && typ.In(0) == typFramePtr {
+				return func(fr *frame) {
+					interp.callExternalWithFrameByStack(fr, ext, ir, ia)
+				}
 			}
 			return func(fr *frame) {
 				interp.callExternalByStack(fr, ext, ir, ia)
