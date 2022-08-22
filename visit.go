@@ -10,6 +10,10 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+const (
+	fnBase = 100
+)
+
 func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 	if intp.ctx.Mode&DisableRecover == 0 {
 		defer func() {
@@ -23,6 +27,7 @@ func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 		prog: intp.mainpkg.Prog,
 		pkgs: make(map[*ssa.Package]bool),
 		seen: make(map[*ssa.Function]bool),
+		base: fnBase,
 	}
 	for _, pkg := range pkgs {
 		visit.pkgs[pkg] = true
@@ -36,6 +41,7 @@ type visitor struct {
 	prog *ssa.Program
 	pkgs map[*ssa.Package]bool
 	seen map[*ssa.Function]bool
+	base int
 }
 
 func (visit *visitor) program() {
@@ -246,6 +252,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			index++
 		}
 		Instrs = Instrs[:index]
+		ssaInstrs = ssaInstrs[:index]
 		offset := len(pfn.Instrs)
 		pfn.Blocks = append(pfn.Blocks, offset)
 		pfn.Instrs = append(pfn.Instrs, Instrs...)
@@ -254,6 +261,8 @@ func (visit *visitor) function(fn *ssa.Function) {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
+	pfn.base = visit.base
+	visit.base += len(pfn.ssaInstrs)
 	pfn.initPool()
 }
 

@@ -99,6 +99,7 @@ type function struct {
 	Blocks    []int                // block offset
 	stack     []value              // results args envs datas
 	ssaInstrs []ssa.Instruction    // org ssa instr
+	base      int                  // base of interp
 	nres      int                  // results count
 	narg      int                  // arguments count
 	nenv      int                  // closure free vars count

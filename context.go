@@ -777,4 +777,20 @@ func init() {
 			runtime.Goexit()
 		}
 	})
+	RegisterExternal("runtime.Caller", func(fr *frame, skip int) (pc uintptr, file string, line int, ok bool) {
+		if skip < 0 {
+			return runtime.Caller(skip)
+		}
+		caller := fr
+		for ; skip > 0; skip-- {
+			caller = caller.caller
+			if caller == nil {
+				return
+			}
+		}
+		pos := caller.pfn.PosForPC(caller.pc - 1)
+		fpos := caller.pfn.Interp.ctx.FileSet.Position(pos)
+		pc, file, line, ok = uintptr(caller.pfn.base+caller.pc-1), fpos.Filename, fpos.Line, true
+		return
+	})
 }
