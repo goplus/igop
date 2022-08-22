@@ -6,7 +6,6 @@ import (
 	"go/types"
 	"io"
 	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -209,26 +208,6 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
 	fnName := fn.String()
-	if fnName == "os.Exit" {
-		return reflect.ValueOf(func(code int) {
-			if atomic.LoadInt32(&interp.goexited) == 1 {
-				//os.Exit(code)
-				interp.chexit <- code
-			} else {
-				panic(exitPanic(code))
-			}
-		}), true
-	} else if fnName == "runtime.Goexit" {
-		return reflect.ValueOf(func() {
-			// main goroutine use panic
-			if goroutineID() == interp.mainid {
-				atomic.StoreInt32(&interp.goexited, 1)
-				panic(goexitPanic(0))
-			} else {
-				runtime.Goexit()
-			}
-		}), true
-	}
 	// check override func
 	ext, ok = interp.ctx.override[fnName]
 	if ok {
