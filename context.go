@@ -144,6 +144,11 @@ func (ctx *Context) SetEvalMode(b bool) {
 	ctx.conf.DisableUnusedImportCheck = b
 }
 
+// SetUnsafeSizes set the sizing functions for package unsafe.
+func (ctx *Context) SetUnsafeSizes(sizes types.Sizes) {
+	ctx.conf.Sizes = sizes
+}
+
 // SetLeastCallForEnablePool set least call count for enable function pool, default 64
 func (ctx *Context) SetLeastCallForEnablePool(count int) {
 	ctx.callForPool = count
