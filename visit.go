@@ -251,12 +251,10 @@ func (visit *visitor) function(fn *ssa.Function) {
 			ssaInstrs[index] = instr
 			index++
 		}
-		Instrs = Instrs[:index]
-		ssaInstrs = ssaInstrs[:index]
 		offset := len(pfn.Instrs)
 		pfn.Blocks = append(pfn.Blocks, offset)
-		pfn.Instrs = append(pfn.Instrs, Instrs...)
-		pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs...)
+		pfn.Instrs = append(pfn.Instrs, Instrs[:index]...)
+		pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs[:index]...)
 		if b == fn.Recover && visit.intp.ctx.Mode&DisableRecover == 0 {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
