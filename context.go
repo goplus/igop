@@ -20,8 +20,10 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"github.com/goplus/igop/load"
+	"github.com/visualfc/funcval"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -790,7 +792,47 @@ func init() {
 		}
 		pos := caller.pfn.PosForPC(caller.pc - 1)
 		fpos := caller.pfn.Interp.ctx.FileSet.Position(pos)
-		pc, file, line, ok = uintptr(caller.pfn.base+caller.pc-1), fpos.Filename, fpos.Line, true
+		pc, file, line, ok = uintptr(caller.pfn.base+caller.pc), fpos.Filename, fpos.Line, true
 		return
 	})
+	RegisterExternal("runtime.FuncForPC", func(fr *frame, pc uintptr) *runtime.Func {
+		if pfn := findFuncByPC(fr.pfn.Interp, int(pc)); pfn != nil {
+			fn := pfn.Fn
+			f := inlineFunc(uintptr(pfn.base))
+			if fn.Pkg != nil {
+				if pkgName := fn.Pkg.Pkg.Name(); pkgName == "main" {
+					f.name = "main." + fn.Name()
+				} else {
+					f.name = fn.Pkg.Pkg.Path() + "." + fn.Name()
+				}
+			} else {
+				f.name = fn.String()
+			}
+			if pos := fn.Pos(); pos != token.NoPos {
+				fpos := pfn.Interp.ctx.FileSet.Position(pos)
+				f.file = fpos.Filename
+				f.line = fpos.Line
+			}
+			return (*runtime.Func)(unsafe.Pointer(f))
+		}
+		return runtime.FuncForPC(pc)
+	})
+	RegisterExternal("(reflect.Value).Pointer", func(v reflect.Value) uintptr {
+		if v.Kind() == reflect.Func {
+			if fv, n := funcval.Get(v.Interface()); n == 1 {
+				pc := (*makeFuncVal)(unsafe.Pointer(fv)).pfn.base
+				return uintptr(pc)
+			}
+		}
+		return v.Pointer()
+	})
+}
+
+func findFuncByPC(interp *Interp, pc int) *function {
+	for _, pfn := range interp.funcs {
+		if pc >= pfn.base && pc < pfn.base+len(pfn.ssaInstrs) {
+			return pfn
+		}
+	}
+	return nil
 }
