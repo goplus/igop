@@ -826,6 +826,49 @@ func init() {
 		}
 		return v.Pointer()
 	})
+	// runtime.Callers => runtime.CallersFrames
+	// 0 = runtime.Caller
+	// 1 = frame
+	// 2 = frame.caller
+	// ...
+	RegisterExternal("runtime.Callers", func(fr *frame, skip int, pc []uintptr) int {
+		if len(pc) == 0 {
+			return 0
+		}
+		var pcs []uintptr
+		rpc, _, _, _ := runtime.Caller(-1)
+		pcs = append(pcs, rpc)
+		caller := fr
+		for caller != nil {
+			pcs = append(pcs, uintptr(caller.pfn.base))
+			caller = caller.caller
+		}
+		if skip < 0 {
+			skip = 0
+		} else if skip > len(pcs)-1 {
+			return 0
+		}
+		return copy(pc, pcs[skip:])
+	})
+	RegisterExternal("(*runtime.Frames).Next", func(frames *runtime.Frames) (frame runtime.Frame, more bool) {
+		return frames.Next()
+	})
+}
+
+/*
+	type Frames struct {
+		// callers is a slice of PCs that have not yet been expanded to frames.
+		callers []uintptr
+
+		// frames is a slice of Frames that have yet to be returned.
+		frames     []Frame
+		frameStore [2]Frame
+	}
+*/
+type runtimeFrames struct {
+	callers    []uintptr
+	frames     []runtime.Frame
+	frameStore [2]runtime.Frame
 }
 
 func findFuncByPC(interp *Interp, pc int) *function {
