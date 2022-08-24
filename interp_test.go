@@ -2515,7 +2515,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, igop.ExperimentFuncForPC)
+	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

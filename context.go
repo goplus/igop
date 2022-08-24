@@ -38,7 +38,6 @@ const (
 	EnableDumpInstr                       // Print packages & SSA instruction code
 	EnableTracing                         // Print a trace of all instructions as they are interpreted.
 	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
-	ExperimentFuncForPC                   // Experiment hook (reflect.Value).Pointer and runtime.FuncForPC
 )
 
 // Loader types loader interface
