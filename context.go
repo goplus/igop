@@ -779,44 +779,11 @@ func init() {
 			runtime.Goexit()
 		}
 	})
-	RegisterExternal("runtime.Caller", func(fr *frame, skip int) (pc uintptr, file string, line int, ok bool) {
-		if skip < 0 {
-			return runtime.Caller(skip)
-		}
-		caller := fr
-		for ; skip > 0; skip-- {
-			caller = caller.caller
-			if caller == nil {
-				return
-			}
-		}
-		pos := caller.pfn.PosForPC(caller.pc - 1)
-		fpos := caller.pfn.Interp.ctx.FileSet.Position(pos)
-		pc, file, line, ok = uintptr(caller.pfn.base+caller.pc), fpos.Filename, fpos.Line, true
-		return
-	})
-	RegisterExternal("runtime.FuncForPC", func(fr *frame, pc uintptr) *runtime.Func {
-		if pfn := findFuncByPC(fr.pfn.Interp, int(pc)); pfn != nil {
-			fn := pfn.Fn
-			f := inlineFunc(uintptr(pfn.base))
-			if fn.Pkg != nil {
-				if pkgName := fn.Pkg.Pkg.Name(); pkgName == "main" {
-					f.name = "main." + fn.Name()
-				} else {
-					f.name = fn.Pkg.Pkg.Path() + "." + fn.Name()
-				}
-			} else {
-				f.name = fn.String()
-			}
-			if pos := fn.Pos(); pos != token.NoPos {
-				fpos := pfn.Interp.ctx.FileSet.Position(pos)
-				f.file = fpos.Filename
-				f.line = fpos.Line
-			}
-			return (*runtime.Func)(unsafe.Pointer(f))
-		}
-		return runtime.FuncForPC(pc)
-	})
+	RegisterExternal("runtime.Caller", runtimeCaller)
+	RegisterExternal("runtime.FuncForPC", runtimeFuncForPC)
+	RegisterExternal("runtime.Callers", runtimeCallers)
+	RegisterExternal("(*runtime.Frames).Next", runtimeFramesNext)
+	RegisterExternal("(*runtime.Func).FileLine", runtimeFuncFileLine)
 	RegisterExternal("(reflect.Value).Pointer", func(v reflect.Value) uintptr {
 		if v.Kind() == reflect.Func {
 			if fv, n := funcval.Get(v.Interface()); n == 1 {
@@ -826,33 +793,114 @@ func init() {
 		}
 		return v.Pointer()
 	})
-	// runtime.Callers => runtime.CallersFrames
-	// 0 = runtime.Caller
-	// 1 = frame
-	// 2 = frame.caller
-	// ...
-	RegisterExternal("runtime.Callers", func(fr *frame, skip int, pc []uintptr) int {
-		if len(pc) == 0 {
-			return 0
+}
+
+func runtimeFuncFileLine(fr *frame, f *runtime.Func, pc uintptr) (file string, line int) {
+	entry := f.Entry()
+	if isInlineFunc(f) && pc > entry {
+		interp := fr.pfn.Interp
+		if pfn := findFuncByEntry(interp, int(entry)); pfn != nil {
+			// pc-1 : fn.instr.pos
+			pos := pfn.PosForPC(int(pc - entry - 1))
+			if !pos.IsValid() {
+				return "?", 0
+			}
+			fpos := interp.ctx.FileSet.Position(pos)
+			file, line = fpos.Filename, fpos.Line
+			return
 		}
-		var pcs []uintptr
-		rpc, _, _, _ := runtime.Caller(-1)
-		pcs = append(pcs, rpc)
-		caller := fr
-		for caller != nil {
-			pcs = append(pcs, uintptr(caller.pfn.base))
-			caller = caller.caller
+	}
+	return f.FileLine(pc)
+}
+
+func runtimeCaller(fr *frame, skip int) (pc uintptr, file string, line int, ok bool) {
+	if skip < 0 {
+		return runtime.Caller(skip)
+	}
+	caller := fr
+	for ; skip > 0; skip-- {
+		caller = caller.caller
+		if caller == nil {
+			return
 		}
-		if skip < 0 {
-			skip = 0
-		} else if skip > len(pcs)-1 {
-			return 0
+	}
+	pos := caller.pfn.PosForPC(caller.pc - 1)
+	fpos := caller.pfn.Interp.ctx.FileSet.Position(pos)
+	pc, file, line, ok = uintptr(caller.pfn.base+caller.pc), fpos.Filename, fpos.Line, true
+	return
+}
+
+// runtime.Callers => runtime.CallersFrames
+// 0 = runtime.Caller
+// 1 = frame
+// 2 = frame.caller
+// ...
+func runtimeCallers(fr *frame, skip int, pc []uintptr) int {
+	if len(pc) == 0 {
+		return 0
+	}
+	pcs := make([]uintptr, 1)
+
+	// runtime.Caller itself
+	runtime.Callers(0, pcs)
+	pcs[0] -= 1
+
+	caller := fr
+	for caller != nil {
+		pcs = append(pcs, uintptr(caller.pfn.base+caller.pc))
+		caller = caller.caller
+	}
+	if skip < 0 {
+		skip = 0
+	} else if skip > len(pcs)-1 {
+		return 0
+	}
+	return copy(pc, pcs[skip:])
+}
+
+func runtimeFuncForPC(fr *frame, pc uintptr) *runtime.Func {
+	if pfn := findFuncByPC(fr.pfn.Interp, int(pc)); pfn != nil {
+		return runtimeFunc(pfn)
+	}
+	return runtime.FuncForPC(pc)
+}
+
+func findFuncByPC(interp *Interp, pc int) *function {
+	for _, pfn := range interp.funcs {
+		if pc >= pfn.base && pc < pfn.base+len(pfn.ssaInstrs) {
+			return pfn
 		}
-		return copy(pc, pcs[skip:])
-	})
-	RegisterExternal("(*runtime.Frames).Next", func(frames *runtime.Frames) (frame runtime.Frame, more bool) {
-		return frames.Next()
-	})
+	}
+	return nil
+}
+
+func findFuncByEntry(interp *Interp, entry int) *function {
+	for _, pfn := range interp.funcs {
+		if entry == pfn.base {
+			return pfn
+		}
+	}
+	return nil
+}
+
+func runtimeFunc(pfn *function) *runtime.Func {
+	fn := pfn.Fn
+	f := inlineFunc(uintptr(pfn.base))
+	if fn.Pkg != nil {
+		if pkgName := fn.Pkg.Pkg.Name(); pkgName == "main" {
+			f.name = "main." + fn.Name()
+		} else {
+			f.name = fn.Pkg.Pkg.Path() + "." + fn.Name()
+		}
+	} else {
+		f.name = fn.String()
+	}
+	if pos := fn.Pos(); pos != token.NoPos {
+		fpos := pfn.Interp.ctx.FileSet.Position(pos)
+		f.file = fpos.Filename
+		f.line = fpos.Line
+	}
+	return (*runtime.Func)(unsafe.Pointer(f))
 }
 
 /*
@@ -871,11 +919,49 @@ type runtimeFrames struct {
 	frameStore [2]runtime.Frame
 }
 
-func findFuncByPC(interp *Interp, pc int) *function {
-	for _, pfn := range interp.funcs {
-		if pc >= pfn.base && pc < pfn.base+len(pfn.ssaInstrs) {
-			return pfn
+func runtimeFramesNext(fr *frame, frames *runtime.Frames) (frame runtime.Frame, more bool) {
+	ci := (*runtimeFrames)(unsafe.Pointer(frames))
+	for len(ci.frames) < 2 {
+		// Find the next frame.
+		// We need to look for 2 frames so we know what
+		// to return for the "more" result.
+		if len(ci.callers) == 0 {
+			break
 		}
+		pc := ci.callers[0]
+		ci.callers = ci.callers[1:]
+		f := runtimeFuncForPC(fr, pc)
+		if f == nil {
+			continue
+		}
+		ci.frames = append(ci.frames, runtime.Frame{
+			PC:       pc,
+			Func:     f,
+			Function: f.Name(),
+			Entry:    f.Entry(),
+			// Note: File,Line set below
+		})
 	}
-	return nil
+
+	// Pop one frame from the frame list. Keep the rest.
+	// Avoid allocation in the common case, which is 1 or 2 frames.
+	switch len(ci.frames) {
+	case 0: // In the rare case when there are no frames at all, we return Frame{}.
+		return
+	case 1:
+		frame = ci.frames[0]
+		ci.frames = ci.frameStore[:0]
+	case 2:
+		frame = ci.frames[0]
+		ci.frameStore[0] = ci.frames[1]
+		ci.frames = ci.frameStore[:1]
+	default:
+		frame = ci.frames[0]
+		ci.frames = ci.frames[1:]
+	}
+	more = len(ci.frames) > 0
+	if frame.Func != nil {
+		frame.File, frame.Line = runtimeFuncFileLine(fr, frame.Func, frame.PC)
+	}
+	return
 }
