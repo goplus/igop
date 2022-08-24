@@ -816,18 +816,17 @@ func runtimeCaller(fr *frame, skip int) (pc uintptr, file string, line int, ok b
 	if skip < 0 {
 		return runtime.Caller(skip)
 	}
-	caller := fr
-	for ; skip > 0; skip-- {
-		caller = caller.caller
-		if caller == nil {
-			return
-		}
+	rpc := make([]uintptr, 1)
+	n := runtimeCallers(fr, skip+1, rpc[:])
+	if n < 1 {
+		return
 	}
-	pos := caller.pfn.PosForPC(caller.pc - 1)
-	fpos := caller.pfn.Interp.ctx.FileSet.Position(pos)
-	pc, file, line, ok = uintptr(caller.pfn.base+caller.pc), fpos.Filename, fpos.Line, true
-	return
+	frame, _ := runtimeFramesNext(fr, runtime.CallersFrames(rpc))
+	return frame.PC, frame.File, frame.Line, frame.PC != 0
 }
+
+//go:linkname runtimePanic runtime.gopanic
+func runtimePanic(e interface{})
 
 // runtime.Callers => runtime.CallersFrames
 // 0 = runtime.Caller
@@ -846,6 +845,9 @@ func runtimeCallers(fr *frame, skip int, pc []uintptr) int {
 
 	caller := fr
 	for caller != nil {
+		if caller.panicking != nil {
+			pcs = append(pcs, uintptr(reflect.ValueOf(runtimePanic).Pointer()))
+		}
 		pcs = append(pcs, uintptr(caller.pfn.base+caller.pc))
 		caller = caller.caller
 	}
