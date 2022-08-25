@@ -191,7 +191,6 @@ func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) refl
 
 type _defer struct {
 	fn      value
-	instr   *ssa.Defer
 	tail    *_defer
 	args    []value
 	ssaArgs []ssa.Value

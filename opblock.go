@@ -790,7 +790,6 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				fn:      fn,
 				args:    args,
 				ssaArgs: instr.Call.Args,
-				instr:   instr,
 				tail:    fr._defer,
 			}
 		}
