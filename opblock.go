@@ -121,8 +121,8 @@ func (p *function) allocFrame(caller *frame) *frame {
 	if atomic.LoadInt32(&p.cached) == 1 {
 		fr = p.pool.Get().(*frame)
 		fr.block = p.Main
-		fr.defers = nil
-		fr.panicking = nil
+		fr._defer = nil
+		fr._panic = nil
 		fr.pc = 0
 		fr.pred = 0
 	} else {
@@ -786,12 +786,12 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		iv, ia, ib := getCallIndex(pfn, &instr.Call)
 		return func(fr *frame) {
 			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
-			fr.defers = &deferred{
+			fr._defer = &_defer{
 				fn:      fn,
 				args:    args,
 				ssaArgs: instr.Call.Args,
 				instr:   instr,
-				tail:    fr.defers,
+				tail:    fr._defer,
 			}
 		}
 	case *ssa.Send:

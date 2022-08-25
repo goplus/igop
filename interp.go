@@ -189,24 +189,24 @@ func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) refl
 	})
 }
 
-type deferred struct {
+type _defer struct {
 	fn      value
 	instr   *ssa.Defer
-	tail    *deferred
+	tail    *_defer
 	args    []value
 	ssaArgs []ssa.Value
 }
 
 type frame struct {
-	caller    *frame
-	pfn       *function
-	defers    *deferred
-	panicking *panicking
-	block     *ssa.BasicBlock
-	stack     []value // result args env datas
-	pc        int
-	pred      int
-	deferid   int64
+	caller  *frame
+	pfn     *function
+	_defer  *_defer
+	_panic  *_panic
+	block   *ssa.BasicBlock
+	stack   []value // result args env datas
+	pc      int
+	pred    int
+	deferid int64
 }
 
 func (fr *frame) setReg(ir register, v value) {
@@ -301,24 +301,24 @@ func (fr *frame) copyReg(dst register, src register) {
 	fr.stack[dst] = fr.stack[src]
 }
 
-type panicking struct {
-	value interface{}
-	done  bool
+type _panic struct {
+	arg       interface{}
+	recovered bool
 }
 
-func (p *panicking) isNil() bool {
-	return p == nil || p.done
+func (p *_panic) isNil() bool {
+	return p == nil || p.recovered
 }
 
 // runDefer runs a deferred call d.
 // It always returns normally, but may set or clear fr.panic.
 //
-func (fr *frame) runDefer(d *deferred) {
+func (fr *frame) runDefer(d *_defer) {
 	var ok bool
 	defer func() {
 		if !ok {
 			// Deferred call created a new state of panic.
-			fr.panicking = &panicking{value: recover()}
+			fr._panic = &_panic{arg: recover()}
 		}
 	}()
 	fr.pfn.Interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
@@ -342,15 +342,15 @@ func (fr *frame) runDefers() {
 	atomic.AddInt32(&interp.deferCount, 1)
 	fr.deferid = goroutineID()
 	interp.deferMap.Store(fr.deferid, fr)
-	for d := fr.defers; d != nil; d = d.tail {
+	for d := fr._defer; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
 	interp.deferMap.Delete(fr.deferid)
 	atomic.AddInt32(&interp.deferCount, -1)
 	fr.deferid = 0
 	// runtime.Goexit() fr.panic == nil
-	if !fr.panicking.isNil() {
-		panic(fr.panicking.value) // new panic, or still panicking
+	if !fr._panic.isNil() {
+		panic(fr._panic.arg) // new panic, or still panicking
 	}
 }
 
@@ -877,7 +877,7 @@ func (fr *frame) run() {
 			if fr.pc == -1 {
 				return // normal return
 			}
-			fr.panicking = &panicking{value: recover()}
+			fr._panic = &_panic{arg: recover()}
 			fr.runDefers()
 			for _, fn := range fr.pfn.Recover {
 				fn(fr)
@@ -899,10 +899,10 @@ func doRecover(caller *frame) value {
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
 	if caller.pfn.Interp.ctx.Mode&DisableRecover == 0 &&
-		caller.panicking.isNil() &&
-		caller.caller != nil && !caller.caller.panicking.isNil() {
-		p := caller.caller.panicking.value
-		caller.caller.panicking.done = true
+		caller._panic.isNil() &&
+		caller.caller != nil && !caller.caller._panic.isNil() {
+		p := caller.caller._panic.arg
+		caller.caller._panic.recovered = true
 		// TODO(adonovan): support runtime.Goexit.
 		switch p := p.(type) {
 		case targetPanic:

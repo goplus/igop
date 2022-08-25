@@ -845,7 +845,7 @@ func runtimeCallers(fr *frame, skip int, pc []uintptr) int {
 
 	caller := fr
 	for caller != nil {
-		if caller.panicking != nil {
+		if caller._panic != nil {
 			pcs = append(pcs, uintptr(reflect.ValueOf(runtimePanic).Pointer()))
 		}
 		pcs = append(pcs, uintptr(caller.pfn.base+caller.pc))
