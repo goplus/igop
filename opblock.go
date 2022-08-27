@@ -123,7 +123,7 @@ func (p *function) allocFrame(caller *frame) *frame {
 		fr.block = p.Main
 		fr._defer = nil
 		fr._panic = nil
-		fr.pc = 0
+		fr.ipc = 0
 		fr.pred = 0
 	} else {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
@@ -135,6 +135,7 @@ func (p *function) allocFrame(caller *frame) *frame {
 	fr.caller = caller
 	if caller != nil {
 		fr.deferid = caller.deferid
+		caller.callee = fr
 	}
 	return fr
 }
@@ -155,9 +156,17 @@ func (p *function) InstrForPC(pc int) ssa.Instruction {
 
 func (p *function) PosForPC(pc int) token.Pos {
 	if instr := p.InstrForPC(pc); instr != nil {
+		if _, ok := instr.(*ssa.RunDefers); ok {
+			return p.Fn.Syntax().End()
+		}
 		return instr.Pos()
 	}
 	return token.NoPos
+}
+
+func (p *function) PositionForPC(pc int) token.Position {
+	pos := p.PosForPC(pc)
+	return p.Fn.Prog.Fset.Position(pos)
 }
 
 func (p *function) regIndex3(v ssa.Value) (register, kind, value) {
@@ -666,7 +675,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	case *ssa.Jump:
 		return func(fr *frame) {
 			fr.pred, fr.block = fr.block.Index, fr.block.Succs[0]
-			fr.pc = fr.pfn.Blocks[fr.block.Index]
+			fr.ipc = fr.pfn.Blocks[fr.block.Index]
 		}
 	case *ssa.If:
 		ic, kc, vc := pfn.regIndex3(instr.Cond)
@@ -675,13 +684,13 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				return func(fr *frame) {
 					fr.pred = fr.block.Index
 					fr.block = fr.block.Succs[0]
-					fr.pc = fr.pfn.Blocks[fr.block.Index]
+					fr.ipc = fr.pfn.Blocks[fr.block.Index]
 				}
 			}
 			return func(fr *frame) {
 				fr.pred = fr.block.Index
 				fr.block = fr.block.Succs[1]
-				fr.pc = fr.pfn.Blocks[fr.block.Index]
+				fr.ipc = fr.pfn.Blocks[fr.block.Index]
 			}
 		}
 		switch instr.Cond.Type().(type) {
@@ -693,7 +702,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				} else {
 					fr.block = fr.block.Succs[1]
 				}
-				fr.pc = fr.pfn.Blocks[fr.block.Index]
+				fr.ipc = fr.pfn.Blocks[fr.block.Index]
 			}
 		default:
 			return func(fr *frame) {
@@ -703,26 +712,26 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				} else {
 					fr.block = fr.block.Succs[1]
 				}
-				fr.pc = fr.pfn.Blocks[fr.block.Index]
+				fr.ipc = fr.pfn.Blocks[fr.block.Index]
 			}
 		}
 	case *ssa.Return:
 		switch n := pfn.nres; n {
 		case 0:
 			return func(fr *frame) {
-				fr.pc = -1
+				fr.ipc = -1
 			}
 		case 1:
 			ir, ik, iv := pfn.regIndex3(instr.Results[0])
 			if ik.isStatic() {
 				return func(fr *frame) {
 					fr.stack[0] = iv
-					fr.pc = -1
+					fr.ipc = -1
 				}
 			}
 			return func(fr *frame) {
 				fr.stack[0] = fr.reg(ir)
-				fr.pc = -1
+				fr.ipc = -1
 			}
 		case 2:
 			r1, k1, v1 := pfn.regIndex3(instr.Results[0])
@@ -731,25 +740,25 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				return func(fr *frame) {
 					fr.stack[0] = v1
 					fr.stack[1] = v2
-					fr.pc = -1
+					fr.ipc = -1
 				}
 			} else if k1.isStatic() {
 				return func(fr *frame) {
 					fr.stack[0] = v1
 					fr.stack[1] = fr.reg(r2)
-					fr.pc = -1
+					fr.ipc = -1
 				}
 			} else if k2.isStatic() {
 				return func(fr *frame) {
 					fr.stack[0] = fr.reg(r1)
 					fr.stack[1] = v2
-					fr.pc = -1
+					fr.ipc = -1
 				}
 			}
 			return func(fr *frame) {
 				fr.stack[0] = fr.reg(r1)
 				fr.stack[1] = fr.reg(r2)
-				fr.pc = -1
+				fr.ipc = -1
 			}
 		default:
 			ir := make([]register, n)
@@ -760,7 +769,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				for i := 0; i < n; i++ {
 					fr.stack[i] = fr.reg(ir[i])
 				}
-				fr.pc = -1
+				fr.ipc = -1
 			}
 		}
 	case *ssa.RunDefers:

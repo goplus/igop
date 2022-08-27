@@ -236,7 +236,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 						ofn(fr)
 						var caller ssa.Instruction
 						if fr.caller != nil {
-							caller = fr.caller.pfn.InstrForPC(fr.caller.pc - 1)
+							caller = fr.caller.pfn.InstrForPC(fr.caller.ipc - 1)
 						}
 						if caller == nil {
 							log.Printf("Leaving %v.\n", fr.pfn.Fn)
@@ -260,7 +260,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 		}
 	}
 	pfn.base = visit.base
-	visit.base += len(pfn.ssaInstrs)
+	visit.base += len(pfn.ssaInstrs) + 2
 	pfn.initPool()
 }
 

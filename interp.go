@@ -198,14 +198,24 @@ type _defer struct {
 
 type frame struct {
 	caller  *frame
+	callee  *frame
+	_       *frame
 	pfn     *function
 	_defer  *_defer
 	_panic  *_panic
 	block   *ssa.BasicBlock
 	stack   []value // result args env datas
-	pc      int
+	ipc     int
 	pred    int
 	deferid int64
+}
+
+func (fr *frame) pc() uintptr {
+	return uintptr(fr.pfn.base + fr.ipc)
+}
+
+func (fr *frame) aborted() bool {
+	return fr != nil && fr.ipc != -1
 }
 
 func (fr *frame) setReg(ir register, v value) {
@@ -302,6 +312,9 @@ func (fr *frame) copyReg(dst register, src register) {
 
 type _panic struct {
 	arg       interface{}
+	pcs       []uintptr
+	link      *_panic
+	aborted   bool
 	recovered bool
 }
 
@@ -312,16 +325,23 @@ func (p *_panic) isNil() bool {
 // runDefer runs a deferred call d.
 // It always returns normally, but may set or clear fr.panic.
 //
-func (fr *frame) runDefer(d *_defer) {
-	var ok bool
+func (fr *frame) runDefer(d *_defer) (ok bool) {
 	defer func() {
 		if !ok {
 			// Deferred call created a new state of panic.
-			fr._panic = &_panic{arg: recover()}
+			if fr._panic != nil {
+				fr._panic.aborted = true
+			}
+			fr._panic = &_panic{arg: recover(), link: fr._panic}
+			// new panic add callee.pc
+			if fr.callee.aborted() && fr._panic.link != nil {
+				fr._panic.pcs = append(fr._panic.pcs, fr.callee.pc())
+			}
 		}
 	}()
 	fr.pfn.Interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
+	return
 }
 
 // runDefers executes fr's deferred function calls in LIFO order.
@@ -347,6 +367,7 @@ func (fr *frame) runDefers() {
 	interp.deferMap.Delete(fr.deferid)
 	atomic.AddInt32(&interp.deferCount, -1)
 	fr.deferid = 0
+	fr._defer = nil
 	// runtime.Goexit() fr.panic == nil
 	if !fr._panic.isNil() {
 		panic(fr._panic.arg) // new panic, or still panicking
@@ -605,9 +626,9 @@ func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir 
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	pfn.deleteFrame(fr)
@@ -618,9 +639,9 @@ func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir 
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i+1] = caller.reg(ia[i])
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	caller.setReg(ir, fr.stack[0])
@@ -632,9 +653,9 @@ func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir 
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i+pfn.nres] = caller.reg(ia[i])
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
@@ -666,9 +687,9 @@ func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *functio
 	for i := 0; i < pfn.nenv; i++ {
 		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	if pfn.nres == 1 {
@@ -873,10 +894,30 @@ func (i *Interp) callExternalWithFrameByStack(caller *frame, fn reflect.Value, i
 func (fr *frame) run() {
 	if fr.pfn.Recover != nil {
 		defer func() {
-			if fr.pc == -1 {
+			if fr.ipc == -1 || fr._defer == nil {
 				return // normal return
 			}
 			fr._panic = &_panic{arg: recover()}
+			callee := fr.callee
+			for callee.aborted() {
+				if !callee._panic.isNil() {
+					if !callee._panic.link.isNil() {
+						fr._panic.link = callee._panic.link
+						// check panic link
+						link := callee._panic.link
+						for link.link != nil {
+							link = link.link
+						}
+						link.pcs = append(link.pcs, callee.pc())
+					} else {
+						fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
+						fr._panic.pcs = append(append([]uintptr{}, callee._panic.pcs...), fr._panic.pcs...)
+					}
+				} else {
+					fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
+				}
+				callee = callee.callee
+			}
 			fr.runDefers()
 			for _, fn := range fr.pfn.Recover {
 				fn(fr)
@@ -884,9 +925,9 @@ func (fr *frame) run() {
 		}()
 	}
 
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 }

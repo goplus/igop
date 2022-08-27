@@ -845,10 +845,13 @@ func runtimeCallers(fr *frame, skip int, pc []uintptr) int {
 
 	caller := fr
 	for caller != nil {
-		if caller._panic != nil {
+		link := caller._panic
+		for link != nil {
 			pcs = append(pcs, uintptr(reflect.ValueOf(runtimePanic).Pointer()))
+			pcs = append(pcs, link.pcs...)
+			link = link.link
 		}
-		pcs = append(pcs, uintptr(caller.pfn.base+caller.pc))
+		pcs = append(pcs, caller.pc())
 		caller = caller.caller
 	}
 	if skip < 0 {
@@ -868,7 +871,7 @@ func runtimeFuncForPC(fr *frame, pc uintptr) *runtime.Func {
 
 func findFuncByPC(interp *Interp, pc int) *function {
 	for _, pfn := range interp.funcs {
-		if pc >= pfn.base && pc < pfn.base+len(pfn.ssaInstrs) {
+		if pc >= pfn.base && pc <= pfn.base+len(pfn.ssaInstrs) {
 			return pfn
 		}
 	}
