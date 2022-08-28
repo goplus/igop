@@ -44,7 +44,7 @@ func init() {
 	gorootTestSkips["fixedbugs/issue16249.go"] = "slow, 4.5s"
 	gorootTestSkips["fixedbugs/issue13169.go"] = "slow, 5.9s"
 	gorootTestSkips["fixedbugs/bug261.go"] = "BUG, ssa slice[low|high] https://github.com/golang/tools/pull/341"
-	// gorootTestSkips["fixedbugs/issue11656.go"] = "ignore"
+	gorootTestSkips["fixedbugs/issue11656.go"] = "ignore"
 	gorootTestSkips["fixedbugs/issue15281.go"] = "runtime.ReadMemStats"
 	// gorootTestSkips["fixedbugs/issue17381.go"] = "runtime.FuncForPC"
 	gorootTestSkips["fixedbugs/issue18149.go"] = "runtime.Caller macos //line not support c:/foo/bar.go:987"
