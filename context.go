@@ -811,7 +811,7 @@ func runtimeFuncFileLine(fr *frame, f *runtime.Func, pc uintptr) (file string, l
 			if fpos.Filename == "" {
 				return "??", fpos.Line
 			}
-			file, line = fpos.Filename, fpos.Line
+			file, line = filepath.ToSlash(fpos.Filename), fpos.Line
 			return
 		}
 	}
@@ -907,7 +907,7 @@ func runtimeFunc(pfn *function) *runtime.Func {
 	}
 	if pos := fn.Pos(); pos != token.NoPos {
 		fpos := pfn.Interp.ctx.FileSet.Position(pos)
-		f.file = fpos.Filename
+		f.file = filepath.ToSlash(fpos.Filename)
 		f.line = fpos.Line
 	}
 	return (*runtime.Func)(unsafe.Pointer(f))

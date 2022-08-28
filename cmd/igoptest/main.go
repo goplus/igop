@@ -110,7 +110,7 @@ func init() {
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5963.go"] = "skip windows"
-		gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
+		// gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 
 		skips := make(map[string]string)
 		for k, v := range gorootTestSkips {
