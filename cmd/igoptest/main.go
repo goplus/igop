@@ -79,6 +79,10 @@ func init() {
 
 	ver := runtime.Version()[:6]
 	switch ver {
+	case "go1.18", "go1.19":
+		gorootTestSkips["unsafebuiltins.go"] = "TODO"
+	}
+	switch ver {
 	case "go1.17", "go1.18", "go1.19":
 		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
