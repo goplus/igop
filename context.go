@@ -784,6 +784,8 @@ func init() {
 	RegisterExternal("(*runtime.Frames).Next", runtimeFramesNext)
 	RegisterExternal("(*runtime.Func).FileLine", runtimeFuncFileLine)
 	RegisterExternal("runtime.Stack", runtimeStack)
+	RegisterExternal("runtime/debug.Stack", debugStack)
+	RegisterExternal("runtime/debug.PrintStack", debugPrintStack)
 	RegisterExternal("(reflect.Value).Pointer", func(v reflect.Value) uintptr {
 		if v.Kind() == reflect.Func {
 			if fv, n := funcval.Get(v.Interface()); n == 1 {
@@ -987,4 +989,22 @@ func runtimeStack(fr *frame, buf []byte, all bool) int {
 		}
 	}
 	return copy(buf, []byte(lines))
+}
+
+// PrintStack prints to standard error the stack trace returned by runtime.Stack.
+func debugPrintStack(fr *frame) {
+	os.Stderr.Write(debugStack(fr))
+}
+
+// Stack returns a formatted stack trace of the goroutine that calls it.
+// It calls runtime.Stack with a large enough buffer to capture the entire trace.
+func debugStack(fr *frame) []byte {
+	buf := make([]byte, 1024)
+	for {
+		n := runtimeStack(fr, buf, false)
+		if n < len(buf) {
+			return buf[:n]
+		}
+		buf = make([]byte, 2*len(buf))
+	}
 }
