@@ -62,7 +62,6 @@ func init() {
 	gorootTestSkips["fixedbugs/issue4667.go"] = "testing.AllocsPerRun"
 	// gorootTestSkips["fixedbugs/issue5856.go"] = "runtime.Caller"
 	//gorootTestSkips["fixedbugs/issue5963.go"] = "BUG, recover"
-	// gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 	gorootTestSkips["fixedbugs/issue8606b.go"] = "BUG, optimization check"
 	gorootTestSkips["fixedbugs/issue30116u.go"] = "BUG, slice bound check"
 	//gorootTestSkips["fixedbugs/bug295.go"] = "skip, igop not import testing"
@@ -111,6 +110,7 @@ func init() {
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5963.go"] = "skip windows"
+		gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 
 		skips := make(map[string]string)
 		for k, v := range gorootTestSkips {
