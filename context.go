@@ -905,6 +905,7 @@ func runtimeFunc(pfn *function) *runtime.Func {
 	} else {
 		f.name = fn.String()
 	}
+	f.name = strings.Replace(f.name, "$", ".func", -1)
 	if pos := fn.Pos(); pos != token.NoPos {
 		fpos := pfn.Interp.ctx.FileSet.Position(pos)
 		f.file = filepath.ToSlash(fpos.Filename)
