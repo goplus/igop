@@ -805,6 +805,9 @@ func runtimeFuncFileLine(fr *frame, f *runtime.Func, pc uintptr) (file string, l
 				return "?", 0
 			}
 			fpos := interp.ctx.FileSet.Position(pos)
+			if fpos.Filename == "" {
+				return "??", fpos.Line
+			}
 			file, line = fpos.Filename, fpos.Line
 			return
 		}
