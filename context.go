@@ -783,6 +783,7 @@ func init() {
 	RegisterExternal("runtime.Callers", runtimeCallers)
 	RegisterExternal("(*runtime.Frames).Next", runtimeFramesNext)
 	RegisterExternal("(*runtime.Func).FileLine", runtimeFuncFileLine)
+	RegisterExternal("runtime.Stack", runtimeStack)
 	RegisterExternal("(reflect.Value).Pointer", func(v reflect.Value) uintptr {
 		if v.Kind() == reflect.Func {
 			if fv, n := funcval.Get(v.Interface()); n == 1 {
@@ -971,4 +972,19 @@ func runtimeFramesNext(fr *frame, frames *runtime.Frames) (frame runtime.Frame, 
 		frame.File, frame.Line = runtimeFuncFileLine(fr, frame.Func, frame.PC)
 	}
 	return
+}
+
+func runtimeStack(fr *frame, buf []byte, all bool) int {
+	rpc := make([]uintptr, 64)
+	n := runtimeCallers(fr, 1, rpc)
+	fs := runtime.CallersFrames(rpc[:n])
+	lines := "goroutine 1 [running]:\n"
+	for {
+		f, more := runtimeFramesNext(fr, fs)
+		lines += fmt.Sprintf("%v()\n\t%v:%v +0x%x\n", f.Func.Name(), f.File, f.Line, f.PC-f.Entry)
+		if !more {
+			break
+		}
+	}
+	return copy(buf, []byte(lines))
 }
