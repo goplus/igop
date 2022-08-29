@@ -333,11 +333,13 @@ func (fr *frame) runDefer(d *_defer) (ok bool) {
 				fr._panic.aborted = true
 			}
 			fr._panic = &_panic{arg: recover(), link: fr._panic}
-			// new panic add callee.pc
-			callee := fr.callee
-			for callee.aborted() {
-				fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
-				callee = callee.callee
+			// no tail add callee.pc
+			if d.tail != nil {
+				callee := fr.callee
+				for callee.aborted() {
+					fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
+					callee = callee.callee
+				}
 			}
 		}
 	}()
@@ -911,6 +913,7 @@ func (fr *frame) run() {
 							link = link.link
 						}
 						link.pcs = append(link.pcs, callee.pc())
+						fr._panic.pcs = append(append([]uintptr{}, callee._panic.pcs...), fr._panic.pcs...)
 					} else {
 						fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
 						fr._panic.pcs = append(append([]uintptr{}, callee._panic.pcs...), fr._panic.pcs...)
