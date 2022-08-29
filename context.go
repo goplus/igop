@@ -978,18 +978,33 @@ func runtimeFramesNext(fr *frame, frames *runtime.Frames) (frame runtime.Frame, 
 }
 
 func runtimeStack(fr *frame, buf []byte, all bool) int {
+	if len(buf) == 0 {
+		return 0
+	}
+	var w bytes.Buffer
+	w.WriteString("goroutine 1 [running]:\n")
 	rpc := make([]uintptr, 64)
 	n := runtimeCallers(fr, 1, rpc)
 	fs := runtime.CallersFrames(rpc[:n])
-	lines := "goroutine 1 [running]:\n"
 	for {
 		f, more := runtimeFramesNext(fr, fs)
-		lines += fmt.Sprintf("%v()\n\t%v:%v +0x%x\n", f.Func.Name(), f.File, f.Line, f.PC-f.Entry)
+		if f.Function == "runtime.gopanic" {
+			w.WriteString("panic()")
+		} else {
+			w.WriteString(f.Function + "()")
+		}
+		w.WriteByte('\n')
+		w.WriteByte('\t')
+		w.WriteString(fmt.Sprintf("%v:%v", f.File, f.Line))
+		if f.PC != f.Entry {
+			w.WriteString(fmt.Sprintf(" +0x%x", f.PC-f.Entry))
+		}
+		w.WriteByte('\n')
 		if !more {
 			break
 		}
 	}
-	return copy(buf, []byte(lines))
+	return copy(buf, w.Bytes())
 }
 
 // PrintStack prints to standard error the stack trace returned by runtime.Stack.

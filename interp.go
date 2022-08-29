@@ -913,11 +913,10 @@ func (fr *frame) run() {
 							link = link.link
 						}
 						link.pcs = append(link.pcs, callee.pc())
-						fr._panic.pcs = append(append([]uintptr{}, callee._panic.pcs...), fr._panic.pcs...)
 					} else {
 						fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
-						fr._panic.pcs = append(append([]uintptr{}, callee._panic.pcs...), fr._panic.pcs...)
 					}
+					fr._panic.pcs = append(append([]uintptr{}, callee._panic.pcs...), fr._panic.pcs...)
 				} else {
 					fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
 				}
