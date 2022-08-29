@@ -334,8 +334,10 @@ func (fr *frame) runDefer(d *_defer) (ok bool) {
 			}
 			fr._panic = &_panic{arg: recover(), link: fr._panic}
 			// new panic add callee.pc
-			if fr.callee.aborted() && fr._panic.link != nil {
-				fr._panic.pcs = append(fr._panic.pcs, fr.callee.pc())
+			callee := fr.callee
+			for callee.aborted() {
+				fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
+				callee = callee.callee
 			}
 		}
 	}()
