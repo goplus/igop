@@ -977,12 +977,28 @@ func runtimeFramesNext(fr *frame, frames *runtime.Frames) (frame runtime.Frame, 
 	return
 }
 
+func extractGoroutine() (string, bool) {
+	buf := make([]byte, 1024)
+	n := runtime.Stack(buf, false)
+	s := string(buf[:n])
+	if strings.HasPrefix(s, "goroutine") {
+		if pos := strings.Index(s, "\n"); pos != -1 {
+			return s[:pos+1], true
+		}
+	}
+	return "", false
+}
+
 func runtimeStack(fr *frame, buf []byte, all bool) int {
 	if len(buf) == 0 {
 		return 0
 	}
 	var w bytes.Buffer
-	w.WriteString("goroutine 1 [running]:\n")
+	if s, ok := extractGoroutine(); ok {
+		w.WriteString(s)
+	} else {
+		w.WriteString("goroutine 1 [running]:\n")
+	}
 	rpc := make([]uintptr, 64)
 	n := runtimeCallers(fr, 1, rpc)
 	fs := runtime.CallersFrames(rpc[:n])
