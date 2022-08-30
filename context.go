@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
@@ -893,6 +894,10 @@ func findFuncByEntry(interp *Interp, entry int) *function {
 	return nil
 }
 
+var (
+	reFuncName = regexp.MustCompile("\\$(\\d+)")
+)
+
 func runtimeFunc(pfn *function) *runtime.Func {
 	fn := pfn.Fn
 	f := inlineFunc(uintptr(pfn.base))
@@ -905,7 +910,7 @@ func runtimeFunc(pfn *function) *runtime.Func {
 	} else {
 		f.name = fn.String()
 	}
-	f.name = strings.Replace(f.name, "$", ".func", -1)
+	f.name = reFuncName.ReplaceAllString(f.name, ".func$1")
 	if pos := fn.Pos(); pos != token.NoPos {
 		fpos := pfn.Interp.ctx.FileSet.Position(pos)
 		f.file = filepath.ToSlash(fpos.Filename)
