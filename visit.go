@@ -10,6 +10,10 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+const (
+	fnBase = 100
+)
+
 func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 	if intp.ctx.Mode&DisableRecover == 0 {
 		defer func() {
@@ -23,6 +27,7 @@ func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 		prog: intp.mainpkg.Prog,
 		pkgs: make(map[*ssa.Package]bool),
 		seen: make(map[*ssa.Function]bool),
+		base: fnBase,
 	}
 	for _, pkg := range pkgs {
 		visit.pkgs[pkg] = true
@@ -36,6 +41,7 @@ type visitor struct {
 	prog *ssa.Program
 	pkgs map[*ssa.Package]bool
 	seen map[*ssa.Function]bool
+	base int
 }
 
 func (visit *visitor) program() {
@@ -230,7 +236,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 						ofn(fr)
 						var caller ssa.Instruction
 						if fr.caller != nil {
-							caller = fr.caller.pfn.InstrForPC(fr.caller.pc - 1)
+							caller = fr.caller.pfn.InstrForPC(fr.caller.ipc - 1)
 						}
 						if caller == nil {
 							log.Printf("Leaving %v.\n", fr.pfn.Fn)
@@ -245,15 +251,16 @@ func (visit *visitor) function(fn *ssa.Function) {
 			ssaInstrs[index] = instr
 			index++
 		}
-		Instrs = Instrs[:index]
 		offset := len(pfn.Instrs)
 		pfn.Blocks = append(pfn.Blocks, offset)
-		pfn.Instrs = append(pfn.Instrs, Instrs...)
-		pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs...)
+		pfn.Instrs = append(pfn.Instrs, Instrs[:index]...)
+		pfn.ssaInstrs = append(pfn.ssaInstrs, ssaInstrs[:index]...)
 		if b == fn.Recover && visit.intp.ctx.Mode&DisableRecover == 0 {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
+	pfn.base = visit.base
+	visit.base += len(pfn.ssaInstrs) + 2
 	pfn.initPool()
 }
 

@@ -313,13 +313,13 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 	fr := pfn.allocFrame(nil)
 	if fs != nil {
 		copy(fr.stack, fs.fr.stack)
-		fr.pc = fs.pc
+		fr.ipc = fs.pc
 	}
 	var pc int
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		pc = fr.pc
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		pc = fr.ipc
+		fr.ipc++
 		fn(fr)
 	}
 	return &fnState{fr: fr, pc: pc}, nil

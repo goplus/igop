@@ -13,12 +13,10 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/goplus/igop/load"
@@ -36,7 +34,6 @@ const (
 	EnableDumpInstr                       // Print packages & SSA instruction code
 	EnableTracing                         // Print a trace of all instructions as they are interpreted.
 	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
-	ExperimentFuncForPC                   // Experiment hook (reflect.Value).Pointer and runtime.FuncForPC
 )
 
 // Loader types loader interface
@@ -755,26 +752,4 @@ import (
 %v
 `, pkg, strings.Join(deps, "\n"), strings.Join(list, "\n"))
 	return parser.ParseFile(fset, "gossa_builtin.go", src, 0)
-}
-
-func init() {
-	RegisterExternal("os.Exit", func(fr *frame, code int) {
-		interp := fr.pfn.Interp
-		if atomic.LoadInt32(&interp.goexited) == 1 {
-			//os.Exit(code)
-			interp.chexit <- code
-		} else {
-			panic(exitPanic(code))
-		}
-	})
-	RegisterExternal("runtime.Goexit", func(fr *frame) {
-		interp := fr.pfn.Interp
-		// main goroutine use panic
-		if goroutineID() == interp.mainid {
-			atomic.StoreInt32(&interp.goexited, 1)
-			panic(goexitPanic(0))
-		} else {
-			runtime.Goexit()
-		}
-	})
 }

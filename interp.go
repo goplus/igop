@@ -58,7 +58,6 @@ import (
 
 	"github.com/goplus/reflectx"
 	"github.com/petermattis/goid"
-	"github.com/visualfc/funcval"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
@@ -190,24 +189,33 @@ func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) refl
 	})
 }
 
-type deferred struct {
+type _defer struct {
 	fn      value
-	instr   *ssa.Defer
-	tail    *deferred
+	tail    *_defer
 	args    []value
 	ssaArgs []ssa.Value
 }
 
 type frame struct {
-	caller    *frame
-	pfn       *function
-	defers    *deferred
-	panicking *panicking
-	block     *ssa.BasicBlock
-	stack     []value // result args env datas
-	pc        int
-	pred      int
-	deferid   int64
+	caller  *frame
+	callee  *frame
+	_       *frame
+	pfn     *function
+	_defer  *_defer
+	_panic  *_panic
+	block   *ssa.BasicBlock
+	stack   []value // result args env datas
+	ipc     int
+	pred    int
+	deferid int64
+}
+
+func (fr *frame) pc() uintptr {
+	return uintptr(fr.pfn.base + fr.ipc)
+}
+
+func (fr *frame) aborted() bool {
+	return fr != nil && fr.ipc != -1
 }
 
 func (fr *frame) setReg(ir register, v value) {
@@ -302,23 +310,42 @@ func (fr *frame) copyReg(dst register, src register) {
 	fr.stack[dst] = fr.stack[src]
 }
 
-type panicking struct {
-	value interface{}
+type _panic struct {
+	arg       interface{}
+	pcs       []uintptr
+	link      *_panic
+	aborted   bool
+	recovered bool
+}
+
+func (p *_panic) isNil() bool {
+	return p == nil || p.recovered
 }
 
 // runDefer runs a deferred call d.
 // It always returns normally, but may set or clear fr.panic.
 //
-func (fr *frame) runDefer(d *deferred) {
-	var ok bool
+func (fr *frame) runDefer(d *_defer) (ok bool) {
 	defer func() {
 		if !ok {
 			// Deferred call created a new state of panic.
-			fr.panicking = &panicking{recover()}
+			if fr._panic != nil {
+				fr._panic.aborted = true
+			}
+			fr._panic = &_panic{arg: recover(), link: fr._panic}
+			// no tail add callee.pc
+			if d.tail != nil {
+				callee := fr.callee
+				for callee.aborted() {
+					fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
+					callee = callee.callee
+				}
+			}
 		}
 	}()
 	fr.pfn.Interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
+	return
 }
 
 // runDefers executes fr's deferred function calls in LIFO order.
@@ -338,15 +365,16 @@ func (fr *frame) runDefers() {
 	atomic.AddInt32(&interp.deferCount, 1)
 	fr.deferid = goroutineID()
 	interp.deferMap.Store(fr.deferid, fr)
-	for d := fr.defers; d != nil; d = d.tail {
+	for d := fr._defer; d != nil; d = d.tail {
 		fr.runDefer(d)
 	}
 	interp.deferMap.Delete(fr.deferid)
 	atomic.AddInt32(&interp.deferCount, -1)
 	fr.deferid = 0
+	fr._defer = nil
 	// runtime.Goexit() fr.panic == nil
-	if fr.panicking != nil {
-		panic(fr.panicking.value) // new panic, or still panicking
+	if !fr._panic.isNil() {
+		panic(fr._panic.arg) // new panic, or still panicking
 	}
 }
 
@@ -602,9 +630,9 @@ func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir 
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i] = caller.reg(ia[i])
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	pfn.deleteFrame(fr)
@@ -615,9 +643,9 @@ func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir 
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i+1] = caller.reg(ia[i])
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	caller.setReg(ir, fr.stack[0])
@@ -629,9 +657,9 @@ func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir 
 	for i := 0; i < len(ia); i++ {
 		fr.stack[i+pfn.nres] = caller.reg(ia[i])
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
@@ -663,9 +691,9 @@ func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *functio
 	for i := 0; i < pfn.nenv; i++ {
 		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 	if pfn.nres == 1 {
@@ -870,10 +898,30 @@ func (i *Interp) callExternalWithFrameByStack(caller *frame, fn reflect.Value, i
 func (fr *frame) run() {
 	if fr.pfn.Recover != nil {
 		defer func() {
-			if fr.pc == -1 {
+			if fr.ipc == -1 || fr._defer == nil {
 				return // normal return
 			}
-			fr.panicking = &panicking{recover()}
+			fr._panic = &_panic{arg: recover()}
+			callee := fr.callee
+			for callee.aborted() {
+				if !callee._panic.isNil() {
+					if !callee._panic.link.isNil() {
+						fr._panic.link = callee._panic.link
+						// check panic link
+						link := callee._panic.link
+						for link.link != nil {
+							link = link.link
+						}
+						link.pcs = append(link.pcs, callee.pc())
+					} else {
+						fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
+					}
+					fr._panic.pcs = append(append([]uintptr{}, callee._panic.pcs...), fr._panic.pcs...)
+				} else {
+					fr._panic.pcs = append([]uintptr{callee.pc()}, fr._panic.pcs...)
+				}
+				callee = callee.callee
+			}
 			fr.runDefers()
 			for _, fn := range fr.pfn.Recover {
 				fn(fr)
@@ -881,9 +929,9 @@ func (fr *frame) run() {
 		}()
 	}
 
-	for fr.pc != -1 {
-		fn := fr.pfn.Instrs[fr.pc]
-		fr.pc++
+	for fr.ipc != -1 {
+		fn := fr.pfn.Instrs[fr.ipc]
+		fr.ipc++
 		fn(fr)
 	}
 }
@@ -895,10 +943,10 @@ func doRecover(caller *frame) value {
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
 	if caller.pfn.Interp.ctx.Mode&DisableRecover == 0 &&
-		caller.panicking == nil &&
-		caller.caller != nil && caller.caller.panicking != nil {
-		p := caller.caller.panicking.value
-		caller.caller.panicking = nil
+		caller._panic.isNil() &&
+		caller.caller != nil && !caller.caller._panic.isNil() {
+		p := caller.caller._panic.arg
+		caller.caller._panic.recovered = true
 		// TODO(adonovan): support runtime.Goexit.
 		switch p := p.(type) {
 		case targetPanic:
@@ -951,9 +999,6 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 	}
 	i.record = NewTypesRecord(i.ctx.Loader, i)
 	i.record.Load(mainpkg)
-	if i.ctx.Mode&ExperimentFuncForPC != 0 {
-		i.registerFuncForPC()
-	}
 
 	var pkgs []*ssa.Package
 	for _, pkg := range mainpkg.Prog.AllPackages() {
@@ -1184,43 +1229,4 @@ func deref(typ types.Type) types.Type {
 
 func goroutineID() int64 {
 	return goid.Get()
-}
-
-func (i *Interp) registerFuncForPC() {
-	RegisterExternal("(reflect.Value).Pointer", i.reflectPointer)
-	RegisterExternal("runtime.FuncForPC", i.FuncForPC)
-}
-
-func (i *Interp) reflectPointer(v reflect.Value) uintptr {
-	if v.Kind() == reflect.Func {
-		if fv, n := funcval.Get(v.Interface()); n == 1 {
-			pc := uintptr(unsafe.Pointer(fv))
-			i.rfuncMap.Store(pc, (*makeFuncVal)(unsafe.Pointer(fv)).pfn)
-			return pc
-		}
-	}
-	return v.Pointer()
-}
-
-func (i *Interp) FuncForPC(pc uintptr) *runtime.Func {
-	if v, ok := i.rfuncMap.Load(pc); ok {
-		fn := v.(*function).Fn
-		f := inlineFunc(pc)
-		if fn.Pkg != nil {
-			if pkgName := fn.Pkg.Pkg.Name(); pkgName == "main" {
-				f.name = "main." + fn.Name()
-			} else {
-				f.name = fn.Pkg.Pkg.Path() + "." + fn.Name()
-			}
-		} else {
-			f.name = fn.String()
-		}
-		if pos := fn.Pos(); pos != token.NoPos {
-			fpos := i.ctx.FileSet.Position(pos)
-			f.file = fpos.Filename
-			f.line = fpos.Line
-		}
-		return (*runtime.Func)(unsafe.Pointer(f))
-	}
-	return runtime.FuncForPC(pc)
 }
