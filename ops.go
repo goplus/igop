@@ -1774,20 +1774,39 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 		arg0 := caller.reg(ia[0])
 		arg1 := caller.reg(ia[1])
 		ptr := reflect.ValueOf(arg0)
+		etyp := ptr.Type().Elem()
 		length := asInt(arg1)
 		if ptr.IsNil() {
 			if length == 0 {
-				caller.setReg(ir, reflect.New(reflect.SliceOf(ptr.Type().Elem())).Elem().Interface())
+				caller.setReg(ir, reflect.New(reflect.SliceOf(etyp)).Elem().Interface())
 				return
 			}
 			panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
 		}
-		typ := reflect.ArrayOf(length, ptr.Type().Elem())
+		mem, overflow := mulUintptr(etyp.Size(), uintptr(length))
+		if overflow || mem > -uintptr(ptr.Pointer()) {
+			panic(runtimeError("unsafe.Slice: len out of range"))
+		}
+		typ := reflect.ArrayOf(length, etyp)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		caller.setReg(ir, v.Elem().Slice(0, length).Interface())
 	default:
 		panic("unknown built-in: " + fn)
 	}
+}
+
+const ptrSize = 4 << (^uintptr(0) >> 63)
+
+const maxUintptr = ^uintptr(0)
+
+// mulUintptr returns a * b and whether the multiplication overflowed.
+// On supported platforms this is an intrinsic lowered by the compiler.
+func mulUintptr(a, b uintptr) (uintptr, bool) {
+	if a|b < 1<<(4*ptrSize) || a == 0 {
+		return a * b, false
+	}
+	overflow := b > maxUintptr/a
+	return a * b, overflow
 }
 
 // widen widens a xtype typed value x to the widest type of its
