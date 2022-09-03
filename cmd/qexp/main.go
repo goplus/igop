@@ -11,7 +11,6 @@ import (
 
 var (
 	flagExportDir      string
-	flagUseGoApi       bool
 	flagBuildContext   string
 	flagCustomTags     string
 	flagExportFileName string
@@ -19,7 +18,6 @@ var (
 
 func init() {
 	flag.StringVar(&flagExportDir, "outdir", "", "set export pkg path")
-	//flag.BoolVar(&flagUseGoApi, "api", false, "export by $GOROOT/api")
 	flag.StringVar(&flagBuildContext, "contexts", "", "set customer build contexts goos_goarch list. eg \"drawin_amd64 darwin_arm64\"")
 	flag.StringVar(&flagCustomTags, "addtags", "", "add custom tags, split by ;")
 	flag.StringVar(&flagExportFileName, "filename", "export", "set export file name")
@@ -32,63 +30,17 @@ func main() {
 		flag.Usage()
 	}
 	if len(args) == 1 && args[0] == "std" {
-		args = stdList
+		//args = stdList
 	}
 	if flagExportFileName == "" {
 		flagExportFileName = "export"
 	}
 	ctxList := parserContextList(flagBuildContext)
-	//flagUseGoApi = false
-	var ac *ApiCheck
-	if flagUseGoApi {
-		ac = NewApiCheck()
-		err := ac.LoadBase("go1", "go1.1", "go1.2", "go1.3", "go1.4", "go1.5", "go1.6", "go1.7", "go1.8", "go1.9", "go1.10", "go1.11", "go1.12", "go1.13", "go1.14")
-		if err != nil {
-			panic(err)
+	for _, pkg := range args {
+		if pkg == "unsafe" {
+			continue
 		}
-		err = ac.LoadApi("go1.15", "go1.16")
-		if err != nil {
-			fmt.Println("warning load api error", err)
-		}
-		var imports []string
-		for _, pkg := range args {
-			fileMap, err := ac.Export(pkg)
-			if err != nil {
-				panic(err)
-			}
-			if fileMap == nil {
-				fmt.Println("warning skip empty export pkg", pkg)
-				continue
-			}
-			imports = append(imports, fmt.Sprintf(`_ "github.com/goplus/interp/pkg/%v"`, pkg))
-			if _, ok := fileMap[""]; !ok {
-				fileMap[""] = &File{}
-			}
-			for _, v := range fileMap {
-				data, err := exportSource(pkg, v.Name, v.Tags, v.ExtList, v.TypList)
-				if err != nil {
-					panic(err)
-				}
-				if flagExportDir == "" {
-					fmt.Println("========", "export"+v.Name+".go")
-					fmt.Println(string(data))
-					continue
-				}
-				err = writeFile(filepath.Join(flagExportDir, pkg), "export"+v.Name+".go", data)
-				if err != nil {
-					panic(err)
-				}
-			}
-			fmt.Println("export", pkg)
-		}
-		fmt.Printf("\nimport (\n\t%v\n)\n", strings.Join(imports, "\n\t"))
-	} else {
-		for _, pkg := range args {
-			if pkg == "unsafe" {
-				continue
-			}
-			Export(pkg, ctxList)
-		}
+		Export(pkg, ctxList)
 	}
 }
 
