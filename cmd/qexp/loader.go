@@ -192,8 +192,12 @@ func (p *Program) constToLit(named string, c constant.Value) string {
 	}
 }
 
-func (p *Program) ExportPkg(path string, sname string) *Package {
-	pkg := p.prog.Package(path).Pkg
+func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
+	info := p.prog.Package(path)
+	if info == nil {
+		return nil, fmt.Errorf("not found path %v", path)
+	}
+	pkg := info.Pkg
 	pkgPath := pkg.Path()
 	pkgName := pkg.Name()
 	e := &Package{Name: pkgName, Path: pkgPath}
@@ -241,5 +245,5 @@ func (p *Program) ExportPkg(path string, sname string) *Package {
 			log.Panicf("unreachable %v %T\n", name, t)
 		}
 	}
-	return e
+	return e, nil
 }

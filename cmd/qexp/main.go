@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"go/build"
 	"log"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -29,14 +32,72 @@ func main() {
 	if len(args) == 0 {
 		flag.Usage()
 	}
-	if len(args) == 1 && args[0] == "std" {
-		//args = stdList
+	if len(args) == 1 {
+		pkgs, err := parserPkgs(args[0])
+		if err != nil {
+			log.Panicln(err)
+		}
+		if len(pkgs) == 0 {
+			log.Panicln("not found packages")
+		}
+		args = pkgs
 	}
 	if flagExportFileName == "" {
 		flagExportFileName = "export"
 	}
 	ctxList := parserContextList(flagBuildContext)
 	Export(args, ctxList)
+}
+
+// pkg/...
+func parserPkgs(expr string) ([]string, error) {
+	data, err := runGoCommand("list", "-f={{.ImportPath}}={{.Name}}", expr)
+	if err != nil {
+		return nil, err
+	}
+	var pkgs []string
+	for _, line := range strings.Split(string(data), "\n") {
+		pos := strings.Index(line, "=")
+		if pos != -1 {
+			pkg, name := line[:pos], line[pos+1:]
+			if name == "main" || isSkipPkg(pkg) {
+				continue
+			}
+			pkgs = append(pkgs, pkg)
+		}
+	}
+	return pkgs, nil
+}
+
+func runGoCommand(args ...string) (ret []byte, err error) {
+	var stdout, stderr bytes.Buffer
+	cmd := exec.Command("go", args...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err = cmd.Run()
+	if err == nil {
+		ret = stdout.Bytes()
+	} else if stderr.Len() > 0 {
+		err = errors.New(stderr.String())
+	}
+	return
+}
+
+func isSkipPkg(pkg string) bool {
+	switch pkg {
+	case "unsafe":
+		return true
+	default:
+		if strings.HasPrefix(pkg, "vendor/") {
+			return true
+		}
+		for _, v := range strings.Split(pkg, "/") {
+			if v == "internal" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func Export(pkgs []string, ctxList []*build.Context) {
@@ -62,15 +123,18 @@ func ExportPkgs(pkgs []string, ctx *build.Context) {
 		}
 		fpath, err := ExportPkg(prog, pkg, ctx)
 		if err != nil {
-			log.Println("export failed", err)
+			log.Printf("export %v failed: %v\n", pkg, err)
 		} else {
-			log.Println("export", fpath)
+			log.Printf("export %v: %v\n", pkg, fpath)
 		}
 	}
 }
 
 func ExportPkg(prog *Program, pkg string, ctx *build.Context) (string, error) {
-	e := prog.ExportPkg(pkg, "q")
+	e, err := prog.ExportPkg(pkg, "q")
+	if err != nil {
+		return "", err
+	}
 	var tags []string
 	if flagCustomTags != "" {
 		tags = strings.Split(flagCustomTags, ";")
@@ -81,7 +145,7 @@ func ExportPkg(prog *Program, pkg string, ctx *build.Context) (string, error) {
 	}
 	if flagExportDir == "" {
 		fmt.Println(string(data))
-		return pkg, nil
+		return "stdout", nil
 	}
 	fpath := filepath.Join(flagExportDir, pkg)
 	var fname string
