@@ -6,15 +6,14 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
+	"log"
 	"strings"
 
 	"golang.org/x/tools/go/loader"
-	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/ssa/ssautil"
 )
 
 type Program struct {
-	prog *ssa.Program
+	prog *loader.Program
 }
 
 func loadProgram(path string, ctx *build.Context) (*Program, error) {
@@ -26,21 +25,18 @@ func loadProgram(path string, ctx *build.Context) (*Program, error) {
 	if err != nil {
 		return nil, fmt.Errorf("conf.Load failed: %s", err)
 	}
-
-	prog := ssautil.CreateProgram(iprog, ssa.SanityCheckFunctions|ssa.NaiveForm)
-	prog.Build()
-	return &Program{prog: prog}, nil
+	return &Program{iprog}, nil
 }
 
 func (p *Program) DumpDeps(path string) {
-	pkg := p.prog.ImportedPackage(path)
+	pkg := p.prog.Package(path)
 	for _, im := range pkg.Pkg.Imports() {
 		fmt.Println(im.Path())
 	}
 }
 
 func (p *Program) dumpDeps(path string, sep string) {
-	pkg := p.prog.ImportedPackage(path)
+	pkg := p.prog.Package(path)
 	for _, im := range pkg.Pkg.Imports() {
 		fmt.Println(sep, im.Path())
 		p.dumpDeps(im.Path(), sep+"  ")
@@ -48,10 +44,10 @@ func (p *Program) dumpDeps(path string, sep string) {
 }
 
 func (p *Program) DumpExport(path string) {
-	pkg := p.prog.ImportedPackage(path)
-	for k, v := range pkg.Members {
-		if token.IsExported(k) {
-			fmt.Printf("%v %v %T\n", k, v, v)
+	pkg := p.prog.Package(path)
+	for _, v := range pkg.Pkg.Scope().Names() {
+		if token.IsExported(v) {
+			fmt.Println(v)
 		}
 	}
 }
@@ -177,152 +173,53 @@ func (p *Program) constToLit(named string, c constant.Value) string {
 }
 
 func (p *Program) ExportPkg(path string, sname string) *Package {
-	pkg := p.prog.ImportedPackage(path)
-	pkgPath := pkg.Pkg.Path()
-	pkgName := pkg.Pkg.Name()
+	pkg := p.prog.Package(path).Pkg
+	pkgPath := pkg.Path()
+	pkgName := pkg.Name()
 	e := &Package{Name: pkgName, Path: pkgPath}
 	pkgName = sname
-	for _, v := range pkg.Pkg.Imports() {
+	for _, v := range pkg.Imports() {
 		e.Deps = append(e.Deps, fmt.Sprintf("%q: %q", v.Path(), v.Name()))
 	}
-	checked := make(map[ssa.Member]bool)
-	for k, v := range pkg.Members {
-		if token.IsExported(k) {
-			if checked[v] {
+	for _, name := range pkg.Scope().Names() {
+		if !token.IsExported(name) {
+			continue
+		}
+		obj := pkg.Scope().Lookup(name)
+		switch t := obj.(type) {
+		case *types.Const:
+			named := pkgName + "." + t.Name()
+			if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
+				e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: {%q, %v}", t.Name(), t.Type().String(), p.constToLit(named, t.Val())))
+			} else {
+				e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", t.Name(), pkgName+"."+t.Name(), p.constToLit(named, t.Val())))
+			}
+		case *types.Var:
+			e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", t.Name(), pkgName+"."+t.Name()))
+		case *types.Func:
+			e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", t.Name(), pkgName+"."+t.Name()))
+		case *types.TypeName:
+			if t.IsAlias() {
+				name := obj.Name()
+				switch typ := obj.Type().(type) {
+				case *types.Basic:
+					e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", name, typ.Name()))
+				// case *types.Named:
+				// 	e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
+				default:
+					e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
+				}
 				continue
 			}
-			checked[v] = true
-			switch t := v.(type) {
-			case *ssa.NamedConst:
-				named := pkgName + "." + t.Name()
-				if typ := t.Type().String(); strings.HasPrefix(typ, "untyped ") {
-					e.UntypedConsts = append(e.UntypedConsts, fmt.Sprintf("%q: {%q, %v}", t.Name(), t.Type().String(), p.constToLit(named, t.Value.Value)))
-				} else {
-					e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", t.Name(), pkgName+"."+t.Name(), p.constToLit(named, t.Value.Value)))
-				}
-			case *ssa.Global:
-				e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", t.Name(), pkgName+"."+t.Name()))
-			case *ssa.Function:
-				e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", t.Name(), pkgName+"."+t.Name()))
-			case *ssa.Type:
-				typ := t.Type()
-				if obj, ok := t.Object().(*types.TypeName); ok && obj.IsAlias() {
-					name := obj.Name()
-					switch typ := obj.Type().(type) {
-					case *types.Basic:
-						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v)(nil)).Elem()", name, typ.Name()))
-					// case *types.Named:
-					// 	e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
-					default:
-						e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
-					}
-					continue
-				}
-				typeName := typ.(*types.Named).Obj().Name()
-				methods := IntuitiveMethodSet(typ)
-				for _, method := range methods {
-					name := method.Obj().Name()
-					if token.IsExported(name) {
-						info := fmt.Sprintf("(%v).%v", method.Recv(), name)
-						if pkgPath == pkgName {
-							e.Methods = append(e.Methods, fmt.Sprintf("%q : reflect.ValueOf(%v)", info, info))
-						} else {
-							var fn string
-							if isPointer(method.Recv()) {
-								fn = fmt.Sprintf("(*%v.%v).%v", pkgName, typeName, name)
-							} else {
-								fn = fmt.Sprintf("(%v.%v).%v", pkgName, typeName, name)
-							}
-							e.Methods = append(e.Methods, fmt.Sprintf("%q: reflect.ValueOf(%v)", info, fn))
-						}
-					}
-				}
-				if types.IsInterface(typ) {
-					e.Interfaces = append(e.Interfaces, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
-				} else {
-					e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
-				}
-			default:
-				panic("unreachable")
+			typeName := t.Name()
+			if types.IsInterface(t.Type()) {
+				e.Interfaces = append(e.Interfaces, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
+			} else {
+				e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
 			}
+		default:
+			log.Panicf("unreachable %v %T\n", name, t)
 		}
 	}
 	return e
-}
-
-func (p *Program) Export(path string) (extList []string, typList []string) {
-	pkg := p.prog.ImportedPackage(path)
-	pkgPath := pkg.Pkg.Path()
-	pkgName := pkg.Pkg.Name()
-	for k, v := range pkg.Members {
-		if token.IsExported(k) {
-			switch t := v.(type) {
-			case *ssa.NamedConst:
-			case *ssa.Global:
-				extList = append(extList, fmt.Sprintf("%q : &%v", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
-			case *ssa.Function:
-				extList = append(extList, fmt.Sprintf("%q : %v", pkgPath+"."+t.Name(), pkgName+"."+t.Name()))
-			case *ssa.Type:
-				named := t.Type().(*types.Named)
-				typeName := named.Obj().Name()
-
-				typList = append(typList, fmt.Sprintf("(*%v.%v)(nil)", pkgName, typeName))
-				if named.Obj().Pkg() != pkg.Pkg {
-					continue
-				}
-				methods := IntuitiveMethodSet(t.Type())
-				for _, method := range methods {
-					name := method.Obj().Name()
-					if token.IsExported(name) {
-						info := fmt.Sprintf("(%v).%v", method.Recv(), name)
-						if pkgPath == pkgName {
-							extList = append(extList, fmt.Sprintf("%q : %v", info, info))
-						} else {
-							var fn string
-							if isPointer(method.Recv()) {
-								fn = fmt.Sprintf("(*%v.%v).%v", pkgName, typeName, name)
-							} else {
-								fn = fmt.Sprintf("(%v.%v).%v", pkgName, typeName, name)
-							}
-							extList = append(extList, fmt.Sprintf("%q : %v", info, fn))
-						}
-					}
-				}
-			}
-		}
-	}
-	return
-}
-
-func isPointer(T types.Type) bool {
-	_, ok := T.(*types.Pointer)
-	return ok
-}
-
-// golang.org/x/tools/go/types/typeutil.IntuitiveMethodSet
-func IntuitiveMethodSet(T types.Type) []*types.Selection {
-	isPointerToConcrete := func(T types.Type) bool {
-		ptr, ok := T.(*types.Pointer)
-		return ok && !types.IsInterface(ptr.Elem())
-	}
-
-	var result []*types.Selection
-	mset := types.NewMethodSet(T)
-	if types.IsInterface(T) || isPointerToConcrete(T) {
-		for i, n := 0, mset.Len(); i < n; i++ {
-			result = append(result, mset.At(i))
-		}
-	} else {
-		// T is some other concrete type.
-		// Report methods of T and *T, preferring those of T.
-		pmset := types.NewMethodSet(types.NewPointer(T))
-		for i, n := 0, pmset.Len(); i < n; i++ {
-			meth := pmset.At(i)
-			if m := mset.Lookup(meth.Obj().Pkg(), meth.Obj().Name()); m != nil {
-				meth = m
-			}
-			result = append(result, meth)
-		}
-	}
-	return result
 }
