@@ -3,6 +3,8 @@
 
 package main
 
+import "go/types"
+
 func IsTypeParam(t types.Type) bool {
 	return false
 }
