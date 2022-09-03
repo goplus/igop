@@ -36,40 +36,40 @@ func main() {
 		flagExportFileName = "export"
 	}
 	ctxList := parserContextList(flagBuildContext)
-	for _, pkg := range args {
-		if pkg == "unsafe" {
-			continue
+	Export(args, ctxList)
+}
+
+func Export(pkgs []string, ctxList []*build.Context) {
+	log.Println("process", pkgs)
+	if len(ctxList) == 0 {
+		ExportPkgs(pkgs, nil)
+	} else {
+		for _, ctx := range ctxList {
+			ExportPkgs(pkgs, ctx)
 		}
-		Export(pkg, ctxList)
 	}
 }
 
-func Export(pkg string, ctxList []*build.Context) {
-	log.Println("process", pkg)
-	if len(ctxList) == 0 {
-		fpath, err := ExportPkg(pkg, nil)
+func ExportPkgs(pkgs []string, ctx *build.Context) {
+	prog := NewProgram(ctx)
+	err := prog.Load(pkgs)
+	if err != nil {
+		log.Panicln(err)
+	}
+	for _, pkg := range pkgs {
+		if pkg == "unsafe" {
+			continue
+		}
+		fpath, err := ExportPkg(prog, pkg, ctx)
 		if err != nil {
 			log.Println("export failed", err)
 		} else {
 			log.Println("export", fpath)
 		}
-	} else {
-		for _, ctx := range ctxList {
-			fpath, err := ExportPkg(pkg, ctx)
-			if err != nil {
-				log.Println("export failed", err)
-			} else {
-				log.Println("export", fpath)
-			}
-		}
 	}
 }
 
-func ExportPkg(pkg string, ctx *build.Context) (string, error) {
-	prog, err := loadProgram(pkg, ctx)
-	if err != nil {
-		return "", fmt.Errorf("load pkg %v error: %v", pkg, err)
-	}
+func ExportPkg(prog *Program, pkg string, ctx *build.Context) (string, error) {
 	e := prog.ExportPkg(pkg, "q")
 	var tags []string
 	if flagCustomTags != "" {
@@ -81,7 +81,7 @@ func ExportPkg(pkg string, ctx *build.Context) (string, error) {
 	}
 	if flagExportDir == "" {
 		fmt.Println(string(data))
-		return "", nil
+		return pkg, nil
 	}
 	fpath := filepath.Join(flagExportDir, pkg)
 	var fname string

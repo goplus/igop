@@ -14,6 +14,26 @@ import (
 
 type Program struct {
 	prog *loader.Program
+	ctx  *build.Context
+}
+
+func NewProgram(ctx *build.Context) *Program {
+	return &Program{ctx: ctx}
+}
+
+func (p *Program) Load(pkgs []string) error {
+	var cfg loader.Config
+	cfg.Build = p.ctx
+	for _, pkg := range pkgs {
+		cfg.Import(pkg)
+	}
+
+	iprog, err := cfg.Load()
+	if err != nil {
+		return fmt.Errorf("conf.Load failed: %s", err)
+	}
+	p.prog = iprog
+	return nil
 }
 
 func loadProgram(path string, ctx *build.Context) (*Program, error) {
@@ -25,7 +45,7 @@ func loadProgram(path string, ctx *build.Context) (*Program, error) {
 	if err != nil {
 		return nil, fmt.Errorf("conf.Load failed: %s", err)
 	}
-	return &Program{iprog}, nil
+	return &Program{prog: iprog, ctx: ctx}, nil
 }
 
 func (p *Program) DumpDeps(path string) {
