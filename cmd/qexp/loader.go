@@ -223,6 +223,9 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 		case *types.Func:
 			e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", t.Name(), pkgName+"."+t.Name()))
 		case *types.TypeName:
+			if IsTypeParam(t.Type()) {
+				log.Println("skip typeparam", t)
+			}
 			if t.IsAlias() {
 				name := obj.Name()
 				switch typ := obj.Type().(type) {
