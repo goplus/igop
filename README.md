@@ -42,6 +42,7 @@ igop run         # run a Go/Go+ package
 igop build       # compile a Go/Go+ package
 igop test        # test a package
 igop verson      # print version
+igop export      # export Go package to igop builtin package
 ```
 
 ### igop repl mode
