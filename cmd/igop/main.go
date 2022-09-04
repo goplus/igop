@@ -23,6 +23,7 @@ import (
 
 	"github.com/goplus/igop/cmd/internal/base"
 	"github.com/goplus/igop/cmd/internal/build"
+	"github.com/goplus/igop/cmd/internal/export"
 	"github.com/goplus/igop/cmd/internal/help"
 	"github.com/goplus/igop/cmd/internal/repl"
 	"github.com/goplus/igop/cmd/internal/run"
@@ -46,6 +47,7 @@ func init() {
 		test.Cmd,
 		repl.Cmd,
 		version.Cmd,
+		export.Cmd,
 	}
 }
 

@@ -144,6 +144,7 @@ import (
 	_ "github.com/goplus/igop/pkg/text/template"
 	_ "github.com/goplus/igop/pkg/text/template/parse"
 	_ "github.com/goplus/igop/pkg/time"
+	_ "github.com/goplus/igop/pkg/time/tzdata"
 	_ "github.com/goplus/igop/pkg/unicode"
 	_ "github.com/goplus/igop/pkg/unicode/utf16"
 	_ "github.com/goplus/igop/pkg/unicode/utf8"
