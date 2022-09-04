@@ -223,6 +223,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 		case *types.TypeName:
 			if IsTypeParam(t.Type()) {
 				log.Println("skip typeparam", t)
+				continue
 			}
 			if t.IsAlias() {
 				name := obj.Name()
