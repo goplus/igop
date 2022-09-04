@@ -36,6 +36,7 @@ func init() {
 			"sync/atomic":      "atomic",
 			"time":             "time",
 			"unicode":          "unicode",
+			"unicode/utf8":     "utf8",
 		},
 		Interfaces: map[string]reflect.Type{
 			"TB": reflect.TypeOf((*q.TB)(nil)).Elem(),

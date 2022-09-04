@@ -138,8 +138,6 @@ func isSkipPkg(pkg string) bool {
 		return true
 	case "runtime/cgo", "runtime/race":
 		return true
-	case "time/tzdata":
-		return true
 	default:
 		if strings.HasPrefix(pkg, "vendor/") {
 			return true
