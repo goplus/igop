@@ -84,7 +84,6 @@ type Package struct {
 	Types   []reflect.Type
 	Vars    map[string]reflect.Value
 	Funcs   map[string]reflect.Value
-	Methods map[string]reflect.Value
 	Consts  map[string]ConstValue
 	Deps    map[string]string
 }
@@ -100,7 +99,6 @@ type Package struct {
 	AliasTypes    []string
 	Vars          []string
 	Funcs         []string
-	Methods       []string
 	Consts        []string
 	TypedConsts   []string
 	UntypedConsts []string
@@ -109,8 +107,8 @@ type Package struct {
 func (p *Package) IsEmpty() bool {
 	return len(p.NamedTypes) == 0 && len(p.Interfaces) == 0 &&
 		len(p.AliasTypes) == 0 && len(p.Vars) == 0 &&
-		len(p.Funcs) == 0 && len(p.Methods) == 0 &&
-		len(p.Consts) == 0 && len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0
+		len(p.Funcs) == 0 && len(p.Consts) == 0 &&
+		len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0
 }
 
 /*
