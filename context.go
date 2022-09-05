@@ -92,23 +92,6 @@ type sourcePackage struct {
 	Files   []*ast.File
 }
 
-func (sp *sourcePackage) Load() (err error) {
-	if sp.Info == nil {
-		sp.Info = &types.Info{
-			Types:      make(map[ast.Expr]types.TypeAndValue),
-			Defs:       make(map[*ast.Ident]types.Object),
-			Uses:       make(map[*ast.Ident]types.Object),
-			Implicits:  make(map[ast.Node]types.Object),
-			Scopes:     make(map[ast.Node]*types.Scope),
-			Selections: make(map[*ast.SelectorExpr]*types.Selection),
-		}
-		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
-			return err
-		}
-	}
-	return
-}
-
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
@@ -570,7 +553,11 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 			}
 		}()
 	}
-	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
+	mode := ctx.BuilderMode
+	if EnabledTypeParam {
+		mode |= ssa.InstantiateGenerics
+	}
+	prog := ssa.NewProgram(ctx.FileSet, mode)
 	// Create SSA packages for all imports.
 	// Order is not significant.
 	created := make(map[*types.Package]bool)
