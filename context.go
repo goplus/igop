@@ -563,11 +563,13 @@ func (ctx *Context) RunTest(dir string, args []string) error {
 }
 
 func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			err = fmt.Errorf("build SSA package error: %v", e)
-		}
-	}()
+	if ctx.Mode&DisableRecover == 0 {
+		defer func() {
+			if e := recover(); e != nil {
+				err = fmt.Errorf("build SSA package error: %v", e)
+			}
+		}()
+	}
 	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
 	// Create SSA packages for all imports.
 	// Order is not significant.
