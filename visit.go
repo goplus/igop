@@ -88,6 +88,9 @@ func (visit *visitor) function(fn *ssa.Function) {
 	if visit.seen[fn] {
 		return
 	}
+	if HasTypeParam(fn.Type()) {
+		return
+	}
 	visit.seen[fn] = true
 	fnPath := fn.String()
 	if f, ok := visit.intp.ctx.override[fnPath]; ok &&
