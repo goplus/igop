@@ -12,7 +12,7 @@ const (
 	EnabledTypeParam = false
 )
 
-func IsTypeParam(t types.Type) bool {
+func HasTypeParam(t types.Type) bool {
 	return false
 }
 

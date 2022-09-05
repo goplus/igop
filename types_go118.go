@@ -12,7 +12,7 @@ const (
 	EnabledTypeParam = true
 )
 
-func IsTypeParam(t types.Type) bool {
+func HasTypeParam(t types.Type) bool {
 	switch t := t.(type) {
 	case *types.TypeParam:
 		return true
