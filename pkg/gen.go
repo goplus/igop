@@ -20,8 +20,12 @@ func main() {
 	var name string
 	var fname string
 	switch ver {
+	case "go1.19":
+		tags = "//+build go1.19"
+		name = "go119_export"
+		fname = "go119_pkgs.go"
 	case "go1.18":
-		tags = "//+build go1.18"
+		tags = "//+build go1.18,!go1.19"
 		name = "go118_export"
 		fname = "go118_pkgs.go"
 	case "go1.17":
@@ -47,7 +51,7 @@ func main() {
 	log.Println(ver, name, tags)
 	log.Println(pkgs)
 
-	cmd := exec.Command("go", "run", "../cmd/qexp", "-outdir", ".", "-addtags", tags, "-filename", name)
+	cmd := exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name)
 	cmd.Args = append(cmd.Args, pkgs...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
@@ -167,6 +171,12 @@ func checkRegAbi(list []string, ver string) (regabi []string, noregabi []string)
 		case "go1.18":
 			switch ar[1] {
 			case "amd64", "arm64", "ppc64", "ppc64le":
+				regabi = append(regabi, v)
+				continue
+			}
+		case "go1.19":
+			switch ar[1] {
+			case "amd64", "arm64", "ppc64", "ppc64le", "riscv64":
 				regabi = append(regabi, v)
 				continue
 			}
