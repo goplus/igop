@@ -446,7 +446,7 @@ func (r *TypesRecord) Load(pkg *ssa.Package) {
 			continue
 		}
 		checked[typ] = true
-		if HasTypeParam(typ) {
+		if hasTypeParam(typ) {
 			continue
 		}
 		r.LoadType(typ)

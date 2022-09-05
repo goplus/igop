@@ -88,7 +88,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 	if visit.seen[fn] {
 		return
 	}
-	if HasTypeParam(fn.Type()) {
+	if hasTypeParam(fn.Type()) {
 		return
 	}
 	visit.seen[fn] = true

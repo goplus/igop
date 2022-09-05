@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	EnabledTypeParam = false
+	enabledTypeParam = false
 )
 
-func HasTypeParam(t types.Type) bool {
+func hasTypeParam(t types.Type) bool {
 	return false
 }
 

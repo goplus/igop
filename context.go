@@ -554,7 +554,7 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 		}()
 	}
 	mode := ctx.BuilderMode
-	if EnabledTypeParam {
+	if enabledTypeParam {
 		mode |= ssa.InstantiateGenerics
 	}
 	prog := ssa.NewProgram(ctx.FileSet, mode)
