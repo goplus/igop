@@ -1790,6 +1790,12 @@ func (inter *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.
 		typ := reflect.ArrayOf(length, etyp)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		caller.setReg(ir, v.Elem().Slice(0, length).Interface())
+	case "Sizeof": // instance of generic function
+		typ := reflect.TypeOf(caller.reg(ia[0]))
+		caller.setReg(ir, typ.Size())
+	case "Alignof": // instance of generic function
+		typ := reflect.TypeOf(caller.reg(ia[0]))
+		caller.setReg(ir, typ.Align())
 	default:
 		panic("unknown built-in: " + fn)
 	}
