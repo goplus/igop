@@ -69,10 +69,10 @@ func init() {
 		gorootTestSkips["abi/uglyfib.go"] = "5m48s"
 		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
 
-		gorootTestSkips["fixedbugs/issue50672.go"] = "type param"
-		gorootTestSkips["fixedbugs/issue53137.go"] = "type param"
-		gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
-		gorootTestSkips["fixedbugs/issue53635.go"] = "type param"
+		// gorootTestSkips["fixedbugs/issue50672.go"] = "type param"
+		// gorootTestSkips["fixedbugs/issue53137.go"] = "type param"
+		// gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
+		// gorootTestSkips["fixedbugs/issue53635.go"] = "type param"
 
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
