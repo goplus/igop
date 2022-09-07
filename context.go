@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -109,6 +110,7 @@ func NewContext(mode Mode) *Context {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
 	ctx.conf = &types.Config{
+		Sizes:    types.SizesFor("gc", runtime.GOARCH),
 		Importer: NewImporter(ctx),
 	}
 	ctx.Lookup = new(load.ListDriver).Lookup
@@ -411,6 +413,7 @@ func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, erro
 	if err != nil {
 		return nil, err
 	}
+	ctx.pkgs[path] = sp
 	return ctx.buildPackage(sp)
 }
 
