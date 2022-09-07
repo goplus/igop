@@ -74,7 +74,6 @@ func init() {
 		// gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
 		// gorootTestSkips["fixedbugs/issue53635.go"] = "type param"
 
-		gorootTestSkips["typeparam/append.go"] = "reflect.MakeChan: unidirectional channel type"
 		gorootTestSkips["typeparam/chans.go"] = "_Ranger Send should have failed, but timed out"
 		gorootTestSkips["typeparam/cons.go"] = "runtime error: interface conversion: main.any is main.Nil, not main.List"
 		gorootTestSkips["typeparam/issue376214.go"] = "variadic parameter must be of unnamed slice type"
