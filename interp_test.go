@@ -3097,3 +3097,23 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestMakeChan(t *testing.T) {
+	src := `package main
+
+type Send chan<- int
+type Recv <-chan int
+
+func main() {
+	_ = make(chan int)
+	_ = make(<-chan int)
+	_ = make(chan<- int)
+	_ = make(Send)
+	_ = make(Recv)
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
