@@ -275,9 +275,9 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 
 func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	ut := t.Underlying()
-	name := t.Obj()
-	if name.Pkg() == nil {
-		if name.Name() == "error" {
+	pkgpath, name := extractNamed(t)
+	if pkgpath == "" {
+		if name == "error" {
 			return tyErrorInterface
 		}
 		return r.ToType(ut)
@@ -286,7 +286,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	numMethods := len(methods)
 	if numMethods == 0 {
 		styp := toMockType(t.Underlying())
-		typ := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), styp)
+		typ := reflectx.NamedTypeOf(pkgpath, name, styp)
 		r.saveType(t, typ)
 		utype := r.ToType(ut)
 		reflectx.SetUnderlying(typ, utype)
@@ -302,7 +302,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	}
 	// toMockType for size/align
 	etyp := toMockType(ut)
-	styp := reflectx.NamedTypeOf(name.Pkg().Path(), name.Name(), etyp)
+	styp := reflectx.NamedTypeOf(pkgpath, name, etyp)
 	typ := reflectx.NewMethodSet(styp, mcount, pcount)
 	r.saveType(t, typ)
 	utype := r.ToType(ut)

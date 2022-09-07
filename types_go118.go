@@ -24,6 +24,25 @@ func hasTypeParam(t types.Type) bool {
 	return false
 }
 
+func extractNamed(named *types.Named) (pkgpath string, name string) {
+	obj := named.Obj()
+	if pkg := obj.Pkg(); pkg != nil {
+		pkgpath = pkg.Path()
+	}
+	name = obj.Name()
+	if args := named.TypeArgs(); args != nil {
+		name += "["
+		for i := 0; i < args.Len(); i++ {
+			if i != 0 {
+				name += ","
+			}
+			name += args.At(i).String()
+		}
+		name += "]"
+	}
+	return
+}
+
 func (sp *sourcePackage) Load() (err error) {
 	if sp.Info == nil {
 		sp.Info = &types.Info{
