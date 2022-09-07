@@ -404,16 +404,16 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		caller.setReg(ir, v.Elem().Slice(0, length).Interface())
 	case "Sizeof": // instance of generic function
 		typ := reflect.TypeOf(caller.reg(ia[0]))
-		caller.setReg(ir, typ.Size())
+		caller.setReg(ir, uintptr(typ.Size()))
 	case "Alignof": // instance of generic function
 		typ := reflect.TypeOf(caller.reg(ia[0]))
-		caller.setReg(ir, typ.Align())
+		caller.setReg(ir, uintptr(typ.Align()))
 	case "Offsetof": // instance of generic function
 		offset, err := builtinOffsetof(caller.pfn, caller.ipc-1)
 		if err != nil {
 			panic(err)
 		}
-		caller.setReg(ir, offset)
+		caller.setReg(ir, uintptr(offset))
 	default:
 		panic("unknown built-in: " + fn)
 	}
