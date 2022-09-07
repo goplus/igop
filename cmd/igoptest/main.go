@@ -77,7 +77,7 @@ func init() {
 		gorootTestSkips["typeparam/chans.go"] = "_Ranger Send should have failed, but timed out"
 		// gorootTestSkips["typeparam/cons.go"] = "runtime error: interface conversion: main.any is main.Nil, not main.List"
 		gorootTestSkips["typeparam/issue376214.go"] = "variadic parameter must be of unnamed slice type"
-		gorootTestSkips["typeparam/issue47716.go"] = "got 8, want 8"
+		// gorootTestSkips["typeparam/issue47716.go"] = "got 8, want 8"
 		// gorootTestSkips["typeparam/issue49547.go"] = "want: main.F[main.foo], got: main.F"
 		gorootTestSkips["typeparam/nested.go"] = "FAIL"
 
