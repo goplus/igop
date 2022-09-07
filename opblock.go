@@ -400,13 +400,24 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		typ := interp.preToType(instr.Type())
 		ir := pfn.regIndex(instr)
 		is := pfn.regIndex(instr.Size)
+		if typ.ChanDir() == reflect.BothDir {
+			return func(fr *frame) {
+				size := fr.reg(is)
+				buffer := asInt(size)
+				if buffer < 0 {
+					panic(runtimeError("makechan: size out of range"))
+				}
+				fr.setReg(ir, reflect.MakeChan(typ, buffer).Interface())
+			}
+		}
+		ctyp := reflect.ChanOf(reflect.BothDir, typ.Elem())
 		return func(fr *frame) {
 			size := fr.reg(is)
 			buffer := asInt(size)
 			if buffer < 0 {
 				panic(runtimeError("makechan: size out of range"))
 			}
-			fr.setReg(ir, reflect.MakeChan(typ, buffer).Interface())
+			fr.setReg(ir, reflect.MakeChan(ctyp, buffer).Convert(typ).Interface())
 		}
 	case *ssa.MakeMap:
 		typ := instr.Type()
