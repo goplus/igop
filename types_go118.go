@@ -6,6 +6,7 @@ package igop
 import (
 	"go/ast"
 	"go/types"
+	"strings"
 )
 
 const (
@@ -36,7 +37,7 @@ func extractNamed(named *types.Named) (pkgpath string, name string) {
 			if i != 0 {
 				name += ","
 			}
-			name += args.At(i).String()
+			name += strings.Replace(args.At(i).String(), " ", "", -1)
 		}
 		name += "]"
 	}
