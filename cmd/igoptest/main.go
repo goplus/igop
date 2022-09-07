@@ -74,6 +74,14 @@ func init() {
 		// gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
 		// gorootTestSkips["fixedbugs/issue53635.go"] = "type param"
 
+		gorootTestSkips["typeparam/append.go"] = "reflect.MakeChan: unidirectional channel type"
+		gorootTestSkips["typeparam/chans.go"] = "_Ranger Send should have failed, but timed out"
+		gorootTestSkips["typeparam/cons.go"] = "runtime error: interface conversion: main.any is main.Nil, not main.List"
+		gorootTestSkips["typeparam/issue376214.go"] = "variadic parameter must be of unnamed slice type"
+		gorootTestSkips["typeparam/issue47716.go"] = "got 8, want 8"
+		gorootTestSkips["typeparam/issue49547.go"] = "want: main.F[main.foo], got: main.F"
+		gorootTestSkips["typeparam/nested.go"] = "FAIL"
+
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	case "go1.15":
@@ -169,7 +177,7 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 			}
 			_, n := filepath.Split(path)
 			switch n {
-			case "bench", "dwarf", "codegen", "typeparam":
+			case "bench", "dwarf", "codegen":
 				return filepath.SkipDir
 			default:
 				if strings.Contains(n, ".dir") {
@@ -189,7 +197,7 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 		lines := strings.Split(string(data), "\n")
 		if len(lines) > 0 {
 			line := strings.TrimSpace(lines[0])
-			if line == "// run" {
+			if line == "// run" || line == "// run -gcflags=-G=3" {
 				rf := runfile{filePath: path}
 				if s, err := os.Stat(path[:len(path)-3] + ".out"); err == nil && !s.IsDir() {
 					rf.checkOut = true
