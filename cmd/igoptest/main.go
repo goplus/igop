@@ -69,16 +69,8 @@ func init() {
 		gorootTestSkips["abi/uglyfib.go"] = "5m48s"
 		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
 
-		// gorootTestSkips["fixedbugs/issue50672.go"] = "type param"
-		// gorootTestSkips["fixedbugs/issue53137.go"] = "type param"
-		// gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
-		// gorootTestSkips["fixedbugs/issue53635.go"] = "type param"
-
-		gorootTestSkips["typeparam/chans.go"] = "_Ranger Send should have failed, but timed out"
-		// gorootTestSkips["typeparam/cons.go"] = "runtime error: interface conversion: main.any is main.Nil, not main.List"
-		gorootTestSkips["typeparam/issue376214.go"] = "variadic parameter must be of unnamed slice type"
-		// gorootTestSkips["typeparam/issue47716.go"] = "got 8, want 8"
-		// gorootTestSkips["typeparam/issue49547.go"] = "want: main.F[main.foo], got: main.F"
+		gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
+		gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
 		gorootTestSkips["typeparam/nested.go"] = "FAIL"
 
 	case "go1.16":
@@ -97,7 +89,6 @@ func init() {
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5963.go"] = "skip windows"
-		// gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 
 		skips := make(map[string]string)
 		for k, v := range gorootTestSkips {
