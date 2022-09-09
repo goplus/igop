@@ -18,11 +18,9 @@ support ABI0 and ABIInternal
 	- Go1.18: amd64 arm64 ppc64/ppc64le
 	- Go1.19: amd64 arm64 ppc64/ppc64le riscv64
 
-### unsupport features
+### Generics
 
-- Go1.18 type parameters
-- test -fuzz
-- test -cover
+support Go1.18 Go1.19 generics
 
 ### igop command line
 
@@ -52,6 +50,11 @@ igop                       # run repl mode, support Go/Go+
 igop repl                  # run repl mode, support Go/Go+
 igop repl -gop=false       # run repl mode, disable Go+ syntax
 ```
+
+### igop test unsupport features
+
+- test -fuzz
+- test -cover
 
 ### igop package
 
