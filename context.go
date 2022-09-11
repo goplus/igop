@@ -265,12 +265,16 @@ func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*so
 	if err != nil {
 		return nil, err
 	}
-	if data, found := load.Embed(bp, ctx.FileSet, files, false, false); found {
+	embed, err := load.Embed(bp, ctx.FileSet, files, false, false)
+	if err != nil {
+		return nil, err
+	}
+	if len(embed) != 0 {
 		if ctx.Mode&EnableDumpEmbed != 0 {
 			fmt.Println("# embed", bp.Dir)
-			fmt.Println(string(data))
+			fmt.Println(string(embed))
 		}
-		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", data, 0)
+		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", embed, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -294,12 +298,16 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if err != nil {
 		return nil, err
 	}
-	if data, found := load.Embed(bp, ctx.FileSet, files, true, false); found {
+	embed, err := load.Embed(bp, ctx.FileSet, files, true, false)
+	if err != nil {
+		return nil, err
+	}
+	if len(embed) > 0 {
 		if ctx.Mode&EnableDumpEmbed != 0 {
 			fmt.Println("# embed", bp.Dir)
-			fmt.Println(string(data))
+			fmt.Println(string(embed))
 		}
-		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", data, 0)
+		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", embed, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -317,12 +325,17 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		if err != nil {
 			return nil, err
 		}
-		if data, found := load.Embed(bp, ctx.FileSet, files, false, true); found {
+
+		embed, err := load.Embed(bp, ctx.FileSet, files, false, true)
+		if err != nil {
+			return nil, err
+		}
+		if len(embed) != 0 {
 			if ctx.Mode&EnableDumpEmbed != 0 {
 				fmt.Println("# embed xtest", bp.Dir)
-				fmt.Println(string(data))
+				fmt.Println(string(embed))
 			}
-			f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data_test.go", data, 0)
+			f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data_test.go", embed, 0)
 			if err != nil {
 				return nil, err
 			}

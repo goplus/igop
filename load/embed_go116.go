@@ -42,7 +42,7 @@ func __igop_embed_buildFS__(list []struct {
 `
 
 // Embed check package embed data
-func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool, xtest bool) ([]byte, bool) {
+func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool, xtest bool) ([]byte, error) {
 	var pkgName string
 	var ems []*goembed.Embed
 	if xtest {
@@ -58,7 +58,7 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 		}
 	}
 	if len(ems) == 0 {
-		return nil, false
+		return nil, nil
 	}
 	r := goembed.NewResolve()
 	var buf bytes.Buffer
@@ -66,7 +66,10 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 	buf.WriteString("\nvar (\n")
 	for _, v := range ems {
 		v.Spec.Names[0].Name = "_"
-		fs, _ := r.Load(bp.Dir, v)
+		fs, err := r.Load(bp.Dir, v)
+		if err != nil {
+			return nil, err
+		}
 		switch v.Kind {
 		case goembed.EmbedBytes:
 			buf.WriteString(fmt.Sprintf("\t%v = []byte(%v)\n", v.Name, buildIdent(fs[0].Name)))
@@ -105,5 +108,5 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 		}
 	}
 	buf.WriteString(")\n\n")
-	return buf.Bytes(), true
+	return buf.Bytes(), nil
 }
