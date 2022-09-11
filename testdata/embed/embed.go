@@ -7,11 +7,12 @@ import (
 //go:embed testdata/data1.txt
 var data1 string
 
-//go:embed testdata/data2.txt
-var data2 []byte
-
-//go:embed testdata/*
-var fs embed.FS
+var (
+	//go:embed testdata/data2.txt
+	data2 []byte
+	//go:embed testdata/*
+	fs embed.FS
+)
 
 func main() {
 	if data1 != "hello data1" {
