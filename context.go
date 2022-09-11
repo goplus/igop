@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -92,23 +93,6 @@ type sourcePackage struct {
 	Files   []*ast.File
 }
 
-func (sp *sourcePackage) Load() (err error) {
-	if sp.Info == nil {
-		sp.Info = &types.Info{
-			Types:      make(map[ast.Expr]types.TypeAndValue),
-			Defs:       make(map[*ast.Ident]types.Object),
-			Uses:       make(map[*ast.Ident]types.Object),
-			Implicits:  make(map[ast.Node]types.Object),
-			Scopes:     make(map[ast.Node]*types.Scope),
-			Selections: make(map[*ast.SelectorExpr]*types.Selection),
-		}
-		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
-			return err
-		}
-	}
-	return
-}
-
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
@@ -126,6 +110,7 @@ func NewContext(mode Mode) *Context {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
 	ctx.conf = &types.Config{
+		Sizes:    types.SizesFor("gc", runtime.GOARCH),
 		Importer: NewImporter(ctx),
 	}
 	ctx.Lookup = new(load.ListDriver).Lookup
@@ -428,6 +413,7 @@ func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, erro
 	if err != nil {
 		return nil, err
 	}
+	ctx.pkgs[path] = sp
 	return ctx.buildPackage(sp)
 }
 
@@ -563,12 +549,18 @@ func (ctx *Context) RunTest(dir string, args []string) error {
 }
 
 func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			err = fmt.Errorf("build SSA package error: %v", e)
-		}
-	}()
-	prog := ssa.NewProgram(ctx.FileSet, ctx.BuilderMode)
+	if ctx.Mode&DisableRecover == 0 {
+		defer func() {
+			if e := recover(); e != nil {
+				err = fmt.Errorf("build SSA package error: %v", e)
+			}
+		}()
+	}
+	mode := ctx.BuilderMode
+	if enabledTypeParam {
+		mode |= ssa.InstantiateGenerics
+	}
+	prog := ssa.NewProgram(ctx.FileSet, mode)
 	// Create SSA packages for all imports.
 	// Order is not significant.
 	created := make(map[*types.Package]bool)

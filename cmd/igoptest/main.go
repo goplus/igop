@@ -69,10 +69,9 @@ func init() {
 		gorootTestSkips["abi/uglyfib.go"] = "5m48s"
 		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
 
-		gorootTestSkips["fixedbugs/issue50672.go"] = "type param"
-		gorootTestSkips["fixedbugs/issue53137.go"] = "type param"
-		gorootTestSkips["fixedbugs/issue53309.go"] = "type param"
-		gorootTestSkips["fixedbugs/issue53635.go"] = "type param"
+		gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
+		gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
+		gorootTestSkips["typeparam/nested.go"] = "FAIL"
 
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
@@ -90,7 +89,6 @@ func init() {
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5963.go"] = "skip windows"
-		// gorootTestSkips["fixedbugs/issue7690.go"] = "runtime.Stack"
 
 		skips := make(map[string]string)
 		for k, v := range gorootTestSkips {
@@ -169,8 +167,16 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 			}
 			_, n := filepath.Split(path)
 			switch n {
-			case "bench", "dwarf", "codegen", "typeparam":
+			case "bench", "dwarf", "codegen":
 				return filepath.SkipDir
+			case "typeparam":
+				ver := runtime.Version()[:6]
+				switch ver {
+				case "go1.18", "go1.19":
+					return nil
+				default:
+					return filepath.SkipDir
+				}
 			default:
 				if strings.Contains(n, ".dir") {
 					return filepath.SkipDir
@@ -189,7 +195,7 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 		lines := strings.Split(string(data), "\n")
 		if len(lines) > 0 {
 			line := strings.TrimSpace(lines[0])
-			if line == "// run" {
+			if line == "// run" || line == "// run -gcflags=-G=3" {
 				rf := runfile{filePath: path}
 				if s, err := os.Stat(path[:len(path)-3] + ".out"); err == nil && !s.IsDir() {
 					rf.checkOut = true

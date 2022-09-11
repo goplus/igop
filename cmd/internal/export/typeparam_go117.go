@@ -5,6 +5,6 @@ package export
 
 import "go/types"
 
-func IsTypeParam(t types.Type) bool {
+func hasTypeParam(t types.Type) bool {
 	return false
 }
