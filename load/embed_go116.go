@@ -205,6 +205,5 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 		}
 	}
 	buf.WriteString(")\n\n")
-	fmt.Println(buf.String())
 	return buf.Bytes(), nil
 }
