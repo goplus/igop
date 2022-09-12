@@ -65,19 +65,22 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 	buf.WriteString(strings.Replace(embed_head, "$pkg", pkgName, 1))
 	buf.WriteString("\nvar (\n")
 	for _, v := range ems {
-		v.Spec.Names[0].Name = "_"
+		if v.Kind == goembed.EmbedUnknown {
+			return nil, fmt.Errorf("%v: go:embed cannot apply to var of type %v", v.Pos, v.Spec.Type)
+		}
 		fs, err := r.Load(bp.Dir, v)
 		if err != nil {
 			return nil, err
 		}
+		v.Spec.Names[0].Name = "_"
 		switch v.Kind {
 		case goembed.EmbedBytes:
-			buf.WriteString(fmt.Sprintf("\t%v = []byte(%v)\n", v.Name, buildIdent(fs[0].Name)))
+			fmt.Fprintf(&buf, "\t%v = []byte(%v)\n", v.Name, buildIdent(fs[0].Name))
 		case goembed.EmbedString:
-			buf.WriteString(fmt.Sprintf("\t%v = %v\n", v.Name, buildIdent(fs[0].Name)))
+			fmt.Fprintf(&buf, "\t%v = %v\n", v.Name, buildIdent(fs[0].Name))
 		case goembed.EmbedFiles:
 			fs = goembed.BuildFS(fs)
-			buf.WriteString(fmt.Sprintf("\t%v = ", v.Name))
+			fmt.Fprintf(&buf, "\t%v = ", v.Name)
 			buf.WriteString(`__igop_embed_buildFS__([]struct {
 	name string
 	data string
@@ -86,11 +89,10 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 `)
 			for _, f := range fs {
 				if len(f.Data) == 0 {
-					buf.WriteString(fmt.Sprintf("\t{\"%v\",\"\",[16]byte{}},\n",
-						f.Name))
+					fmt.Fprintf(&buf, "\t{\"%v\",\"\",[16]byte{}},\n", f.Name)
 				} else {
-					buf.WriteString(fmt.Sprintf("\t{\"%v\",%v,[16]byte{%v}},\n",
-						f.Name, buildIdent(f.Name), goembed.BytesToList(f.Hash[:])))
+					fmt.Fprintf(&buf, "\t{\"%v\",%v,[16]byte{%v}},\n",
+						f.Name, buildIdent(f.Name), goembed.BytesToList(f.Hash[:]))
 				}
 			}
 			buf.WriteString("})\n")
@@ -100,11 +102,9 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 	buf.WriteString("\nvar (\n")
 	for _, f := range r.Files() {
 		if len(f.Data) == 0 {
-			buf.WriteString(fmt.Sprintf("\t%v string\n",
-				buildIdent(f.Name)))
+			fmt.Fprintf(&buf, "\t%v string\n", buildIdent(f.Name))
 		} else {
-			buf.WriteString(fmt.Sprintf("\t%v = string(\"%v\")\n",
-				buildIdent(f.Name), goembed.BytesToHex(f.Data)))
+			fmt.Fprintf(&buf, "\t%v = string(\"%v\")\n", buildIdent(f.Name), goembed.BytesToHex(f.Data))
 		}
 	}
 	buf.WriteString(")\n\n")
