@@ -11,6 +11,7 @@ import (
 	"go/printer"
 	"go/token"
 	"strconv"
+	_ "unsafe"
 
 	"github.com/visualfc/goembed"
 )
@@ -55,15 +56,26 @@ func embedTypeError(fset *token.FileSet, spec *ast.ValueSpec) error {
 // Embed check package embed data
 func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool, xtest bool) ([]byte, error) {
 	var pkgName string
+	var err error
 	var ems []*goembed.Embed
 	if xtest {
 		pkgName = bp.Name + "_test"
-		ems = goembed.CheckEmbed(bp.XTestEmbedPatternPos, fset, files)
+		ems, err = goembed.CheckEmbed(bp.XTestEmbedPatternPos, fset, files)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		pkgName = bp.Name
-		ems = goembed.CheckEmbed(bp.EmbedPatternPos, fset, files)
+		ems, err = goembed.CheckEmbed(bp.EmbedPatternPos, fset, files)
+		if err != nil {
+			return nil, err
+		}
 		if test {
-			if tems := goembed.CheckEmbed(bp.TestEmbedPatternPos, fset, files); len(tems) > 0 {
+			tems, err := goembed.CheckEmbed(bp.TestEmbedPatternPos, fset, files)
+			if err != nil {
+				return nil, err
+			}
+			if len(tems) > 0 {
 				ems = append(ems, tems...)
 			}
 		}
