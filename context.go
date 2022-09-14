@@ -31,7 +31,6 @@ const (
 	DisableRecover       Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
 	DisableCustomBuiltin                  // Disable load custom builtin func
 	EnableDumpImports                     // print import packages
-	EnableDumpEmbed                       // print embed files
 	EnableDumpInstr                       // Print packages & SSA instruction code
 	EnableTracing                         // Print a trace of all instructions as they are interpreted.
 	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
@@ -269,16 +268,8 @@ func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*so
 	if err != nil {
 		return nil, err
 	}
-	if len(embed) != 0 {
-		if ctx.Mode&EnableDumpEmbed != 0 {
-			fmt.Println("# embed", bp.Dir)
-			fmt.Println(string(embed))
-		}
-		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", embed, 0)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, f)
+	if embed != nil {
+		files = append(files, embed)
 	}
 	tp := &sourcePackage{
 		Package: types.NewPackage(path, bp.Name),
@@ -302,16 +293,8 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if err != nil {
 		return nil, err
 	}
-	if len(embed) > 0 {
-		if ctx.Mode&EnableDumpEmbed != 0 {
-			fmt.Println("# embed", bp.Dir)
-			fmt.Println(string(embed))
-		}
-		f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data.go", embed, 0)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, f)
+	if embed != nil {
+		files = append(files, embed)
 	}
 	tp := &sourcePackage{
 		Package: types.NewPackage(path, bp.Name),
@@ -325,21 +308,12 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		if err != nil {
 			return nil, err
 		}
-
 		embed, err := load.Embed(bp, ctx.FileSet, files, false, true)
 		if err != nil {
 			return nil, err
 		}
-		if len(embed) != 0 {
-			if ctx.Mode&EnableDumpEmbed != 0 {
-				fmt.Println("# embed xtest", bp.Dir)
-				fmt.Println(string(embed))
-			}
-			f, err := parser.ParseFile(ctx.FileSet, "_igop_embed_data_test.go", embed, 0)
-			if err != nil {
-				return nil, err
-			}
-			files = append(files, f)
+		if embed != nil {
+			files = append(files, embed)
 		}
 		tp := &sourcePackage{
 			Package: types.NewPackage(path+"_test", bp.Name+"_test"),
@@ -407,7 +381,7 @@ func (ctx *Context) ParseFile(filename string, src interface{}) (*ast.File, erro
 			src = data
 		}
 	}
-	return parser.ParseFile(ctx.FileSet, filename, src, ctx.ParserMode)
+	return parser.ParseFile(ctx.FileSet, filename, src, parser.ParseComments)
 }
 
 func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, error) {
@@ -417,13 +391,20 @@ func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, erro
 			files = []*ast.File{f, file}
 		}
 	}
+	dir, _ := filepath.Split(ctx.FileSet.Position(file.Package).Filename)
+	embed, err := load.EmbedFiles(file.Name.Name, dir, ctx.FileSet, files)
+	if err != nil {
+		return nil, err
+	}
+	if embed != nil {
+		files = append(files, embed)
+	}
 	sp := &sourcePackage{
 		Context: ctx,
 		Package: types.NewPackage(path, file.Name.Name),
 		Files:   files,
 	}
-	err := sp.Load()
-	if err != nil {
+	if err := sp.Load(); err != nil {
 		return nil, err
 	}
 	ctx.pkgs[path] = sp
