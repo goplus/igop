@@ -8,12 +8,15 @@ import (
 	"fmt"
 	"go/ast"
 	"go/build"
+	"go/parser"
 	"go/printer"
 	"go/token"
+	"path/filepath"
 	"strconv"
 	_ "unsafe"
 
 	"github.com/visualfc/goembed"
+	embedparser "github.com/visualfc/goembed/parser"
 )
 
 var (
@@ -54,7 +57,7 @@ func embedTypeError(fset *token.FileSet, spec *ast.ValueSpec) error {
 }
 
 // Embed check package embed data
-func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool, xtest bool) ([]byte, error) {
+func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool, xtest bool) (*ast.File, error) {
 	var pkgName string
 	var err error
 	var ems []*goembed.Embed
@@ -217,5 +220,19 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 		}
 	}
 	buf.WriteString(")\n\n")
-	return buf.Bytes(), nil
+	return parser.ParseFile(fset, "_igop_embed_data.go", buf.Bytes(), parser.ParseComments)
+}
+
+func EmbedFiles(pkgName string, dir string, fset *token.FileSet, files []*ast.File) (*ast.File, error) {
+	embed, err := embedparser.ParseEmbed(fset, files)
+	if err != nil {
+		return nil, err
+	}
+	bp := &build.Package{
+		Name:            pkgName,
+		Dir:             filepath.Clean(dir),
+		EmbedPatterns:   embed.Patterns,
+		EmbedPatternPos: embed.PatternPos,
+	}
+	return Embed(bp, fset, files, false, false)
 }

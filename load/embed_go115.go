@@ -9,6 +9,10 @@ import (
 	"go/token"
 )
 
-func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool, xtest bool) ([]byte, error) {
+func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool, xtest bool) (*ast.File, error) {
+	return *ast.File, nil
+}
+
+func EmbedFiles(pkgName string, dir string, fset *token.FileSet, files []*ast.File) (*ast.File, error) {
 	return nil, nil
 }
