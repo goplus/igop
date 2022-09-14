@@ -228,6 +228,9 @@ func EmbedFiles(pkgName string, dir string, fset *token.FileSet, files []*ast.Fi
 	if err != nil {
 		return nil, err
 	}
+	if embed == nil {
+		return nil, nil
+	}
 	bp := &build.Package{
 		Name:            pkgName,
 		Dir:             filepath.Clean(dir),
