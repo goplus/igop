@@ -11,7 +11,6 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"path/filepath"
 	"strconv"
 	_ "unsafe"
 
@@ -88,10 +87,7 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 	}
 	r := goembed.NewResolve()
 	for _, v := range ems {
-		if len(v.Spec.Values) > 0 {
-			return nil, fmt.Errorf("%v: go:embed cannot apply to var with initializer", v.Pos)
-		}
-		fs, err := r.Load(bp.Dir, v)
+		fs, err := r.Load(bp.Dir, fset, v)
 		if err != nil {
 			return nil, err
 		}
@@ -233,7 +229,7 @@ func EmbedFiles(pkgName string, dir string, fset *token.FileSet, files []*ast.Fi
 	}
 	bp := &build.Package{
 		Name:            pkgName,
-		Dir:             filepath.Clean(dir),
+		Dir:             dir,
 		EmbedPatterns:   embed.Patterns,
 		EmbedPatternPos: embed.PatternPos,
 	}
