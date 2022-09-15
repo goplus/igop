@@ -392,7 +392,10 @@ func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, erro
 		}
 	}
 	dir, _ := filepath.Split(ctx.FileSet.Position(file.Package).Filename)
-	embed, err := load.EmbedFiles(file.Name.Name, dir, ctx.FileSet, files)
+	if dir == "" {
+		dir, _ = os.Getwd()
+	}
+	embed, err := load.EmbedFiles(file.Name.Name, filepath.Clean(dir), ctx.FileSet, files)
 	if err != nil {
 		return nil, err
 	}

@@ -24,7 +24,7 @@ import (
 	_ "embed"
 )
 
-//go:embed testdata/notfound.txt
+//go:embed testdata/embed/testdata/data.txt
 var data string
 
 func main() {
@@ -44,7 +44,7 @@ import (
 	_ "embed"
 )
 
-//go:embed testdata
+//go:embed testdata/embed/testdata/data1.txt
 var data1, data2 string
 
 func main() {
@@ -64,7 +64,7 @@ import (
 	_ "embed"
 )
 
-//go:embed testdata
+//go:embed testdata/embed/testdata/data1
 //var data1 string
 
 func main() {
@@ -84,8 +84,48 @@ import (
 	_ "embed"
 )
 
-//go:embed testdata
+//go:embed testdata/embed/testdata/data1.txt
 var data1 [][]byte
+
+func main() {
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err == nil {
+		t.Fatal("must panic")
+	}
+	t.Log(err)
+}
+
+func TestEmbedErrorVarWithInitializer(t *testing.T) {
+	src := `package main
+
+import (
+	_ "embed"
+)
+
+//go:embed testdata/embed/testdata/data1.txt
+var data1 = "hello"
+
+func main() {
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err == nil {
+		t.Fatal("must panic")
+	}
+	t.Log(err)
+}
+
+func TestEmbedErrorMultipleFiles(t *testing.T) {
+	src := `package main
+
+import (
+	_ "embed"
+)
+
+//go:embed testdata/embed/testdata
+var data1 []byte
 
 func main() {
 }
