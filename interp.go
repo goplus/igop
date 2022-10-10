@@ -57,7 +57,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/reflectx"
-	"github.com/petermattis/goid"
+	"github.com/visualfc/goid"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
