@@ -12,7 +12,7 @@ require (
 	github.com/visualfc/goembed v0.3.2
 	github.com/visualfc/goid v0.2.0
 	github.com/visualfc/xtype v0.1.2
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
-	golang.org/x/text v0.3.7
-	golang.org/x/tools v0.1.12
+	golang.org/x/mod v0.7.0
+	golang.org/x/text v0.4.0
+	golang.org/x/tools v0.3.0
 )
