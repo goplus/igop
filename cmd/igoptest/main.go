@@ -67,7 +67,7 @@ func init() {
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
 		gorootTestSkips["abi/fibish_closure.go"] = "slow, 35s"
 		gorootTestSkips["abi/uglyfib.go"] = "5m48s"
-		gorootTestSkips["fixedbugs/issue23017.go"] = "BUG"
+		// gorootTestSkips["fixedbugs/issue23017.go"] = "BUG" //fixed https://github.com/golang/go/issues/55086
 
 		gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
