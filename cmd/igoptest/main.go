@@ -70,7 +70,7 @@ func init() {
 		// gorootTestSkips["fixedbugs/issue23017.go"] = "BUG" //fixed https://github.com/golang/go/issues/55086
 
 		gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
-		gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
+		// gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
 		gorootTestSkips["typeparam/nested.go"] = "FAIL"
 
 	case "go1.16":
