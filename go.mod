@@ -5,8 +5,8 @@ go 1.14
 require (
 	github.com/goplus/gop v1.1.3
 	github.com/goplus/gox v1.11.21
-	github.com/goplus/ipkg v0.1.3
 	github.com/goplus/reflectx v0.9.7
+	github.com/modern-go/reflect2 v1.0.2
 	github.com/peterh/liner v1.2.2
 	github.com/visualfc/funcval v0.1.3
 	github.com/visualfc/goembed v0.3.2
