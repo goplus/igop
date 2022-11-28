@@ -26,7 +26,7 @@ support ABI0 and ABIInternal
 
 support Go1.18 Go1.19 generics
 
-### igop command line
+### install igop command line
 
 Go version < 1.17:
 ```
@@ -38,7 +38,7 @@ Go version >= 1.17:
 go install github.com/goplus/igop/cmd/igop@latest
 ```
 
-Commands
+### igop command
 ```
 igop             # igop repl mode
 igop run         # run a Go/Go+ package
@@ -62,18 +62,18 @@ igop repl -gop=false       # run repl mode, disable Go+ syntax
 
 ### igop demo
 
-* go js playground (gopherjs)
+#### go js playground (gopherjs)
 - <https://jsplay.goplus.org/>
 - <https://github.com/goplusjs/play>
 
-* go repl playground (gopherjs/wasm)
+#### go repl playground (gopherjs/wasm)
 - <https://repl.goplus.org/>
 - <https://github.com/goplusjs/repl>
 
-* ispx
+#### ispx
 <https://github.com/goplus/ispx>
 
-* run simple demo
+#### run simple demo
 ```
 package main
 
@@ -84,9 +84,7 @@ import (
 
 var source = `
 package main
-
 import "fmt"
-
 type T struct {}
 func (t T) String() string {
 	return "Hello, World"
@@ -105,7 +103,7 @@ func main() {
 ```
 
 
-* run hugo demo
+#### run hugo demo
 ```
 // git clone https://github.com/gohugoio/hugo
 package main
