@@ -7,6 +7,10 @@
 [![Go1.18](https://github.com/goplus/igop/workflows/Go1.18/badge.svg)](https://github.com/goplus/igop/actions/workflows/go118.yml)
 [![Go1.19](https://github.com/goplus/igop/workflows/Go1.19/badge.svg)](https://github.com/goplus/igop/actions/workflows/go119.yml)
 
+### Go Version
+- Go1.14 ~ Go1.19
+- macOS Linux Windows  WebAssembly GopherJS and more.
+
 ### ABI
 
 support ABI0 and ABIInternal
@@ -56,9 +60,20 @@ igop repl -gop=false       # run repl mode, disable Go+ syntax
 - test -fuzz
 - test -cover
 
-### igop package
+### igop demo
 
-**run go source**
+* go js playground (gopherjs)
+- <https://jsplay.goplus.org/>
+- <https://github.com/goplusjs/play>
+
+* go repl playground (gopherjs/wasm)
+- <https://repl.goplus.org/>
+- <https://github.com/goplusjs/repl>
+
+* ispx
+<https://github.com/goplus/ispx>
+
+* run simple demo
 ```
 package main
 
@@ -72,8 +87,12 @@ package main
 
 import "fmt"
 
+type T struct {}
+func (t T) String() string {
+	return "Hello, World"
+}
 func main() {
-	fmt.Println("hello")
+	fmt.Println(&T{})
 }
 `
 
@@ -83,25 +102,29 @@ func main() {
 		panic(err)
 	}
 }
-
 ```
 
-**run gop source**
+
+* run hugo demo
 ```
+// git clone https://github.com/gohugoio/hugo
 package main
 
 import (
+	"os"
+
 	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/gopbuild"
-	_ "github.com/goplus/igop/pkg/fmt"
+	_ "github.com/goplus/igop/pkg"
+	_ "github.com/goplus/ipkg/golang.org/x/image/vector"
+	_ "github.com/goplus/ipkg/golang.org/x/sys/unix"
+	_ "github.com/goplus/reflectx/icall/icall65536" // method
 )
 
-var source = `
-println "Hello, Go+"
-`
-
 func main() {
-	_, err := igop.RunFile("main.gop", source, nil, 0)
+	ctx := igop.NewContext(igop.EnableDumpImports)
+	os.Chdir("/Users/my/goproj/test_site")
+	root := "/Users/my/goproj/hugo"
+	_, err := ctx.Run(root, []string{"-D"})
 	if err != nil {
 		panic(err)
 	}
