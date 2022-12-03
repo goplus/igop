@@ -92,7 +92,7 @@ func makepkg(fname string, tags []string, std []string) error {
 		if strings.HasPrefix(v, "testing/") {
 			continue
 		}
-		if v == "log/syslog" {
+		if v == "log/syslog" || v == "net/rpc" || v == "net/rpc/jsonrpc" {
 			continue
 		}
 		pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/igop/pkg/%v"`, v))
