@@ -114,9 +114,6 @@ import (
 	_ "github.com/goplus/igop/pkg/net/http/pprof"
 	_ "github.com/goplus/igop/pkg/net/mail"
 	_ "github.com/goplus/igop/pkg/net/netip"
-
-	// _ "github.com/goplus/igop/pkg/net/rpc"
-	// _ "github.com/goplus/igop/pkg/net/rpc/jsonrpc"
 	_ "github.com/goplus/igop/pkg/net/smtp"
 	_ "github.com/goplus/igop/pkg/net/textproto"
 	_ "github.com/goplus/igop/pkg/net/url"
