@@ -1,4 +1,5 @@
-//+build go1.16,!go1.17
+//go:build go1.16 && !go1.17
+// +build go1.16,!go1.17
 
 package pkg
 
@@ -111,8 +112,9 @@ import (
 	_ "github.com/goplus/igop/pkg/net/http/httputil"
 	_ "github.com/goplus/igop/pkg/net/http/pprof"
 	_ "github.com/goplus/igop/pkg/net/mail"
-	_ "github.com/goplus/igop/pkg/net/rpc"
-	_ "github.com/goplus/igop/pkg/net/rpc/jsonrpc"
+
+	// _ "github.com/goplus/igop/pkg/net/rpc"
+	// _ "github.com/goplus/igop/pkg/net/rpc/jsonrpc"
 	_ "github.com/goplus/igop/pkg/net/smtp"
 	_ "github.com/goplus/igop/pkg/net/textproto"
 	_ "github.com/goplus/igop/pkg/net/url"
