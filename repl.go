@@ -185,7 +185,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			if !ok {
 				return e
 			}
-			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
+			if strings.HasSuffix(e.Msg, errDeclNotUsed) || strings.HasSuffix(e.Msg, errDeclNotUsed120) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
 				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
 				// fixed = append(fixed, "__igop_repl_dump__("+v+")")
@@ -254,6 +254,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 
 const (
 	errDeclNotUsed    = "declared but not used"
+	errDeclNotUsed120 = "declared and not used"
 	errIsNotUsed      = "is not used"
 	errMaybeGoFunLit  = `expected 'IDENT', found '{'`
 	errMaybeGopFunLit = `expected '(',`
