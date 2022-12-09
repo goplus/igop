@@ -31,7 +31,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		i0 := v0.Len()
 		i1 := v1.Len()
 		if i0+i1 < i0 {
-			panic(runtimeError("growslice: cap out of range"))
+			panic(runtimeError(errAppendOutOfRange))
 		}
 		return reflect.AppendSlice(v0, v1).Interface()
 
@@ -263,7 +263,7 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		i0 := v0.Len()
 		i1 := v1.Len()
 		if i0+i1 < i0 {
-			panic(runtimeError("growslice: cap out of range"))
+			panic(runtimeError(errAppendOutOfRange))
 		}
 		caller.setReg(ir, reflect.AppendSlice(v0, v1).Interface())
 
