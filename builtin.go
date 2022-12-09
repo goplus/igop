@@ -203,6 +203,16 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		typ := reflect.ArrayOf(length, tyByte)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		return string(v.Elem().Bytes())
+	case "StringData":
+		// StringData returns a pointer to the underlying bytes of str.
+		// For an empty string the return value is unspecified, and may be nil.
+		//
+		// Since Go strings are immutable, the bytes returned by StringData
+		// must not be modified.
+		// func StringData(str string) *byte
+		s := args[0].(string)
+		data := (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
+		return (*byte)(unsafe.Pointer(data))
 	default:
 		panic("unknown built-in: " + fnName)
 	}
@@ -295,6 +305,9 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 		panic("discards result of " + fnName)
 
 	case "String":
+		panic("discards result of " + fnName)
+
+	case "StringData":
 		panic("discards result of " + fnName)
 
 	default:
@@ -510,6 +523,16 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		typ := reflect.ArrayOf(length, tyByte)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		caller.setReg(ir, string(v.Elem().Bytes()))
+	case "StringData":
+		// StringData returns a pointer to the underlying bytes of str.
+		// For an empty string the return value is unspecified, and may be nil.
+		//
+		// Since Go strings are immutable, the bytes returned by StringData
+		// must not be modified.
+		// func StringData(str string) *byte
+		s := caller.string(ia[0])
+		data := (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
+		caller.setReg(ir, (*byte)(unsafe.Pointer(data)))
 	case "Sizeof": // instance of generic function
 		typ := reflect.TypeOf(caller.reg(ia[0]))
 		caller.setReg(ir, uintptr(typ.Size()))
