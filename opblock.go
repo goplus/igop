@@ -627,7 +627,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			vLen := v.Len()
 			tLen := typ.Elem().Len()
 			if tLen > vLen {
-				panic(runtimeError(fmt.Sprintf("cannot convert slice with length %v to pointer to array with length %v", vLen, tLen)))
+				panic(runtimeError(fmt.Sprintf(errSliceToArrayPointer, vLen, tLen)))
 			}
 			fr.setReg(ir, v.Convert(typ).Interface())
 		}

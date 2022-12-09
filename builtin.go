@@ -14,6 +14,10 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+var (
+	tyByte = reflect.TypeOf(byte(0))
+)
+
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
 func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
@@ -31,7 +35,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		i0 := v0.Len()
 		i1 := v1.Len()
 		if i0+i1 < i0 {
-			panic(runtimeError("growslice: cap out of range"))
+			panic(runtimeError(errAppendOutOfRange))
 		}
 		return reflect.AppendSlice(v0, v1).Interface()
 
@@ -141,15 +145,73 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
 		ptr := reflect.ValueOf(args[0])
 		length := asInt(args[1])
+		etyp := ptr.Type().Elem()
 		if ptr.IsNil() {
 			if length == 0 {
-				return reflect.New(reflect.SliceOf(ptr.Type().Elem())).Elem().Interface()
+				return reflect.New(reflect.SliceOf(etyp)).Elem().Interface()
 			}
 			panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
 		}
-		typ := reflect.ArrayOf(length, ptr.Type().Elem())
+		mem, overflow := mulUintptr(etyp.Size(), uintptr(length))
+		if overflow || mem > -uintptr(ptr.Pointer()) {
+			panic(runtimeError("unsafe.Slice: len out of range"))
+		}
+		typ := reflect.ArrayOf(length, etyp)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		return v.Elem().Slice(0, length).Interface()
+	case "SliceData":
+		// SliceData returns a pointer to the underlying array of the argument
+		// slice.
+		//   - If cap(slice) > 0, SliceData returns &slice[:1][0].
+		//   - If slice == nil, SliceData returns nil.
+		//   - Otherwise, SliceData returns a non-nil pointer to an
+		//     unspecified memory address.
+		// func SliceData(slice []ArbitraryType) *ArbitraryType
+		v := reflect.ValueOf(args[0])
+		if v.Cap() > 0 {
+			return v.Slice(0, 1).Index(0).Addr().Interface()
+		} else if v.IsNil() {
+			return reflect.Zero(reflect.PtrTo(v.Type().Elem())).Interface()
+		} else {
+			return reflect.New(v.Type().Elem()).Interface()
+		}
+	case "String":
+		// String returns a string value whose underlying bytes
+		// start at ptr and whose length is len.
+		//
+		// The len argument must be of integer type or an untyped constant.
+		// A constant len argument must be non-negative and representable by a value of type int;
+		// if it is an untyped constant it is given type int.
+		// At run time, if len is negative, or if ptr is nil and len is not zero,
+		// a run-time panic occurs.
+		//
+		// Since Go strings are immutable, the bytes passed to String
+		// must not be modified afterwards.
+		// func String(ptr *byte, len IntegerType) string
+		ptr := args[0].(*byte)
+		length := asInt(args[1])
+		if ptr == nil {
+			if length == 0 {
+				return ""
+			}
+			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
+		}
+		mem, overflow := mulUintptr(1, uintptr(length))
+		if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
+			panic(runtimeError("unsafe.String: len out of range"))
+		}
+		sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
+		return *(*string)(unsafe.Pointer(&sh))
+	case "StringData":
+		// StringData returns a pointer to the underlying bytes of str.
+		// For an empty string the return value is unspecified, and may be nil.
+		//
+		// Since Go strings are immutable, the bytes returned by StringData
+		// must not be modified.
+		// func StringData(str string) *byte
+		s := args[0].(string)
+		data := (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
+		return (*byte)(unsafe.Pointer(data))
 	default:
 		panic("unknown built-in: " + fnName)
 	}
@@ -238,6 +300,15 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
 		panic("discards result of " + fnName)
 
+	case "SliceData":
+		panic("discards result of " + fnName)
+
+	case "String":
+		panic("discards result of " + fnName)
+
+	case "StringData":
+		panic("discards result of " + fnName)
+
 	default:
 		panic("unknown built-in: " + fnName)
 	}
@@ -263,7 +334,7 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		i0 := v0.Len()
 		i1 := v1.Len()
 		if i0+i1 < i0 {
-			panic(runtimeError("growslice: cap out of range"))
+			panic(runtimeError(errAppendOutOfRange))
 		}
 		caller.setReg(ir, reflect.AppendSlice(v0, v1).Interface())
 
@@ -402,6 +473,61 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		typ := reflect.ArrayOf(length, etyp)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		caller.setReg(ir, v.Elem().Slice(0, length).Interface())
+	case "SliceData":
+		// SliceData returns a pointer to the underlying array of the argument
+		// slice.
+		//   - If cap(slice) > 0, SliceData returns &slice[:1][0].
+		//   - If slice == nil, SliceData returns nil.
+		//   - Otherwise, SliceData returns a non-nil pointer to an
+		//     unspecified memory address.
+		// func SliceData(slice []ArbitraryType) *ArbitraryType
+		arg0 := caller.reg(ia[0])
+		v := reflect.ValueOf(arg0)
+		if v.Cap() > 0 {
+			caller.setReg(ir, v.Slice(0, 1).Index(0).Addr().Interface())
+		} else if v.IsNil() {
+			caller.setReg(ir, reflect.Zero(reflect.PtrTo(v.Type().Elem())).Interface())
+		} else {
+			caller.setReg(ir, reflect.New(v.Type().Elem()).Interface())
+		}
+	case "String":
+		// String returns a string value whose underlying bytes
+		// start at ptr and whose length is len.
+		//
+		// The len argument must be of integer type or an untyped constant.
+		// A constant len argument must be non-negative and representable by a value of type int;
+		// if it is an untyped constant it is given type int.
+		// At run time, if len is negative, or if ptr is nil and len is not zero,
+		// a run-time panic occurs.
+		//
+		// Since Go strings are immutable, the bytes passed to String
+		// must not be modified afterwards.
+		// func String(ptr *byte, len IntegerType) string
+		ptr := caller.reg(ia[0]).(*byte)
+		length := asInt(caller.reg(ia[1]))
+		if ptr == nil {
+			if length == 0 {
+				caller.setReg(ir, "")
+				return
+			}
+			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
+		}
+		mem, overflow := mulUintptr(1, uintptr(length))
+		if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
+			panic(runtimeError("unsafe.String: len out of range"))
+		}
+		sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
+		caller.setReg(ir, *(*string)(unsafe.Pointer(&sh)))
+	case "StringData":
+		// StringData returns a pointer to the underlying bytes of str.
+		// For an empty string the return value is unspecified, and may be nil.
+		//
+		// Since Go strings are immutable, the bytes returned by StringData
+		// must not be modified.
+		// func StringData(str string) *byte
+		s := caller.string(ia[0])
+		data := (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
+		caller.setReg(ir, (*byte)(unsafe.Pointer(data)))
 	case "Sizeof": // instance of generic function
 		typ := reflect.TypeOf(caller.reg(ia[0]))
 		caller.setReg(ir, uintptr(typ.Size()))

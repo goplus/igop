@@ -253,7 +253,6 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 }
 
 const (
-	errDeclNotUsed    = "declared but not used"
 	errIsNotUsed      = "is not used"
 	errMaybeGoFunLit  = `expected 'IDENT', found '{'`
 	errMaybeGopFunLit = `expected '(',`
