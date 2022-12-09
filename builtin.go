@@ -14,6 +14,10 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
+var (
+	tyByte = reflect.TypeOf(byte(0))
+)
+
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
 func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
@@ -141,13 +145,18 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
 		ptr := reflect.ValueOf(args[0])
 		length := asInt(args[1])
+		etyp := ptr.Type().Elem()
 		if ptr.IsNil() {
 			if length == 0 {
-				return reflect.New(reflect.SliceOf(ptr.Type().Elem())).Elem().Interface()
+				return reflect.New(reflect.SliceOf(etyp)).Elem().Interface()
 			}
 			panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
 		}
-		typ := reflect.ArrayOf(length, ptr.Type().Elem())
+		mem, overflow := mulUintptr(etyp.Size(), uintptr(length))
+		if overflow || mem > -uintptr(ptr.Pointer()) {
+			panic(runtimeError("unsafe.Slice: len out of range"))
+		}
+		typ := reflect.ArrayOf(length, etyp)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		return v.Elem().Slice(0, length).Interface()
 	case "SliceData":
@@ -166,6 +175,34 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		} else {
 			return reflect.New(v.Type().Elem()).Interface()
 		}
+	case "String":
+		// String returns a string value whose underlying bytes
+		// start at ptr and whose length is len.
+		//
+		// The len argument must be of integer type or an untyped constant.
+		// A constant len argument must be non-negative and representable by a value of type int;
+		// if it is an untyped constant it is given type int.
+		// At run time, if len is negative, or if ptr is nil and len is not zero,
+		// a run-time panic occurs.
+		//
+		// Since Go strings are immutable, the bytes passed to String
+		// must not be modified afterwards.
+		// func String(ptr *byte, len IntegerType) string
+		ptr := reflect.ValueOf(args[0])
+		length := asInt(args[1])
+		if ptr.IsNil() {
+			if length == 0 {
+				return ""
+			}
+			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
+		}
+		mem, overflow := mulUintptr(1, uintptr(length))
+		if overflow || mem > -uintptr(ptr.Pointer()) {
+			panic(runtimeError("unsafe.String: len out of range"))
+		}
+		typ := reflect.ArrayOf(length, tyByte)
+		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
+		return string(v.Elem().Bytes())
 	default:
 		panic("unknown built-in: " + fnName)
 	}
@@ -255,6 +292,9 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 		panic("discards result of " + fnName)
 
 	case "SliceData":
+		panic("discards result of " + fnName)
+
+	case "String":
 		panic("discards result of " + fnName)
 
 	default:
@@ -438,6 +478,38 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		} else {
 			caller.setReg(ir, reflect.New(v.Type().Elem()).Interface())
 		}
+	case "String":
+		// String returns a string value whose underlying bytes
+		// start at ptr and whose length is len.
+		//
+		// The len argument must be of integer type or an untyped constant.
+		// A constant len argument must be non-negative and representable by a value of type int;
+		// if it is an untyped constant it is given type int.
+		// At run time, if len is negative, or if ptr is nil and len is not zero,
+		// a run-time panic occurs.
+		//
+		// Since Go strings are immutable, the bytes passed to String
+		// must not be modified afterwards.
+		// func String(ptr *byte, len IntegerType) string
+		arg0 := caller.reg(ia[0])
+
+		arg1 := caller.reg(ia[1])
+		ptr := reflect.ValueOf(arg0)
+		length := asInt(arg1)
+		if ptr.IsNil() {
+			if length == 0 {
+				caller.setReg(ir, "")
+				return
+			}
+			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
+		}
+		mem, overflow := mulUintptr(1, uintptr(length))
+		if overflow || mem > -uintptr(ptr.Pointer()) {
+			panic(runtimeError("unsafe.String: len out of range"))
+		}
+		typ := reflect.ArrayOf(length, tyByte)
+		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
+		caller.setReg(ir, string(v.Elem().Bytes()))
 	case "Sizeof": // instance of generic function
 		typ := reflect.TypeOf(caller.reg(ia[0]))
 		caller.setReg(ir, uintptr(typ.Size()))
