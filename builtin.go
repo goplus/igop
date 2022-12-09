@@ -150,6 +150,22 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		typ := reflect.ArrayOf(length, ptr.Type().Elem())
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		return v.Elem().Slice(0, length).Interface()
+	case "SliceData":
+		// SliceData returns a pointer to the underlying array of the argument
+		// slice.
+		//   - If cap(slice) > 0, SliceData returns &slice[:1][0].
+		//   - If slice == nil, SliceData returns nil.
+		//   - Otherwise, SliceData returns a non-nil pointer to an
+		//     unspecified memory address.
+		// func SliceData(slice []ArbitraryType) *ArbitraryType
+		v := reflect.ValueOf(args[0])
+		if v.Cap() > 0 {
+			return v.Slice(0, 1).Index(0).Addr().Interface()
+		} else if v.IsNil() {
+			return reflect.Zero(reflect.PtrTo(v.Type().Elem())).Interface()
+		} else {
+			return reflect.New(v.Type().Elem()).Interface()
+		}
 	default:
 		panic("unknown built-in: " + fnName)
 	}
@@ -236,6 +252,9 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 	case "Slice":
 		//func Slice(ptr *ArbitraryType, len IntegerType) []ArbitraryType
 		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
+		panic("discards result of " + fnName)
+
+	case "SliceData":
 		panic("discards result of " + fnName)
 
 	default:
@@ -402,6 +421,23 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		typ := reflect.ArrayOf(length, etyp)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
 		caller.setReg(ir, v.Elem().Slice(0, length).Interface())
+	case "SliceData":
+		// SliceData returns a pointer to the underlying array of the argument
+		// slice.
+		//   - If cap(slice) > 0, SliceData returns &slice[:1][0].
+		//   - If slice == nil, SliceData returns nil.
+		//   - Otherwise, SliceData returns a non-nil pointer to an
+		//     unspecified memory address.
+		// func SliceData(slice []ArbitraryType) *ArbitraryType
+		arg0 := caller.reg(ia[0])
+		v := reflect.ValueOf(arg0)
+		if v.Cap() > 0 {
+			caller.setReg(ir, v.Slice(0, 1).Index(0).Addr().Interface())
+		} else if v.IsNil() {
+			caller.setReg(ir, reflect.Zero(reflect.PtrTo(v.Type().Elem())).Interface())
+		} else {
+			caller.setReg(ir, reflect.New(v.Type().Elem()).Interface())
+		}
 	case "Sizeof": // instance of generic function
 		typ := reflect.TypeOf(caller.reg(ia[0]))
 		caller.setReg(ir, uintptr(typ.Size()))
