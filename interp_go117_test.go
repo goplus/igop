@@ -4,6 +4,8 @@
 package igop_test
 
 import (
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/goplus/igop"
@@ -169,6 +171,9 @@ func init() {
 	}
 }
 `
+	if strings.HasPrefix(runtime.Version(), "go1.2") {
+		src = strings.ReplaceAll(src, "to pointer to array", "to array or pointer to array")
+	}
 	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
