@@ -61,7 +61,7 @@ func init() {
 
 	ver := runtime.Version()[:6]
 	switch ver {
-	case "go1.17", "go1.18", "go1.19":
+	case "go1.17", "go1.18", "go1.19", "go1.20":
 		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
@@ -72,7 +72,13 @@ func init() {
 		gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
 		// gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
 		gorootTestSkips["typeparam/nested.go"] = "FAIL"
-
+		//go1.20
+		gorootTestSkips["fixedbugs/bug514.go"] = "skip cgo"
+		gorootTestSkips["fixedbugs/issue40954.go"] = "skip cgo"
+		gorootTestSkips["fixedbugs/issue42032.go"] = "skip cgo"
+		gorootTestSkips["fixedbugs/issue42076.go"] = "skip cgo"
+		gorootTestSkips["fixedbugs/issue46903.go"] = "skip cgo"
+		gorootTestSkips["fixedbugs/issue51733.go"] = "skip cgo"
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	case "go1.15":
