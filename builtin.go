@@ -188,21 +188,20 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		// Since Go strings are immutable, the bytes passed to String
 		// must not be modified afterwards.
 		// func String(ptr *byte, len IntegerType) string
-		ptr := reflect.ValueOf(args[0])
+		ptr := args[0].(*byte)
 		length := asInt(args[1])
-		if ptr.IsNil() {
+		if ptr == nil {
 			if length == 0 {
 				return ""
 			}
 			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
 		}
 		mem, overflow := mulUintptr(1, uintptr(length))
-		if overflow || mem > -uintptr(ptr.Pointer()) {
+		if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
 			panic(runtimeError("unsafe.String: len out of range"))
 		}
-		typ := reflect.ArrayOf(length, tyByte)
-		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
-		return string(v.Elem().Bytes())
+		sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
+		return *(*string)(unsafe.Pointer(&sh))
 	case "StringData":
 		// StringData returns a pointer to the underlying bytes of str.
 		// For an empty string the return value is unspecified, and may be nil.
@@ -504,12 +503,9 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		// Since Go strings are immutable, the bytes passed to String
 		// must not be modified afterwards.
 		// func String(ptr *byte, len IntegerType) string
-		arg0 := caller.reg(ia[0])
-
-		arg1 := caller.reg(ia[1])
-		ptr := reflect.ValueOf(arg0)
-		length := asInt(arg1)
-		if ptr.IsNil() {
+		ptr := caller.reg(ia[0]).(*byte)
+		length := asInt(caller.reg(ia[1]))
+		if ptr == nil {
 			if length == 0 {
 				caller.setReg(ir, "")
 				return
@@ -517,12 +513,11 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
 		}
 		mem, overflow := mulUintptr(1, uintptr(length))
-		if overflow || mem > -uintptr(ptr.Pointer()) {
+		if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
 			panic(runtimeError("unsafe.String: len out of range"))
 		}
-		typ := reflect.ArrayOf(length, tyByte)
-		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
-		caller.setReg(ir, string(v.Elem().Bytes()))
+		sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
+		caller.setReg(ir, *(*string)(unsafe.Pointer(&sh)))
 	case "StringData":
 		// StringData returns a pointer to the underlying bytes of str.
 		// For an empty string the return value is unspecified, and may be nil.
