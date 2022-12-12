@@ -154,10 +154,11 @@ type FindMethod interface {
 }
 
 type TypesRecord struct {
-	loader Loader
-	finder FindMethod
-	rcache map[reflect.Type]types.Type
-	tcache *typeutil.Map
+	loader  Loader
+	finder  FindMethod
+	rcache  map[reflect.Type]types.Type
+	tcache  *typeutil.Map
+	fntargs string //reflect type arguments used to instantiate the current func
 }
 
 func NewTypesRecord(loader Loader, finder FindMethod) *TypesRecord {
@@ -275,7 +276,7 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 
 func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	ut := t.Underlying()
-	pkgpath, name := extractNamed(t)
+	pkgpath, name := r.extractNamed(t)
 	if pkgpath == "" {
 		if name == "error" {
 			return tyErrorInterface

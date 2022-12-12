@@ -6,6 +6,8 @@ package igop
 import (
 	"go/ast"
 	"go/types"
+
+	"golang.org/x/tools/go/ssa"
 )
 
 const (
@@ -16,7 +18,10 @@ func hasTypeParam(t types.Type) bool {
 	return false
 }
 
-func extractNamed(named *types.Named) (pkgpath string, name string) {
+func (r *TypesRecord) SetFunction(fn *ssa.Function) {
+}
+
+func (r *TypesRecord) extractNamed(named *types.Named) (pkgpath string, name string) {
 	obj := named.Obj()
 	if pkg := obj.Pkg(); pkg != nil {
 		pkgpath = pkg.Path()

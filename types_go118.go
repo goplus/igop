@@ -6,7 +6,11 @@ package igop
 import (
 	"go/ast"
 	"go/types"
+	"reflect"
 	"strings"
+
+	"github.com/goplus/reflectx"
+	"golang.org/x/tools/go/ssa"
 )
 
 const (
@@ -25,21 +29,53 @@ func hasTypeParam(t types.Type) bool {
 	return false
 }
 
-func extractNamed(named *types.Named) (pkgpath string, name string) {
+func typeId(t reflect.Type) string {
+	path := t.PkgPath()
+	if path == "" {
+		return t.Name()
+	}
+	return path + "." + t.Name()
+}
+
+func (r *TypesRecord) SetFunction(fn *ssa.Function) {
+	r.fntargs = r.parseFuncTypeArgs(fn)
+}
+
+func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
+	name := fn.Name()
+	pos := strings.Index(name, "[")
+	if pos < 0 {
+		return ""
+	}
+	v := reflectx.FieldByNameX(reflect.ValueOf(fn).Elem(), "_TypeArgs")
+	var args []string
+	for i := 0; i < v.Len(); i++ {
+		t := r.ToType(v.Index(i).Interface().(types.Type))
+		args = append(args, typeId(t))
+	}
+	return strings.Join(args, ",")
+}
+
+func (r *TypesRecord) extractNamed(named *types.Named) (pkgpath string, name string) {
 	obj := named.Obj()
 	if pkg := obj.Pkg(); pkg != nil {
 		pkgpath = pkg.Path()
 	}
 	name = obj.Name()
+	var ids string = r.fntargs
 	if args := named.TypeArgs(); args != nil {
-		name += "["
+		var targs []string
 		for i := 0; i < args.Len(); i++ {
-			if i != 0 {
-				name += ","
-			}
-			name += strings.Replace(args.At(i).String(), " ", "", -1)
+			t := r.ToType(args.At(i))
+			targs = append(targs, typeId(t))
 		}
-		name += "]"
+		if ids != "" {
+			ids += ";"
+		}
+		ids += strings.Join(targs, ",")
+	}
+	if ids != "" {
+		name += "[" + ids + "]"
 	}
 	return
 }

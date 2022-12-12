@@ -92,6 +92,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 		return
 	}
 	visit.seen[fn] = true
+	visit.intp.record.SetFunction(fn)
 	fnPath := fn.String()
 	if f, ok := visit.intp.ctx.override[fnPath]; ok &&
 		visit.intp.preToType(fn.Type()) == f.Type() {
