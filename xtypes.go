@@ -276,7 +276,7 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 
 func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	ut := t.Underlying()
-	pkgpath, name := r.extractNamed(t)
+	pkgpath, name, typeargs := r.extractNamed(t, false)
 	if pkgpath == "" {
 		if name == "error" {
 			return tyErrorInterface
@@ -284,31 +284,28 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 		return r.ToType(ut)
 	}
 	methods := IntuitiveMethodSet(t)
-	numMethods := len(methods)
-	if numMethods == 0 {
-		styp := toMockType(t.Underlying())
-		typ := reflectx.NamedTypeOf(pkgpath, name, styp)
-		r.saveType(t, typ)
-		utype := r.ToType(ut)
-		reflectx.SetUnderlying(typ, utype)
-		return typ
-	}
-	var mcount, pcount int
-	for i := 0; i < numMethods; i++ {
-		sig := methods[i].Type().(*types.Signature)
-		if !isPointer(sig.Recv().Type()) {
-			mcount++
-		}
-		pcount++
-	}
-	// toMockType for size/align
+	hasMethod := len(methods) > 0
 	etyp := toMockType(ut)
-	styp := reflectx.NamedTypeOf(pkgpath, name, etyp)
-	typ := reflectx.NewMethodSet(styp, mcount, pcount)
+	typ := reflectx.NamedTypeOf(pkgpath, name, etyp)
+	if hasMethod {
+		var mcount, pcount int
+		for i := 0; i < len(methods); i++ {
+			sig := methods[i].Type().(*types.Signature)
+			if !isPointer(sig.Recv().Type()) {
+				mcount++
+			}
+			pcount++
+		}
+		typ = reflectx.NewMethodSet(typ, mcount, pcount)
+	}
 	r.saveType(t, typ)
 	utype := r.ToType(ut)
 	reflectx.SetUnderlying(typ, utype)
-	if typ.Kind() != reflect.Interface {
+	if typeargs {
+		pkgpath, name, _ = r.extractNamed(t, true)
+		reflectx.SetTypeName(typ, pkgpath, name)
+	}
+	if hasMethod && typ.Kind() != reflect.Interface {
 		r.setMethods(typ, methods)
 	}
 	return typ

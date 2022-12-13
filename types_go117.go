@@ -21,7 +21,7 @@ func hasTypeParam(t types.Type) bool {
 func (r *TypesRecord) SetFunction(fn *ssa.Function) {
 }
 
-func (r *TypesRecord) extractNamed(named *types.Named) (pkgpath string, name string) {
+func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool) {
 	obj := named.Obj()
 	if pkg := obj.Pkg(); pkg != nil {
 		pkgpath = pkg.Path()

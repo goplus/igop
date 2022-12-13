@@ -56,7 +56,36 @@ func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
 	return strings.Join(args, ",")
 }
 
-func (r *TypesRecord) extractNamed(named *types.Named) (pkgpath string, name string) {
+func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool) {
+	obj := named.Obj()
+	if pkg := obj.Pkg(); pkg != nil {
+		pkgpath = pkg.Path()
+	}
+	name = obj.Name()
+	var ids string = r.fntargs
+	if args := named.TypeArgs(); args != nil {
+		typeargs = true
+		var targs []string
+		for i := 0; i < args.Len(); i++ {
+			if totype {
+				t := r.ToType(args.At(i))
+				targs = append(targs, typeId(t))
+			} else {
+				targs = append(targs, args.At(i).String())
+			}
+		}
+		if ids != "" {
+			ids += ";"
+		}
+		ids += strings.Join(targs, ",")
+	}
+	if ids != "" {
+		name += "[" + ids + "]"
+	}
+	return
+}
+
+func (r *TypesRecord) extractNamed2(named *types.Named) (pkgpath string, name string) {
 	obj := named.Obj()
 	if pkg := obj.Pkg(); pkg != nil {
 		pkgpath = pkg.Path()

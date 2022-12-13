@@ -178,7 +178,7 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 			case "typeparam":
 				ver := runtime.Version()[:6]
 				switch ver {
-				case "go1.18", "go1.19":
+				case "go1.18", "go1.19", "go1.20":
 					return nil
 				default:
 					return filepath.SkipDir
