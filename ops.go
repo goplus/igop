@@ -84,7 +84,7 @@ func xtypeValue(c *ssa.Const, kind types.BasicKind) value {
 // dynamic type tag appropriate for c.Type().
 func constToValue(i *Interp, c *ssa.Const) value {
 	typ := c.Type()
-	if c.IsNil() {
+	if c.Value == nil {
 		if xtype, ok := typ.(*types.Basic); ok && xtype.Kind() == types.UntypedNil {
 			return nil
 		}
