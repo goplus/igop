@@ -13,6 +13,6 @@ require (
 	github.com/visualfc/goid v0.2.0
 	github.com/visualfc/xtype v0.1.2
 	golang.org/x/mod v0.7.0
-	golang.org/x/text v0.4.0
-	golang.org/x/tools v0.3.0
+	golang.org/x/text v0.5.0
+	golang.org/x/tools v0.4.0
 )

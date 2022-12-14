@@ -47,7 +47,7 @@ func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
 	if pos < 0 {
 		return ""
 	}
-	v := reflectx.FieldByNameX(reflect.ValueOf(fn).Elem(), "_TypeArgs")
+	v := reflectx.FieldByNameX(reflect.ValueOf(fn).Elem(), "typeargs")
 	var args []string
 	for i := 0; i < v.Len(); i++ {
 		t := r.ToType(v.Index(i).Interface().(types.Type))
