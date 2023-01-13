@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -2282,6 +2283,12 @@ func main() {
 }
 
 func TestLoadImport(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		switch runtime.Version()[:6] {
+		case "go1.14", "go1.15":
+			t.Skip("skip for workflows")
+		}
+	}
 	src := `package main
 import "github.com/goplus/igop/testdata/pkg"
 
@@ -2374,6 +2381,12 @@ func check(info info.Info) {
 }
 
 func TestBuildTags(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		switch runtime.Version()[:6] {
+		case "go1.14", "go1.15":
+			t.Skip("skip for workflows")
+		}
+	}
 	src1 := `package main
 
 import (
