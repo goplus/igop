@@ -18,6 +18,10 @@ type Program struct {
 }
 
 func NewProgram(ctx *build.Context) *Program {
+	if ctx == nil {
+		ctx = &build.Default
+		ctx.BuildTags = strings.Split(flagBuildTags, ",")
+	}
 	return &Program{ctx: ctx}
 }
 
