@@ -520,8 +520,14 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		return func(fr *frame) {
 			x := fr.reg(ix)
 			idx := fr.reg(ii)
+			index := asInt(idx)
 			v := reflect.ValueOf(x)
-			fr.setReg(ir, v.Index(asInt(idx)).Interface())
+			if index < 0 {
+				panic(runtimeError(fmt.Sprintf("index out of range [%v]", index)))
+			} else if length := v.Len(); index >= length {
+				panic(runtimeError(fmt.Sprintf("index out of range [%v] with length %v", index, length)))
+			}
+			fr.setReg(ir, v.Index(index).Interface())
 		}
 	case *ssa.Lookup:
 		typ := interp.preToType(instr.X.Type())
@@ -1050,6 +1056,7 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 // 		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
 // 	})
 // }
+
 type makeFuncVal struct {
 	funcval.FuncVal
 	interp *Interp
