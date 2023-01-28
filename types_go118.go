@@ -59,7 +59,11 @@ func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
 func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool) {
 	obj := named.Obj()
 	if pkg := obj.Pkg(); pkg != nil {
-		pkgpath = pkg.Path()
+		if pkg.Name() == "main" {
+			pkgpath = "main"
+		} else {
+			pkgpath = pkg.Path()
+		}
 	}
 	name = obj.Name()
 	var ids string = r.fntargs
