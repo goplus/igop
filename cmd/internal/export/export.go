@@ -18,6 +18,7 @@ var (
 	flagExportDir      string
 	flagBuildContext   string
 	flagCustomTags     string
+	flagBuildTags      string
 	flagExportFileName string
 )
 
@@ -25,6 +26,7 @@ func init() {
 	flag.StringVar(&flagExportDir, "outdir", "", "set export pkg path")
 	flag.StringVar(&flagBuildContext, "contexts", "", "set customer build contexts goos_goarch list. eg \"drawin_amd64 darwin_arm64\"")
 	flag.StringVar(&flagCustomTags, "addtags", "", "add custom tags, split by ;")
+	flag.StringVar(&flagBuildTags, "tags", "", "a comma-separated list of build tags")
 	flag.StringVar(&flagExportFileName, "filename", "export", "set export file name")
 }
 
@@ -70,7 +72,11 @@ func exportCmd(cmd *base.Command, args []string) {
 
 // pkg/...
 func parserPkgs(expr string) ([]string, error) {
-	data, err := runGoCommand("list", "-f={{.ImportPath}}={{.Name}}", expr)
+	cmds := []string{"list", "-f={{.ImportPath}}={{.Name}}", expr}
+	if flagBuildTags != "" {
+		cmds = []string{"list", "-tags", flagBuildTags, "-f={{.ImportPath}}={{.Name}}", expr}
+	}
+	data, err := runGoCommand(cmds...)
 	if err != nil {
 		return nil, err
 	}
@@ -187,6 +193,7 @@ func parserContextList(list string) (ctxs []*build.Context) {
 		ctx := build.Default
 		ctx.GOOS = ar[0]
 		ctx.GOARCH = ar[1]
+		ctx.BuildTags = strings.Split(flagBuildTags, ",")
 		ctxs = append(ctxs, &ctx)
 	}
 	return
