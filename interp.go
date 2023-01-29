@@ -991,7 +991,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		chexit:       make(chan int),
 		mainid:       goroutineID(),
 	}
-	i.record = NewTypesRecord(i.ctx.Loader, i)
+	i.record = NewTypesRecord(ctx.Loader, i, ctx.nestedMap)
 	i.record.Load(mainpkg)
 
 	var pkgs []*ssa.Package

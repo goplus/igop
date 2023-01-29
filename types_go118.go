@@ -11,6 +11,7 @@ import (
 
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
+	"golang.org/x/tools/go/types/typeutil"
 )
 
 const (
@@ -29,7 +30,7 @@ func hasTypeParam(t types.Type) bool {
 	return false
 }
 
-func typeId(t reflect.Type) string {
+func (r *TypesRecord) typeId(t reflect.Type, nested bool) string {
 	path := t.PkgPath()
 	if path == "" {
 		return t.Name()
@@ -39,6 +40,7 @@ func typeId(t reflect.Type) string {
 
 func (r *TypesRecord) SetFunction(fn *ssa.Function) {
 	r.fntargs = r.parseFuncTypeArgs(fn)
+	r.ncache = &typeutil.Map{}
 }
 
 func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
@@ -50,8 +52,8 @@ func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
 	v := reflectx.FieldByNameX(reflect.ValueOf(fn).Elem(), "typeargs")
 	var args []string
 	for i := 0; i < v.Len(); i++ {
-		t := r.ToType(v.Index(i).Interface().(types.Type))
-		args = append(args, typeId(t))
+		t, _ := r.toType(v.Index(i).Interface().(types.Type))
+		args = append(args, r.typeId(t, false))
 	}
 	return strings.Join(args, ",")
 }
@@ -72,8 +74,8 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 		var targs []string
 		for i := 0; i < args.Len(); i++ {
 			if totype {
-				t := r.ToType(args.At(i))
-				targs = append(targs, typeId(t))
+				t, nested := r.toType(args.At(i))
+				targs = append(targs, r.typeId(t, nested))
 			} else {
 				targs = append(targs, args.At(i).String())
 			}
@@ -89,29 +91,51 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 	return
 }
 
-func (r *TypesRecord) extractNamed2(named *types.Named) (pkgpath string, name string) {
-	obj := named.Obj()
-	if pkg := obj.Pkg(); pkg != nil {
-		pkgpath = pkg.Path()
-	}
-	name = obj.Name()
-	var ids string = r.fntargs
-	if args := named.TypeArgs(); args != nil {
-		var targs []string
-		for i := 0; i < args.Len(); i++ {
-			t := r.ToType(args.At(i))
-			targs = append(targs, typeId(t))
+func (r *TypesRecord) isNested(t *types.Named) bool {
+	return t.TypeParams() != nil && r.nested[t.Origin()] != 0
+}
+
+func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, nested bool) {
+	rt, ok = r.loader.LookupReflect(typ)
+	if !ok {
+		if r.fntargs != "" {
+			if named, ok1 := typ.(*types.Named); ok1 && named.TypeParams() != nil && r.nested[named.Origin()] != 0 {
+				if rt := r.ncache.At(typ); rt != nil {
+					return rt.(reflect.Type), true, true
+				}
+				return
+			}
 		}
-		if ids != "" {
-			ids += ";"
+		if rt := r.tcache.At(typ); rt != nil {
+			return rt.(reflect.Type), true, false
 		}
-		ids += strings.Join(targs, ",")
-	}
-	if ids != "" {
-		name += "[" + ids + "]"
 	}
 	return
 }
+
+// func (r *TypesRecord) extractNamed2(named *types.Named) (pkgpath string, name string) {
+// 	obj := named.Obj()
+// 	if pkg := obj.Pkg(); pkg != nil {
+// 		pkgpath = pkg.Path()
+// 	}
+// 	name = obj.Name()
+// 	var ids string = r.fntargs
+// 	if args := named.TypeArgs(); args != nil {
+// 		var targs []string
+// 		for i := 0; i < args.Len(); i++ {
+// 			t, _ := r.toType(args.At(i))
+// 			targs = append(targs, typeId(t))
+// 		}
+// 		if ids != "" {
+// 			ids += ";"
+// 		}
+// 		ids += strings.Join(targs, ",")
+// 	}
+// 	if ids != "" {
+// 		name += "[" + ids + "]"
+// 	}
+// 	return
+// }
 
 func (sp *sourcePackage) Load() (err error) {
 	if sp.Info == nil {

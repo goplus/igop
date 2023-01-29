@@ -644,7 +644,7 @@ func (ctx *Context) checkNested(info *types.Info) {
 		return nestedList[i].Obj().Pos() < nestedList[j].Obj().Pos()
 	})
 	for i, named := range nestedList {
-		ctx.nestedMap[named] = i
+		ctx.nestedMap[named] = i + 1
 	}
 }
 

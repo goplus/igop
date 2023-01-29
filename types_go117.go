@@ -6,6 +6,7 @@ package igop
 import (
 	"go/ast"
 	"go/types"
+	"reflect"
 
 	"golang.org/x/tools/go/ssa"
 )
@@ -31,6 +32,20 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 		}
 	}
 	name = obj.Name()
+	return
+}
+
+func (r *TypesRecord) isNested(t *types.Named) bool {
+	return false
+}
+
+func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, nested bool) {
+	rt, ok = r.loader.LookupReflect(typ)
+	if !ok {
+		if rt := r.tcache.At(typ); rt != nil {
+			return rt.(reflect.Type), true, false
+		}
+	}
 	return
 }
 

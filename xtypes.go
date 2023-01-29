@@ -158,26 +158,20 @@ type TypesRecord struct {
 	finder  FindMethod
 	rcache  map[reflect.Type]types.Type
 	tcache  *typeutil.Map
-	fntargs string //reflect type arguments used to instantiate the current func
+	ncache  *typeutil.Map //nested cache
+	fntargs string        //reflect type arguments used to instantiate the current func
+	nested  map[*types.Named]int
 }
 
-func NewTypesRecord(loader Loader, finder FindMethod) *TypesRecord {
+func NewTypesRecord(loader Loader, finder FindMethod, nested map[*types.Named]int) *TypesRecord {
 	return &TypesRecord{
 		loader: loader,
 		finder: finder,
 		rcache: make(map[reflect.Type]types.Type),
 		tcache: &typeutil.Map{},
+		ncache: &typeutil.Map{},
+		nested: nested,
 	}
-}
-
-func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool) {
-	rt, ok = r.loader.LookupReflect(typ)
-	if !ok {
-		if rt := r.tcache.At(typ); rt != nil {
-			return rt.(reflect.Type), true
-		}
-	}
-	return
 }
 
 func (r *TypesRecord) LookupLocalTypes(rt reflect.Type) (typ types.Type, ok bool) {
@@ -193,15 +187,26 @@ func (r *TypesRecord) LookupTypes(rt reflect.Type) (typ types.Type, ok bool) {
 	return
 }
 
-func (r *TypesRecord) saveType(typ types.Type, rt reflect.Type) {
-	r.tcache.Set(typ, rt)
+func (r *TypesRecord) saveType(typ types.Type, rt reflect.Type, nested bool) {
 	r.rcache[rt] = typ
+	if nested {
+		r.ncache.Set(typ, rt)
+		return
+	}
+	r.tcache.Set(typ, rt)
+	return
 }
 
-func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
-	if rt, ok := r.LookupReflect(typ); ok {
-		return rt
+func (r *TypesRecord) ToType(typ types.Type) (rt reflect.Type) {
+	rt, _ = r.toType(typ)
+	return
+}
+
+func (r *TypesRecord) toType(typ types.Type) (reflect.Type, bool) {
+	if rt, ok, nested := r.LookupReflect(typ); ok {
+		return rt, nested
 	}
+	var nested bool
 	var rt reflect.Type
 	switch t := typ.(type) {
 	case *types.Basic:
@@ -210,30 +215,36 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 			rt = xtypeTypes[kind]
 		}
 	case *types.Pointer:
-		elem := r.ToType(t.Elem())
+		var elem reflect.Type
+		elem, nested = r.toType(t.Elem())
 		rt = reflect.PtrTo(elem)
 	case *types.Slice:
-		elem := r.ToType(t.Elem())
+		var elem reflect.Type
+		elem, nested = r.toType(t.Elem())
 		rt = reflect.SliceOf(elem)
 	case *types.Array:
-		elem := r.ToType(t.Elem())
+		var elem reflect.Type
+		elem, nested = r.toType(t.Elem())
 		rt = reflect.ArrayOf(int(t.Len()), elem)
 	case *types.Map:
-		key := r.ToType(t.Key())
-		elem := r.ToType(t.Elem())
+		key, n1 := r.toType(t.Key())
+		elem, n2 := r.toType(t.Elem())
+		nested = n1 || n2
 		rt = reflect.MapOf(key, elem)
 	case *types.Chan:
-		elem := r.ToType(t.Elem())
+		var elem reflect.Type
+		elem, nested = r.toType(t.Elem())
 		rt = reflect.ChanOf(toReflectChanDir(t.Dir()), elem)
 	case *types.Struct:
-		rt = r.toStructType(t)
+		rt, nested = r.toStructType(t)
 	case *types.Named:
-		rt = r.toNamedType(t)
+		rt, nested = r.toNamedType(t)
 	case *types.Interface:
-		rt = r.toInterfaceType(t)
+		rt, nested = r.toInterfaceType(t)
 	case *types.Signature:
-		in := r.ToTypeList(t.Params())
-		out := r.ToTypeList(t.Results())
+		in, n1 := r.ToTypeList(t.Params())
+		out, n2 := r.ToTypeList(t.Results())
+		nested = n1 || n2
 		b := t.Variadic()
 		if b && len(in) > 0 {
 			last := in[len(in)-1]
@@ -243,26 +254,30 @@ func (r *TypesRecord) ToType(typ types.Type) reflect.Type {
 		}
 		rt = reflect.FuncOf(in, out, b)
 	case *types.Tuple:
-		r.ToTypeList(t)
+		_, nested = r.ToTypeList(t)
 		rt = reflect.TypeOf((*_tuple)(nil)).Elem()
 	default:
 		panic(fmt.Errorf("ToType: not handled %v", typ))
 	}
-	r.saveType(typ, rt)
-	return rt
+	r.saveType(typ, rt, nested)
+	return rt, nested
 }
 
 type _tuple struct{}
 
-func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
+func (r *TypesRecord) toInterfaceType(t *types.Interface) (reflect.Type, bool) {
 	n := t.NumMethods()
 	if n == 0 {
-		return tyEmptyInterface
+		return tyEmptyInterface, false
 	}
+	var nested bool
 	ms := make([]reflect.Method, n)
 	for i := 0; i < n; i++ {
 		fn := t.Method(i)
-		mtyp := r.ToType(fn.Type())
+		mtyp, n := r.toType(fn.Type())
+		if n {
+			nested = true
+		}
 		ms[i] = reflect.Method{
 			Name: fn.Name(),
 			Type: mtyp,
@@ -271,17 +286,21 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) reflect.Type {
 			ms[i].PkgPath = pkg.Path()
 		}
 	}
-	return reflectx.InterfaceOf(nil, ms)
+	return reflectx.InterfaceOf(nil, ms), nested
 }
 
-func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
+func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
+	var nested bool
+	if r.fntargs != "" && r.isNested(t) {
+		nested = true
+	}
 	ut := t.Underlying()
 	pkgpath, name, typeargs := r.extractNamed(t, false)
 	if pkgpath == "" {
 		if name == "error" {
-			return tyErrorInterface
+			return tyErrorInterface, false
 		}
-		return r.ToType(ut)
+		return r.toType(ut)
 	}
 	methods := IntuitiveMethodSet(t)
 	hasMethod := len(methods) > 0
@@ -298,8 +317,8 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 		}
 		typ = reflectx.NewMethodSet(typ, mcount, pcount)
 	}
-	r.saveType(t, typ)
-	utype := r.ToType(ut)
+	r.saveType(t, typ, nested)
+	utype, _ := r.toType(ut)
 	reflectx.SetUnderlying(typ, utype)
 	if typeargs {
 		pkgpath, name, _ = r.extractNamed(t, true)
@@ -308,17 +327,23 @@ func (r *TypesRecord) toNamedType(t *types.Named) reflect.Type {
 	if hasMethod && typ.Kind() != reflect.Interface {
 		r.setMethods(typ, methods)
 	}
-	return typ
+	return typ, nested
 }
 
-func (r *TypesRecord) toStructType(t *types.Struct) reflect.Type {
+func (r *TypesRecord) toStructType(t *types.Struct) (reflect.Type, bool) {
 	n := t.NumFields()
 	if n == 0 {
-		return tyEmptyStruct
+		return tyEmptyStruct, false
 	}
+	var nested bool
 	flds := make([]reflect.StructField, n)
 	for i := 0; i < n; i++ {
-		flds[i] = r.toStructField(t.Field(i), t.Tag(i))
+		f := t.Field(i)
+		typ, n := r.toType(f.Type())
+		if n {
+			nested = true
+		}
+		flds[i] = r.toStructField(f, typ, t.Tag(i))
 	}
 	typ := reflectx.StructOf(flds)
 	methods := IntuitiveMethodSet(t)
@@ -335,12 +360,11 @@ func (r *TypesRecord) toStructType(t *types.Struct) reflect.Type {
 		typ = reflectx.NewMethodSet(typ, mcount, pcount)
 		r.setMethods(typ, methods)
 	}
-	return typ
+	return typ, nested
 }
 
-func (r *TypesRecord) toStructField(v *types.Var, tag string) reflect.StructField {
+func (r *TypesRecord) toStructField(v *types.Var, typ reflect.Type, tag string) reflect.StructField {
 	name := v.Name()
-	typ := r.ToType(v.Type())
 	fld := reflect.StructField{
 		Name:      name,
 		Type:      typ,
@@ -353,16 +377,21 @@ func (r *TypesRecord) toStructField(v *types.Var, tag string) reflect.StructFiel
 	return fld
 }
 
-func (r *TypesRecord) ToTypeList(tuple *types.Tuple) []reflect.Type {
+func (r *TypesRecord) ToTypeList(tuple *types.Tuple) ([]reflect.Type, bool) {
 	n := tuple.Len()
 	if n == 0 {
-		return nil
+		return nil, false
 	}
+	var nested bool
+	var ne bool
 	list := make([]reflect.Type, n)
 	for i := 0; i < n; i++ {
-		list[i] = r.ToType(tuple.At(i).Type())
+		list[i], ne = r.toType(tuple.At(i).Type())
+		if ne {
+			nested = true
+		}
 	}
-	return list
+	return list, nested
 }
 
 func isPointer(typ types.Type) bool {
@@ -377,7 +406,7 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) {
 		fn := methods[i].Obj().(*types.Func)
 		sig := methods[i].Type().(*types.Signature)
 		pointer := isPointer(sig.Recv().Type())
-		mtyp := r.ToType(sig)
+		mtyp, _ := r.toType(sig)
 		var mfn func(args []reflect.Value) []reflect.Value
 		idx := methods[i].Index()
 		if len(idx) > 1 {
