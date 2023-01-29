@@ -59,6 +59,7 @@ type Context struct {
 	pkgs         map[string]*sourcePackage // imports
 	override     map[string]reflect.Value  // override function
 	evalInit     map[string]bool           // eval init check
+	nestedMap    map[*types.Named]int      // nested named index
 	root         string                    // project root
 	callForPool  int                       // least call count for enable function pool
 	Mode         Mode                      // mode
@@ -103,6 +104,7 @@ func NewContext(mode Mode) *Context {
 		BuildContext: build.Default,
 		pkgs:         make(map[string]*sourcePackage),
 		override:     make(map[string]reflect.Value),
+		nestedMap:    make(map[*types.Named]int),
 		callForPool:  64,
 	}
 	if mode&EnableDumpInstr != 0 {
@@ -576,6 +578,7 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 						}
 					}
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
+					ctx.checkNested(pkg.Info)
 				} else {
 					var indirect bool
 					if !p.Complete() {
@@ -617,7 +620,32 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 	// Create and build the primary package.
 	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
 	pkg.Build()
+	ctx.checkNested(sp.Info)
 	return
+}
+
+func (ctx *Context) checkNested(info *types.Info) {
+	var nestedList []*types.Named
+	for k, v := range info.Scopes {
+		switch k.(type) {
+		case *ast.BlockStmt, *ast.FuncType:
+			for _, name := range v.Names() {
+				obj := v.Lookup(name)
+				if named, ok := obj.Type().(*types.Named); ok {
+					nestedList = append(nestedList, named)
+				}
+			}
+		}
+	}
+	if len(nestedList) == 0 {
+		return
+	}
+	sort.Slice(nestedList, func(i, j int) bool {
+		return nestedList[i].Obj().Pos() < nestedList[j].Obj().Pos()
+	})
+	for i, named := range nestedList {
+		ctx.nestedMap[named] = i
+	}
 }
 
 func RunFile(filename string, src interface{}, args []string, mode Mode) (exitCode int, err error) {
