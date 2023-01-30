@@ -71,7 +71,9 @@ func init() {
 
 		gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
 		// gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
-		gorootTestSkips["typeparam/nested.go"] = "FAIL"
+		if ver != "go1.20" {
+			gorootTestSkips["typeparam/nested.go"] = "skip, run pass but output same as go1.20"
+		}
 		//go1.20
 		gorootTestSkips["fixedbugs/bug514.go"] = "skip cgo"
 		gorootTestSkips["fixedbugs/issue40954.go"] = "skip cgo"
@@ -178,7 +180,7 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 			case "typeparam":
 				ver := runtime.Version()[:6]
 				switch ver {
-				case "go1.18", "go1.19":
+				case "go1.18", "go1.19", "go1.20":
 					return nil
 				default:
 					return filepath.SkipDir

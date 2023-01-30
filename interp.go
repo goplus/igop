@@ -324,7 +324,6 @@ func (p *_panic) isNil() bool {
 
 // runDefer runs a deferred call d.
 // It always returns normally, but may set or clear fr.panic.
-//
 func (fr *frame) runDefer(d *_defer) (ok bool) {
 	defer func() {
 		if !ok {
@@ -359,7 +358,6 @@ func (fr *frame) runDefer(d *_defer) (ok bool) {
 //
 // If there was no initial state of panic, or it was recovered from,
 // runDefers returns normally.
-//
 func (fr *frame) runDefers() {
 	interp := fr.pfn.Interp
 	atomic.AddInt32(&interp.deferCount, 1)
@@ -429,7 +427,6 @@ func (i *DebugInfo) AsFunc() (*types.Func, bool) {
 // prepareCall determines the function value and argument values for a
 // function call in a Call, Go or Defer instruction, performing
 // interface method lookup if needed.
-//
 func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv register, ia []register, ib []register) (fv value, args []value) {
 	if call.Method == nil {
 		switch f := call.Value.(type) {
@@ -493,7 +490,6 @@ func (i *Interp) prepareCall(fr *frame, call *ssa.CallCommon, iv register, ia []
 // call interprets a call to a function (function, builtin or closure)
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
-//
 func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value) value {
 	switch fn := fn.(type) {
 	case *ssa.Function:
@@ -512,7 +508,6 @@ func (i *Interp) call(caller *frame, fn value, args []value, ssaArgs []ssa.Value
 // call interprets a call to a function (function, builtin or closure)
 // fn with arguments args, returning its result.
 // callpos is the position of the callsite.
-//
 func (i *Interp) callDiscardsResult(caller *frame, fn value, args []value, ssaArgs []ssa.Value) {
 	switch fn := fn.(type) {
 	case *ssa.Function:
@@ -894,7 +889,6 @@ func (i *Interp) callExternalWithFrameByStack(caller *frame, fn reflect.Value, i
 // After a recovered panic in a function with NRPs, fr.result is
 // undefined and fr.block contains the block at which to resume
 // control.
-//
 func (fr *frame) run() {
 	if fr.pfn.Recover != nil {
 		defer func() {
@@ -997,7 +991,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		chexit:       make(chan int),
 		mainid:       goroutineID(),
 	}
-	i.record = NewTypesRecord(i.ctx.Loader, i)
+	i.record = NewTypesRecord(ctx.Loader, i, ctx.nestedMap)
 	i.record.Load(mainpkg)
 
 	var pkgs []*ssa.Package
@@ -1034,7 +1028,11 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 
 func (i *Interp) loadType(typ types.Type) {
 	if _, ok := i.preloadTypes[typ]; !ok {
-		i.preloadTypes[typ] = i.record.ToType(typ)
+		rt, nested := i.record.ToType(typ)
+		if nested {
+			return
+		}
+		i.preloadTypes[typ] = rt
 	}
 }
 
@@ -1042,9 +1040,11 @@ func (i *Interp) preToType(typ types.Type) reflect.Type {
 	if t, ok := i.preloadTypes[typ]; ok {
 		return t
 	}
-	t := i.record.ToType(typ)
-	i.preloadTypes[typ] = t
-	return t
+	rt, nested := i.record.ToType(typ)
+	if !nested {
+		i.preloadTypes[typ] = rt
+	}
+	return rt
 }
 
 func (i *Interp) toType(typ types.Type) reflect.Type {
@@ -1054,7 +1054,8 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 	// log.Panicf("toType %v %p\n", typ, typ)
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	return i.record.ToType(typ)
+	rt, _ := i.record.ToType(typ)
+	return rt
 }
 
 func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
