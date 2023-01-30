@@ -24,7 +24,8 @@ support ABI0 and ABIInternal
 
 ### Generics
 
-support Go1.18 Go1.19 generics
+- support generics (Go1.18/Go1.19)
+- support [Go1.20 nested type-parameterized declarations](https://github.com/golang/go/blob/master/test/typeparam/nested.go) on Go1.18/Go1.19
 
 ### install igop command line
 
