@@ -22,7 +22,7 @@ func hasTypeParam(t types.Type) bool {
 func (r *TypesRecord) SetFunction(fn *ssa.Function) {
 }
 
-func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool) {
+func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool, nested bool) {
 	obj := named.Obj()
 	if pkg := obj.Pkg(); pkg != nil {
 		if pkg.Name() == "main" {
@@ -33,10 +33,6 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 	}
 	name = obj.Name()
 	return
-}
-
-func (r *TypesRecord) isNested(t *types.Named) bool {
-	return false
 }
 
 func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, nested bool) {

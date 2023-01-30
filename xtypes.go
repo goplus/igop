@@ -290,12 +290,8 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) (reflect.Type, bool) {
 }
 
 func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
-	var nested bool
-	if r.fntargs != "" && r.isNested(t) {
-		nested = true
-	}
 	ut := t.Underlying()
-	pkgpath, name, typeargs := r.extractNamed(t, false)
+	pkgpath, name, typeargs, nested := r.extractNamed(t, false)
 	if pkgpath == "" {
 		if name == "error" {
 			return tyErrorInterface, false
@@ -321,7 +317,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
 	utype, _ := r.toType(ut)
 	reflectx.SetUnderlying(typ, utype)
 	if typeargs {
-		pkgpath, name, _ = r.extractNamed(t, true)
+		pkgpath, name, _, _ = r.extractNamed(t, true)
 		reflectx.SetTypeName(typ, pkgpath, name)
 	}
 	if hasMethod && typ.Kind() != reflect.Interface {

@@ -58,7 +58,7 @@ func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
 	return strings.Join(args, ",")
 }
 
-func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool) {
+func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool, nested bool) {
 	obj := named.Obj()
 	if pkg := obj.Pkg(); pkg != nil {
 		if pkg.Name() == "main" {
@@ -66,6 +66,9 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 		} else {
 			pkgpath = pkg.Path()
 		}
+	}
+	if r.fntargs != "" && named.TypeParams() != nil && r.nested[named.Origin()] != 0 {
+		nested = true
 	}
 	name = obj.Name()
 	var ids string = r.fntargs
@@ -91,19 +94,12 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 	return
 }
 
-func (r *TypesRecord) isNested(t *types.Named) bool {
-	return t.TypeParams() != nil && r.nested[t.Origin()] != 0
-}
-
 func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, nested bool) {
 	rt, ok = r.loader.LookupReflect(typ)
 	if !ok {
 		if r.fntargs != "" {
-			if named, ok1 := typ.(*types.Named); ok1 && named.TypeParams() != nil && r.nested[named.Origin()] != 0 {
-				if rt := r.ncache.At(typ); rt != nil {
-					return rt.(reflect.Type), true, true
-				}
-				return
+			if rt := r.ncache.At(typ); rt != nil {
+				return rt.(reflect.Type), true, true
 			}
 		}
 		if rt := r.tcache.At(typ); rt != nil {
@@ -112,30 +108,6 @@ func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, n
 	}
 	return
 }
-
-// func (r *TypesRecord) extractNamed2(named *types.Named) (pkgpath string, name string) {
-// 	obj := named.Obj()
-// 	if pkg := obj.Pkg(); pkg != nil {
-// 		pkgpath = pkg.Path()
-// 	}
-// 	name = obj.Name()
-// 	var ids string = r.fntargs
-// 	if args := named.TypeArgs(); args != nil {
-// 		var targs []string
-// 		for i := 0; i < args.Len(); i++ {
-// 			t, _ := r.toType(args.At(i))
-// 			targs = append(targs, typeId(t))
-// 		}
-// 		if ids != "" {
-// 			ids += ";"
-// 		}
-// 		ids += strings.Join(targs, ",")
-// 	}
-// 	if ids != "" {
-// 		name += "[" + ids + "]"
-// 	}
-// 	return
-// }
 
 func (sp *sourcePackage) Load() (err error) {
 	if sp.Info == nil {
