@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	"go/types"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/goplus/reflectx"
@@ -53,12 +54,18 @@ func (s *nestedStack) Pop() (targs string, cache *typeutil.Map) {
 	return
 }
 
-func (r *TypesRecord) typeId(t reflect.Type, nested bool) string {
+func (r *TypesRecord) typeId(typ types.Type, t reflect.Type) string {
 	path := t.PkgPath()
 	if path == "" {
 		return t.Name()
 	}
-	return path + "." + t.Name()
+	name := path + "." + t.Name()
+	if named, ok := typ.(*types.Named); ok {
+		if n := r.nested[named.Origin()]; n != 0 {
+			name += "·" + strconv.Itoa(n)
+		}
+	}
+	return name
 }
 
 func (r *TypesRecord) EnterInstance(fn *ssa.Function) {
@@ -80,8 +87,9 @@ func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
 	v := reflectx.FieldByNameX(reflect.ValueOf(fn).Elem(), "typeargs")
 	var args []string
 	for i := 0; i < v.Len(); i++ {
-		t, _ := r.toType(v.Index(i).Interface().(types.Type))
-		args = append(args, r.typeId(t, false))
+		typ := v.Index(i).Interface().(types.Type)
+		rt, _ := r.toType(typ)
+		args = append(args, r.typeId(typ, rt))
 	}
 	return strings.Join(args, ",")
 }
@@ -105,8 +113,9 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 		var targs []string
 		for i := 0; i < args.Len(); i++ {
 			if totype {
-				t, nested := r.toType(args.At(i))
-				targs = append(targs, r.typeId(t, nested))
+				typ := args.At(i)
+				rt, _ := r.toType(typ)
+				targs = append(targs, r.typeId(typ, rt))
 			} else {
 				targs = append(targs, args.At(i).String())
 			}
