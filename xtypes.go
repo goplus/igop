@@ -161,6 +161,7 @@ type TypesRecord struct {
 	ncache  *typeutil.Map //nested cache
 	fntargs string        //reflect type arguments used to instantiate the current func
 	nested  map[*types.Named]int
+	nstack  nestedStack
 }
 
 func NewTypesRecord(loader Loader, finder FindMethod, nested map[*types.Named]int) *TypesRecord {
@@ -169,7 +170,6 @@ func NewTypesRecord(loader Loader, finder FindMethod, nested map[*types.Named]in
 		finder: finder,
 		rcache: make(map[reflect.Type]types.Type),
 		tcache: &typeutil.Map{},
-		ncache: &typeutil.Map{},
 		nested: nested,
 	}
 }
@@ -194,11 +194,6 @@ func (r *TypesRecord) saveType(typ types.Type, rt reflect.Type, nested bool) {
 		return
 	}
 	r.tcache.Set(typ, rt)
-	return
-}
-
-func (r *TypesRecord) ToType(typ types.Type) (rt reflect.Type) {
-	rt, _ = r.toType(typ)
 	return
 }
 
@@ -457,8 +452,8 @@ func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
 	return 0
 }
 
-func (r *TypesRecord) LoadType(typ types.Type) reflect.Type {
-	return r.ToType(typ)
+func (r *TypesRecord) LoadType(typ types.Type) {
+	r.toType(typ)
 }
 
 func (r *TypesRecord) Load(pkg *ssa.Package) {

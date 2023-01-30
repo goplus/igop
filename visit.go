@@ -92,7 +92,6 @@ func (visit *visitor) function(fn *ssa.Function) {
 		return
 	}
 	visit.seen[fn] = true
-	visit.intp.record.SetFunction(fn)
 	fnPath := fn.String()
 	if f, ok := visit.intp.ctx.override[fnPath]; ok &&
 		visit.intp.preToType(fn.Type()) == f.Type() {
@@ -106,6 +105,10 @@ func (visit *visitor) function(fn *ssa.Function) {
 			}
 		}
 		return
+	}
+	if len(fn.TypeArgs()) != 0 {
+		visit.intp.record.EnterInstance(fn)
+		defer visit.intp.record.LeaveInstance(fn)
 	}
 	visit.intp.loadType(fn.Type())
 	for _, alloc := range fn.Locals {

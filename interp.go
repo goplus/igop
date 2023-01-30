@@ -1028,7 +1028,11 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 
 func (i *Interp) loadType(typ types.Type) {
 	if _, ok := i.preloadTypes[typ]; !ok {
-		i.preloadTypes[typ] = i.record.ToType(typ)
+		rt, nested := i.record.toType(typ)
+		if nested {
+			return
+		}
+		i.preloadTypes[typ] = rt
 	}
 }
 
@@ -1036,9 +1040,11 @@ func (i *Interp) preToType(typ types.Type) reflect.Type {
 	if t, ok := i.preloadTypes[typ]; ok {
 		return t
 	}
-	t := i.record.ToType(typ)
-	i.preloadTypes[typ] = t
-	return t
+	rt, nested := i.record.toType(typ)
+	if !nested {
+		i.preloadTypes[typ] = rt
+	}
+	return rt
 }
 
 func (i *Interp) toType(typ types.Type) reflect.Type {
@@ -1048,7 +1054,8 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 	// log.Panicf("toType %v %p\n", typ, typ)
 	i.typesMutex.Lock()
 	defer i.typesMutex.Unlock()
-	return i.record.ToType(typ)
+	rt, _ := i.record.toType(typ)
+	return rt
 }
 
 func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {

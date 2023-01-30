@@ -30,6 +30,29 @@ func hasTypeParam(t types.Type) bool {
 	return false
 }
 
+type nestedStack struct {
+	targs []string
+	cache []*typeutil.Map
+}
+
+func (s *nestedStack) Push(targs string) *typeutil.Map {
+	s.targs = append(s.targs, targs)
+	m := &typeutil.Map{}
+	s.cache = append(s.cache, m)
+	return m
+}
+
+func (s *nestedStack) Pop() (targs string, cache *typeutil.Map) {
+	n := len(s.targs)
+	if n >= 1 {
+		targs = s.targs[n-1]
+		cache = s.cache[n-1]
+	}
+	s.targs = s.targs[:n-1]
+	s.cache = s.cache[:n-1]
+	return
+}
+
 func (r *TypesRecord) typeId(t reflect.Type, nested bool) string {
 	path := t.PkgPath()
 	if path == "" {
@@ -38,9 +61,14 @@ func (r *TypesRecord) typeId(t reflect.Type, nested bool) string {
 	return path + "." + t.Name()
 }
 
-func (r *TypesRecord) SetFunction(fn *ssa.Function) {
+func (r *TypesRecord) EnterInstance(fn *ssa.Function) {
+	r.fntargs = ""
 	r.fntargs = r.parseFuncTypeArgs(fn)
-	r.ncache = &typeutil.Map{}
+	r.ncache = r.nstack.Push(r.fntargs)
+}
+
+func (r *TypesRecord) LeaveInstance(fn *ssa.Function) {
+	r.fntargs, r.ncache = r.nstack.Pop()
 }
 
 func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
@@ -67,7 +95,7 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 			pkgpath = pkg.Path()
 		}
 	}
-	if r.fntargs != "" && named.TypeParams() != nil && r.nested[named.Origin()] != 0 {
+	if r.fntargs != "" && r.nested[named.Origin()] != 0 {
 		nested = true
 	}
 	name = obj.Name()
@@ -97,8 +125,9 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, nested bool) {
 	rt, ok = r.loader.LookupReflect(typ)
 	if !ok {
-		if r.fntargs != "" {
-			if rt := r.ncache.At(typ); rt != nil {
+		n := len(r.nstack.cache)
+		for i := n; i > 0; i-- {
+			if rt := r.nstack.cache[i-1].At(typ); rt != nil {
 				return rt.(reflect.Type), true, true
 			}
 		}

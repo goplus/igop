@@ -19,7 +19,12 @@ func hasTypeParam(t types.Type) bool {
 	return false
 }
 
-func (r *TypesRecord) SetFunction(fn *ssa.Function) {
+type nestedStack struct {
+}
+
+func (r *TypesRecord) EnterInstance(fn *ssa.Function) {
+}
+func (r *TypesRecord) LeaveInstance(fn *ssa.Function) {
 }
 
 func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath string, name string, typeargs bool, nested bool) {
