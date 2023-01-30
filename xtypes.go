@@ -197,7 +197,7 @@ func (r *TypesRecord) saveType(typ types.Type, rt reflect.Type, nested bool) {
 	return
 }
 
-func (r *TypesRecord) toType(typ types.Type) (reflect.Type, bool) {
+func (r *TypesRecord) ToType(typ types.Type) (reflect.Type, bool) {
 	if rt, ok, nested := r.LookupReflect(typ); ok {
 		return rt, nested
 	}
@@ -211,24 +211,24 @@ func (r *TypesRecord) toType(typ types.Type) (reflect.Type, bool) {
 		}
 	case *types.Pointer:
 		var elem reflect.Type
-		elem, nested = r.toType(t.Elem())
+		elem, nested = r.ToType(t.Elem())
 		rt = reflect.PtrTo(elem)
 	case *types.Slice:
 		var elem reflect.Type
-		elem, nested = r.toType(t.Elem())
+		elem, nested = r.ToType(t.Elem())
 		rt = reflect.SliceOf(elem)
 	case *types.Array:
 		var elem reflect.Type
-		elem, nested = r.toType(t.Elem())
+		elem, nested = r.ToType(t.Elem())
 		rt = reflect.ArrayOf(int(t.Len()), elem)
 	case *types.Map:
-		key, n1 := r.toType(t.Key())
-		elem, n2 := r.toType(t.Elem())
+		key, n1 := r.ToType(t.Key())
+		elem, n2 := r.ToType(t.Elem())
 		nested = n1 || n2
 		rt = reflect.MapOf(key, elem)
 	case *types.Chan:
 		var elem reflect.Type
-		elem, nested = r.toType(t.Elem())
+		elem, nested = r.ToType(t.Elem())
 		rt = reflect.ChanOf(toReflectChanDir(t.Dir()), elem)
 	case *types.Struct:
 		rt, nested = r.toStructType(t)
@@ -269,7 +269,7 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) (reflect.Type, bool) {
 	ms := make([]reflect.Method, n)
 	for i := 0; i < n; i++ {
 		fn := t.Method(i)
-		mtyp, n := r.toType(fn.Type())
+		mtyp, n := r.ToType(fn.Type())
 		if n {
 			nested = true
 		}
@@ -291,7 +291,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
 		if name == "error" {
 			return tyErrorInterface, false
 		}
-		return r.toType(ut)
+		return r.ToType(ut)
 	}
 	methods := IntuitiveMethodSet(t)
 	hasMethod := len(methods) > 0
@@ -309,7 +309,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
 		typ = reflectx.NewMethodSet(typ, mcount, pcount)
 	}
 	r.saveType(t, typ, nested)
-	utype, _ := r.toType(ut)
+	utype, _ := r.ToType(ut)
 	reflectx.SetUnderlying(typ, utype)
 	if typeargs {
 		pkgpath, name, _, _ = r.extractNamed(t, true)
@@ -330,7 +330,7 @@ func (r *TypesRecord) toStructType(t *types.Struct) (reflect.Type, bool) {
 	flds := make([]reflect.StructField, n)
 	for i := 0; i < n; i++ {
 		f := t.Field(i)
-		typ, n := r.toType(f.Type())
+		typ, n := r.ToType(f.Type())
 		if n {
 			nested = true
 		}
@@ -377,7 +377,7 @@ func (r *TypesRecord) ToTypeList(tuple *types.Tuple) ([]reflect.Type, bool) {
 	var ne bool
 	list := make([]reflect.Type, n)
 	for i := 0; i < n; i++ {
-		list[i], ne = r.toType(tuple.At(i).Type())
+		list[i], ne = r.ToType(tuple.At(i).Type())
 		if ne {
 			nested = true
 		}
@@ -397,7 +397,7 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) {
 		fn := methods[i].Obj().(*types.Func)
 		sig := methods[i].Type().(*types.Signature)
 		pointer := isPointer(sig.Recv().Type())
-		mtyp, _ := r.toType(sig)
+		mtyp, _ := r.ToType(sig)
 		var mfn func(args []reflect.Value) []reflect.Value
 		idx := methods[i].Index()
 		if len(idx) > 1 {
@@ -453,7 +453,7 @@ func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
 }
 
 func (r *TypesRecord) LoadType(typ types.Type) {
-	r.toType(typ)
+	r.ToType(typ)
 }
 
 func (r *TypesRecord) Load(pkg *ssa.Package) {

@@ -88,7 +88,7 @@ func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
 	var args []string
 	for i := 0; i < v.Len(); i++ {
 		typ := v.Index(i).Interface().(types.Type)
-		rt, _ := r.toType(typ)
+		rt, _ := r.ToType(typ)
 		args = append(args, r.typeId(typ, rt))
 	}
 	return strings.Join(args, ",")
@@ -114,7 +114,7 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 		for i := 0; i < args.Len(); i++ {
 			if totype {
 				typ := args.At(i)
-				rt, _ := r.toType(typ)
+				rt, _ := r.ToType(typ)
 				targs = append(targs, r.typeId(typ, rt))
 			} else {
 				targs = append(targs, args.At(i).String())
