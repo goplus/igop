@@ -34,6 +34,7 @@ const (
 	EnableDumpInstr                       // Print packages & SSA instruction code
 	EnableTracing                         // Print a trace of all instructions as they are interpreted.
 	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
+	EnableNoStrict                        // Enable no strict mode
 )
 
 // Loader types loader interface
