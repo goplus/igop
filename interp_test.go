@@ -3130,3 +3130,21 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestNoStrictMode(t *testing.T) {
+	src := `package main
+import "fmt"
+
+func f() int
+
+func main() {
+	var a int
+	println(100)
+}
+`
+	ctx := igop.NewContext(igop.EnableNoStrict)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

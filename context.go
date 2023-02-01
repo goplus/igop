@@ -101,14 +101,16 @@ func (sp *sourcePackage) Load() (err error) {
 			Sizes:    sp.Context.sizes,
 			Importer: NewImporter(sp.Context),
 		}
-		if sp.Context.evalMode || sp.Context.Mode&EnableNoStrict != 0 {
+		if sp.Context.evalMode {
 			conf.DisableUnusedImportCheck = true
 		}
 		if sp.Context.Mode&EnableNoStrict != 0 {
 			conf.Error = func(e error) {
-				if te, ok := e.(types.Error); ok && strings.HasSuffix(te.Msg, errDeclNotUsed) {
-					println(fmt.Sprintf("igop warning: %v", e))
-					return
+				if te, ok := e.(types.Error); ok {
+					if strings.HasSuffix(te.Msg, errDeclaredNotUsed) || strings.HasSuffix(te.Msg, errImportedNotUsed) {
+						println(fmt.Sprintf("igop warning: %v", e))
+						return
+					}
 				}
 				if err == nil {
 					err = e
