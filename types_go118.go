@@ -4,6 +4,7 @@
 package igop
 
 import (
+	"fmt"
 	"go/ast"
 	"go/types"
 	"reflect"
@@ -158,9 +159,31 @@ func (sp *sourcePackage) Load() (err error) {
 			Selections: make(map[*ast.SelectorExpr]*types.Selection),
 			Instances:  make(map[*ast.Ident]types.Instance),
 		}
-		if err := types.NewChecker(sp.Context.conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files); err != nil {
-			return err
+		conf := &types.Config{
+			Sizes:    sp.Context.sizes,
+			Importer: NewImporter(sp.Context),
 		}
+		if sp.Context.evalMode || sp.Context.Mode&EnableNoStrict != 0 {
+			conf.DisableUnusedImportCheck = true
+		}
+		if sp.Context.Mode&EnableNoStrict != 0 {
+			conf.Error = func(e error) {
+				if te, ok := e.(types.Error); ok && strings.HasSuffix(te.Msg, errDeclNotUsed) {
+					println(fmt.Sprintf("igop warning: %v", e))
+					return
+				}
+				if err == nil {
+					err = e
+				}
+			}
+		} else {
+			conf.Error = func(e error) {
+				if err == nil {
+					err = e
+				}
+			}
+		}
+		types.NewChecker(conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files)
 	}
 	return
 }

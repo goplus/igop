@@ -53,7 +53,7 @@ type Context struct {
 	BuildContext build.Context                                    // build context
 	output       io.Writer                                        // capture print/println output
 	FileSet      *token.FileSet                                   // file set
-	conf         *types.Config                                    // types check config
+	sizes        types.Sizes                                      // types unsafe sizes
 	Lookup       func(root, path string) (dir string, found bool) // lookup external import
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
 	debugFunc    func(*DebugInfo)          // debug func
@@ -111,10 +111,7 @@ func NewContext(mode Mode) *Context {
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
-	ctx.conf = &types.Config{
-		Sizes:    types.SizesFor("gc", runtime.GOARCH),
-		Importer: NewImporter(ctx),
-	}
+	ctx.sizes = types.SizesFor("gc", runtime.GOARCH)
 	ctx.Lookup = new(load.ListDriver).Lookup
 	return ctx
 }
@@ -125,12 +122,11 @@ func (ctx *Context) IsEvalMode() bool {
 
 func (ctx *Context) SetEvalMode(b bool) {
 	ctx.evalMode = b
-	ctx.conf.DisableUnusedImportCheck = b
 }
 
 // SetUnsafeSizes set the sizing functions for package unsafe.
 func (ctx *Context) SetUnsafeSizes(sizes types.Sizes) {
-	ctx.conf.Sizes = sizes
+	ctx.sizes = sizes
 }
 
 // SetLeastCallForEnablePool set least call count for enable function pool, default 64

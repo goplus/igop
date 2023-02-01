@@ -582,7 +582,7 @@ func builtinOffsetof(pfn *function, pc int) (int64, error) {
 		return -1, plainError("unsafe.Offsetof not found FieldAddr instr")
 	}
 	instr := instrs[len(sel.Index())-1]
-	return selOffsetof(pfn.Interp.ctx.conf.Sizes, instr.X.Type().Underlying().(*types.Pointer).Elem().Underlying().(*types.Struct), sel.Index(), selx.Sel.Name)
+	return selOffsetof(pfn.Interp.ctx.sizes, instr.X.Type().Underlying().(*types.Pointer).Elem().Underlying().(*types.Struct), sel.Index(), selx.Sel.Name)
 }
 
 func foundFieldAddr(pfn *function, pc int) (instrs []*ssa.FieldAddr, found bool) {
