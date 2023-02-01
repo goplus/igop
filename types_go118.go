@@ -4,7 +4,6 @@
 package igop
 
 import (
-	"fmt"
 	"go/ast"
 	"go/types"
 	"reflect"
@@ -148,42 +147,14 @@ func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, n
 	return
 }
 
-func (sp *sourcePackage) Load() (err error) {
-	if sp.Info == nil {
-		sp.Info = &types.Info{
-			Types:      make(map[ast.Expr]types.TypeAndValue),
-			Defs:       make(map[*ast.Ident]types.Object),
-			Uses:       make(map[*ast.Ident]types.Object),
-			Implicits:  make(map[ast.Node]types.Object),
-			Scopes:     make(map[ast.Node]*types.Scope),
-			Selections: make(map[*ast.SelectorExpr]*types.Selection),
-			Instances:  make(map[*ast.Ident]types.Instance),
-		}
-		conf := &types.Config{
-			Sizes:    sp.Context.sizes,
-			Importer: NewImporter(sp.Context),
-		}
-		if sp.Context.evalMode || sp.Context.Mode&EnableNoStrict != 0 {
-			conf.DisableUnusedImportCheck = true
-		}
-		if sp.Context.Mode&EnableNoStrict != 0 {
-			conf.Error = func(e error) {
-				if te, ok := e.(types.Error); ok && strings.HasSuffix(te.Msg, errDeclNotUsed) {
-					println(fmt.Sprintf("igop warning: %v", e))
-					return
-				}
-				if err == nil {
-					err = e
-				}
-			}
-		} else {
-			conf.Error = func(e error) {
-				if err == nil {
-					err = e
-				}
-			}
-		}
-		types.NewChecker(conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files)
+func newTypesInfo() *types.Info {
+	return &types.Info{
+		Types:      make(map[ast.Expr]types.TypeAndValue),
+		Defs:       make(map[*ast.Ident]types.Object),
+		Uses:       make(map[*ast.Ident]types.Object),
+		Implicits:  make(map[ast.Node]types.Object),
+		Scopes:     make(map[ast.Node]*types.Scope),
+		Selections: make(map[*ast.SelectorExpr]*types.Selection),
+		Instances:  make(map[*ast.Ident]types.Instance),
 	}
-	return
 }
