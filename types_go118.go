@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/types/typeutil"
 )
@@ -69,9 +68,8 @@ func (r *TypesRecord) typeId(typ types.Type, t reflect.Type) string {
 }
 
 func (r *TypesRecord) EnterInstance(fn *ssa.Function) {
-	r.fntargs = ""
-	r.fntargs = r.parseFuncTypeArgs(fn)
 	r.ncache = r.nstack.Push(r.fntargs)
+	r.fntargs = r.parseFuncTypeArgs(fn)
 }
 
 func (r *TypesRecord) LeaveInstance(fn *ssa.Function) {
@@ -79,15 +77,12 @@ func (r *TypesRecord) LeaveInstance(fn *ssa.Function) {
 }
 
 func (r *TypesRecord) parseFuncTypeArgs(fn *ssa.Function) (targs string) {
-	name := fn.Name()
-	pos := strings.Index(name, "[")
-	if pos < 0 {
-		return ""
+	typeargs := fn.TypeArgs()
+	if len(typeargs) == 0 {
+		return
 	}
-	v := reflectx.FieldByNameX(reflect.ValueOf(fn).Elem(), "typeargs")
 	var args []string
-	for i := 0; i < v.Len(); i++ {
-		typ := v.Index(i).Interface().(types.Type)
+	for _, typ := range typeargs {
 		rt, _ := r.ToType(typ)
 		args = append(args, r.typeId(typ, rt))
 	}
