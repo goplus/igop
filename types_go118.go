@@ -35,11 +35,9 @@ type nestedStack struct {
 	cache []*typeutil.Map
 }
 
-func (s *nestedStack) Push(targs string) *typeutil.Map {
+func (s *nestedStack) Push(targs string, cache *typeutil.Map) {
 	s.targs = append(s.targs, targs)
-	m := &typeutil.Map{}
-	s.cache = append(s.cache, m)
-	return m
+	s.cache = append(s.cache, cache)
 }
 
 func (s *nestedStack) Pop() (targs string, cache *typeutil.Map) {
@@ -68,7 +66,8 @@ func (r *TypesRecord) typeId(typ types.Type, t reflect.Type) string {
 }
 
 func (r *TypesRecord) EnterInstance(fn *ssa.Function) {
-	r.ncache = r.nstack.Push(r.fntargs)
+	r.ncache = &typeutil.Map{}
+	r.nstack.Push(r.fntargs, r.ncache)
 	r.fntargs = r.parseFuncTypeArgs(fn)
 }
 
@@ -129,6 +128,11 @@ func (r *TypesRecord) extractNamed(named *types.Named, totype bool) (pkgpath str
 func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, nested bool) {
 	rt, ok = r.loader.LookupReflect(typ)
 	if !ok {
+		if r.ncache != nil {
+			if rt := r.ncache.At(typ); rt != nil {
+				return rt.(reflect.Type), true, true
+			}
+		}
 		n := len(r.nstack.cache)
 		for i := n; i > 0; i-- {
 			if rt := r.nstack.cache[i-1].At(typ); rt != nil {
