@@ -185,8 +185,8 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			if !ok {
 				return e
 			}
-			if strings.HasSuffix(e.Msg, errDeclNotUsed) {
-				v := e.Msg[0 : len(e.Msg)-len(errDeclNotUsed)-1]
+			if strings.HasSuffix(e.Msg, errDeclaredNotUsed) {
+				v := e.Msg[0 : len(e.Msg)-len(errDeclaredNotUsed)-1]
 				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
 				// fixed = append(fixed, "__igop_repl_dump__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {

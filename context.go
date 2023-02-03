@@ -34,6 +34,7 @@ const (
 	EnableDumpInstr                       // Print packages & SSA instruction code
 	EnableTracing                         // Print a trace of all instructions as they are interpreted.
 	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
+	EnableNoStrict                        // Enable no strict mode
 )
 
 // Loader types loader interface
@@ -52,7 +53,7 @@ type Context struct {
 	BuildContext build.Context                                    // build context
 	output       io.Writer                                        // capture print/println output
 	FileSet      *token.FileSet                                   // file set
-	conf         *types.Config                                    // types check config
+	sizes        types.Sizes                                      // types unsafe sizes
 	Lookup       func(root, path string) (dir string, found bool) // lookup external import
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
 	debugFunc    func(*DebugInfo)          // debug func
@@ -93,6 +94,40 @@ type sourcePackage struct {
 	Files   []*ast.File
 }
 
+func (sp *sourcePackage) Load() (err error) {
+	if sp.Info == nil {
+		sp.Info = newTypesInfo()
+		conf := &types.Config{
+			Sizes:    sp.Context.sizes,
+			Importer: NewImporter(sp.Context),
+		}
+		if sp.Context.evalMode {
+			conf.DisableUnusedImportCheck = true
+		}
+		if sp.Context.Mode&EnableNoStrict != 0 {
+			conf.Error = func(e error) {
+				if te, ok := e.(types.Error); ok {
+					if strings.HasSuffix(te.Msg, errDeclaredNotUsed) || strings.HasSuffix(te.Msg, errImportedNotUsed) {
+						println(fmt.Sprintf("igop warning: %v", e))
+						return
+					}
+				}
+				if err == nil {
+					err = e
+				}
+			}
+		} else {
+			conf.Error = func(e error) {
+				if err == nil {
+					err = e
+				}
+			}
+		}
+		types.NewChecker(conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files)
+	}
+	return
+}
+
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
@@ -110,10 +145,7 @@ func NewContext(mode Mode) *Context {
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
-	ctx.conf = &types.Config{
-		Sizes:    types.SizesFor("gc", runtime.GOARCH),
-		Importer: NewImporter(ctx),
-	}
+	ctx.sizes = types.SizesFor("gc", runtime.GOARCH)
 	ctx.Lookup = new(load.ListDriver).Lookup
 	return ctx
 }
@@ -124,12 +156,11 @@ func (ctx *Context) IsEvalMode() bool {
 
 func (ctx *Context) SetEvalMode(b bool) {
 	ctx.evalMode = b
-	ctx.conf.DisableUnusedImportCheck = b
 }
 
 // SetUnsafeSizes set the sizing functions for package unsafe.
 func (ctx *Context) SetUnsafeSizes(sizes types.Sizes) {
-	ctx.conf.Sizes = sizes
+	ctx.sizes = sizes
 }
 
 // SetLeastCallForEnablePool set least call count for enable function pool, default 64

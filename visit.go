@@ -101,6 +101,25 @@ func (visit *visitor) function(fn *ssa.Function) {
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
 			if _, ok = externValues[fnPath]; !ok {
+				if visit.intp.ctx.Mode&EnableNoStrict != 0 {
+					typ := visit.intp.preToType(fn.Type())
+					numOut := typ.NumOut()
+					if numOut == 0 {
+						externValues[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
+							return
+						})
+					} else {
+						externValues[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
+							results = make([]reflect.Value, numOut)
+							for i := 0; i < numOut; i++ {
+								results[i] = reflect.New(typ.Out(i)).Elem()
+							}
+							return
+						})
+					}
+					println(fmt.Sprintf("igop warning: %v: %v missing function body", visit.intp.ctx.FileSet.Position(fn.Pos()), fnPath))
+					return
+				}
 				panic(fmt.Errorf("%v: missing function body", visit.intp.ctx.FileSet.Position(fn.Pos())))
 			}
 		}
