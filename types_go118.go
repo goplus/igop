@@ -54,7 +54,7 @@ func (s *nestedStack) Pop() (targs string, cache *typeutil.Map) {
 func (r *TypesRecord) typeId(typ types.Type, t reflect.Type) string {
 	path := t.PkgPath()
 	if path == "" {
-		return t.Name()
+		return t.String()
 	}
 	name := path + "." + t.Name()
 	if named, ok := typ.(*types.Named); ok {
