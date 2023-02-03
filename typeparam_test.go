@@ -196,3 +196,22 @@ func eq(a, b interface{}) string {
 		t.Fatal("error output", buf.String())
 	}
 }
+
+func TestNestedTypeParams(t *testing.T) {
+	src := `package main
+
+func T[N ~int](v N) {
+	type T []N
+	var t T
+	println(t)
+}
+
+func main() {
+	T(100)
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
