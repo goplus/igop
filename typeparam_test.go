@@ -196,3 +196,68 @@ func eq(a, b interface{}) string {
 		t.Fatal("error output", buf.String())
 	}
 }
+
+func TestNestedTypeParams(t *testing.T) {
+	src := `package main
+
+func T[N ~int](v N) {
+	type T []N
+	var t T
+	println(t)
+}
+
+func main() {
+	T(100)
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTypeParamsRecursive(t *testing.T) {
+	src := `package main
+
+import "fmt"
+
+func main() {
+	recursive()
+}	
+
+func recursive() {
+	type T int
+	if got, want := recur1[T](5), T(110); got != want {
+		panic(fmt.Sprintf("recur1[T](5) = %d, want = %d", got, want))
+	}
+}
+
+type Integer interface {
+	~int | ~int32 | ~int64
+}
+
+func recur1[T Integer](n T) T {
+	if n == 0 || n == 1 {
+		return T(1)
+	} else {
+		return n * recur2(n-1)
+	}
+}
+
+func recur2[T Integer](n T) T {
+	list := make([]T, n)
+	for i, _ := range list {
+		list[i] = T(i + 1)
+	}
+	var sum T
+	for _, elt := range list {
+		sum += elt
+	}
+	return sum + recur1(n-1)
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

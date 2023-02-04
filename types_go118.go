@@ -67,6 +67,11 @@ func (r *TypesRecord) typeId(typ types.Type, t reflect.Type) string {
 
 func (r *TypesRecord) EnterInstance(fn *ssa.Function) {
 	r.ncache = &typeutil.Map{}
+	tp := fn.TypeParams()
+	for i := 0; i < tp.Len(); i++ {
+		rt, _ := r.ToType(fn.TypeArgs()[i])
+		r.ncache.Set(tp.At(i), rt)
+	}
 	r.nstack.Push(r.fntargs, r.ncache)
 	r.fntargs = r.parseFuncTypeArgs(fn)
 }
