@@ -8,6 +8,7 @@
 [![Go1.19](https://github.com/goplus/igop/workflows/Go1.19/badge.svg)](https://github.com/goplus/igop/actions/workflows/go119.yml)
 
 ### Go Version
+
 - Go1.14 ~ Go1.19
 - macOS Linux Windows  WebAssembly GopherJS and more.
 
@@ -18,9 +19,9 @@ support ABI0 and ABIInternal
 - ABI0 stack-based ABI
 - ABIInternal [register-based Go calling convention proposal](https://golang.org/design/40724-register-calling)
 
-	- Go1.17: amd64
-	- Go1.18: amd64 arm64 ppc64/ppc64le
-	- Go1.19: amd64 arm64 ppc64/ppc64le riscv64
+    - Go1.17: amd64
+    - Go1.18: amd64 arm64 ppc64/ppc64le
+    - Go1.19: amd64 arm64 ppc64/ppc64le riscv64
 
 ### Generics
 
@@ -30,17 +31,20 @@ support ABI0 and ABIInternal
 ### install igop command line
 
 Go version < 1.17:
-```
+
+```shell
 go get -u github.com/goplus/igop/cmd/igop
 ```
 
 Go version >= 1.17:
-```
+
+```shell
 go install github.com/goplus/igop/cmd/igop@latest
 ```
 
 ### igop command
-```
+
+```shell
 igop             # igop repl mode
 igop run         # run a Go/Go+ package
 igop build       # compile a Go/Go+ package
@@ -50,7 +54,8 @@ igop export      # export Go package to igop builtin package
 ```
 
 ### igop repl mode
-```
+
+```shell
 igop                       # run repl mode, support Go/Go+
 igop repl                  # run repl mode, support Go/Go+
 igop repl -gop=false       # run repl mode, disable Go+ syntax
@@ -64,18 +69,22 @@ igop repl -gop=false       # run repl mode, disable Go+ syntax
 ### igop demo
 
 #### go js playground (gopherjs)
+
 - <https://jsplay.goplus.org/>
 - <https://github.com/goplusjs/play>
 
 #### go repl playground (gopherjs/wasm)
+
 - <https://repl.goplus.org/>
 - <https://github.com/goplusjs/repl>
 
 #### ispx
+
 <https://github.com/goplus/ispx>
 
-#### run simple demo
-```
+#### run simple Go source demo
+
+```go
 package main
 
 import (
@@ -103,9 +112,38 @@ func main() {
 }
 ```
 
+#### run simple Go+ source demo
+
+```go
+package main
+
+import (
+	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/gopbuild"
+)
+
+var gopSrc string = `
+fields := [
+	"engineering",
+	"STEM education", 
+	"and data science",
+]
+
+println "The Go+ language for", fields.join(", ")
+`
+
+func main() {
+	_, err := igop.RunFile("main.gop", gopSrc, nil, 0)
+	if err != nil {
+		panic(err)
+	}
+}
+```
 
 #### run hugo demo
-```
+
+```go
+
 // igop_hugo/main.go
 package main
 
@@ -133,15 +171,16 @@ func main() {
 	os.Exit(code)
 }
 ```
-```
-$ git clone https://github.com/gohugoio/hugo
-$ cd hugo
-$ go mod tidy
-$ cd ..
-$ igop_hugo ./hugo new site quickstart
-$ cd quickstart
-$ git init
-$ git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke themes/ananke
-$ echo "theme = 'ananke'" >> config.toml
-$ igop_hugo ../hugo server
+
+```shell
+git clone <https://github.com/gohugoio/hugo>
+cd hugo
+go mod tidy
+cd ..
+igop_hugo ./hugo new site quickstart
+cd quickstart
+git init
+git submodule add <https://github.com/theNewDynamic/gohugo-theme-ananke> themes/ananke
+echo "theme = 'ananke'" >> config.toml
+igop_hugo ../hugo server
 ```
