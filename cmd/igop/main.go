@@ -34,6 +34,8 @@ import (
 	_ "github.com/goplus/reflectx/icall/icall8192"
 )
 
+//go:generate go run ../qexp -outdir pkg github.com/modern-go/reflect2
+
 func mainUsage() {
 	help.PrintUsage(os.Stderr, base.Igop)
 	os.Exit(2)

@@ -33,10 +33,6 @@ import (
 	embedparser "github.com/visualfc/goembed/parser"
 )
 
-var (
-	__igop_embed_testdata_data2_txt__ string
-)
-
 func buildIdent(name string) string {
 	return fmt.Sprintf("__igop_embed_%x__", name)
 }

@@ -468,10 +468,6 @@ func toReflectChanDir(d types.ChanDir) reflect.ChanDir {
 	return 0
 }
 
-func (r *TypesRecord) LoadType(typ types.Type) {
-	r.ToType(typ)
-}
-
 func (r *TypesRecord) Load(pkg *ssa.Package) {
 	checked := make(map[types.Type]bool)
 	for _, v := range pkg.Members {
@@ -483,6 +479,6 @@ func (r *TypesRecord) Load(pkg *ssa.Package) {
 		if hasTypeParam(typ) {
 			continue
 		}
-		r.LoadType(typ)
+		r.ToType(typ)
 	}
 }
