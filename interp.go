@@ -42,6 +42,7 @@
 //
 // * os.Exit is implemented using panic, causing deferred functions to
 // run.
+
 package igop
 
 import (
