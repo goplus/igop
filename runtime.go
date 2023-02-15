@@ -20,15 +20,18 @@ import (
 	"bytes"
 	"fmt"
 	"go/token"
+	"go/types"
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync/atomic"
 	"unsafe"
 
 	"github.com/visualfc/funcval"
+	"golang.org/x/tools/go/ssa"
 )
 
 func init() {
@@ -321,4 +324,38 @@ func debugStack(fr *frame) []byte {
 		}
 		buf = make([]byte, 2*len(buf))
 	}
+}
+
+var (
+	reFuncName = regexp.MustCompile("\\$(\\d+)")
+)
+
+func fixedFuncName(fn *ssa.Function) (name string, autogen bool) {
+	name = fn.String()
+	name = reFuncName.ReplaceAllString(name, ".func$1")
+	if strings.HasPrefix(name, "(") {
+		if pos := strings.LastIndex(name, ")"); pos != -1 {
+			line := name[1:pos]
+			if strings.HasPrefix(line, "*") {
+				if dot := strings.LastIndex(line, "."); dot != -1 {
+					line = line[1:dot+1] + "(*" + line[dot+1:] + ")"
+				}
+			}
+			name = line + name[pos+1:]
+		}
+	}
+	if strings.HasSuffix(name, "$bound") {
+		return name[:len(name)-6] + "-fm", bound_is_autogen
+	} else if strings.HasSuffix(name, "$thunk") {
+		name = name[:len(name)-6]
+		if strings.HasPrefix(name, "struct{") {
+			return name, true
+		}
+		if sig, ok := fn.Type().(*types.Signature); ok {
+			if types.IsInterface(sig.Params().At(0).Type()) {
+				return name, true
+			}
+		}
+	}
+	return name, false
 }
