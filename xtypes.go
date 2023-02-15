@@ -309,7 +309,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
 		}
 		return r.ToType(ut)
 	}
-	methods := IntuitiveMethodSet(t)
+	methods := typeutil.IntuitiveMethodSet(t, nil)
 	hasMethod := len(methods) > 0
 	etyp := toMockType(ut)
 	typ := reflectx.NamedTypeOf(pkgpath, name, etyp)
@@ -353,7 +353,7 @@ func (r *TypesRecord) toStructType(t *types.Struct) (reflect.Type, bool) {
 		flds[i] = r.toStructField(f, typ, t.Tag(i))
 	}
 	typ := reflectx.StructOf(flds)
-	methods := IntuitiveMethodSet(t)
+	methods := typeutil.IntuitiveMethodSet(t, nil)
 	if numMethods := len(methods); numMethods != 0 {
 		// anonymous structs with methods. struct { T }
 		var mcount, pcount int
@@ -485,32 +485,4 @@ func (r *TypesRecord) Load(pkg *ssa.Package) {
 		}
 		r.LoadType(typ)
 	}
-}
-
-// IntuitiveMethodSet copy from golang.org/x/tools/go/types/typeutil.IntuitiveMethodSet
-func IntuitiveMethodSet(T types.Type) []*types.Selection {
-	isPointerToConcrete := func(T types.Type) bool {
-		ptr, ok := T.(*types.Pointer)
-		return ok && !types.IsInterface(ptr.Elem())
-	}
-
-	var result []*types.Selection
-	mset := types.NewMethodSet(T)
-	if types.IsInterface(T) || isPointerToConcrete(T) {
-		for i, n := 0, mset.Len(); i < n; i++ {
-			result = append(result, mset.At(i))
-		}
-	} else {
-		// T is some other concrete type.
-		// Report methods of T and *T, preferring those of T.
-		pmset := types.NewMethodSet(types.NewPointer(T))
-		for i, n := 0, pmset.Len(); i < n; i++ {
-			meth := pmset.At(i)
-			if m := mset.Lookup(meth.Obj().Pkg(), meth.Obj().Name()); m != nil {
-				meth = m
-			}
-			result = append(result, meth)
-		}
-	}
-	return result
 }

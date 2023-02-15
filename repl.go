@@ -40,19 +40,19 @@ func main(){}
 */
 
 type Repl struct {
-	ctx       *Context
-	pkg       *ssa.Package
-	builtin   *ast.File
-	interp    *Interp  // last interp
-	fsInit    *fnState // func init
-	fsMain    *fnState // func main
-	globalMap map[string]interface{}
-	fileName  string
-	source    string   // all source
-	imports   []string // import lines
-	globals   []string // global var/func/type
-	infuncs   []string // in main func
-	lastDump  []string // last __igop_repl_dump__
+	ctx       *Context               // interp context
+	pkg       *ssa.Package           // main package
+	builtin   *ast.File              // builtin func
+	interp    *Interp                // last interp
+	fsInit    *fnState               // func init
+	fsMain    *fnState               // func main
+	globalMap map[string]interface{} // keep repl global map
+	fileName  string                 // file.go or file.gop
+	source    string                 // all source
+	imports   []string               // import lines
+	globals   []string               // global var/func/type
+	infuncs   []string               // in main func
+	lastDump  []string               // last __igop_repl_dump__
 }
 
 func toDump(i []interface{}) (dump []string) {

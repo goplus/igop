@@ -30,10 +30,6 @@ import (
 	"golang.org/x/tools/go/ssa"
 )
 
-var (
-	tyByte = reflect.TypeOf(byte(0))
-)
-
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
 func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {

@@ -78,22 +78,6 @@ func init() {
 	}
 }
 
-type plainError string
-
-func (e plainError) RuntimeError() {}
-
-func (e plainError) Error() string {
-	return string(e)
-}
-
-type runtimeError string
-
-func (e runtimeError) RuntimeError() {}
-
-func (e runtimeError) Error() string {
-	return "runtime error: " + string(e)
-}
-
 type Interp struct {
 	ctx          *Context
 	mainpkg      *ssa.Package                                // the SSA main package
