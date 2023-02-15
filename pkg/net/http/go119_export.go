@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.19
-// +build go1.19
+//go:build go1.19 && !go1.20
+// +build go1.19,!go1.20
 
 package http
 
@@ -31,6 +31,7 @@ func init() {
 			"errors":                                 "errors",
 			"fmt":                                    "fmt",
 			"internal/godebug":                       "godebug",
+			"internal/safefilepath":                  "safefilepath",
 			"io":                                     "io",
 			"io/fs":                                  "fs",
 			"log":                                    "log",

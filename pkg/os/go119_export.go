@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.19
-// +build go1.19
+//go:build go1.19 && !go1.20
+// +build go1.19,!go1.20
 
 package os
 
@@ -23,6 +23,7 @@ func init() {
 			"internal/itoa":            "itoa",
 			"internal/oserror":         "oserror",
 			"internal/poll":            "poll",
+			"internal/safefilepath":    "safefilepath",
 			"internal/syscall/execenv": "execenv",
 			"internal/syscall/unix":    "unix",
 			"internal/testlog":         "testlog",
