@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	xtypeTypeNames = make(map[string]*types.Basic)
+	basicTypeNames = make(map[string]*types.Basic)
 )
 
 var (
@@ -49,7 +49,7 @@ var (
 func init() {
 	for i := types.Invalid; i <= types.UntypedNil; i++ {
 		typ := types.Typ[i]
-		xtypeTypeNames[typ.String()] = typ
+		basicTypeNames[typ.String()] = typ
 	}
 }
 
@@ -240,7 +240,7 @@ func (r *TypesLoader) parserNamed(path string) (*types.Package, string) {
 }
 
 func (r *TypesLoader) LookupType(typ string) types.Type {
-	if t, ok := xtypeTypeNames[typ]; ok {
+	if t, ok := basicTypeNames[typ]; ok {
 		return t
 	}
 	p, name := r.parserNamed(typ)
@@ -254,7 +254,7 @@ func (r *TypesLoader) InsertTypedConst(p *types.Package, name string, v TypedCon
 
 func (r *TypesLoader) InsertUntypedConst(p *types.Package, name string, v UntypedConst) {
 	var typ types.Type
-	if t, ok := xtypeTypeNames[v.Typ]; ok {
+	if t, ok := basicTypeNames[v.Typ]; ok {
 		typ = t
 	} else {
 		typ = r.LookupType(v.Typ)
