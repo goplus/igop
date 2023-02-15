@@ -47,7 +47,7 @@ go install github.com/goplus/igop/cmd/igop@latest
 
 ### igop command
 
-```shell
+```
 igop             # igop repl mode
 igop run         # run a Go/Go+ package
 igop build       # compile a Go/Go+ package
@@ -176,14 +176,14 @@ func main() {
 ```
 
 ```shell
-git clone <https://github.com/gohugoio/hugo>
+git clone https://github.com/gohugoio/hugo
 cd hugo
 go mod tidy
 cd ..
 igop_hugo ./hugo new site quickstart
 cd quickstart
 git init
-git submodule add <https://github.com/theNewDynamic/gohugo-theme-ananke> themes/ananke
+git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke themes/ananke
 echo "theme = 'ananke'" >> config.toml
 igop_hugo ../hugo server
 ```
