@@ -65,24 +65,23 @@ type Loader interface {
 
 // Context ssa context
 type Context struct {
-	Loader       Loader                                           // types loader
-	BuildContext build.Context                                    // build context
-	output       io.Writer                                        // capture print/println output
-	FileSet      *token.FileSet                                   // file set
-	sizes        types.Sizes                                      // types unsafe sizes
-	Lookup       func(root, path string) (dir string, found bool) // lookup external import
-	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{})
-	debugFunc    func(*DebugInfo)          // debug func
-	pkgs         map[string]*sourcePackage // imports
-	override     map[string]reflect.Value  // override function
-	evalInit     map[string]bool           // eval init check
-	nestedMap    map[*types.Named]int      // nested named index
-	root         string                    // project root
-	callForPool  int                       // least call count for enable function pool
-	Mode         Mode                      // mode
-	ParserMode   parser.Mode               // parser mode
-	BuilderMode  ssa.BuilderMode           // ssa builder mode
-	evalMode     bool                      // eval mode
+	Loader       Loader                                                   // types loader
+	BuildContext build.Context                                            // build context
+	output       io.Writer                                                // capture print/println output
+	FileSet      *token.FileSet                                           // file set
+	sizes        types.Sizes                                              // types unsafe sizes
+	Lookup       func(root, path string) (dir string, found bool)         // lookup external import
+	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{}) // internal eval func for repl
+	debugFunc    func(*DebugInfo)                                         // debug func
+	pkgs         map[string]*sourcePackage                                // imports
+	override     map[string]reflect.Value                                 // override function
+	evalInit     map[string]bool                                          // eval init check
+	nestedMap    map[*types.Named]int                                     // nested named index
+	root         string                                                   // project root
+	callForPool  int                                                      // least call count for enable function pool
+	Mode         Mode                                                     // mode
+	BuilderMode  ssa.BuilderMode                                          // ssa builder mode
+	evalMode     bool                                                     // eval mode
 }
 
 func (ctx *Context) setRoot(root string) {
@@ -150,7 +149,6 @@ func NewContext(mode Mode) *Context {
 		Loader:       NewTypesLoader(mode),
 		FileSet:      token.NewFileSet(),
 		Mode:         mode,
-		ParserMode:   parser.AllErrors,
 		BuilderMode:  0, //ssa.SanityCheckFunctions,
 		BuildContext: build.Default,
 		pkgs:         make(map[string]*sourcePackage),
