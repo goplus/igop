@@ -81,6 +81,7 @@ func init() {
 		gorootTestSkips["fixedbugs/issue42076.go"] = "skip cgo"
 		gorootTestSkips["fixedbugs/issue46903.go"] = "skip cgo"
 		gorootTestSkips["fixedbugs/issue51733.go"] = "skip cgo"
+		gorootTestSkips["fixedbugs/issue57823.go"] = "GC"
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	case "go1.15":
