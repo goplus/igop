@@ -42,6 +42,7 @@
 //
 // * os.Exit is implemented using panic, causing deferred functions to
 // run.
+
 package igop
 
 import (
@@ -78,6 +79,8 @@ func init() {
 }
 
 type plainError string
+
+func (e plainError) RuntimeError() {}
 
 func (e plainError) Error() string {
 	return string(e)
