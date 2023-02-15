@@ -79,6 +79,8 @@ func init() {
 
 type plainError string
 
+func (e plainError) RuntimeError() {}
+
 func (e plainError) Error() string {
 	return string(e)
 }

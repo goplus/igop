@@ -668,16 +668,17 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		}
 	case *ssa.TypeAssert:
 		typ := interp.preToType(instr.AssertedType)
+		xtyp := interp.preToType(instr.X.Type())
 		ir := pfn.regIndex(instr)
 		ix, kx, vx := pfn.regIndex3(instr.X)
 		if kx.isStatic() {
 			return func(fr *frame) {
-				fr.setReg(ir, typeAssert(interp, instr, typ, vx))
+				fr.setReg(ir, typeAssert(interp, instr, typ, xtyp, vx))
 			}
 		}
 		return func(fr *frame) {
 			v := fr.reg(ix)
-			fr.setReg(ir, typeAssert(interp, instr, typ, v))
+			fr.setReg(ir, typeAssert(interp, instr, typ, xtyp, v))
 		}
 	case *ssa.Extract:
 		if *instr.Referrers() == nil {

@@ -1052,7 +1052,6 @@ failed:
 // binop implements all arithmetic and logical binary operators for
 // numeric datatypes and strings.  Both operands must have identical
 // dynamic type.
-//
 func binop(instr *ssa.BinOp, t types.Type, x, y value) value {
 	switch instr.Op {
 	case token.ADD:
@@ -1327,12 +1326,18 @@ failed:
 // typeAssert checks whether dynamic type of itf is instr.AssertedType.
 // It returns the extracted value on success, and panics on failure,
 // unless instr.CommaOk, in which case it always returns a "value,ok" tuple.
-//
-func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface{}) value {
+func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, xtyp reflect.Type, iv interface{}) value {
 	var v value
 	var err error
 	if iv == nil {
-		err = plainError(fmt.Sprintf("interface conversion: interface is nil, not %v", typ))
+		if xtyp == tyErrorInterface {
+			err = runtimeError("invalid memory address or nil pointer dereference")
+		} else if xtyp == typ {
+			err = plainError(fmt.Sprintf("interface conversion: interface is nil, not %v", typ))
+		} else {
+			err = plainError(fmt.Sprintf("interface conversion: %v is nil, not %v", xtyp, typ))
+		}
+		// }
 	} else {
 		rv := reflect.ValueOf(iv)
 		rt := rv.Type()
@@ -1340,7 +1345,7 @@ func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface
 			v = iv
 		} else {
 			if !rt.AssignableTo(typ) {
-				err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v", instr.X.Type(), rt, typ))
+				err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v", xtyp, rt, typ))
 				if itype, ok := instr.AssertedType.Underlying().(*types.Interface); ok {
 					if it, ok := i.findType(rt, false); ok {
 						if meth, _ := types.MissingMethod(it, itype, true); meth != nil {
@@ -1355,7 +1360,7 @@ func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface
 						n1, ok1 := t1.(*types.Named)
 						n2, ok2 := t2.(*types.Named)
 						if ok1 && ok2 && n1.Obj().Parent() != n2.Obj().Parent() {
-							err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v (types from different scopes)", instr.X.Type(), rt, typ))
+							err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v (types from different scopes)", xtyp, rt, typ))
 						}
 					}
 				}
@@ -1403,10 +1408,11 @@ func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, iv interface
 
 // widen widens a xtype typed value x to the widest type of its
 // category, one of:
-//   bool, int64, uint64, float64, complex128, string.
+//
+//	bool, int64, uint64, float64, complex128, string.
+//
 // This is inefficient but reduces the size of the cross-product of
 // cases we have to consider.
-//
 func widen(x value) value {
 	switch y := x.(type) {
 	case bool, int64, uint64, float64, complex128, string, unsafe.Pointer:
