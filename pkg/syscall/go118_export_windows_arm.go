@@ -20,6 +20,7 @@ func init() {
 		Path: "syscall",
 		Deps: map[string]string{
 			"errors":                          "errors",
+			"internal/bytealg":                "bytealg",
 			"internal/itoa":                   "itoa",
 			"internal/oserror":                "oserror",
 			"internal/race":                   "race",

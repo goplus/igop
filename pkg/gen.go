@@ -79,6 +79,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// sync/atomic
+	cmd = exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name, "-src", "sync/atomic")
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
 
 	list := osarchList()
 	log.Println(list)
@@ -159,6 +167,8 @@ func stdList() []string {
 func isSkipPkg(pkg string) bool {
 	switch pkg {
 	case "syscall", "unsafe":
+		return true
+	case "sync/atomc":
 		return true
 	case "runtime/cgo", "runtime/race":
 		return true
