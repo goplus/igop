@@ -146,7 +146,6 @@ func (sp *sourcePackage) Load() (err error) {
 // NewContext create a new Context
 func NewContext(mode Mode) *Context {
 	ctx := &Context{
-		Loader:       NewTypesLoader(mode),
 		FileSet:      token.NewFileSet(),
 		Mode:         mode,
 		BuilderMode:  0, //ssa.SanityCheckFunctions,
@@ -156,11 +155,13 @@ func NewContext(mode Mode) *Context {
 		nestedMap:    make(map[*types.Named]int),
 		callForPool:  64,
 	}
+	ctx.Loader = NewTypesLoader(ctx, mode)
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
 	ctx.sizes = types.SizesFor("gc", runtime.GOARCH)
 	ctx.Lookup = new(load.ListDriver).Lookup
+
 	return ctx
 }
 
