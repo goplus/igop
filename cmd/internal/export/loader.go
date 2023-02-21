@@ -17,12 +17,16 @@
 package export
 
 import (
+	"bytes"
 	"fmt"
+	"go/ast"
 	"go/build"
 	"go/constant"
+	"go/printer"
 	"go/token"
 	"go/types"
 	"log"
+	"strconv"
 	"strings"
 
 	"golang.org/x/tools/go/loader"
@@ -31,6 +35,7 @@ import (
 type Program struct {
 	prog *loader.Program
 	ctx  *build.Context
+	fset *token.FileSet
 }
 
 func NewProgram(ctx *build.Context) *Program {
@@ -38,21 +43,65 @@ func NewProgram(ctx *build.Context) *Program {
 		ctx = &build.Default
 		ctx.BuildTags = strings.Split(flagBuildTags, ",")
 	}
-	return &Program{ctx: ctx}
+	return &Program{ctx: ctx, fset: token.NewFileSet()}
 }
 
 func (p *Program) Load(pkgs []string) error {
 	var cfg loader.Config
 	cfg.Build = p.ctx
+	cfg.Fset = p.fset
+	if flagExportSource {
+		cfg.AfterTypeCheck = p.typeCheck
+	}
 	for _, pkg := range pkgs {
 		cfg.Import(pkg)
 	}
-
 	iprog, err := cfg.Load()
 	if err != nil {
 		return fmt.Errorf("conf.Load failed: %s", err)
 	}
 	p.prog = iprog
+	return nil
+}
+
+func (p *Program) typeCheck(info *loader.PackageInfo, files []*ast.File) {
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			if fn, ok := decl.(*ast.FuncDecl); ok {
+				if funcHasTypeParams(fn) {
+					continue
+				}
+				if recv := recvType(fn); recv != nil && !ast.IsExported(recv.Name) {
+					continue
+				}
+				if !ast.IsExported(fn.Name.Name) {
+					continue
+				}
+				fn.Body = nil
+			}
+		}
+	}
+}
+
+func recvType(fn *ast.FuncDecl) *ast.Ident {
+	if fn.Recv == nil {
+		return nil
+	}
+	if len(fn.Recv.List) != 1 {
+		return nil
+	}
+	expr := fn.Recv.List[0].Type
+retry:
+	switch v := expr.(type) {
+	case *ast.ParenExpr:
+		expr = v.X
+		goto retry
+	case *ast.StarExpr:
+		expr = v.X
+		goto retry
+	case *ast.Ident:
+		return v
+	}
 	return nil
 }
 
@@ -122,13 +171,16 @@ type Package struct {
 	Consts        []string
 	TypedConsts   []string
 	UntypedConsts []string
+	Links         []string
+	Source        string
 }
 
 func (p *Package) IsEmpty() bool {
 	return len(p.NamedTypes) == 0 && len(p.Interfaces) == 0 &&
 		len(p.AliasTypes) == 0 && len(p.Vars) == 0 &&
 		len(p.Funcs) == 0 && len(p.Consts) == 0 &&
-		len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0
+		len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0 &&
+		len(p.Source) == 0
 }
 
 /*
@@ -210,6 +262,73 @@ func (p *Program) constToLit(named string, c constant.Value) string {
 	}
 }
 
+func (p *Program) ExportSource(e *Package, info *loader.PackageInfo) error {
+	pkg := info.Pkg
+	pkgPath := pkg.Path()
+	pkgName := pkg.Name()
+
+	outf := new(ast.File)
+	outf.Name = ast.NewIdent(pkgName)
+
+	var specs []ast.Spec
+	for _, im := range pkg.Imports() {
+		specs = append(specs, &ast.ImportSpec{
+			Path: &ast.BasicLit{
+				Kind:  token.STRING,
+				Value: strconv.Quote(im.Path()),
+			},
+		})
+	}
+	if len(specs) > 0 {
+		outf.Decls = append(outf.Decls, &ast.GenDecl{
+			Tok:   token.IMPORT,
+			Specs: specs,
+		})
+	}
+
+	var links []string
+	for _, file := range info.Files {
+		outf.Imports = append(outf.Imports, file.Imports...)
+		for _, decl := range file.Decls {
+			switch d := decl.(type) {
+			case *ast.GenDecl:
+				if d.Tok == token.IMPORT {
+					continue
+				}
+				outf.Decls = append(outf.Decls, d)
+			case *ast.FuncDecl:
+				outf.Decls = append(outf.Decls, d)
+				if funcHasTypeParams(d) {
+					continue
+				}
+				fnName := d.Name.Name
+				if d.Recv == nil && d.Body == nil && !ast.IsExported(fnName) {
+					decl := &ast.FuncDecl{}
+					decl.Type = d.Type
+					lcName := "_" + fnName
+					decl.Name = ast.NewIdent(lcName)
+					decl.Doc = &ast.CommentGroup{[]*ast.Comment{
+						&ast.Comment{Text: fmt.Sprintf("//go:linkname %v %v.%v", lcName, pkgPath, d.Name)},
+					}}
+					var buf bytes.Buffer
+					printer.Fprint(&buf, p.fset, decl)
+					links = append(links, buf.String())
+					e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", fnName, lcName))
+				}
+			}
+		}
+	}
+
+	var buf bytes.Buffer
+	err := printer.Fprint(&buf, p.fset, outf)
+	if err != nil {
+		return err
+	}
+	e.Links = links
+	e.Source = strings.ReplaceAll(buf.String(), "\n\n", "\n")
+	return nil
+}
+
 func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 	info := p.prog.Package(path)
 	if info == nil {
@@ -223,6 +342,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 	for _, v := range pkg.Imports() {
 		e.Deps = append(e.Deps, fmt.Sprintf("%q: %q", v.Path(), v.Name()))
 	}
+	var foundGeneric bool
 	for _, name := range pkg.Scope().Names() {
 		if !token.IsExported(name) {
 			continue
@@ -239,10 +359,20 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 		case *types.Var:
 			e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", t.Name(), pkgName+"."+t.Name()))
 		case *types.Func:
+			if hasTypeParam(t.Type()) {
+				if !flagExportSource {
+					log.Println("skip typeparam", t)
+				}
+				foundGeneric = true
+				continue
+			}
 			e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", t.Name(), pkgName+"."+t.Name()))
 		case *types.TypeName:
 			if hasTypeParam(t.Type()) {
-				log.Println("skip typeparam", t)
+				if !flagExportSource {
+					log.Println("skip typeparam", t)
+				}
+				foundGeneric = true
 				continue
 			}
 			if t.IsAlias() {
@@ -265,6 +395,11 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 			}
 		default:
 			log.Panicf("unreachable %v %T\n", name, t)
+		}
+	}
+	if flagExportSource && foundGeneric {
+		if err := p.ExportSource(e, info); err != nil {
+			log.Println("export source failed", err)
 		}
 	}
 	return e, nil

@@ -36,6 +36,7 @@ var (
 	flagCustomTags     string
 	flagBuildTags      string
 	flagExportFileName string
+	flagExportSource   bool
 )
 
 func init() {
@@ -44,6 +45,7 @@ func init() {
 	flag.StringVar(&flagCustomTags, "addtags", "", "add custom tags, split by ;")
 	flag.StringVar(&flagBuildTags, "tags", "", "a comma-separated list of build tags")
 	flag.StringVar(&flagExportFileName, "filename", "export", "set export file name")
+	flag.BoolVar(&flagExportSource, "src", false, "export source mode")
 }
 
 // Cmd - igop build

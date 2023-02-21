@@ -20,6 +20,7 @@
 package export
 
 import (
+	"go/ast"
 	"go/types"
 )
 
@@ -31,6 +32,31 @@ func hasTypeParam(t types.Type) bool {
 		return t.TypeParams() != nil
 	case *types.Signature:
 		return t.TypeParams() != nil
+	}
+	return false
+}
+
+func recvHasTypeParam(expr ast.Expr) bool {
+retry:
+	switch v := expr.(type) {
+	case *ast.IndexExpr, *ast.IndexListExpr:
+		return true
+	case *ast.ParenExpr:
+		expr = v.X
+		goto retry
+	case *ast.StarExpr:
+		expr = v.X
+		goto retry
+	}
+	return false
+}
+
+func funcHasTypeParams(fn *ast.FuncDecl) bool {
+	if fn.Type.TypeParams != nil {
+		return true
+	}
+	if fn.Recv != nil && len(fn.Recv.List) == 1 && recvHasTypeParam(fn.Recv.List[0].Type) {
+		return true
 	}
 	return false
 }

@@ -75,6 +75,12 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 		tmpl = template_empty_pkg
 		imports = []string{fmt.Sprintf("_ %q", pkg.Path)}
 	}
+	if len(pkg.Source) > 0 {
+		tmpl = template_link_pkg
+		if len(pkg.Links) > 0 {
+			imports = append(imports, `_ "unsafe"`)
+		}
+	}
 	r := strings.NewReplacer("$PKGNAME", pkg.Name,
 		"$IMPORTS", strings.Join(imports, "\n"),
 		"$PKGPATH", pkg.Path,
@@ -87,6 +93,8 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 		"$TYPEDCONSTS", joinList(pkg.TypedConsts),
 		"$UNTYPEDCONSTS", joinList(pkg.UntypedConsts),
 		"$TAGS", strings.Join(tagList, "\n"),
+		"$SOURCE", "`"+pkg.Source+"`",
+		"$LINKS", strings.Join(pkg.Links, "\n"),
 		"$ID", id)
 	src := r.Replace(tmpl)
 	data, err := format.Source([]byte(src))
@@ -143,4 +151,35 @@ func init() {
 		Deps: map[string]string{$DEPS},
 	})
 }
+`
+
+var template_link_pkg = `// export by github.com/goplus/igop/cmd/qexp
+
+$TAGS
+
+package $PKGNAME
+
+import (
+	$IMPORTS
+
+	"github.com/goplus/igop"
+)
+
+func init() {
+	igop.RegisterPackage(&igop.Package {
+		Name: "$PKGNAME",
+		Path: "$PKGPATH",
+		Deps: map[string]string{$DEPS},
+		Interfaces: map[string]reflect.Type{$INTERFACES},
+		NamedTypes: map[string]reflect.Type{$NAMEDTYPES},
+		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
+		Vars: map[string]reflect.Value{$VARS},
+		Funcs: map[string]reflect.Value{$FUNCS},
+		TypedConsts: map[string]igop.TypedConst{$TYPEDCONSTS},
+		UntypedConsts: map[string]igop.UntypedConst{$UNTYPEDCONSTS},
+		Source: source,
+	})
+}
+$LINKS
+var source = $SOURCE
 `

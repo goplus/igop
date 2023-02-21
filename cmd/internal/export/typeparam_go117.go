@@ -19,8 +19,15 @@
 
 package export
 
-import "go/types"
+import (
+	"go/ast"
+	"go/types"
+)
 
 func hasTypeParam(t types.Type) bool {
+	return false
+}
+
+func funcHasTypeParams(fn *ast.FuncType) bool {
 	return false
 }
