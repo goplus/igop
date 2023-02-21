@@ -116,7 +116,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 	}
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
-			if _, ok = externValues[fnPath]; !ok {
+			if _, ok = findExternFunc(visit.intp, fn); !ok {
 				if visit.intp.ctx.Mode&EnableNoStrict != 0 {
 					typ := visit.intp.preToType(fn.Type())
 					numOut := typ.NumOut()
