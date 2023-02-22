@@ -93,7 +93,7 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 		"$TYPEDCONSTS", joinList(pkg.TypedConsts),
 		"$UNTYPEDCONSTS", joinList(pkg.UntypedConsts),
 		"$TAGS", strings.Join(tagList, "\n"),
-		"$SOURCE", "`"+pkg.Source+"`",
+		"$SOURCE", pkg.Source,
 		"$LINKS", strings.Join(pkg.Links, "\n"),
 		"$ID", id)
 	src := r.Replace(tmpl)

@@ -295,6 +295,20 @@ func (p *Program) ExportSource(e *Package, info *loader.PackageInfo) error {
 				if d.Tok == token.IMPORT {
 					continue
 				}
+				if d.Tok == token.VAR {
+					var skip bool
+					for _, spec := range d.Specs {
+						for _, name := range spec.(*ast.ValueSpec).Names {
+							if name.Name == "_" {
+								skip = true
+								continue
+							}
+						}
+					}
+					if skip {
+						continue
+					}
+				}
 				outf.Decls = append(outf.Decls, d)
 			case *ast.FuncDecl:
 				outf.Decls = append(outf.Decls, d)
@@ -318,14 +332,13 @@ func (p *Program) ExportSource(e *Package, info *loader.PackageInfo) error {
 			}
 		}
 	}
-
 	var buf bytes.Buffer
 	err := printer.Fprint(&buf, p.fset, outf)
 	if err != nil {
 		return err
 	}
 	e.Links = links
-	e.Source = strings.ReplaceAll(buf.String(), "\n\n", "\n")
+	e.Source = strconv.Quote(buf.String())
 	return nil
 }
 
