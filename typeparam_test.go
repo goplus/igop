@@ -27,6 +27,7 @@ import (
 	"github.com/goplus/igop"
 	_ "github.com/goplus/igop/pkg/path/filepath"
 	_ "github.com/goplus/igop/pkg/reflect"
+	_ "github.com/goplus/igop/pkg/sync/atomic"
 )
 
 func TestTypeParamNamed(t *testing.T) {
@@ -270,6 +271,39 @@ func recur2[T Integer](n T) T {
 		sum += elt
 	}
 	return sum + recur1(n-1)
+}
+`
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAtomicPointer(t *testing.T) {
+	src := `package main
+
+import (
+	"sync/atomic"
+)
+
+func main() {
+	var i atomic.Int64
+	i.Store(200)
+	if i.Load() != 200 {
+		panic("error atomic.Int64")
+	}
+	var v atomic.Pointer[int]
+	var n int = 200
+	v.Store(&n)
+	if p := v.Load(); *p != 200 {
+		panic("error atomic.Pointer[int]")
+	}
+	var v2 atomic.Pointer[string]
+	var n2 string = "hello"
+	v2.Store(&n2)
+	if p := v2.Load(); *p != "hello" {
+		panic("error atomic.Pointer[string]")
+	}
 }
 `
 	_, err := igop.RunFile("main.go", src, nil, 0)

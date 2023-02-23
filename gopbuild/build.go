@@ -145,7 +145,7 @@ func IsClass(ext string) (isProj bool, ok bool) {
 }
 
 func NewContext(ctx *igop.Context) *Context {
-	return &Context{ctx: ctx, fset: token.NewFileSet(), gop: igop.NewTypesLoader(0)}
+	return &Context{ctx: ctx, fset: token.NewFileSet(), gop: igop.NewTypesLoader(ctx, 0)}
 }
 
 func isGopPackage(path string) bool {

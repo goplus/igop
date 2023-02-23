@@ -160,6 +160,9 @@ func runtimeFuncForPC(fr *frame, pc uintptr) *runtime.Func {
 }
 
 func findFuncByPC(interp *Interp, pc int) *function {
+	if pc == 0 {
+		return nil
+	}
 	for _, pfn := range interp.funcs {
 		if pc >= pfn.base && pc <= pfn.base+len(pfn.ssaInstrs) {
 			return pfn

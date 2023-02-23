@@ -72,6 +72,7 @@ type Package struct {
 	Deps          map[string]string // path -> name
 	Name          string
 	Path          string
+	Source        string
 }
 
 // merge same package

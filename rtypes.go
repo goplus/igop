@@ -55,6 +55,7 @@ func init() {
 
 type TypesLoader struct {
 	importer  types.Importer
+	ctx       *Context
 	tcache    *typeutil.Map
 	curpkg    *Package
 	packages  map[string]*types.Package
@@ -65,13 +66,14 @@ type TypesLoader struct {
 }
 
 // NewTypesLoader install package and readonly
-func NewTypesLoader(mode Mode) Loader {
+func NewTypesLoader(ctx *Context, mode Mode) Loader {
 	r := &TypesLoader{
 		packages:  make(map[string]*types.Package),
 		installed: make(map[string]*Package),
 		pkgloads:  make(map[string]func() error),
 		rcache:    make(map[reflect.Type]types.Type),
 		tcache:    &typeutil.Map{},
+		ctx:       ctx,
 		mode:      mode,
 	}
 	r.packages["unsafe"] = types.Unsafe
@@ -106,9 +108,34 @@ func (r *TypesLoader) LookupPackage(pkgpath string) (*types.Package, bool) {
 	return pkg, ok
 }
 
+func (r *TypesLoader) lookupRelfect(typ types.Type) (reflect.Type, bool) {
+	var star bool
+	if t, ok := typ.(*types.Pointer); ok {
+		star = true
+		typ = t.Elem()
+	}
+	if named, ok := typ.(*types.Named); ok {
+		if pkg := named.Obj().Pkg(); pkg != nil {
+			if p, ok := r.installed[pkg.Path()]; ok {
+				if rt, ok := p.NamedTypes[named.Obj().Name()]; ok {
+					if star {
+						rt = reflect.PtrTo(rt)
+					}
+					return rt, true
+				}
+			}
+		}
+	}
+	return nil, false
+}
+
 func (r *TypesLoader) LookupReflect(typ types.Type) (reflect.Type, bool) {
 	if rt := r.tcache.At(typ); rt != nil {
 		return rt.(reflect.Type), true
+	}
+	if rt, ok := r.lookupRelfect(typ); ok {
+		r.tcache.Set(typ, rt)
+		return rt, ok
 	}
 	return nil, false
 }
@@ -124,6 +151,9 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 			if load, ok := r.pkgloads[path]; ok {
 				load()
 			}
+			if pkg, ok := registerPkgs[path]; ok {
+				r.installed[path] = pkg
+			}
 		}
 		return p, nil
 	}
@@ -135,6 +165,18 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 	r.packages[path] = p
 	for dep := range pkg.Deps {
 		r.Import(dep)
+	}
+	if len(pkg.Source) > 0 {
+		tp, err := r.ctx.addImportFile(pkg.Path, pkg.Name+".go", pkg.Source)
+		if err != nil {
+			return nil, err
+		}
+		if err := tp.Load(); err != nil {
+			return nil, err
+		}
+		r.packages[path] = tp.Package
+		r.installed[path] = pkg
+		return tp.Package, nil
 	}
 	if err := r.installPackage(pkg); err != nil {
 		return nil, err
