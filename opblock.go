@@ -149,16 +149,16 @@ func (p *function) allocFrame(caller *frame) *frame {
 		fr.stack = append([]value{}, p.stack...)
 	}
 	fr.caller = caller
-	if caller != nil {
-		fr.deferid = caller.deferid
-		caller.callee = fr
-	}
+	fr.deferid = caller.deferid
+	caller.callee = fr
 	return fr
 }
 
-func (p *function) deleteFrame(fr *frame) {
+func (p *function) deleteFrame(caller *frame, fr *frame) {
 	if atomic.LoadInt32(&p.cached) == 1 {
 		p.pool.Put(fr)
+	} else {
+		caller.callee = nil
 	}
 	fr = nil
 }
@@ -821,7 +821,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
 			atomic.AddInt32(&interp.goroutines, 1)
 			go func() {
-				interp.callDiscardsResult(nil, fn, args, instr.Call.Args)
+				interp.callDiscardsResult(&frame{}, fn, args, instr.Call.Args)
 				atomic.AddInt32(&interp.goroutines, -1)
 			}()
 		}

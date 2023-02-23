@@ -54,6 +54,7 @@ func init() {
 			runtime.Goexit()
 		}
 	})
+	RegisterExternal("runtime.GC", runtimeGC)
 	RegisterExternal("runtime.Caller", runtimeCaller)
 	RegisterExternal("runtime.FuncForPC", runtimeFuncForPC)
 	RegisterExternal("runtime.Callers", runtimeCallers)
@@ -126,7 +127,7 @@ func runtimeCallers(fr *frame, skip int, pc []uintptr) int {
 	pcs[0] -= 1
 
 	caller := fr
-	for caller != nil {
+	for caller.valid() {
 		link := caller._panic
 		for link != nil {
 			pcs = append(pcs, uintptr(reflect.ValueOf(runtimePanic).Pointer()))
@@ -361,4 +362,12 @@ func fixedFuncName(fn *ssa.Function) (name string, autogen bool) {
 		}
 	}
 	return name, false
+}
+
+func runtimeGC(fr *frame) {
+	for fr.valid() {
+		fr.gc()
+		fr = fr.caller
+	}
+	runtime.GC()
 }

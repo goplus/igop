@@ -325,7 +325,7 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 		return nil, fmt.Errorf("no function %v", fnname)
 	}
 	pfn := i.funcs[fn]
-	fr := pfn.allocFrame(nil)
+	fr := pfn.allocFrame(&frame{})
 	if fs != nil {
 		copy(fr.stack, fs.fr.stack)
 		fr.ipc = fs.pc

@@ -145,7 +145,7 @@ func (i *Interp) tryDeferFrame() *frame {
 			return f.(*frame)
 		}
 	}
-	return nil
+	return &frame{}
 }
 
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
@@ -195,6 +195,14 @@ type frame struct {
 	ipc     int
 	pred    int
 	deferid int64
+}
+
+func (fr *frame) gc() {
+
+}
+
+func (fr *frame) valid() bool {
+	return fr != nil && fr.pfn != nil
 }
 
 func (fr *frame) pc() uintptr {
@@ -524,7 +532,7 @@ func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []
 	} else if pfn.nres > 1 {
 		result = tuple(fr.stack[0:pfn.nres])
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 	return
 }
 
@@ -548,7 +556,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 			}
 		}
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 	return
 }
 
@@ -561,7 +569,7 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *function, args [
 		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register, ia []register) {
@@ -570,7 +578,7 @@ func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register,
 		fr.stack[i] = caller.reg(ia[i])
 	}
 	fr.run()
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register, ia []register) {
@@ -580,7 +588,7 @@ func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register,
 	}
 	fr.run()
 	caller.setReg(ir, fr.stack[0])
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register, ia []register) {
@@ -590,7 +598,7 @@ func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register,
 	}
 	fr.run()
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, ia []register) {
@@ -604,7 +612,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, 
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir register, ia []register) {
@@ -617,7 +625,7 @@ func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir 
 		fr.ipc++
 		fn(fr)
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir register, ia []register) {
@@ -631,7 +639,7 @@ func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir 
 		fn(fr)
 	}
 	caller.setReg(ir, fr.stack[0])
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir register, ia []register) {
@@ -645,7 +653,7 @@ func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir 
 		fn(fr)
 	}
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
@@ -662,7 +670,7 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir reg
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
@@ -683,7 +691,7 @@ func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *functio
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env []value) value {
@@ -1077,7 +1085,7 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {
-		r = i.call(nil, fn, args, nil)
+		r = i.call(&frame{}, fn, args, nil)
 	} else {
 		err = fmt.Errorf("no function %v", name)
 	}
