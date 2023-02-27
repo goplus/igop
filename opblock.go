@@ -109,7 +109,7 @@ type function struct {
 	Fn        *ssa.Function        // ssa function
 	Main      *ssa.BasicBlock      // Fn.Blocks[0]
 	pool      *sync.Pool           // create frame pool
-	index     map[ssa.Value]uint32 // stack index
+	index     map[ssa.Value]uint32 // stack value index 32bit: kind(2) reflect.Kind(6) index(24)
 	Instrs    []func(fr *frame)    // main instrs
 	Recover   []func(fr *frame)    // recover instrs
 	Blocks    []int                // block offset
@@ -188,7 +188,7 @@ func (p *function) PositionForPC(pc int) token.Position {
 func (p *function) regIndex3(v ssa.Value) (register, kind, value) {
 	instr := p.regInstr(v)
 	index := int(instr & 0xffffff)
-	return register(index), kind(instr >> 24), p.stack[index]
+	return register(index), kind(instr >> 30), p.stack[index]
 }
 
 func (p *function) regIndex(v ssa.Value) register {
@@ -226,7 +226,11 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 			}
 		}
 	}
-	i := uint32(len(p.stack) | int(vk<<24))
+	var kind reflect.Kind
+	if v != nil {
+		kind = toKind(v.Type())
+	}
+	i := uint32(len(p.stack) | int(vk<<30) | int(kind<<24))
 	p.stack = append(p.stack, vs)
 	p.index[v] = i
 	return i
@@ -1172,4 +1176,86 @@ func (it *mapIter) next() tuple {
 	}
 	k, v := it.iter.Key().Interface(), it.iter.Value().Interface()
 	return []value{true, k, v}
+}
+
+func toKind(typ types.Type) reflect.Kind {
+retry:
+	switch t := typ.(type) {
+	case *types.Basic:
+		switch t.Kind() {
+		case types.Bool:
+			return reflect.Bool
+		case types.Int:
+			return reflect.Int
+		case types.Int8:
+			return reflect.Int8
+		case types.Int16:
+			return reflect.Int16
+		case types.Int32:
+			return reflect.Int32
+		case types.Int64:
+			return reflect.Int64
+		case types.Uint:
+			return reflect.Uint
+		case types.Uint8:
+			return reflect.Uint8
+		case types.Uint16:
+			return reflect.Uint16
+		case types.Uint32:
+			return reflect.Uint32
+		case types.Uint64:
+			return reflect.Uint64
+		case types.Uintptr:
+			return reflect.Uintptr
+		case types.Float32:
+			return reflect.Float32
+		case types.Float64:
+			return reflect.Float64
+		case types.Complex64:
+			return reflect.Complex64
+		case types.Complex128:
+			return reflect.Complex128
+		case types.String:
+			return reflect.String
+		case types.UnsafePointer:
+			return reflect.UnsafePointer
+		// types for untyped values
+		case types.UntypedBool:
+			return reflect.Bool
+		case types.UntypedInt:
+			return reflect.Int
+		case types.UntypedRune:
+			return reflect.Int32
+		case types.UntypedFloat:
+			return reflect.Float64
+		case types.UntypedComplex:
+			return reflect.Complex128
+		case types.UntypedString:
+			return reflect.String
+		case types.UntypedNil:
+			return reflect.Invalid
+		}
+	case *types.Chan:
+		return reflect.Chan
+	case *types.Named:
+		typ = t.Underlying()
+		goto retry
+	case *types.Signature:
+		return reflect.Func
+	case *types.Slice:
+		return reflect.Slice
+	case *types.Array:
+		return reflect.Array
+	case *types.Pointer:
+		return reflect.Ptr
+	case *types.Struct:
+		return reflect.Struct
+	case *types.Map:
+		return reflect.Map
+	case *types.Interface:
+		return reflect.Interface
+	case *types.Tuple:
+		return reflect.Slice
+	}
+	return reflect.Invalid
 }

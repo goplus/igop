@@ -202,8 +202,14 @@ func (fr *frame) gc() {
 	check := make(map[int]bool)
 	for k, v := range fr.pfn.index {
 		index := int(v & 0xffffff)
-		kind := kind(v >> 24)
-		if kind.isStatic() {
+		vk := kind(v >> 30)
+		if vk.isStatic() {
+			continue
+		}
+		rk := reflect.Kind(v >> 24 & 0x3f)
+		switch rk {
+		case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
+		default:
 			continue
 		}
 		if instr, ok := k.(ssa.Instruction); ok {
@@ -225,11 +231,7 @@ func (fr *frame) gc() {
 		}
 	}
 	for i := range check {
-		v := reflect.ValueOf(fr.stack[i])
-		switch v.Kind() {
-		case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
-			fr.stack[i] = nil
-		}
+		fr.stack[i] = nil
 	}
 }
 
