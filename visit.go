@@ -260,8 +260,9 @@ func (visit *visitor) function(fn *ssa.Function) {
 				if index == 0 {
 					ofn := ifn
 					bi := b.Index
+					common := b.Comment
 					ifn = func(fr *frame) {
-						log.Printf(".%v\n", bi)
+						log.Printf(".%v %v\n", bi, common)
 						ofn(fr)
 					}
 				}

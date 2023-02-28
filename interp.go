@@ -115,6 +115,7 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		Interp: i,
 		Fn:     fn,
 		index:  make(map[ssa.Value]uint32),
+		ipcs:    make(map[int]int),
 		narg:   len(fn.Params),
 		nenv:   len(fn.FreeVars),
 	}
@@ -198,9 +199,15 @@ type frame struct {
 }
 
 func (fr *frame) gc() {
+	switch v := fr.block.Comment; v {
+	case "entry":
+	case "if.done":
+	default:
+		return
+	}
 	var ops []*ssa.Value
 	check := make(map[int]bool)
-	for k, v := range fr.pfn.index {
+	for _, v := range fr.pfn.index {
 		index := int(v & 0xffffff)
 		vk := kind(v >> 30)
 		if vk.isStatic() {
@@ -212,12 +219,8 @@ func (fr *frame) gc() {
 		default:
 			continue
 		}
-		if instr, ok := k.(ssa.Instruction); ok {
-			if instr.Block().Index >= fr.block.Index ||
-				(fr.block.Comment == "if.done" && instr.Block().Index <= fr.pred) {
-				check[index] = true
-			}
-		} else {
+		pc := fr.pfn.ipcs[index]
+		if pc < fr.ipc {
 			check[index] = true
 		}
 	}

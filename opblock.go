@@ -110,6 +110,7 @@ type function struct {
 	Main      *ssa.BasicBlock      // Fn.Blocks[0]
 	pool      *sync.Pool           // create frame pool
 	index     map[ssa.Value]uint32 // stack value index 32bit: kind(2) reflect.Kind(6) index(24)
+	ipcs      map[int]int          // map index -> pc
 	Instrs    []func(fr *frame)    // main instrs
 	Recover   []func(fr *frame)    // recover instrs
 	Blocks    []int                // block offset
@@ -231,6 +232,7 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 		kind = toKind(v.Type())
 	}
 	i := uint32(len(p.stack) | int(vk<<30) | int(kind<<24))
+	p.ipcs[len(p.stack)] = len(p.Instrs)
 	p.stack = append(p.stack, vs)
 	p.index[v] = i
 	return i
