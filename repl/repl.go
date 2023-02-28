@@ -128,16 +128,16 @@ func (r *REPL) Dump(expr string) {
 		}
 	}
 	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%v)", expr))
-	if err != nil {
-		err = r.tryDumpByPkg(expr)
-		if err != nil {
-			r.Printf("not found %v\n", expr)
-		}
+	if err == nil {
 		return
-		if err := r.godoc(expr); err != nil {
-			r.Printf("not found %v\n", expr)
-		}
 	}
+	if err = r.godoc(expr); err == nil {
+		return
+	}
+	if err = r.tryDumpByPkg(expr); err == nil {
+		return
+	}
+	r.Printf("not found %v\n", expr)
 }
 
 func (r *REPL) tryDumpByPkg(expr string) error {

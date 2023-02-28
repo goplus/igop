@@ -3,8 +3,8 @@ module github.com/goplus/igop
 go 1.14
 
 require (
-	github.com/goplus/gop v1.1.3
-	github.com/goplus/gox v1.11.21
+	github.com/goplus/gop v1.1.4-0.20230225130145-e37691ce5fea
+	github.com/goplus/gox v1.11.32
 	github.com/goplus/reflectx v1.0.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/peterh/liner v1.2.2
@@ -13,6 +13,5 @@ require (
 	github.com/visualfc/goid v0.2.0
 	github.com/visualfc/xtype v0.1.2
 	golang.org/x/mod v0.7.0
-	golang.org/x/text v0.6.0
 	golang.org/x/tools v0.5.0
 )
