@@ -1160,6 +1160,11 @@ func (i *Interp) GetType(key string) (reflect.Type, bool) {
 }
 
 func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
+	defer func() {
+		if v := recover(); v != nil {
+			ok = false
+		}
+	}()
 	ar := strings.Split(key, ".")
 	var pkg *ssa.Package
 	switch len(ar) {
