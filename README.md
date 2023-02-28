@@ -61,7 +61,7 @@ igop export      # export Go package to igop builtin package
 ```shell
 igop                       # run repl mode, support Go/Go+
 igop repl                  # run repl mode, support Go/Go+
-igop repl -gop=false       # run repl mode, disable Go+ syntax
+igop repl -go              # run repl mode, disable Go+ syntax
 ```
 
 ### igop test unsupport features

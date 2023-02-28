@@ -38,14 +38,16 @@ var Cmd = &base.Command{
 
 var (
 	flag          = &Cmd.Flag
-	flagGoplus    bool
+	flagGoPlus    bool
+	flagGoOnly    bool
 	flagDumpInstr bool
 	flagTrace     bool
 )
 
 func init() {
 	Cmd.Run = runCmd
-	flag.BoolVar(&flagGoplus, "gop", true, "support goplus")
+	flag.BoolVar(&flagGoPlus, "gop", true, "support Go+ mode")
+	flag.BoolVar(&flagGoOnly, "go", false, "use Go mode only")
 	flag.BoolVar(&flagDumpInstr, "dump", false, "dump SSA instruction code")
 	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
 }
@@ -67,11 +69,21 @@ func (u *LinerUI) Printf(format string, a ...interface{}) {
 }
 
 var (
-	welcomeGo  string = fmt.Sprintf("Welcome to Go (version %v) REPL!", runtime.Version())
-	welcomeGop string = "Welcome to Go+ REPL!"
+	welcomeGo string = fmt.Sprintf("iGo+ v0.9.9 (build %v %v/%v)", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 )
 
+var helpGo string = `Use ?expr to dump expr information
+Use ?pkg.symbol to dump pkg symbol information
+Use help() to show help information
+Use exit() or Ctrl-D to exit`
+
+var helpGop string = `Use ?expr to dump expr information
+Use ?pkg.symbol to dump pkg symbol information
+Use help to show help information
+Use exit or Ctrl-D to exit`
+
 var (
+	gopVersion    string
 	supportGoplus bool
 )
 
@@ -80,12 +92,20 @@ func runCmd(cmd *base.Command, args []string) {
 	if err != nil {
 		os.Exit(2)
 	}
-
-	if supportGoplus && flagGoplus {
-		fmt.Println(welcomeGop)
-	} else {
-		fmt.Println(welcomeGo)
+	if flagGoOnly {
+		flagGoPlus = false
 	}
+	var help string
+	var welcome string
+	if supportGoplus && flagGoPlus {
+		welcome = welcomeGo + " (Go+ version " + gopVersion + ")"
+		help = helpGop
+	} else {
+		welcome = welcomeGo
+		help = helpGo
+	}
+	fmt.Println(welcome)
+	fmt.Println(help)
 
 	state := liner.NewLiner()
 	defer state.Close()
@@ -110,9 +130,12 @@ func runCmd(cmd *base.Command, args []string) {
 	igop.RegisterCustomBuiltin("exit", func() {
 		r.Interp().Exit(0)
 	})
+	igop.RegisterCustomBuiltin("help", func() {
+		fmt.Println(help)
+	})
 	r = repl.NewREPL(mode)
 	r.SetUI(ui)
-	if supportGoplus && flagGoplus {
+	if supportGoplus && flagGoPlus {
 		r.SetFileName("main.gop")
 	}
 	for {
@@ -123,6 +146,10 @@ func runCmd(cmd *base.Command, args []string) {
 				break
 			}
 			fmt.Printf("Problem reading line: %v\n", err)
+			continue
+		}
+		if strings.TrimSpace(line) == "?" {
+			fmt.Println(help)
 			continue
 		}
 		if line != "" {
