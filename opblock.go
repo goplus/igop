@@ -116,14 +116,13 @@ type function struct {
 	Blocks     []int                        // block offset
 	stack      []value                      // results args envs datas
 	ssaInstrs  []ssa.Instruction            // org ssa instr
+	makeInstr  ssa.Instruction              // make instr check
 	base       int                          // base of interp
 	nres       int                          // results count
 	narg       int                          // arguments count
 	nenv       int                          // closure free vars count
 	used       int32                        // function used count
 	cached     int32                        // enable cached by pool
-	makeInstr  ssa.Instruction
-	ipcs       map[int]int
 }
 
 func (p *function) initPool() {
@@ -234,7 +233,6 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 		kind = toKind(v.Type())
 	}
 	i := uint32(len(p.stack) | int(vk<<30) | int(kind<<24))
-	p.ipcs[len(p.stack)] = len(p.Instrs)
 	p.stack = append(p.stack, vs)
 	p.index[v] = i
 	p.instrIndex[p.makeInstr] = append(p.instrIndex[p.makeInstr], i)

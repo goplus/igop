@@ -116,7 +116,6 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		Fn:         fn,
 		index:      make(map[ssa.Value]uint32),
 		instrIndex: make(map[ssa.Instruction][]uint32),
-		ipcs:       make(map[int]int),
 		narg:       len(fn.Params),
 		nenv:       len(fn.FreeVars),
 	}
@@ -299,57 +298,6 @@ func (fr *frame) gc() {
 			continue
 		}
 		fr.stack[i] = nil
-	}
-	// switch v := fr.block.Comment; v {
-	// case "entry":
-	// case "if.done":
-	// default:
-	// 	return
-	// }
-	// // var ops []*ssa.Value
-	// check := make(map[int]bool)
-	// for _, v := range fr.pfn.index {
-	// 	index := int(v & 0xffffff)
-	// 	vk := kind(v >> 30)
-	// 	if vk.isStatic() {
-	// 		continue
-	// 	}
-	// 	rk := reflect.Kind(v >> 24 & 0x3f)
-	// 	switch rk {
-	// 	case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
-	// 	default:
-	// 		continue
-	// 	}
-	// 	pc := fr.pfn.ipcs[index]
-	// 	if pc < fr.ipc {
-	// 		check[index] = true
-	// 	}
-	// }
-	// for _, instr := range fr.pfn.ssaInstrs[fr.ipc:] {
-	// 	for _, op := range instr.Operands(ops[:0]) {
-	// 		if *op == nil {
-	// 			continue
-	// 		}
-	// 		reg := fr.pfn.regIndex(*op)
-	// 		delete(check, int(reg))
-	// 	}
-	// }
-	// for i := range check {
-	// 	if fr.stack[i] == nil {
-	// 		continue
-	// 	}
-	// 	fr.dumpReg(i)
-	// 	log.Printf("r check=> %v %T %v\n", i, fr.stack[i], reflect.ValueOf(fr.stack[i]).Len())
-	// 	fr.stack[i] = nil
-	// }
-}
-
-func (fr *frame) dumpReg(i int) {
-	for k, v := range fr.pfn.index {
-		index := int(v & 0xffffff)
-		if i == index {
-			fmt.Printf("dump %v value => %v     %v\n", i, k, fr.pfn.ssaInstrs[fr.pfn.ipcs[i]])
-		}
 	}
 }
 
