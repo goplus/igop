@@ -404,8 +404,8 @@ func (fr *frame) copyReg(dst register, src register) {
 
 type _panic struct {
 	arg       interface{}
-	pcs       []uintptr
 	link      *_panic
+	pcs       []uintptr
 	aborted   bool
 	recovered bool
 }
