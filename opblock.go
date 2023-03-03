@@ -105,23 +105,25 @@ type closure struct {
 }
 
 type function struct {
-	Interp    *Interp
-	Fn        *ssa.Function        // ssa function
-	Main      *ssa.BasicBlock      // Fn.Blocks[0]
-	pool      *sync.Pool           // create frame pool
-	index     map[ssa.Value]uint32 // stack value index 32bit: kind(2) reflect.Kind(6) index(24)
-	ipcs      map[int]int          // map index -> pc
-	Instrs    []func(fr *frame)    // main instrs
-	Recover   []func(fr *frame)    // recover instrs
-	Blocks    []int                // block offset
-	stack     []value              // results args envs datas
-	ssaInstrs []ssa.Instruction    // org ssa instr
-	base      int                  // base of interp
-	nres      int                  // results count
-	narg      int                  // arguments count
-	nenv      int                  // closure free vars count
-	used      int32                // function used count
-	cached    int32                // enable cached by pool
+	Interp     *Interp
+	Fn         *ssa.Function                // ssa function
+	Main       *ssa.BasicBlock              // Fn.Blocks[0]
+	pool       *sync.Pool                   // create frame pool
+	index      map[ssa.Value]uint32         // stack value index 32bit: kind(2) reflect.Kind(6) index(24)
+	instrIndex map[ssa.Instruction][]uint32 // instr -> index
+	Instrs     []func(fr *frame)            // main instrs
+	Recover    []func(fr *frame)            // recover instrs
+	Blocks     []int                        // block offset
+	stack      []value                      // results args envs datas
+	ssaInstrs  []ssa.Instruction            // org ssa instr
+	base       int                          // base of interp
+	nres       int                          // results count
+	narg       int                          // arguments count
+	nenv       int                          // closure free vars count
+	used       int32                        // function used count
+	cached     int32                        // enable cached by pool
+	makeInstr  ssa.Instruction
+	ipcs       map[int]int
 }
 
 func (p *function) initPool() {
@@ -235,6 +237,7 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 	p.ipcs[len(p.stack)] = len(p.Instrs)
 	p.stack = append(p.stack, vs)
 	p.index[v] = i
+	p.instrIndex[p.makeInstr] = append(p.instrIndex[p.makeInstr], i)
 	return i
 }
 

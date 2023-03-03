@@ -112,12 +112,13 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		return pfn
 	}
 	pfn := &function{
-		Interp: i,
-		Fn:     fn,
-		index:  make(map[ssa.Value]uint32),
-		ipcs:    make(map[int]int),
-		narg:   len(fn.Params),
-		nenv:   len(fn.FreeVars),
+		Interp:     i,
+		Fn:         fn,
+		index:      make(map[ssa.Value]uint32),
+		instrIndex: make(map[ssa.Instruction][]uint32),
+		ipcs:       make(map[int]int),
+		narg:       len(fn.Params),
+		nenv:       len(fn.FreeVars),
 	}
 	if len(fn.Blocks) > 0 {
 		pfn.Main = fn.Blocks[0]
@@ -199,42 +200,156 @@ type frame struct {
 }
 
 func (fr *frame) gc() {
-	switch v := fr.block.Comment; v {
-	case "entry":
-	case "if.done":
-	default:
-		return
+	alloc := make(map[int]bool)
+	checkAlloc := func(instr ssa.Instruction) {
+		for _, v := range fr.pfn.instrIndex[instr] {
+			vk := kind(v >> 30)
+			if vk.isStatic() {
+				continue
+			}
+			rk := reflect.Kind(v >> 24 & 0x3f)
+			switch rk {
+			case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
+			default:
+				continue
+			}
+			alloc[int(v&0xffffff)] = true
+		}
 	}
+	// check params and freevar
+	checkAlloc(nil)
+	// check alloc
+	cur := fr.pfn.ssaInstrs[fr.ipc-1]
+	var remain int
+	for i, instr := range fr.block.Instrs {
+		checkAlloc(instr)
+		if cur == instr {
+			remain = i
+			break
+		}
+	}
+
+	// check
+	seen := make(map[*ssa.BasicBlock]bool)
+	var checkChild func(block *ssa.BasicBlock)
+	checkChild = func(block *ssa.BasicBlock) {
+		for _, child := range block.Dominees() {
+			if seen[child] {
+				continue
+			}
+			seen[child] = true
+			checkChild(child)
+		}
+	}
+	// check block child
+	checkChild(fr.block)
+	// check block idom
+	block := fr.block
+	for block != nil {
+		idom := block.Idom()
+		if idom == nil {
+			break
+		}
+		var find bool
+		switch idom.Comment {
+		case "rangeindex.loop", "for.loop":
+			find = true
+		}
+		for _, v := range idom.Dominees() {
+			if find {
+				seen[v] = true
+				checkChild(v)
+			}
+			if v == block {
+				find = true
+			}
+		}
+		for _, instr := range idom.Instrs {
+			checkAlloc(instr)
+		}
+		block = idom
+	}
+	// check used in block
 	var ops []*ssa.Value
-	check := make(map[int]bool)
-	for _, v := range fr.pfn.index {
-		index := int(v & 0xffffff)
-		vk := kind(v >> 30)
-		if vk.isStatic() {
-			continue
-		}
-		rk := reflect.Kind(v >> 24 & 0x3f)
-		switch rk {
-		case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
-		default:
-			continue
-		}
-		pc := fr.pfn.ipcs[index]
-		if pc < fr.ipc {
-			check[index] = true
-		}
-	}
-	for _, instr := range fr.pfn.ssaInstrs[fr.ipc:] {
+	for _, instr := range fr.block.Instrs[remain+1:] {
 		for _, op := range instr.Operands(ops[:0]) {
 			if *op == nil {
 				continue
 			}
 			reg := fr.pfn.regIndex(*op)
-			delete(check, int(reg))
+			alloc[int(reg)] = false
 		}
 	}
-	for i := range check {
+	// check unused in seen
+	for block := range seen {
+		var ops []*ssa.Value
+		for _, instr := range block.Instrs {
+			for _, op := range instr.Operands(ops[:0]) {
+				if *op == nil {
+					continue
+				}
+				reg := fr.pfn.regIndex(*op)
+				alloc[int(reg)] = false
+			}
+		}
+	}
+	// remove unused
+	for i, b := range alloc {
+		if !b {
+			continue
+		}
 		fr.stack[i] = nil
+	}
+	// switch v := fr.block.Comment; v {
+	// case "entry":
+	// case "if.done":
+	// default:
+	// 	return
+	// }
+	// // var ops []*ssa.Value
+	// check := make(map[int]bool)
+	// for _, v := range fr.pfn.index {
+	// 	index := int(v & 0xffffff)
+	// 	vk := kind(v >> 30)
+	// 	if vk.isStatic() {
+	// 		continue
+	// 	}
+	// 	rk := reflect.Kind(v >> 24 & 0x3f)
+	// 	switch rk {
+	// 	case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
+	// 	default:
+	// 		continue
+	// 	}
+	// 	pc := fr.pfn.ipcs[index]
+	// 	if pc < fr.ipc {
+	// 		check[index] = true
+	// 	}
+	// }
+	// for _, instr := range fr.pfn.ssaInstrs[fr.ipc:] {
+	// 	for _, op := range instr.Operands(ops[:0]) {
+	// 		if *op == nil {
+	// 			continue
+	// 		}
+	// 		reg := fr.pfn.regIndex(*op)
+	// 		delete(check, int(reg))
+	// 	}
+	// }
+	// for i := range check {
+	// 	if fr.stack[i] == nil {
+	// 		continue
+	// 	}
+	// 	fr.dumpReg(i)
+	// 	log.Printf("r check=> %v %T %v\n", i, fr.stack[i], reflect.ValueOf(fr.stack[i]).Len())
+	// 	fr.stack[i] = nil
+	// }
+}
+
+func (fr *frame) dumpReg(i int) {
+	for k, v := range fr.pfn.index {
+		index := int(v & 0xffffff)
+		if i == index {
+			fmt.Printf("dump %v value => %v     %v\n", i, k, fr.pfn.ssaInstrs[fr.pfn.ipcs[i]])
+		}
 	}
 }
 
