@@ -119,9 +119,6 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		narg:       len(fn.Params),
 		nenv:       len(fn.FreeVars),
 	}
-	if len(fn.Blocks) > 0 {
-		pfn.Main = fn.Blocks[0]
-	}
 	if res := fn.Signature.Results(); res != nil {
 		pfn.nres = res.Len()
 		pfn.stack = make([]value, pfn.nres)
