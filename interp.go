@@ -248,7 +248,7 @@ func (fr *frame) gc() {
 		}
 		var find bool
 		switch idom.Comment {
-		case "rangeindex.loop", "for.loop":
+		case "rangeindex.loop", "rangeiter.loop", "rangechan.loop", "for.loop":
 			find = true
 		}
 		for _, v := range idom.Dominees() {
