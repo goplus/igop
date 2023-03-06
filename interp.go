@@ -216,9 +216,10 @@ func dumpBlock(block *ssa.BasicBlock, level int, pc ssa.Instruction) {
 	}
 }
 
+// TODO implement gc
 func (fr *frame) gc() {
-	dumpBlock(fr.pfn.Fn.Blocks[0], 0, fr.pfn.ssaInstrs[fr.ipc-1])
-
+	//dumpBlock(fr.pfn.Fn.Blocks[0], 0, fr.pfn.ssaInstrs[fr.ipc-1])
+	return
 	alloc := make(map[int]bool)
 	checkAlloc := func(instr ssa.Instruction) {
 		for _, v := range fr.pfn.instrIndex[instr] {
