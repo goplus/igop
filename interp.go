@@ -50,6 +50,7 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
+	"log"
 	"reflect"
 	"runtime"
 	"strings"
@@ -195,7 +196,26 @@ type frame struct {
 	deferid int64
 }
 
+func dumpBlock(block *ssa.BasicBlock, level int, pc ssa.Instruction) {
+	if level == 0 {
+		fmt.Printf("--- %v ---\n", block.Parent())
+	}
+	fmt.Printf("%v.%v %v    Jump:%v Idom:%v\n", strings.Repeat("  ", level), block.Index, block.Comment, block.Succs, block.Idom())
+	for _, instr := range block.Instrs {
+		if instr == pc {
+			fmt.Printf(" %v=> %T %v\n", strings.Repeat("    ", level), instr, instr)
+		} else {
+			fmt.Printf("   %v %T %v\n", strings.Repeat("    ", level), instr, instr)
+		}
+	}
+	for _, v := range block.Dominees() {
+		dumpBlock(v, level+1, pc)
+	}
+}
+
 func (fr *frame) gc() {
+	dumpBlock(fr.pfn.Fn.Blocks[0], 0, fr.pfn.ssaInstrs[fr.ipc-1])
+
 	alloc := make(map[int]bool)
 	checkAlloc := func(instr ssa.Instruction) {
 		for _, v := range fr.pfn.instrIndex[instr] {
@@ -216,15 +236,6 @@ func (fr *frame) gc() {
 	checkAlloc(nil)
 	// check alloc
 	cur := fr.pfn.ssaInstrs[fr.ipc-1]
-	var remain int
-	for i, instr := range fr.block.Instrs {
-		checkAlloc(instr)
-		if cur == instr {
-			remain = i
-			break
-		}
-	}
-
 	// check
 	seen := make(map[*ssa.BasicBlock]bool)
 	var checkChild func(block *ssa.BasicBlock)
@@ -265,15 +276,34 @@ func (fr *frame) gc() {
 		}
 		block = idom
 	}
-	// check used in block
-	var ops []*ssa.Value
-	for _, instr := range fr.block.Instrs[remain+1:] {
-		for _, op := range instr.Operands(ops[:0]) {
-			if *op == nil {
-				continue
+
+	switch fr.block.Comment {
+	case "for.body":
+		for _, instr := range fr.block.Instrs {
+			checkAlloc(instr)
+		}
+		seen[fr.block] = true
+	case "for.done":
+		delete(seen, fr.block)
+		// check alloc in block
+		var remain int
+		for i, instr := range fr.block.Instrs {
+			checkAlloc(instr)
+			if cur == instr {
+				remain = i
+				break
 			}
-			reg := fr.pfn.regIndex(*op)
-			alloc[int(reg)] = false
+		}
+		// check used in block
+		var ops []*ssa.Value
+		for _, instr := range fr.block.Instrs[remain+1:] {
+			for _, op := range instr.Operands(ops[:0]) {
+				if *op == nil {
+					continue
+				}
+				reg := fr.pfn.regIndex(*op)
+				alloc[int(reg)] = false
+			}
 		}
 	}
 	// check unused in seen
@@ -294,6 +324,7 @@ func (fr *frame) gc() {
 		if !b {
 			continue
 		}
+		log.Printf("=> unused %v %T\n", fr.stack[i], fr.stack[i])
 		fr.stack[i] = nil
 	}
 }
