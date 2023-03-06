@@ -107,6 +107,7 @@ type closure struct {
 type function struct {
 	Interp     *Interp
 	Fn         *ssa.Function                // ssa function
+	Main       *ssa.BasicBlock              // Fn.Blocks[0]
 	pool       *sync.Pool                   // create frame pool
 	makeInstr  ssa.Instruction              // make instr check
 	index      map[ssa.Value]uint32         // stack value index 32bit: kind(2) reflect.Kind(6) index(24)
@@ -127,7 +128,7 @@ type function struct {
 func (p *function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
-		fr := &frame{pfn: p, block: p.Fn.Blocks[0]}
+		fr := &frame{pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 		return fr
 	}
@@ -137,7 +138,7 @@ func (p *function) allocFrame(caller *frame) *frame {
 	var fr *frame
 	if atomic.LoadInt32(&p.cached) == 1 {
 		fr = p.pool.Get().(*frame)
-		fr.block = p.Fn.Blocks[0]
+		fr.block = p.Main
 		fr._defer = nil
 		fr._panic = nil
 		fr.ipc = 0
@@ -146,7 +147,7 @@ func (p *function) allocFrame(caller *frame) *frame {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
 			atomic.StoreInt32(&p.cached, 1)
 		}
-		fr = &frame{pfn: p, block: p.Fn.Blocks[0]}
+		fr = &frame{pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 	}
 	fr.caller = caller
