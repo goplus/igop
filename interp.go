@@ -50,7 +50,6 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"log"
 	"reflect"
 	"runtime"
 	"strings"
@@ -216,10 +215,159 @@ func dumpBlock(block *ssa.BasicBlock, level int, pc ssa.Instruction) {
 	}
 }
 
+type tasks struct {
+	jumps map[*ssa.BasicBlock]bool
+}
+
+func checkJumps(block *ssa.BasicBlock, jumps map[*ssa.BasicBlock]bool, succs map[*ssa.BasicBlock]*ssa.BasicBlock) {
+	if s, ok := succs[block]; ok {
+		if jumps[s] {
+			return
+		}
+		jumps[s] = true
+		checkJumps(s, jumps, succs)
+		return
+	}
+	for _, s := range block.Succs {
+		if jumps[s] {
+			continue
+		}
+		jumps[s] = true
+		checkJumps(s, jumps, succs)
+	}
+}
+
+func checkRuns(block *ssa.BasicBlock, jumps map[*ssa.BasicBlock]bool, succs map[*ssa.BasicBlock]*ssa.BasicBlock) {
+	if jumps[block] {
+		return
+	}
+	jumps[block] = true
+	if s, ok := succs[block]; ok {
+		checkRuns(s, jumps, succs)
+		return
+	}
+	for _, s := range block.Dominees() {
+		checkRuns(s, jumps, succs)
+	}
+}
+
 // TODO implement gc
 func (fr *frame) gc() {
-	//dumpBlock(fr.pfn.Fn.Blocks[0], 0, fr.pfn.ssaInstrs[fr.ipc-1])
-	return
+	// defer fr.gc2()
+	// return
+	// dumpBlock(fr.pfn.Fn.Blocks[0], 0, fr.pfn.ssaInstrs[fr.ipc-1])
+	// return
+	succs := make(map[*ssa.BasicBlock]*ssa.BasicBlock)
+	block := fr.block
+	for block != nil {
+		idom := block.Idom()
+		if idom == nil {
+			break
+		}
+		succs[idom] = block
+		block = idom
+	}
+	jumps := make(map[*ssa.BasicBlock]bool)
+	runs := make(map[*ssa.BasicBlock]bool)
+	checkJumps(fr.block, jumps, succs)
+	// runs[fr.pfn.Fn.Blocks[0]] = true
+	// runs[fr.block] = true
+	checkRuns(fr.pfn.Fn.Blocks[0], runs, succs)
+	// delete(jumps, fr.block)
+
+	// fmt.Println("=> runs", runs)
+	// return
+	alloc := make(map[int]bool)
+	checkAlloc := func(instr ssa.Instruction) {
+		for _, v := range fr.pfn.instrIndex[instr] {
+			vk := kind(v >> 30)
+			if vk.isStatic() {
+				continue
+			}
+			rk := reflect.Kind(v >> 24 & 0x3f)
+			switch rk {
+			case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
+			default:
+				continue
+			}
+			alloc[int(v&0xffffff)] = true
+		}
+		return
+	}
+	// check params and freevar
+	checkAlloc(nil)
+
+	// blocks := fr.pfn.Fn.Blocks
+	// if jumps[fr.block] && !strings.HasSuffix(fr.block.Comment, ".body") {
+	// 	fmt.Println("=> jumps1", fr.pfn.Fn, fr.block, fr.block.Comment, jumps)
+	// 	for k, _ := range jumps {
+	// 		if strings.Contains(k.Comment, ".body") {
+	// 			jumps[k] = false
+	// 		}
+	// 	}
+	// 	fmt.Println("=> jumps2", fr.pfn.Fn, fr.block, fr.block.Comment, jumps)
+	// }
+	for v, b := range runs {
+		if !b {
+			continue
+		}
+		for _, instr := range v.Instrs {
+			checkAlloc(instr)
+		}
+	}
+	// delete(jumps, fr.block)
+	if !jumps[fr.block] {
+		// delete(jumps, fr.block)
+		var remain int
+		cur := fr.pfn.ssaInstrs[fr.ipc-1]
+		for i, instr := range fr.block.Instrs {
+			checkAlloc(instr)
+			if cur == instr {
+				remain = i
+				break
+			}
+		}
+		// check used in block
+		var ops []*ssa.Value
+		for _, instr := range fr.block.Instrs[remain+1:] {
+			for _, op := range instr.Operands(ops[:0]) {
+				if *op == nil {
+					continue
+				}
+				reg := fr.pfn.regIndex(*op)
+				alloc[int(reg)] = false
+			}
+		}
+	}
+	// delete(jumps, fr.block)
+	var ops []*ssa.Value
+	for v, b := range jumps {
+		if !b {
+			continue
+		}
+		for _, instr := range v.Instrs {
+			for _, op := range instr.Operands(ops[:0]) {
+				if *op == nil {
+					continue
+				}
+				reg := fr.pfn.regIndex(*op)
+				alloc[int(reg)] = false
+			}
+		}
+	}
+	// remove unused
+	// fmt.Println("~~ jums", jumps)
+	// fmt.Println("=> alloc", alloc)
+	for i, b := range alloc {
+		if !b {
+			continue
+		}
+		//fmt.Printf("remove %T\n", fr.stack[i])
+		fr.stack[i] = nil
+	}
+}
+
+func (fr *frame) gc2() {
 	alloc := make(map[int]bool)
 	checkAlloc := func(instr ssa.Instruction) {
 		for _, v := range fr.pfn.instrIndex[instr] {
@@ -240,6 +388,15 @@ func (fr *frame) gc() {
 	checkAlloc(nil)
 	// check alloc
 	cur := fr.pfn.ssaInstrs[fr.ipc-1]
+	var remain int
+	for i, instr := range fr.block.Instrs {
+		checkAlloc(instr)
+		if cur == instr {
+			remain = i
+			break
+		}
+	}
+
 	// check
 	seen := make(map[*ssa.BasicBlock]bool)
 	var checkChild func(block *ssa.BasicBlock)
@@ -263,7 +420,7 @@ func (fr *frame) gc() {
 		}
 		var find bool
 		switch idom.Comment {
-		case "rangeindex.loop", "rangeiter.loop", "rangechan.loop", "for.loop":
+		case "rangeindex.loop", "for.loop":
 			find = true
 		}
 		for _, v := range idom.Dominees() {
@@ -280,34 +437,15 @@ func (fr *frame) gc() {
 		}
 		block = idom
 	}
-
-	switch fr.block.Comment {
-	case "for.body":
-		for _, instr := range fr.block.Instrs {
-			checkAlloc(instr)
-		}
-		seen[fr.block] = true
-	case "for.done":
-		delete(seen, fr.block)
-		// check alloc in block
-		var remain int
-		for i, instr := range fr.block.Instrs {
-			checkAlloc(instr)
-			if cur == instr {
-				remain = i
-				break
+	// check used in block
+	var ops []*ssa.Value
+	for _, instr := range fr.block.Instrs[remain+1:] {
+		for _, op := range instr.Operands(ops[:0]) {
+			if *op == nil {
+				continue
 			}
-		}
-		// check used in block
-		var ops []*ssa.Value
-		for _, instr := range fr.block.Instrs[remain+1:] {
-			for _, op := range instr.Operands(ops[:0]) {
-				if *op == nil {
-					continue
-				}
-				reg := fr.pfn.regIndex(*op)
-				alloc[int(reg)] = false
-			}
+			reg := fr.pfn.regIndex(*op)
+			alloc[int(reg)] = false
 		}
 	}
 	// check unused in seen
@@ -323,12 +461,17 @@ func (fr *frame) gc() {
 			}
 		}
 	}
+	fmt.Println("gc2 ~~", fr.pfn.Fn, seen)
+	// fmt.Println("gc2 ~~", alloc)
 	// remove unused
 	for i, b := range alloc {
 		if !b {
 			continue
 		}
-		log.Printf("=> unused %v %T\n", fr.stack[i], fr.stack[i])
+		if fr.stack[i] == nil {
+			continue
+		}
+		fmt.Printf("gc2 ~ unused %v %T\n", i, fr.stack[i])
 		fr.stack[i] = nil
 	}
 }
