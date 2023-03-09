@@ -204,10 +204,16 @@ func dumpBlock(block *ssa.BasicBlock, level int, pc ssa.Instruction) {
 	}
 	fmt.Printf("%v.%v %v    Jump:%v Idom:%v\n", strings.Repeat("  ", level), block.Index, block.Comment, block.Succs, block.Idom())
 	for _, instr := range block.Instrs {
+		var head string
 		if instr == pc {
-			fmt.Printf(" %v=> %T %v\n", strings.Repeat("    ", level), instr, instr)
+			head = " " + strings.Repeat("    ", level) + "=>"
 		} else {
-			fmt.Printf("   %v %T %v\n", strings.Repeat("    ", level), instr, instr)
+			head = "   " + strings.Repeat("    ", level)
+		}
+		if value, ok := instr.(ssa.Value); ok {
+			fmt.Printf("%v %-20T %-4v = %v %v\n", head, instr, value.Name(), instr, value.Type())
+		} else {
+			fmt.Printf("%v %-20T   %v\n", head, instr, instr)
 		}
 	}
 	for _, v := range block.Dominees() {
@@ -253,10 +259,10 @@ func checkRuns(block *ssa.BasicBlock, jumps map[*ssa.BasicBlock]bool, succs map[
 
 // TODO implement gc
 func (fr *frame) gc() {
-	// defer fr.gc2()
-	// return
-	// dumpBlock(fr.pfn.Fn.Blocks[0], 0, fr.pfn.ssaInstrs[fr.ipc-1])
-	// return
+	fr.gc2()
+}
+
+func (fr *frame) gc1() {
 	succs := make(map[*ssa.BasicBlock]*ssa.BasicBlock)
 	block := fr.block
 	for block != nil {
@@ -356,7 +362,7 @@ func (fr *frame) gc() {
 		}
 	}
 	// remove unused
-	// fmt.Println("~~ jums", jumps)
+	fmt.Println("gc1 ~~ jums", fr.pfn.Fn, jumps)
 	// fmt.Println("=> alloc", alloc)
 	for i, b := range alloc {
 		if !b {
@@ -411,8 +417,9 @@ func (fr *frame) gc2() {
 	}
 	// check block child
 	checkChild(fr.block)
-	// check block idom
+
 	block := fr.block
+	// check seen
 	for block != nil {
 		idom := block.Idom()
 		if idom == nil {
@@ -420,15 +427,19 @@ func (fr *frame) gc2() {
 		}
 		var find bool
 		switch idom.Comment {
-		case "rangeindex.loop", "for.loop":
+		case "for.loop":
 			find = true
+		case "rangeindex.loop":
+			find = true
+		case "rangechan.loop":
+		case "rangeiter.loop":
 		}
-		for _, v := range idom.Dominees() {
+		for _, v := range idom.Succs {
 			if find {
 				seen[v] = true
 				checkChild(v)
 			}
-			if v == block {
+			if block == v {
 				find = true
 			}
 		}
@@ -436,6 +447,9 @@ func (fr *frame) gc2() {
 			checkAlloc(instr)
 		}
 		block = idom
+	}
+	if fr.block.Comment == "for.done" {
+		delete(seen, fr.block)
 	}
 	// check used in block
 	var ops []*ssa.Value
@@ -461,17 +475,11 @@ func (fr *frame) gc2() {
 			}
 		}
 	}
-	fmt.Println("gc2 ~~", fr.pfn.Fn, seen)
-	// fmt.Println("gc2 ~~", alloc)
 	// remove unused
 	for i, b := range alloc {
 		if !b {
 			continue
 		}
-		if fr.stack[i] == nil {
-			continue
-		}
-		fmt.Printf("gc2 ~ unused %v %T\n", i, fr.stack[i])
 		fr.stack[i] = nil
 	}
 }
