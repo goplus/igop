@@ -30,23 +30,23 @@ func init() {
 	gorootTestSkips["nilptr.go"] = "skip drawin"
 	gorootTestSkips["heapsampling.go"] = "runtime.MemProfileRecord"
 	gorootTestSkips["makeslice.go"] = "TODO, panic info, allocation size out of range"
-	gorootTestSkips["stackobj.go"] = "skip gc"
-	gorootTestSkips["stackobj3.go"] = "skip gc"
+	// gorootTestSkips["stackobj.go"] = "skip gc"
+	// gorootTestSkips["stackobj3.go"] = "skip gc"
 	gorootTestSkips["nilptr_aix.go"] = "skip"
-	gorootTestSkips["init1.go"] = "skip gc"
+	// gorootTestSkips["init1.go"] = "skip gc"
 	gorootTestSkips["ken/divconst.go"] = "slow, 3.5s"
 	gorootTestSkips["ken/modconst.go"] = "slow, 3.3s"
 	gorootTestSkips["fixedbugs/issue24491b.go"] = "timeout"
 	gorootTestSkips["fixedbugs/issue16249.go"] = "slow, 4.5s"
 	gorootTestSkips["fixedbugs/issue13169.go"] = "slow, 5.9s"
 	gorootTestSkips["fixedbugs/issue11656.go"] = "ignore"
-	gorootTestSkips["fixedbugs/issue15281.go"] = "runtime.ReadMemStats"
+	// gorootTestSkips["fixedbugs/issue15281.go"] = "runtime.ReadMemStats"
 	gorootTestSkips["fixedbugs/issue18149.go"] = "runtime.Caller macos //line not support c:/foo/bar.go:987"
 	gorootTestSkips["fixedbugs/issue22662.go"] = "runtime.Caller got $goroot/test/fixedbugs/foo.go:1; want foo.go:1"
-	gorootTestSkips["fixedbugs/issue27518b.go"] = "BUG, runtime.SetFinalizer"
-	gorootTestSkips["fixedbugs/issue32477.go"] = "BUG, runtime.SetFinalizer"
+	// gorootTestSkips["fixedbugs/issue27518b.go"] = "BUG, runtime.SetFinalizer"
+	// gorootTestSkips["fixedbugs/issue32477.go"] = "BUG, runtime.SetFinalizer"
 	gorootTestSkips["fixedbugs/issue41239.go"] = "BUG, reflect.Append: different capacity on append"
-	gorootTestSkips["fixedbugs/issue32477.go"] = "BUG, runtime.SetFinalizer"
+	// gorootTestSkips["fixedbugs/issue32477.go"] = "BUG, runtime.SetFinalizer"
 	gorootTestSkips["fixedbugs/issue45175.go"] = "BUG, ssa.Phi call order"
 	gorootTestSkips["fixedbugs/issue4618.go"] = "testing.AllocsPerRun"
 	gorootTestSkips["fixedbugs/issue4667.go"] = "testing.AllocsPerRun"
@@ -62,14 +62,14 @@ func init() {
 	ver := runtime.Version()[:6]
 	switch ver {
 	case "go1.17", "go1.18", "go1.19", "go1.20":
-		gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
-		gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
+		// gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
+		// gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
 		gorootTestSkips["abi/fibish_closure.go"] = "slow, 35s"
 		gorootTestSkips["abi/uglyfib.go"] = "5m48s"
 		// gorootTestSkips["fixedbugs/issue23017.go"] = "BUG" //fixed https://github.com/golang/go/issues/55086
 
-		gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
+		// gorootTestSkips["typeparam/chans.go"] = "runtime.SetFinalizer"
 		// gorootTestSkips["typeparam/issue376214.go"] = "build SSA package error: variadic parameter must be of unnamed slice type"
 		if ver != "go1.20" {
 			gorootTestSkips["typeparam/nested.go"] = "skip, run pass but output same as go1.20"
@@ -81,7 +81,7 @@ func init() {
 		gorootTestSkips["fixedbugs/issue42076.go"] = "skip cgo"
 		gorootTestSkips["fixedbugs/issue46903.go"] = "skip cgo"
 		gorootTestSkips["fixedbugs/issue51733.go"] = "skip cgo"
-		gorootTestSkips["fixedbugs/issue57823.go"] = "GC"
+		// gorootTestSkips["fixedbugs/issue57823.go"] = "GC"
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	case "go1.15":
@@ -129,7 +129,7 @@ func init() {
 func runCommand(input string, chkout bool) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
-	cmd := exec.Command(gossaCmd, "run", input)
+	cmd := exec.Command(gossaCmd, "run", "-exp-gc", input)
 	data, err := cmd.CombinedOutput()
 	if len(data) > 0 {
 		fmt.Println(string(data))
