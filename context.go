@@ -44,13 +44,14 @@ import (
 type Mode uint
 
 const (
-	DisableRecover       Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	DisableCustomBuiltin                  // Disable load custom builtin func
-	EnableDumpImports                     // print import packages
-	EnableDumpInstr                       // Print packages & SSA instruction code
-	EnableTracing                         // Print a trace of all instructions as they are interpreted.
-	EnablePrintAny                        // Enable builtin print for any type ( struct/array )
-	EnableNoStrict                        // Enable no strict mode
+	DisableRecover        Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	DisableCustomBuiltin                   // Disable load custom builtin func
+	EnableDumpImports                      // print import packages
+	EnableDumpInstr                        // Print packages & SSA instruction code
+	EnableTracing                          // Print a trace of all instructions as they are interpreted.
+	EnablePrintAny                         // Enable builtin print for any type ( struct/array )
+	EnableNoStrict                         // Enable no strict mode
+	ExperimentalSupportGC                  // experimental support runtime.GC
 )
 
 // Loader types loader interface
@@ -158,6 +159,9 @@ func NewContext(mode Mode) *Context {
 	ctx.Loader = NewTypesLoader(ctx, mode)
 	if mode&EnableDumpInstr != 0 {
 		ctx.BuilderMode |= ssa.PrintFunctions
+	}
+	if mode&ExperimentalSupportGC != 0 {
+		ctx.SetOverrideFunction("runtime.GC", runtimeGC)
 	}
 	ctx.sizes = types.SizesFor("gc", runtime.GOARCH)
 	ctx.Lookup = new(load.ListDriver).Lookup

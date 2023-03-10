@@ -75,7 +75,7 @@ func inuse() int64 {
 	return int64(st.Alloc)
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := igop.RunFile("main.go", src, nil, igop.ExperimentalSupportGC)
 	if err != nil {
 		t.Fatal(err)
 	}

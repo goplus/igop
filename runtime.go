@@ -54,7 +54,6 @@ func init() {
 			runtime.Goexit()
 		}
 	})
-	RegisterExternal("runtime.GC", runtimeGC)
 	RegisterExternal("runtime.Caller", runtimeCaller)
 	RegisterExternal("runtime.FuncForPC", runtimeFuncForPC)
 	RegisterExternal("runtime.Callers", runtimeCallers)
