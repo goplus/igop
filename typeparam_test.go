@@ -22,6 +22,7 @@ package igop_test
 import (
 	"bytes"
 	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/goplus/igop"
@@ -280,6 +281,9 @@ func recur2[T Integer](n T) T {
 }
 
 func TestAtomicPointer(t *testing.T) {
+	if runtime.Version()[:6] == "go1.18" {
+		t.Skip("skip go1.18")
+	}
 	src := `package main
 
 import (
