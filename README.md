@@ -56,6 +56,23 @@ igop verson      # print version
 igop export      # export Go package to igop builtin package
 ```
 
+### igop run mode
+```
+Usage: igop run [build flags] [package] [arguments...]
+  -exp-gc
+    	experimental support runtime.GC
+  -mod value
+    	module download mode to use: readonly, vendor, or mod.
+  -ssa
+    	print SSA instruction code
+  -ssa-trace
+    	trace SSA interpreter code
+  -tags value
+    	a comma-separated list of build tags to consider satisfied during the build
+  -v	print the names of packages as they are compiled.
+  -x	print the commands.
+```
+
 ### igop repl mode
 
 ```shell

@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-// Package test implements the ``igop test'' command.
+// Package test implements the “igop test” command.
 package test
 
 import (
@@ -36,7 +36,8 @@ var Cmd = &base.Command{
 
 func init() {
 	Cmd.Run = runCmd
-	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|base.OmitVFlag)
+	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|
+		base.OmitVFlag|base.OmitExperimentalGCFlag)
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -98,6 +99,9 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	if base.BuildX {
 		mode |= igop.EnableDumpImports
+	}
+	if base.ExperimentalGC {
+		mode |= igop.ExperimentalSupportGC
 	}
 	ctx := igop.NewContext(mode)
 	ctx.BuildContext = base.BuildContext
