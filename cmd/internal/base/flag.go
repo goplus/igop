@@ -18,6 +18,7 @@ package base
 
 import (
 	"go/build"
+	"runtime"
 	"strings"
 
 	"github.com/goplus/igop/load"
@@ -31,9 +32,11 @@ var (
 	BuildV           bool // -v flag
 	BuildSSA         bool // -ssa flag
 	DebugSSATrace    bool // -ssa-trace flag
+	ExperimentalGC   bool // -exp-gc flag experimental support runtime.GC
 )
 
 func defaultContext() build.Context {
+	runtime.GC()
 	return build.Default
 }
 
@@ -45,6 +48,7 @@ const (
 	OmitVFlag
 	OmitSSAFlag
 	OmitSSATraceFlag
+	OmitExperimentalGCFlag
 )
 
 // AddBuildFlags adds the flags common to the build, run, and test commands.
@@ -61,6 +65,9 @@ func AddBuildFlags(cmd *Command, mask BuildFlagMask) {
 	}
 	if mask&OmitSSATraceFlag != 0 {
 		cmd.Flag.BoolVar(&DebugSSATrace, "ssa-trace", false, "trace SSA interpreter code")
+	}
+	if mask&OmitExperimentalGCFlag != 0 {
+		cmd.Flag.BoolVar(&ExperimentalGC, "exp-gc", false, "experimental support runtime.GC")
 	}
 	cmd.Flag.Var((*tagsFlag)(&BuildContext.BuildTags), "tags", "a comma-separated list of build tags to consider satisfied during the build")
 }

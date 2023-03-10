@@ -112,11 +112,12 @@ func (i *Interp) loadFunction(fn *ssa.Function) *function {
 		return pfn
 	}
 	pfn := &function{
-		Interp: i,
-		Fn:     fn,
-		index:  make(map[ssa.Value]uint32),
-		narg:   len(fn.Params),
-		nenv:   len(fn.FreeVars),
+		Interp:     i,
+		Fn:         fn,
+		index:      make(map[ssa.Value]uint32),
+		instrIndex: make(map[ssa.Instruction][]uint32),
+		narg:       len(fn.Params),
+		nenv:       len(fn.FreeVars),
 	}
 	if len(fn.Blocks) > 0 {
 		pfn.Main = fn.Blocks[0]
@@ -145,7 +146,7 @@ func (i *Interp) tryDeferFrame() *frame {
 			return f.(*frame)
 		}
 	}
-	return nil
+	return &frame{}
 }
 
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
@@ -195,6 +196,180 @@ type frame struct {
 	ipc     int
 	pred    int
 	deferid int64
+}
+
+func dumpBlock(block *ssa.BasicBlock, level int, pc ssa.Instruction) {
+	if level == 0 {
+		fmt.Printf("--- %v ---\n", block.Parent())
+	}
+	fmt.Printf("%v.%v %v    Jump:%v Idom:%v\n", strings.Repeat("  ", level), block.Index, block.Comment, block.Succs, block.Idom())
+	for _, instr := range block.Instrs {
+		var head string
+		if instr == pc {
+			head = " " + strings.Repeat("    ", level) + "=>"
+		} else {
+			head = "   " + strings.Repeat("    ", level)
+		}
+		if value, ok := instr.(ssa.Value); ok {
+			fmt.Printf("%v %-20T %-4v = %v %v\n", head, instr, value.Name(), instr, value.Type())
+		} else {
+			fmt.Printf("%v %-20T   %v\n", head, instr, instr)
+		}
+	}
+	for _, v := range block.Dominees() {
+		dumpBlock(v, level+1, pc)
+	}
+}
+
+type tasks struct {
+	jumps map[*ssa.BasicBlock]bool
+}
+
+func checkJumps(block *ssa.BasicBlock, jumps map[*ssa.BasicBlock]bool, succs map[*ssa.BasicBlock]*ssa.BasicBlock) {
+	if s, ok := succs[block]; ok {
+		if jumps[s] {
+			return
+		}
+		jumps[s] = true
+		checkJumps(s, jumps, succs)
+		return
+	}
+	for _, s := range block.Succs {
+		if jumps[s] {
+			continue
+		}
+		jumps[s] = true
+		checkJumps(s, jumps, succs)
+	}
+}
+
+func checkRuns(block *ssa.BasicBlock, jumps map[*ssa.BasicBlock]bool, succs map[*ssa.BasicBlock]*ssa.BasicBlock) {
+	if jumps[block] {
+		return
+	}
+	jumps[block] = true
+	if s, ok := succs[block]; ok {
+		checkRuns(s, jumps, succs)
+		return
+	}
+	for _, s := range block.Dominees() {
+		checkRuns(s, jumps, succs)
+	}
+}
+
+func (fr *frame) gc() {
+	alloc := make(map[int]bool)
+	checkAlloc := func(instr ssa.Instruction) {
+		for _, v := range fr.pfn.instrIndex[instr] {
+			vk := kind(v >> 30)
+			if vk.isStatic() {
+				continue
+			}
+			rk := reflect.Kind(v >> 24 & 0x3f)
+			switch rk {
+			case reflect.String, reflect.Func, reflect.Ptr, reflect.Array, reflect.Slice, reflect.Map, reflect.Struct, reflect.Interface:
+			default:
+				continue
+			}
+			alloc[int(v&0xffffff)] = true
+		}
+	}
+	// check params and freevar
+	checkAlloc(nil)
+	// check alloc
+	cur := fr.pfn.ssaInstrs[fr.ipc-1]
+	var remain int
+	for i, instr := range fr.block.Instrs {
+		checkAlloc(instr)
+		if cur == instr {
+			remain = i
+			break
+		}
+	}
+
+	// check
+	seen := make(map[*ssa.BasicBlock]bool)
+	var checkChild func(block *ssa.BasicBlock)
+	checkChild = func(block *ssa.BasicBlock) {
+		for _, child := range block.Dominees() {
+			if seen[child] {
+				continue
+			}
+			seen[child] = true
+			checkChild(child)
+		}
+	}
+	// check block child
+	checkChild(fr.block)
+
+	block := fr.block
+	// check seen
+	for block != nil {
+		idom := block.Idom()
+		if idom == nil {
+			break
+		}
+		var find bool
+		switch idom.Comment {
+		case "for.loop":
+			find = true
+		case "rangeindex.loop":
+			find = true
+		case "rangechan.loop":
+		case "rangeiter.loop":
+		}
+		for _, v := range idom.Succs {
+			if find {
+				seen[v] = true
+				checkChild(v)
+			}
+			if block == v {
+				find = true
+			}
+		}
+		for _, instr := range idom.Instrs {
+			checkAlloc(instr)
+		}
+		block = idom
+	}
+	if fr.block.Comment == "for.done" {
+		delete(seen, fr.block)
+	}
+	// check used in block
+	var ops []*ssa.Value
+	for _, instr := range fr.block.Instrs[remain+1:] {
+		for _, op := range instr.Operands(ops[:0]) {
+			if *op == nil {
+				continue
+			}
+			reg := fr.pfn.regIndex(*op)
+			alloc[int(reg)] = false
+		}
+	}
+	// check unused in seen
+	for block := range seen {
+		var ops []*ssa.Value
+		for _, instr := range block.Instrs {
+			for _, op := range instr.Operands(ops[:0]) {
+				if *op == nil {
+					continue
+				}
+				reg := fr.pfn.regIndex(*op)
+				alloc[int(reg)] = false
+			}
+		}
+	}
+	// remove unused
+	for i, b := range alloc {
+		if !b {
+			continue
+		}
+		fr.stack[i] = nil
+	}
+}
+
+func (fr *frame) valid() bool {
+	return fr != nil && fr.pfn != nil
 }
 
 func (fr *frame) pc() uintptr {
@@ -299,8 +474,8 @@ func (fr *frame) copyReg(dst register, src register) {
 
 type _panic struct {
 	arg       interface{}
-	pcs       []uintptr
 	link      *_panic
+	pcs       []uintptr
 	aborted   bool
 	recovered bool
 }
@@ -524,7 +699,7 @@ func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []
 	} else if pfn.nres > 1 {
 		result = tuple(fr.stack[0:pfn.nres])
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 	return
 }
 
@@ -548,7 +723,7 @@ func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *fun
 			}
 		}
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 	return
 }
 
@@ -561,7 +736,7 @@ func (i *Interp) callFunctionDiscardsResult(caller *frame, pfn *function, args [
 		fr.stack[pfn.narg+i+pfn.nres] = env[i]
 	}
 	fr.run()
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register, ia []register) {
@@ -570,7 +745,7 @@ func (i *Interp) callFunctionByStack0(caller *frame, pfn *function, ir register,
 		fr.stack[i] = caller.reg(ia[i])
 	}
 	fr.run()
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register, ia []register) {
@@ -580,7 +755,7 @@ func (i *Interp) callFunctionByStack1(caller *frame, pfn *function, ir register,
 	}
 	fr.run()
 	caller.setReg(ir, fr.stack[0])
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register, ia []register) {
@@ -590,7 +765,7 @@ func (i *Interp) callFunctionByStackN(caller *frame, pfn *function, ir register,
 	}
 	fr.run()
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, ia []register) {
@@ -604,7 +779,7 @@ func (i *Interp) callFunctionByStack(caller *frame, pfn *function, ir register, 
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir register, ia []register) {
@@ -617,7 +792,7 @@ func (i *Interp) callFunctionByStackNoRecover0(caller *frame, pfn *function, ir 
 		fr.ipc++
 		fn(fr)
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir register, ia []register) {
@@ -631,7 +806,7 @@ func (i *Interp) callFunctionByStackNoRecover1(caller *frame, pfn *function, ir 
 		fn(fr)
 	}
 	caller.setReg(ir, fr.stack[0])
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir register, ia []register) {
@@ -645,7 +820,7 @@ func (i *Interp) callFunctionByStackNoRecoverN(caller *frame, pfn *function, ir 
 		fn(fr)
 	}
 	caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
@@ -662,7 +837,7 @@ func (i *Interp) callFunctionByStackWithEnv(caller *frame, pfn *function, ir reg
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *function, ir register, ia []register, env []value) {
@@ -683,7 +858,7 @@ func (i *Interp) callFunctionByStackNoRecoverWithEnv(caller *frame, pfn *functio
 	} else if pfn.nres > 1 {
 		caller.setReg(ir, tuple(fr.stack[0:pfn.nres]))
 	}
-	pfn.deleteFrame(fr)
+	pfn.deleteFrame(caller, fr)
 }
 
 func (i *Interp) callExternal(caller *frame, fn reflect.Value, args []value, env []value) value {
@@ -1077,7 +1252,7 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {
-		r = i.call(nil, fn, args, nil)
+		r = i.call(&frame{}, fn, args, nil)
 	} else {
 		err = fmt.Errorf("no function %v", name)
 	}

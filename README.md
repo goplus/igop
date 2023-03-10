@@ -7,6 +7,7 @@
 [![Go1.18](https://github.com/goplus/igop/workflows/Go1.18/badge.svg)](https://github.com/goplus/igop/actions/workflows/go118.yml)
 [![Go1.19](https://github.com/goplus/igop/workflows/Go1.19/badge.svg)](https://github.com/goplus/igop/actions/workflows/go119.yml)
 [![Go1.20](https://github.com/goplus/igop/workflows/Go1.20/badge.svg)](https://github.com/goplus/igop/actions/workflows/go120.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/goplus/igop.svg)](https://pkg.go.dev/github.com/goplus/igop)
 
 
 ### Go Version
@@ -31,6 +32,12 @@ support ABI0 and ABIInternal
 - support generics (Go1.18/Go1.19/Go1.20)
 - support [Go1.20 nested type-parameterized declarations](https://github.com/golang/go/blob/master/test/typeparam/nested.go) on Go1.18/Go1.19 (Experimental)
 
+### runtime.GC
+
+`igop.Mode ExperimentalSupportGC`
+
+experimental support runtime.GC and runtime.SetFinalizer
+
 ### install igop command line
 
 Go version < 1.17:
@@ -54,6 +61,23 @@ igop build       # compile a Go/Go+ package
 igop test        # test a package
 igop verson      # print version
 igop export      # export Go package to igop builtin package
+```
+
+### igop run mode
+```
+Usage: igop run [build flags] [package] [arguments...]
+  -exp-gc
+    	experimental support runtime.GC
+  -mod value
+    	module download mode to use: readonly, vendor, or mod.
+  -ssa
+    	print SSA instruction code
+  -ssa-trace
+    	trace SSA interpreter code
+  -tags value
+    	a comma-separated list of build tags to consider satisfied during the build
+  -v	print the names of packages as they are compiled.
+  -x	print the commands.
 ```
 
 ### igop repl mode

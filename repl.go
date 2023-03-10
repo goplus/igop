@@ -23,6 +23,7 @@ import (
 	"go/scanner"
 	"go/token"
 	"go/types"
+	"runtime"
 	"strings"
 
 	xconst "github.com/goplus/igop/constant"
@@ -79,6 +80,8 @@ func NewRepl(ctx *Context) *Repl {
 	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
 	})
+	// reset runtime.GC to default
+	ctx.SetOverrideFunction("runtime.GC", runtime.GC)
 	ctx.evalCallFn = func(interp *Interp, call *ssa.Call, res ...interface{}) {
 		if len(*call.Referrers()) != 0 {
 			return
@@ -325,7 +328,7 @@ func (r *Repl) runFunc(i *Interp, fnname string, fs *fnState) (rfs *fnState, err
 		return nil, fmt.Errorf("no function %v", fnname)
 	}
 	pfn := i.funcs[fn]
-	fr := pfn.allocFrame(nil)
+	fr := pfn.allocFrame(&frame{})
 	if fs != nil {
 		copy(fr.stack, fs.fr.stack)
 		fr.ipc = fs.pc

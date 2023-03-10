@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-// Package run implements the ``gop run'' command.
+// Package run implements the “gop run” command.
 package run
 
 import (
@@ -43,7 +43,8 @@ var (
 
 func init() {
 	Cmd.Run = runCmd
-	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|base.OmitVFlag)
+	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|
+		base.OmitVFlag|base.OmitExperimentalGCFlag)
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -70,6 +71,9 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	if base.BuildX {
 		mode |= igop.EnableDumpImports
+	}
+	if base.ExperimentalGC {
+		mode |= igop.ExperimentalSupportGC
 	}
 	ctx := igop.NewContext(mode)
 	ctx.BuildContext = base.BuildContext

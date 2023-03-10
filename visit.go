@@ -203,6 +203,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 					visit.intp.loadType(v.Type())
 				}
 			}
+			pfn.makeInstr = instr
 			ifn := makeInstr(visit.intp, pfn, instr)
 			if ifn == nil {
 				continue
@@ -260,8 +261,9 @@ func (visit *visitor) function(fn *ssa.Function) {
 				if index == 0 {
 					ofn := ifn
 					bi := b.Index
+					common := b.Comment
 					ifn = func(fr *frame) {
-						log.Printf(".%v\n", bi)
+						log.Printf(".%v %v\n", bi, common)
 						ofn(fr)
 					}
 				}
@@ -301,6 +303,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 			pfn.Recover = pfn.Instrs[offset:]
 		}
 	}
+	pfn.makeInstr = nil
 	pfn.base = visit.base
 	visit.base += len(pfn.ssaInstrs) + 2
 	pfn.initPool()
