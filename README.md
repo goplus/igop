@@ -7,6 +7,7 @@
 [![Go1.18](https://github.com/goplus/igop/workflows/Go1.18/badge.svg)](https://github.com/goplus/igop/actions/workflows/go118.yml)
 [![Go1.19](https://github.com/goplus/igop/workflows/Go1.19/badge.svg)](https://github.com/goplus/igop/actions/workflows/go119.yml)
 [![Go1.20](https://github.com/goplus/igop/workflows/Go1.20/badge.svg)](https://github.com/goplus/igop/actions/workflows/go120.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/goplus/igop.svg)](https://pkg.go.dev/github.com/goplus/igop)
 
 
 ### Go Version
@@ -30,6 +31,12 @@ support ABI0 and ABIInternal
 
 - support generics (Go1.18/Go1.19/Go1.20)
 - support [Go1.20 nested type-parameterized declarations](https://github.com/golang/go/blob/master/test/typeparam/nested.go) on Go1.18/Go1.19 (Experimental)
+
+### runtime.GC
+
+`igop.Mode ExperimentalSupportGC`
+
+experimental support runtime.GC and runtime.SetFinalizer
 
 ### install igop command line
 
