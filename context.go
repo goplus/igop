@@ -628,7 +628,7 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 						}
 					}
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
-					ctx.checkNested(pkg.Info)
+					ctx.checkNested(pkg.Package, pkg.Info)
 				} else {
 					var indirect bool
 					if !p.Complete() {
@@ -670,18 +670,18 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 	// Create and build the primary package.
 	pkg = prog.CreatePackage(sp.Package, sp.Files, sp.Info, false)
 	pkg.Build()
-	ctx.checkNested(sp.Info)
+	ctx.checkNested(sp.Package, sp.Info)
 	return
 }
 
-func (ctx *Context) checkNested(info *types.Info) {
+func (ctx *Context) checkNested(pkg *types.Package, info *types.Info) {
 	var nestedList []*types.Named
 	for k, v := range info.Scopes {
 		switch k.(type) {
 		case *ast.BlockStmt, *ast.FuncType:
 			for _, name := range v.Names() {
 				obj := v.Lookup(name)
-				if named, ok := obj.Type().(*types.Named); ok {
+				if named, ok := obj.Type().(*types.Named); ok && named.Obj().Pkg() == pkg {
 					nestedList = append(nestedList, named)
 				}
 			}
