@@ -167,6 +167,38 @@ func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, n
 	return
 }
 
+func (r *TypesLoader) hasTypeArgs(rt reflect.Type) bool {
+	switch rt.Kind() {
+	case reflect.Pointer:
+		return r.hasTypeArgs(rt.Elem())
+	case reflect.Slice:
+		return r.hasTypeArgs(rt.Elem())
+	case reflect.Array:
+		return r.hasTypeArgs(rt.Elem())
+	case reflect.Chan:
+		return r.hasTypeArgs(rt.Elem())
+	case reflect.Map:
+		return r.hasTypeArgs(rt.Key()) || r.hasTypeArgs(rt.Elem())
+	case reflect.Struct:
+		if pkgPath := rt.PkgPath(); pkgPath != "" {
+			if pkg, ok := r.packages[pkgPath]; ok && pkg.Complete() {
+				name := rt.Name()
+				var typeArgs string
+				if n := strings.Index(name, "["); n != -1 {
+					if end := strings.LastIndex(name, "]"); end != -1 {
+						typeArgs = name[n+1 : end]
+						name = name[:n]
+					}
+				}
+				if obj := pkg.Scope().Lookup(name); obj != nil && len(typeArgs) > 0 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func newTypesInfo() *types.Info {
 	return &types.Info{
 		Types:      make(map[ast.Expr]types.TypeAndValue),
