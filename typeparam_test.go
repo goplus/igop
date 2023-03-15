@@ -26,6 +26,7 @@ import (
 	"testing"
 
 	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/pkg/go/token"
 	_ "github.com/goplus/igop/pkg/path/filepath"
 	_ "github.com/goplus/igop/pkg/reflect"
 	_ "github.com/goplus/igop/pkg/sync/atomic"
@@ -310,6 +311,33 @@ func main() {
 	}
 }
 `
+	_, err := igop.RunFile("main.go", src, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAtomicTypeArgs(t *testing.T) {
+	// type FileSet struct {
+	// 	mutex sync.RWMutex         // protects the file set
+	// 	base  int                  // base offset for the next file
+	// 	files []*File              // list of files in the order added to the set
+	// 	last  atomic.Pointer[File] // cache of last file looked up
+	// }
+	src := `package main
+
+import (
+	"go/token"
+)
+
+type CFG struct {
+}
+
+func (g *CFG) Format(fset *token.FileSet) {
+}
+
+func main() {
+}`
 	_, err := igop.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
