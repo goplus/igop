@@ -520,6 +520,9 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		pkg := r.GetPackage(pkgPath)
 		for i := 0; i < n; i++ {
 			f := rt.Field(i)
+			if enabledTypeParam && r.hasTypeArgs(f.Type) {
+				continue
+			}
 			ft := r.ToType(f.Type)
 			fields[i] = types.NewField(token.NoPos, pkg, f.Name, ft, f.Anonymous)
 		}

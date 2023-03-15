@@ -66,6 +66,10 @@ func (r *TypesRecord) LookupReflect(typ types.Type) (rt reflect.Type, ok bool, n
 	return
 }
 
+func (r *TypesLoader) hasTypeArgs(rt reflect.Type) bool {
+	return false
+}
+
 func newTypesInfo() *types.Info {
 	return &types.Info{
 		Types:      make(map[ast.Expr]types.TypeAndValue),
