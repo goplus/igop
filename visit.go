@@ -136,7 +136,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 					println(fmt.Sprintf("igop warning: %v: %v missing function body", visit.intp.ctx.FileSet.Position(fn.Pos()), fnPath))
 					return
 				}
-				panic(fmt.Errorf("%v: missing function body", visit.intp.ctx.FileSet.Position(fn.Pos())))
+				panic(fmt.Errorf("%v: %v missing function body", visit.intp.ctx.FileSet.Position(fn.Pos()), fnPath))
 			}
 		}
 		return
