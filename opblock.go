@@ -239,16 +239,24 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 	return i
 }
 
-func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
-	fnName := fn.String()
+func findUserFunc(interp *Interp, fnName string) (ext reflect.Value, ok bool) {
 	// check override func
 	ext, ok = interp.ctx.override[fnName]
-	if ok {
-		return
+	if !ok {
+		// check extern func
+		ext, ok = externValues[fnName]
 	}
-	// check extern func
-	ext, ok = externValues[fnName]
+	return
+}
+
+func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
+	fnName := fn.String()
+	ext, ok = findUserFunc(interp, fnName)
 	if ok {
+		typ := interp.preToType(fn.Type())
+		if typ != ext.Type() {
+			ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
+		}
 		return
 	}
 	if fn.Pkg != nil {
