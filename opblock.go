@@ -254,7 +254,8 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	ext, ok = findUserFunc(interp, fnName)
 	if ok {
 		typ := interp.preToType(fn.Type())
-		if typ != ext.Type() {
+		ftyp := ext.Type()
+		if typ != ftyp && (typ.NumIn() == ftyp.NumIn() && typ.NumOut() == ftyp.NumOut()) {
 			ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
 		}
 		return
