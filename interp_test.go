@@ -3148,3 +3148,48 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestUserFuncConvert(t *testing.T) {
+	src := `package main
+
+import "fmt"
+
+type myint int
+type point struct {
+	x int
+	y int
+}
+
+func mytest1(n myint, pt point) myint
+func mytest2(n myint, pt *point) myint
+
+
+func main() {
+	n := mytest1(100, point{100,200})
+	if n != 400 {
+		panic(fmt.Errorf("error mytest1, must 400, have %v",n))
+	}
+	n = mytest2(100, &point{100,200})
+	if n != 30000 {
+		panic(fmt.Errorf("error mytest2, must 30000, have %v",n))
+	}
+}
+`
+	ctx := igop.NewContext(0)
+	igop.RegisterExternal("main.mytest1", func(n int, pt struct {
+		x int
+		y int
+	}) int {
+		return n + pt.x + pt.y
+	})
+	ctx.SetOverrideFunction("main.mytest2", func(n int, pt *struct {
+		x int
+		y int
+	}) int {
+		return n * (pt.x + pt.y)
+	})
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

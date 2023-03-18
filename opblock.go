@@ -239,16 +239,49 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 	return i
 }
 
-func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
-	fnName := fn.String()
+func findUserFunc(interp *Interp, fnName string) (ext reflect.Value, ok bool) {
 	// check override func
 	ext, ok = interp.ctx.override[fnName]
-	if ok {
-		return
+	if !ok {
+		// check extern func
+		ext, ok = externValues[fnName]
 	}
-	// check extern func
-	ext, ok = externValues[fnName]
+	return
+}
+
+func checkFuncCompatible(t1, t2 reflect.Type) bool {
+	i1 := t1.NumIn()
+	i2 := t2.NumIn()
+	if i1 != i2 {
+		return false
+	}
+	o1 := t1.NumOut()
+	o2 := t2.NumOut()
+	if o1 != o2 {
+		return false
+	}
+	for i := 0; i < i1; i++ {
+		if t1.In(i).Size() != t2.In(i).Size() {
+			return false
+		}
+	}
+	for i := 0; i < o1; i++ {
+		if t1.Out(i).Size() != t2.Out(i).Size() {
+			return false
+		}
+	}
+	return true
+}
+
+func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
+	fnName := fn.String()
+	ext, ok = findUserFunc(interp, fnName)
 	if ok {
+		typ := interp.preToType(fn.Type())
+		ftyp := ext.Type()
+		if typ != ftyp && checkFuncCompatible(typ, ftyp) {
+			ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
+		}
 		return
 	}
 	if fn.Pkg != nil {
