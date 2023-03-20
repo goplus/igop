@@ -29,6 +29,10 @@ type LinkSym struct {
 	Linkname Linkname
 }
 
+func (l *LinkSym) String() string {
+	return l.PkgPath + "." + l.Name + "->" + l.Linkname.PkgPath + "." + l.Linkname.Name
+}
+
 type Linkname struct {
 	PkgPath string
 	Name    string
@@ -55,7 +59,9 @@ func ParseLinkname(fset *token.FileSet, pkgPath string, files []*ast.File) ([]*L
 				if err != nil {
 					return nil, fmt.Errorf("%s: %w", fset.Position(c.Pos()), err)
 				}
-				links = append(links, link)
+				if link != nil {
+					links = append(links, link)
+				}
 			}
 		}
 	}
@@ -85,8 +91,12 @@ func parseLinknameComment(pkgPath string, file *ast.File, comment *ast.Comment, 
 	}
 
 	obj := file.Scope.Lookup(localName)
-	if obj == nil || obj.Kind != ast.Fun || obj.Kind != ast.Var {
+	if obj == nil || (obj.Kind != ast.Fun && obj.Kind != ast.Var) {
 		return nil, fmt.Errorf("//go:linkname must refer to declared function or variable")
+	}
+
+	if pkgPath == linkPkg && localName == linkName {
+		return nil, nil
 	}
 
 	var recv, method string

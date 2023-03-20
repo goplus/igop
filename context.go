@@ -108,6 +108,7 @@ type sourcePackage struct {
 	Info    *types.Info
 	Dir     string
 	Files   []*ast.File
+	Links   []*load.LinkSym
 }
 
 func (sp *sourcePackage) Load() (err error) {
@@ -140,6 +141,9 @@ func (sp *sourcePackage) Load() (err error) {
 			}
 		}
 		types.NewChecker(conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files)
+		if err == nil {
+			sp.Links, err = load.ParseLinkname(sp.Context.FileSet, sp.Package.Path(), sp.Files)
+		}
 	}
 	return
 }
