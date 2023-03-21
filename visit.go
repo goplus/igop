@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -100,6 +101,22 @@ func (visit *visitor) program() {
 	}
 }
 
+func (visit *visitor) findLink(fn *ssa.Function) *ssa.Function {
+	if sp, ok := visit.intp.ctx.pkgs[fn.Pkg.Pkg.Path()]; ok {
+		for _, link := range sp.Links {
+			if link.Name == fn.Name() {
+				for pkg := range visit.pkgs {
+					if pkg.Pkg.Path() == link.Linkname.PkgPath {
+						return pkg.Func(link.Linkname.Name)
+					}
+				}
+				break
+			}
+		}
+	}
+	return nil
+}
+
 func (visit *visitor) function(fn *ssa.Function) {
 	if visit.seen[fn] {
 		return
@@ -117,15 +134,26 @@ func (visit *visitor) function(fn *ssa.Function) {
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
 			if _, ok = findExternFunc(visit.intp, fn); !ok {
+				if link := visit.findLink(fn); link != nil {
+					ftyp := visit.intp.preToType(fn.Type())
+					typ := visit.intp.preToType(link.Type())
+					pfn := visit.intp.loadFunction(link)
+					ext := visit.intp.makeFunction(typ, pfn, nil)
+					if typ != ftyp && checkFuncCompatible(typ, ftyp) {
+						ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
+					}
+					visit.intp.ctx.override[fnPath] = ext
+					return
+				}
 				if visit.intp.ctx.Mode&EnableNoStrict != 0 {
 					typ := visit.intp.preToType(fn.Type())
 					numOut := typ.NumOut()
 					if numOut == 0 {
-						externValues[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
+						visit.intp.ctx.override[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
 							return
 						})
 					} else {
-						externValues[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
+						visit.intp.ctx.override[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
 							results = make([]reflect.Value, numOut)
 							for i := 0; i < numOut; i++ {
 								results[i] = reflect.New(typ.Out(i)).Elem()
