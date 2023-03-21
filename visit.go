@@ -19,6 +19,7 @@ package igop
 import (
 	"fmt"
 	"go/token"
+	"go/types"
 	"log"
 	"reflect"
 	"strings"
@@ -107,6 +108,20 @@ func (visit *visitor) findLink(fn *ssa.Function) *ssa.Function {
 			if link.Name == fn.Name() {
 				for pkg := range visit.pkgs {
 					if pkg.Pkg.Path() == link.Linkname.PkgPath {
+						if typ := link.Linkname.Recv; typ != "" {
+							var star bool
+							if typ[0] == '*' {
+								star = true
+								typ = typ[1:]
+							}
+							if obj := pkg.Pkg.Scope().Lookup(typ); obj != nil {
+								t := obj.Type()
+								if star {
+									t = types.NewPointer(t)
+								}
+								return visit.prog.LookupMethod(t, pkg.Pkg, link.Linkname.Method)
+							}
+						}
 						return pkg.Func(link.Linkname.Name)
 					}
 				}
@@ -115,6 +130,17 @@ func (visit *visitor) findLink(fn *ssa.Function) *ssa.Function {
 		}
 	}
 	return nil
+}
+
+func wrapMethodType(sig *types.Signature) *types.Signature {
+	params := sig.Params()
+	n := params.Len()
+	list := make([]*types.Var, n+1)
+	list[0] = sig.Recv()
+	for i := 0; i < n; i++ {
+		list[i+1] = params.At(i)
+	}
+	return types.NewSignature(nil, types.NewTuple(list...), sig.Results(), sig.Variadic())
 }
 
 func (visit *visitor) function(fn *ssa.Function) {
@@ -135,10 +161,15 @@ func (visit *visitor) function(fn *ssa.Function) {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
 			if _, ok = findExternFunc(visit.intp, fn); !ok {
 				if link := visit.findLink(fn); link != nil {
-					ftyp := visit.intp.preToType(fn.Type())
-					typ := visit.intp.preToType(link.Type())
+					visit.function(link)
+					sig := link.Signature
+					if sig.Recv() != nil {
+						sig = wrapMethodType(sig)
+					}
+					typ := visit.intp.preToType(sig)
 					pfn := visit.intp.loadFunction(link)
 					ext := visit.intp.makeFunction(typ, pfn, nil)
+					ftyp := visit.intp.preToType(fn.Type())
 					if typ != ftyp && checkFuncCompatible(typ, ftyp) {
 						ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
 					}
