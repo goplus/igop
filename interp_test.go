@@ -2550,7 +2550,6 @@ type point struct {
 func mytest1(n myint, pt point) myint
 func mytest2(n myint, pt *point) myint
 
-
 func main() {
 	n := mytest1(100, point{100,200})
 	if n != 400 {

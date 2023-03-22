@@ -693,3 +693,80 @@ func inuse() int64 {
 		t.Fatal(err)
 	}
 }
+
+func TestLinkname(t *testing.T) {
+	pkg := `package pkg
+type point struct {
+	x int
+	y int
+}
+func (t point) scale(n int) point {
+	return point{t.x*n,t.y*n}
+}
+func (t *point) setScale(n int) {
+	t.x *= n
+	t.y *= n
+}
+func (t *point) info() (int,int) {
+	return t.x,t.y
+}
+func add(v ...int) (sum int) {
+	for _, n := range v {
+		sum += n
+	}
+	return
+}
+func New(x int, y int) *point {
+	return &point{x,y}
+}
+`
+	src := `package main
+import (
+	_ "unsafe"
+	_ "pkg"
+	"fmt"
+)
+
+//go:linkname add pkg.add
+func add(v ...int) int
+
+type point struct {
+	x int
+	y int
+}
+
+//go:linkname newPoint pkg.New
+func newPoint(x int, y int) *point
+
+//go:linkname scalePoint pkg.point.scale
+func scalePoint(point,int) point
+
+//go:linkname setScale pkg.(*point).setScale
+func setScale(*point,int)
+
+func main() {
+	v := add(100,200,300)
+	if v != 600 {
+		panic(fmt.Errorf("add got %v, must 600",v))
+	}
+	pt := newPoint(100,200)
+	if pt == nil || pt.x != 100 || pt.y != 200 {
+		panic(fmt.Errorf("newPoint got %v, must &{100 200}",pt))
+	}
+	pt2 := scalePoint(*pt,2)
+	if pt2.x != 200 || pt2.y != 400 {
+		panic(fmt.Errorf("scalePoint got %v, must {200 400}",pt2))
+	}
+	setScale(pt,3)
+	if pt.x != 300 || pt.y != 600 {
+		panic(fmt.Errorf("setScale got %v, must &{300 600}",pt))
+	}
+}
+`
+	ctx := igop.NewContext(0)
+	ctx.AddImportFile("pkg", "pkg.go", pkg)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
