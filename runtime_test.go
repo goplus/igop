@@ -844,3 +844,62 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestLinknameError1(t *testing.T) {
+	pkg := `package pkg
+func add(v ...int) (sum int) {
+	for _, n := range v {
+		sum += n
+	}
+	return
+}
+`
+	src := `package main
+import (
+	_ "pkg"
+)
+
+//go:linkname add pkg.add
+func add(v ...int) int
+
+func main() {
+}
+`
+	ctx := igop.NewContext(0)
+	ctx.AddImportFile("pkg", "pkg.go", pkg)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err == nil {
+		t.Fatal("must error")
+	}
+	t.Log("dump error:", err)
+}
+
+func TestLinknameError2(t *testing.T) {
+	pkg := `package pkg
+func add(v ...int) (sum int) {
+	for _, n := range v {
+		sum += n
+	}
+	return
+}
+`
+	src := `package main
+import (
+	_ "unsafe"
+	_ "pkg"
+)
+
+//go:linkname add2 pkg.add
+func add(v ...int) int
+
+func main() {
+}
+`
+	ctx := igop.NewContext(0)
+	ctx.AddImportFile("pkg", "pkg.go", pkg)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err == nil {
+		t.Fatal("must error")
+	}
+	t.Log("dump error:", err)
+}
