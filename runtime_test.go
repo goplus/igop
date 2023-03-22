@@ -694,7 +694,7 @@ func inuse() int64 {
 	}
 }
 
-func TestLinkname(t *testing.T) {
+func TestLinknameSource(t *testing.T) {
 	pkg := `package pkg
 type point struct {
 	x int
@@ -765,6 +765,80 @@ func main() {
 `
 	ctx := igop.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestLinknameExtern(t *testing.T) {
+	pkg := `package pkg
+func add(v ...int) (sum int) {
+	for _, n := range v {
+		sum += n
+	}
+	return
+}
+`
+	src := `package main
+import (
+	_ "unsafe"
+	_ "pkg"
+	"fmt"
+)
+
+//go:linkname add pkg.add
+func add(v ...int) int
+
+type point struct {
+	x int
+	y int
+}
+
+//go:linkname newPoint pkg.New
+func newPoint(x int, y int) *point
+
+//go:linkname scalePoint pkg.point.scale
+func scalePoint(point,int) point
+
+//go:linkname setScale pkg.(*point).setScale
+func setScale(*point,int)
+
+func main() {
+	v := add(100,200,300)
+	if v != 600 {
+		panic(fmt.Errorf("add got %v, must 600",v))
+	}
+	pt := newPoint(100,200)
+	if pt == nil || pt.x != 100 || pt.y != 200 {
+		panic(fmt.Errorf("newPoint got %v, must &{100 200}",pt))
+	}
+	pt2 := scalePoint(*pt,2)
+	if pt2.x != 200 || pt2.y != 400 {
+		panic(fmt.Errorf("scalePoint got %v, must {200 400}",pt2))
+	}
+	setScale(pt,3)
+	if pt.x != 300 || pt.y != 600 {
+		panic(fmt.Errorf("setScale got %v, must &{300 600}",pt))
+	}
+}
+`
+	type point struct {
+		x int
+		y int
+	}
+	ctx := igop.NewContext(0)
+	ctx.AddImportFile("pkg", "pkg.go", pkg)
+	ctx.SetOverrideFunction("pkg.New", func(x int, y int) *point {
+		return &point{x, y}
+	})
+	ctx.SetOverrideFunction("pkg.point.scale", func(pt point, n int) point {
+		return point{pt.x * n, pt.y * n}
+	})
+	ctx.SetOverrideFunction("pkg.(*point).setScale", func(pt *point, n int) {
+		pt.x *= n
+		pt.y *= n
+	})
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
