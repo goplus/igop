@@ -383,7 +383,7 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if err != nil {
 		return nil, err
 	}
-	f, err := parser.ParseFile(ctx.FileSet, "_testmain.go", data, 0)
+	f, err := parser.ParseFile(ctx.FileSet, "_testmain.go", data, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
@@ -404,7 +404,7 @@ func (ctx *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, e
 	for i, filename := range filenames {
 		go func(i int, filepath string) {
 			defer wg.Done()
-			files[i], errors[i] = parser.ParseFile(ctx.FileSet, filepath, nil, 0)
+			files[i], errors[i] = parser.ParseFile(ctx.FileSet, filepath, nil, parser.ParseComments)
 		}(i, filepath.Join(dir, filename))
 	}
 	wg.Wait()

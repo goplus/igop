@@ -24,6 +24,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/goplus/igop/load"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
@@ -102,31 +103,35 @@ func (visit *visitor) program() {
 	}
 }
 
-func (visit *visitor) findLink(fn *ssa.Function) *ssa.Function {
+func (visit *visitor) findLinkSym(fn *ssa.Function) (*load.LinkSym, bool) {
 	if sp, ok := visit.intp.ctx.pkgs[fn.Pkg.Pkg.Path()]; ok {
 		for _, link := range sp.Links {
 			if link.Name == fn.Name() {
-				for pkg := range visit.pkgs {
-					if pkg.Pkg.Path() == link.Linkname.PkgPath {
-						if typ := link.Linkname.Recv; typ != "" {
-							var star bool
-							if typ[0] == '*' {
-								star = true
-								typ = typ[1:]
-							}
-							if obj := pkg.Pkg.Scope().Lookup(typ); obj != nil {
-								t := obj.Type()
-								if star {
-									t = types.NewPointer(t)
-								}
-								return visit.prog.LookupMethod(t, pkg.Pkg, link.Linkname.Method)
-							}
-						}
-						return pkg.Func(link.Linkname.Name)
-					}
-				}
-				break
+				return link, true
 			}
+		}
+	}
+	return nil, false
+}
+
+func (visit *visitor) findFunction(sym *load.LinkSym) *ssa.Function {
+	for pkg := range visit.pkgs {
+		if pkg.Pkg.Path() == sym.Linkname.PkgPath {
+			if typ := sym.Linkname.Recv; typ != "" {
+				var star bool
+				if typ[0] == '*' {
+					star = true
+					typ = typ[1:]
+				}
+				if obj := pkg.Pkg.Scope().Lookup(typ); obj != nil {
+					t := obj.Type()
+					if star {
+						t = types.NewPointer(t)
+					}
+					return visit.prog.LookupMethod(t, pkg.Pkg, sym.Linkname.Method)
+				}
+			}
+			return pkg.Func(sym.Linkname.Name)
 		}
 	}
 	return nil
@@ -141,6 +146,25 @@ func wrapMethodType(sig *types.Signature) *types.Signature {
 		list[i+1] = params.At(i)
 	}
 	return types.NewSignature(nil, types.NewTuple(list...), sig.Results(), sig.Variadic())
+}
+
+func (visit *visitor) findLinkFunc(sym *load.LinkSym) (ext reflect.Value, ok bool) {
+	ext, ok = findUserFunc(visit.intp, sym.Linkname.PkgPath+"."+sym.Linkname.Name)
+	if ok {
+		return
+	}
+	if link := visit.findFunction(sym); link != nil {
+		visit.function(link)
+		sig := link.Signature
+		if sig.Recv() != nil {
+			sig = wrapMethodType(sig)
+		}
+		typ := visit.intp.preToType(sig)
+		pfn := visit.intp.loadFunction(link)
+		ext = visit.intp.makeFunction(typ, pfn, nil)
+		ok = true
+	}
+	return
 }
 
 func (visit *visitor) function(fn *ssa.Function) {
@@ -160,21 +184,16 @@ func (visit *visitor) function(fn *ssa.Function) {
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
 			if _, ok = findExternFunc(visit.intp, fn); !ok {
-				if link := visit.findLink(fn); link != nil {
-					visit.function(link)
-					sig := link.Signature
-					if sig.Recv() != nil {
-						sig = wrapMethodType(sig)
+				if sym, ok := visit.findLinkSym(fn); ok {
+					if ext, ok := visit.findLinkFunc(sym); ok {
+						typ := visit.intp.preToType(fn.Type())
+						ftyp := ext.Type()
+						if typ != ftyp && checkFuncCompatible(typ, ftyp) {
+							ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
+						}
+						visit.intp.ctx.override[fnPath] = ext
+						return
 					}
-					typ := visit.intp.preToType(sig)
-					pfn := visit.intp.loadFunction(link)
-					ext := visit.intp.makeFunction(typ, pfn, nil)
-					ftyp := visit.intp.preToType(fn.Type())
-					if typ != ftyp && checkFuncCompatible(typ, ftyp) {
-						ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
-					}
-					visit.intp.ctx.override[fnPath] = ext
-					return
 				}
 				if visit.intp.ctx.Mode&EnableNoStrict != 0 {
 					typ := visit.intp.preToType(fn.Type())
