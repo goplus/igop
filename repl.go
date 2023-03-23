@@ -81,7 +81,7 @@ func NewRepl(ctx *Context) *Repl {
 		r.lastDump = toDump(v)
 	})
 	// reset runtime.GC to default
-	ctx.SetOverrideFunction("runtime.GC", runtime.GC)
+	ctx.RegisterExternal("runtime.GC", runtime.GC)
 	ctx.evalCallFn = func(interp *Interp, call *ssa.Call, res ...interface{}) {
 		if len(*call.Referrers()) != 0 {
 			return

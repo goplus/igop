@@ -127,7 +127,7 @@ func main() {
 
 func TestOverrideFunction(t *testing.T) {
 	ctx := igop.NewContext(0)
-	ctx.SetOverrideFunction("main.call", func(i, j int) int {
+	ctx.RegisterExternal("main.call", func(i, j int) int {
 		return i * j
 	})
 	src := `package main
@@ -148,7 +148,7 @@ func main() {
 	}
 
 	// reset override func
-	ctx.ClearOverrideFunction("main.call")
+	ctx.RegisterExternal("main.call", nil)
 	_, err = ctx.RunFile("main.go", src, nil)
 	if err == nil || err.Error() != "30" {
 		t.Fatal("must panic 30")
@@ -2568,7 +2568,7 @@ func main() {
 	}) int {
 		return n + pt.x + pt.y
 	})
-	ctx.SetOverrideFunction("main.mytest2", func(n int, pt *struct {
+	ctx.RegisterExternal("main.mytest2", func(n int, pt *struct {
 		x int
 		y int
 	}) int {

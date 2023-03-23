@@ -26,6 +26,7 @@ import (
 	"go/token"
 	"go/types"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -165,7 +166,7 @@ func NewContext(mode Mode) *Context {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
 	if mode&ExperimentalSupportGC != 0 {
-		ctx.SetOverrideFunction("runtime.GC", runtimeGC)
+		ctx.RegisterExternal("runtime.GC", runtimeGC)
 	}
 	ctx.sizes = types.SizesFor("gc", runtime.GOARCH)
 	ctx.Lookup = new(load.ListDriver).Lookup
@@ -196,15 +197,19 @@ func (ctx *Context) SetDebug(fn func(*DebugInfo)) {
 	ctx.debugFunc = fn
 }
 
-// SetOverrideFunction register external function to override function.
-// match func fullname and signature
-func (ctx *Context) SetOverrideFunction(key string, fn interface{}) {
-	ctx.override[key] = reflect.ValueOf(fn)
-}
-
-// ClearOverrideFunction reset override function
-func (ctx *Context) ClearOverrideFunction(key string) {
-	delete(ctx.override, key)
+// RegisterExternal register external value must variable address or func.
+func (ctx *Context) RegisterExternal(key string, i interface{}) {
+	if i == nil {
+		delete(ctx.override, key)
+		return
+	}
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Func, reflect.Ptr:
+		ctx.override[key] = v
+	default:
+		log.Printf("register external must variable address or func. not %v\n", v.Kind())
+	}
 }
 
 // SetPrintOutput is captured builtin print/println output

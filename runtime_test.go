@@ -829,13 +829,13 @@ func main() {
 	}
 	ctx := igop.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
-	ctx.SetOverrideFunction("pkg.New", func(x int, y int) *point {
+	ctx.RegisterExternal("pkg.New", func(x int, y int) *point {
 		return &point{x, y}
 	})
-	ctx.SetOverrideFunction("pkg.point.scale", func(pt point, n int) point {
+	ctx.RegisterExternal("pkg.point.scale", func(pt point, n int) point {
 		return point{pt.x * n, pt.y * n}
 	})
-	ctx.SetOverrideFunction("pkg.(*point).setScale", func(pt *point, n int) {
+	ctx.RegisterExternal("pkg.(*point).setScale", func(pt *point, n int) {
 		pt.x *= n
 		pt.y *= n
 	})

@@ -203,7 +203,7 @@ func eq(a, b interface{}) string {
 `
 	ctx := igop.NewContext(0)
 	var buf bytes.Buffer
-	ctx.SetOverrideFunction("fmt.Printf", func(format string, a ...interface{}) (n int, err error) {
+	ctx.RegisterExternal("fmt.Printf", func(format string, a ...interface{}) (n int, err error) {
 		fmt.Fprintf(&buf, format, a...)
 		return fmt.Printf(format, a...)
 	})
