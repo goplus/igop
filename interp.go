@@ -1170,7 +1170,12 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			switch v := m.(type) {
 			case *ssa.Global:
 				typ := i.preToType(deref(v.Type()))
-				i.globals[v.String()] = reflect.New(typ).Interface()
+				key := v.String()
+				if ext, ok := findExternValue(i, key); ok && ext.Kind() == reflect.Ptr && ext.Elem().Type() == typ {
+					i.globals[key] = ext.Interface()
+				} else {
+					i.globals[key] = reflect.New(typ).Interface()
+				}
 			}
 		}
 	}
@@ -1180,8 +1185,8 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			if link.Kind == ast.Var {
 				localName, targetName := link.PkgPath+"."+link.Name, link.Linkname.PkgPath+"."+link.Linkname.Name
 				if _, ok := i.globals[localName]; ok {
-					if v, ok := findExternValue(i, targetName); ok && v.Kind() == reflect.Ptr {
-						i.globals[localName] = v.Interface()
+					if ext, ok := findExternValue(i, targetName); ok && ext.Kind() == reflect.Ptr {
+						i.globals[localName] = ext.Interface()
 					} else if v, ok := i.globals[targetName]; ok {
 						i.globals[localName] = v
 					}

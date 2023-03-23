@@ -862,7 +862,7 @@ import (
 //go:linkname v pkg.n
 var v int
 
-//go:linkname e igop_test_linkname.e
+//go:linkname e pkg.e
 var e int
 
 func main() {
@@ -881,7 +881,7 @@ func main() {
 	ctx := igop.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	var e int = 100
-	igop.RegisterExternal("igop_test_linkname.e", &e)
+	ctx.RegisterExternal("pkg.e", &e)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)

@@ -125,20 +125,27 @@ func main() {
 	}
 }
 
-func TestOverrideFunction(t *testing.T) {
+func TestRegisterExternal(t *testing.T) {
 	ctx := igop.NewContext(0)
 	ctx.RegisterExternal("main.call", func(i, j int) int {
 		return i * j
 	})
+	var v int = 200
+	ctx.RegisterExternal("main.v", &v)
 	src := `package main
 
 func call(i, j int) int {
 	return i+j
 }
 
+var v int
+
 func main() {
 	if n := call(10,20); n != 200 {
 		panic(n)
+	}
+	if v != 200 {
+		panic(v)
 	}
 }
 `
