@@ -47,6 +47,7 @@ package igop
 
 import (
 	"fmt"
+	"go/ast"
 	"go/constant"
 	"go/token"
 	"go/types"
@@ -82,7 +83,7 @@ type Interp struct {
 	ctx          *Context
 	mainpkg      *ssa.Package                                // the SSA main package
 	record       *TypesRecord                                // lookup type and ToType
-	globals      map[ssa.Value]value                         // addresses of global variables (immutable)
+	globals      map[string]value                            // addresses of global variables (immutable)
 	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
 	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
@@ -1145,7 +1146,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 	i := &Interp{
 		ctx:          ctx,
 		mainpkg:      mainpkg,
-		globals:      make(map[ssa.Value]value),
+		globals:      make(map[string]value),
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*function),
@@ -1157,6 +1158,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 	i.record.Load(mainpkg)
 
 	var pkgs []*ssa.Package
+
 	for _, pkg := range mainpkg.Prog.AllPackages() {
 		// skip external pkg
 		if pkg.Func("init").Blocks == nil {
@@ -1168,13 +1170,29 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			switch v := m.(type) {
 			case *ssa.Global:
 				typ := i.preToType(deref(v.Type()))
-				i.globals[v] = reflect.New(typ).Interface()
+				i.globals[v.String()] = reflect.New(typ).Interface()
 			}
 		}
 	}
+	// check linkname var
+	for _, sp := range i.ctx.pkgs {
+		for _, link := range sp.Links {
+			if link.Kind == ast.Var {
+				localName, targetName := link.PkgPath+"."+link.Name, link.Linkname.PkgPath+"."+link.Linkname.Name
+				if _, ok := i.globals[localName]; ok {
+					if v, ok := findExternValue(i, targetName); ok && v.Kind() == reflect.Ptr {
+						i.globals[localName] = v.Interface()
+					} else if v, ok := i.globals[targetName]; ok {
+						i.globals[localName] = v
+					}
+				}
+			}
+		}
+	}
+	// check globals for repl
 	if globals != nil {
 		for k := range i.globals {
-			if fv, ok := globals[k.String()]; ok {
+			if fv, ok := globals[k]; ok {
 				i.globals[k] = fv
 			}
 		}
@@ -1306,7 +1324,7 @@ func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	p, ok := i.globals[v]
+	p, ok := i.globals[v.String()]
 	return p, ok
 }
 

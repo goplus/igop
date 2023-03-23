@@ -260,7 +260,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	r.fsInit = rinit
 	r.fsMain = rmain
 	for k, v := range i.globals {
-		r.globalMap[k.String()] = v
+		r.globalMap[k] = v
 	}
 	if inMain {
 		r.infuncs = append(r.infuncs, expr)

@@ -149,7 +149,7 @@ func wrapMethodType(sig *types.Signature) *types.Signature {
 }
 
 func (visit *visitor) findLinkFunc(sym *load.LinkSym) (ext reflect.Value, ok bool) {
-	ext, ok = findUserFunc(visit.intp, sym.Linkname.PkgPath+"."+sym.Linkname.Name)
+	ext, ok = findExternValue(visit.intp, sym.Linkname.PkgPath+"."+sym.Linkname.Name)
 	if ok {
 		return
 	}

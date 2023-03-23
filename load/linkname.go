@@ -24,6 +24,7 @@ import (
 )
 
 type LinkSym struct {
+	Kind     ast.ObjKind
 	PkgPath  string
 	Name     string
 	Linkname Linkname
@@ -109,6 +110,7 @@ func parseLinknameComment(pkgPath string, file *ast.File, comment *ast.Comment, 
 		}
 	}
 	return &LinkSym{
+		Kind:     obj.Kind,
 		PkgPath:  pkgPath,
 		Name:     localName,
 		Linkname: Linkname{PkgPath: linkPkg, Name: linkName, Recv: recv, Method: method},
