@@ -1184,7 +1184,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		}
 	}
 	// check linkname var
-	links := make(map[*load.LinkSym]bool)
+	var links []*load.LinkSym
 	for _, sp := range i.ctx.pkgs {
 		for _, link := range sp.Links {
 			if link.Kind == ast.Var {
@@ -1192,10 +1192,11 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 				if _, ok := i.globals[localName]; ok {
 					if ext, ok := findExternValue(i, targetName); ok && ext.Kind() == reflect.Ptr {
 						i.globals[localName] = ext.Interface()
-						links[link] = true
+						i.chkinit[targetName] = true
+						links = append(links, link)
 					} else if v, ok := i.globals[targetName]; ok {
 						i.globals[localName] = v
-						links[link] = false
+						links = append(links, link)
 					}
 				}
 			}
@@ -1215,16 +1216,10 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		return i, err
 	}
 	// check linkname duplicated definition
-	for link, ext := range links {
+	for _, link := range links {
 		localName, targetName := link.PkgPath+"."+link.Name, link.Linkname.PkgPath+"."+link.Linkname.Name
-		if ext {
-			if i.chkinit[localName] {
-				return i, fmt.Errorf("duplicated definition of symbol %v, from %v and %v", targetName, link.PkgPath, link.Linkname.PkgPath)
-			}
-		} else {
-			if i.chkinit[localName] && i.chkinit[targetName] {
-				return i, fmt.Errorf("duplicated definition of symbol %v, from %v and %v", targetName, link.PkgPath, link.Linkname.PkgPath)
-			}
+		if i.chkinit[localName] && i.chkinit[targetName] {
+			return i, fmt.Errorf("duplicated definition of symbol %v, from %v and %v", targetName, link.PkgPath, link.Linkname.PkgPath)
 		}
 	}
 	return i, err
