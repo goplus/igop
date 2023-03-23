@@ -898,6 +898,9 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				}
 			}
 		}
+		if pfn.Fn.Name() == "init" && pfn.Fn.Synthetic == "package initializer" {
+			pfn.Interp.chkinit[instr.Addr.String()] = true
+		}
 		ia := pfn.regIndex(instr.Addr)
 		iv, kv, vv := pfn.regIndex3(instr.Val)
 		if kv.isStatic() {

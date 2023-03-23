@@ -58,6 +58,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/igop/load"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/goid"
 	"github.com/visualfc/xtype"
@@ -84,6 +85,7 @@ type Interp struct {
 	mainpkg      *ssa.Package                                // the SSA main package
 	record       *TypesRecord                                // lookup type and ToType
 	globals      map[string]value                            // addresses of global variables (immutable)
+	chkinit      map[string]bool                             // init vars
 	preloadTypes map[types.Type]reflect.Type                 // preload types.Type -> reflect.Type
 	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
@@ -1147,6 +1149,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		ctx:          ctx,
 		mainpkg:      mainpkg,
 		globals:      make(map[string]value),
+		chkinit:      make(map[string]bool),
 		goroutines:   1,
 		preloadTypes: make(map[types.Type]reflect.Type),
 		funcs:        make(map[*ssa.Function]*function),
@@ -1173,6 +1176,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 				key := v.String()
 				if ext, ok := findExternValue(i, key); ok && ext.Kind() == reflect.Ptr && ext.Elem().Type() == typ {
 					i.globals[key] = ext.Interface()
+					i.chkinit[key] = true
 				} else {
 					i.globals[key] = reflect.New(typ).Interface()
 				}
@@ -1180,6 +1184,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		}
 	}
 	// check linkname var
+	links := make(map[*load.LinkSym]bool)
 	for _, sp := range i.ctx.pkgs {
 		for _, link := range sp.Links {
 			if link.Kind == ast.Var {
@@ -1187,8 +1192,10 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 				if _, ok := i.globals[localName]; ok {
 					if ext, ok := findExternValue(i, targetName); ok && ext.Kind() == reflect.Ptr {
 						i.globals[localName] = ext.Interface()
+						links[link] = true
 					} else if v, ok := i.globals[targetName]; ok {
 						i.globals[localName] = v
+						links[link] = false
 					}
 				}
 			}
@@ -1202,11 +1209,23 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			}
 		}
 	}
-
 	// static types check
 	err := checkPackages(i, pkgs)
 	if err != nil {
 		return i, err
+	}
+	// check linkname duplicated definition
+	for link, ext := range links {
+		localName, targetName := link.PkgPath+"."+link.Name, link.Linkname.PkgPath+"."+link.Linkname.Name
+		if ext {
+			if i.chkinit[localName] {
+				return i, fmt.Errorf("duplicated definition of symbol %v, from %v and %v", targetName, link.PkgPath, link.Linkname.PkgPath)
+			}
+		} else {
+			if i.chkinit[localName] && i.chkinit[targetName] {
+				return i, fmt.Errorf("duplicated definition of symbol %v, from %v and %v", targetName, link.PkgPath, link.Linkname.PkgPath)
+			}
+		}
 	}
 	return i, err
 }
