@@ -857,6 +857,7 @@ import (
 	_ "unsafe"
 	"pkg"
 	"fmt"
+	"os"
 )
 
 //go:linkname v pkg.n
@@ -864,6 +865,9 @@ var v int
 
 //go:linkname e pkg.e
 var e int
+
+//go:linkname stdout os.Stdout
+var stdout *os.File
 
 func main() {
 	if v != 100 {
@@ -875,6 +879,9 @@ func main() {
 	}
 	if e != 100 {
 		panic(fmt.Errorf("3 got %v, must 100",e))
+	}
+	if stdout != os.Stdout {
+		panic("error stdout")
 	}
 }
 `
