@@ -310,18 +310,8 @@ func checkFuncCompatible(t1, t2 reflect.Type) bool {
 	if i1 != i2 {
 		return false
 	}
-	o1 := t1.NumOut()
-	o2 := t2.NumOut()
-	if o1 != o2 {
-		return false
-	}
 	for i := 0; i < i1; i++ {
 		if t1.In(i).Size() != t2.In(i).Size() {
-			return false
-		}
-	}
-	for i := 0; i < o1; i++ {
-		if t1.Out(i).Size() != t2.Out(i).Size() {
 			return false
 		}
 	}

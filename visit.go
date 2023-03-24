@@ -188,7 +188,7 @@ func (visit *visitor) function(fn *ssa.Function) {
 					if ext, ok := visit.findLinkFunc(sym); ok {
 						typ := visit.intp.preToType(fn.Type())
 						ftyp := ext.Type()
-						if typ != ftyp && checkFuncCompatible(typ, ftyp) {
+						if typ != ftyp {
 							ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
 						}
 						visit.intp.ctx.override[fnPath] = ext
