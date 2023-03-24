@@ -27,6 +27,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/igop/load"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
 	"github.com/visualfc/xtype"
@@ -245,6 +246,41 @@ func findExternValue(interp *Interp, name string) (ext reflect.Value, ok bool) {
 	if !ok {
 		// check extern value
 		ext, ok = externValues[name]
+	}
+	return
+}
+
+func findExternLinkFunc(interp *Interp, link *load.Linkname) (ext reflect.Value, ok bool) {
+	fullName := link.PkgPath + "." + link.Name
+	// check override value
+	ext, ok = interp.ctx.override[fullName]
+	if ok {
+		return
+	}
+	// check extern value
+	ext, ok = externValues[fullName]
+	if ok {
+		return
+	}
+	// check install pkg
+	if pkg, found := interp.installed(link.PkgPath); found {
+		if recv := link.Recv; recv != "" {
+			var star bool
+			if recv[0] == '*' {
+				star = true
+				recv = recv[1:]
+			}
+			if typ, ok := pkg.NamedTypes[recv]; ok {
+				if star {
+					typ = reflect.PtrTo(typ)
+				}
+				if m, ok := reflectx.MethodByName(typ, link.Method); ok {
+					return m.Func, true
+				}
+			}
+			return
+		}
+		ext, ok = pkg.Funcs[link.Name]
 	}
 	return
 }
