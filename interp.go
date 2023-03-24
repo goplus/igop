@@ -1190,7 +1190,7 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			if link.Kind == ast.Var {
 				localName, targetName := link.PkgPath+"."+link.Name, link.Linkname.PkgPath+"."+link.Linkname.Name
 				if _, ok := i.globals[localName]; ok {
-					if ext, ok := findExternValue(i, targetName); ok && ext.Kind() == reflect.Ptr {
+					if ext, ok := findExternVar(i, link.Linkname.PkgPath, link.Linkname.Name); ok && ext.Kind() == reflect.Ptr {
 						i.globals[localName] = ext.Interface()
 						i.chkinit[targetName] = true
 						links = append(links, link)

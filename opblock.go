@@ -249,6 +249,25 @@ func findExternValue(interp *Interp, name string) (ext reflect.Value, ok bool) {
 	return
 }
 
+func findExternVar(interp *Interp, pkgPath string, name string) (ext reflect.Value, ok bool) {
+	fullName := pkgPath + "." + name
+	// check override value
+	ext, ok = interp.ctx.override[fullName]
+	if ok {
+		return
+	}
+	// check extern value
+	ext, ok = externValues[fullName]
+	if ok {
+		return
+	}
+	// check install pkg
+	if pkg, found := interp.installed(pkgPath); found {
+		ext, ok = pkg.Vars[name]
+	}
+	return
+}
+
 func checkFuncCompatible(t1, t2 reflect.Type) bool {
 	i1 := t1.NumIn()
 	i2 := t2.NumIn()
