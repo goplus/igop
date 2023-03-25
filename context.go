@@ -393,7 +393,7 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		return nil, err
 	}
 	return &sourcePackage{
-		Package: types.NewPackage(path, "main"),
+		Package: types.NewPackage(path+".test", "main"),
 		Files:   []*ast.File{f},
 		Dir:     dir,
 		Context: ctx,
