@@ -953,7 +953,9 @@ func main() {
 	if err == nil {
 		t.Fatal("must error")
 	}
-	t.Log("dump error:", err)
+	if err.Error() != `main.go:6:1: //go:linkname only allowed in Go files that import "unsafe"` {
+		t.Fatal(err)
+	}
 }
 
 func TestLinknameError2(t *testing.T) {
@@ -983,5 +985,34 @@ func main() {
 	if err == nil {
 		t.Fatal("must error")
 	}
-	t.Log("dump error:", err)
+	if err.Error() != `main.go:7:1: //go:linkname must refer to declared function or variable` {
+		t.Fatal(err)
+	}
+}
+
+func TestLinknameError3(t *testing.T) {
+	pkg := `package pkg
+var v int = 100
+`
+	src := `package main
+import (
+	_ "unsafe"
+	_ "pkg"
+)
+
+//go:linkname a pkg.v
+var a int = 200
+
+func main() {
+}
+`
+	ctx := igop.NewContext(0)
+	ctx.AddImportFile("pkg", "pkg.go", pkg)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err == nil {
+		t.Fatal("must error")
+	}
+	if err.Error() != `duplicated definition of symbol pkg.v, from main and pkg` {
+		t.Fatal(err)
+	}
 }
