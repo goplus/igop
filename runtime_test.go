@@ -857,7 +857,6 @@ import (
 	_ "unsafe"
 	"pkg"
 	"fmt"
-	"os"
 )
 
 //go:linkname v pkg.n
@@ -865,9 +864,6 @@ var v int
 
 //go:linkname e pkg.e
 var e int
-
-//go:linkname stdout os.Stdout
-var stdout *os.File
 
 func main() {
 	if v != 100 {
@@ -880,15 +876,51 @@ func main() {
 	if e != 100 {
 		panic(fmt.Errorf("3 got %v, must 100",e))
 	}
-	if stdout != os.Stdout {
-		panic("error stdout")
-	}
 }
 `
 	ctx := igop.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	var e int = 100
 	ctx.RegisterExternal("pkg.e", &e)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestLinknamePkg(t *testing.T) {
+	src := `package main
+import (
+	_ "unsafe"
+	_ "strings"
+	"os"
+	"bytes"
+)
+
+//go:linkname stdout os.Stdout
+var stdout *os.File
+
+//go:linkname join strings.Join
+func join(elems []string, sep string) string
+
+//go:linkname writeBuffer bytes.(*Buffer).Write
+func writeBuffer(buf *bytes.Buffer, data []byte) (n int, err error)
+
+func main() {
+	if stdout != os.Stdout {
+		panic("error stdout")
+	}
+	if v := join([]string{"hello","world"},","); v != "hello,world" {
+		panic("error join "+v)
+	}
+	var buf bytes.Buffer
+	writeBuffer(&buf,[]byte("hello"))
+	if v := buf.String(); v != "hello" {
+		panic("error write buffer "+v)
+	}
+}
+`
+	ctx := igop.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
