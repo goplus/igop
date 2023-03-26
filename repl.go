@@ -81,7 +81,7 @@ func NewRepl(ctx *Context) *Repl {
 		r.lastDump = toDump(v)
 	})
 	// reset runtime.GC to default
-	ctx.SetOverrideFunction("runtime.GC", runtime.GC)
+	ctx.RegisterExternal("runtime.GC", runtime.GC)
 	ctx.evalCallFn = func(interp *Interp, call *ssa.Call, res ...interface{}) {
 		if len(*call.Referrers()) != 0 {
 			return
@@ -260,7 +260,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	r.fsInit = rinit
 	r.fsMain = rmain
 	for k, v := range i.globals {
-		r.globalMap[k.String()] = v
+		r.globalMap[k] = v
 	}
 	if inMain {
 		r.infuncs = append(r.infuncs, expr)

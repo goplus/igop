@@ -110,7 +110,7 @@ func globalToValue(i *Interp, key *ssa.Global) (interface{}, bool) {
 			}
 		}
 	}
-	if v, ok := i.globals[key]; ok {
+	if v, ok := i.globals[key.String()]; ok {
 		return v, true
 	}
 	return nil, false

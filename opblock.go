@@ -27,6 +27,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/igop/load"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
 	"github.com/visualfc/xtype"
@@ -239,12 +240,66 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 	return i
 }
 
-func findUserFunc(interp *Interp, fnName string) (ext reflect.Value, ok bool) {
-	// check override func
-	ext, ok = interp.ctx.override[fnName]
+func findExternValue(interp *Interp, name string) (ext reflect.Value, ok bool) {
+	// check override value
+	ext, ok = interp.ctx.override[name]
 	if !ok {
-		// check extern func
-		ext, ok = externValues[fnName]
+		// check extern value
+		ext, ok = externValues[name]
+	}
+	return
+}
+
+func findExternLinkFunc(interp *Interp, link *load.Linkname) (ext reflect.Value, ok bool) {
+	fullName := link.PkgPath + "." + link.Name
+	// check override value
+	ext, ok = interp.ctx.override[fullName]
+	if ok {
+		return
+	}
+	// check extern value
+	ext, ok = externValues[fullName]
+	if ok {
+		return
+	}
+	// check install pkg
+	if pkg, found := interp.installed(link.PkgPath); found {
+		if recv := link.Recv; recv != "" {
+			var star bool
+			if recv[0] == '*' {
+				star = true
+				recv = recv[1:]
+			}
+			if typ, ok := pkg.NamedTypes[recv]; ok {
+				if star {
+					typ = reflect.PtrTo(typ)
+				}
+				if m, ok := reflectx.MethodByName(typ, link.Method); ok {
+					return m.Func, true
+				}
+			}
+			return
+		}
+		ext, ok = pkg.Funcs[link.Name]
+	}
+	return
+}
+
+func findExternVar(interp *Interp, pkgPath string, name string) (ext reflect.Value, ok bool) {
+	fullName := pkgPath + "." + name
+	// check override value
+	ext, ok = interp.ctx.override[fullName]
+	if ok {
+		return
+	}
+	// check extern value
+	ext, ok = externValues[fullName]
+	if ok {
+		return
+	}
+	// check install pkg
+	if pkg, found := interp.installed(pkgPath); found {
+		ext, ok = pkg.Vars[name]
 	}
 	return
 }
@@ -255,18 +310,8 @@ func checkFuncCompatible(t1, t2 reflect.Type) bool {
 	if i1 != i2 {
 		return false
 	}
-	o1 := t1.NumOut()
-	o2 := t2.NumOut()
-	if o1 != o2 {
-		return false
-	}
 	for i := 0; i < i1; i++ {
 		if t1.In(i).Size() != t2.In(i).Size() {
-			return false
-		}
-	}
-	for i := 0; i < o1; i++ {
-		if t1.Out(i).Size() != t2.Out(i).Size() {
 			return false
 		}
 	}
@@ -275,7 +320,7 @@ func checkFuncCompatible(t1, t2 reflect.Type) bool {
 
 func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok bool) {
 	fnName := fn.String()
-	ext, ok = findUserFunc(interp, fnName)
+	ext, ok = findExternValue(interp, fnName)
 	if ok {
 		typ := interp.preToType(fn.Type())
 		ftyp := ext.Type()
@@ -897,6 +942,9 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 					return nil
 				}
 			}
+		}
+		if pfn.Fn.Name() == "init" && pfn.Fn.Synthetic == "package initializer" {
+			pfn.Interp.chkinit[instr.Addr.String()] = true
 		}
 		ia := pfn.regIndex(instr.Addr)
 		iv, kv, vv := pfn.regIndex3(instr.Val)

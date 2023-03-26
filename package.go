@@ -18,6 +18,7 @@ package igop
 
 import (
 	"go/constant"
+	"log"
 	"reflect"
 	"sort"
 )
@@ -98,7 +99,17 @@ var (
 	externValues = make(map[string]reflect.Value)
 )
 
-// RegisterExternal is register external function for no function body
+// RegisterExternal is register external variable address or func
 func RegisterExternal(key string, i interface{}) {
-	externValues[key] = reflect.ValueOf(i)
+	if i == nil {
+		delete(externValues, key)
+		return
+	}
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Func, reflect.Ptr:
+		externValues[key] = v
+	default:
+		log.Printf("register external must variable address or func. not %v\n", v.Kind())
+	}
 }

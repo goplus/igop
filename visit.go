@@ -19,10 +19,13 @@ package igop
 import (
 	"fmt"
 	"go/token"
+	"go/types"
 	"log"
 	"reflect"
 	"strings"
 
+	"github.com/goplus/igop/load"
+	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -100,6 +103,70 @@ func (visit *visitor) program() {
 	}
 }
 
+func (visit *visitor) findLinkSym(fn *ssa.Function) (*load.LinkSym, bool) {
+	if sp, ok := visit.intp.ctx.pkgs[fn.Pkg.Pkg.Path()]; ok {
+		for _, link := range sp.Links {
+			if link.Name == fn.Name() {
+				return link, true
+			}
+		}
+	}
+	return nil, false
+}
+
+func (visit *visitor) findFunction(sym *load.LinkSym) *ssa.Function {
+	for pkg := range visit.pkgs {
+		if pkg.Pkg.Path() == sym.Linkname.PkgPath {
+			if typ := sym.Linkname.Recv; typ != "" {
+				var star bool
+				if typ[0] == '*' {
+					star = true
+					typ = typ[1:]
+				}
+				if obj := pkg.Pkg.Scope().Lookup(typ); obj != nil {
+					t := obj.Type()
+					if star {
+						t = types.NewPointer(t)
+					}
+					return visit.prog.LookupMethod(t, pkg.Pkg, sym.Linkname.Method)
+				}
+			}
+			return pkg.Func(sym.Linkname.Name)
+		}
+	}
+	return nil
+}
+
+func wrapMethodType(sig *types.Signature) *types.Signature {
+	params := sig.Params()
+	n := params.Len()
+	list := make([]*types.Var, n+1)
+	list[0] = sig.Recv()
+	for i := 0; i < n; i++ {
+		list[i+1] = params.At(i)
+	}
+	return types.NewSignature(nil, types.NewTuple(list...), sig.Results(), sig.Variadic())
+}
+
+func (visit *visitor) findLinkFunc(sym *load.LinkSym) (ext reflect.Value, ok bool) {
+	ext, ok = findExternLinkFunc(visit.intp, &sym.Linkname)
+	if ok {
+		return
+	}
+	if link := visit.findFunction(sym); link != nil {
+		visit.function(link)
+		sig := link.Signature
+		if sig.Recv() != nil {
+			sig = wrapMethodType(sig)
+		}
+		typ := visit.intp.preToType(sig)
+		pfn := visit.intp.loadFunction(link)
+		ext = visit.intp.makeFunction(typ, pfn, nil)
+		ok = true
+	}
+	return
+}
+
 func (visit *visitor) function(fn *ssa.Function) {
 	if visit.seen[fn] {
 		return
@@ -117,15 +184,26 @@ func (visit *visitor) function(fn *ssa.Function) {
 	if fn.Blocks == nil {
 		if _, ok := visit.pkgs[fn.Pkg]; ok {
 			if _, ok = findExternFunc(visit.intp, fn); !ok {
+				if sym, ok := visit.findLinkSym(fn); ok {
+					if ext, ok := visit.findLinkFunc(sym); ok {
+						typ := visit.intp.preToType(fn.Type())
+						ftyp := ext.Type()
+						if typ != ftyp {
+							ext = xtype.ConvertFunc(ext, xtype.TypeOfType(typ))
+						}
+						visit.intp.ctx.override[fnPath] = ext
+						return
+					}
+				}
 				if visit.intp.ctx.Mode&EnableNoStrict != 0 {
 					typ := visit.intp.preToType(fn.Type())
 					numOut := typ.NumOut()
 					if numOut == 0 {
-						externValues[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
+						visit.intp.ctx.override[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
 							return
 						})
 					} else {
-						externValues[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
+						visit.intp.ctx.override[fnPath] = reflect.MakeFunc(typ, func(args []reflect.Value) (results []reflect.Value) {
 							results = make([]reflect.Value, numOut)
 							for i := 0; i < numOut; i++ {
 								results[i] = reflect.New(typ.Out(i)).Elem()

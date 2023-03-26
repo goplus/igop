@@ -26,6 +26,7 @@ import (
 	"go/token"
 	"go/types"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -108,6 +109,7 @@ type sourcePackage struct {
 	Info    *types.Info
 	Dir     string
 	Files   []*ast.File
+	Links   []*load.LinkSym
 }
 
 func (sp *sourcePackage) Load() (err error) {
@@ -140,6 +142,9 @@ func (sp *sourcePackage) Load() (err error) {
 			}
 		}
 		types.NewChecker(conf, sp.Context.FileSet, sp.Package, sp.Info).Files(sp.Files)
+		if err == nil {
+			sp.Links, err = load.ParseLinkname(sp.Context.FileSet, sp.Package.Path(), sp.Files)
+		}
 	}
 	return
 }
@@ -161,7 +166,7 @@ func NewContext(mode Mode) *Context {
 		ctx.BuilderMode |= ssa.PrintFunctions
 	}
 	if mode&ExperimentalSupportGC != 0 {
-		ctx.SetOverrideFunction("runtime.GC", runtimeGC)
+		ctx.RegisterExternal("runtime.GC", runtimeGC)
 	}
 	ctx.sizes = types.SizesFor("gc", runtime.GOARCH)
 	ctx.Lookup = new(load.ListDriver).Lookup
@@ -192,15 +197,19 @@ func (ctx *Context) SetDebug(fn func(*DebugInfo)) {
 	ctx.debugFunc = fn
 }
 
-// SetOverrideFunction register external function to override function.
-// match func fullname and signature
-func (ctx *Context) SetOverrideFunction(key string, fn interface{}) {
-	ctx.override[key] = reflect.ValueOf(fn)
-}
-
-// ClearOverrideFunction reset override function
-func (ctx *Context) ClearOverrideFunction(key string) {
-	delete(ctx.override, key)
+// RegisterExternal register external value must variable address or func.
+func (ctx *Context) RegisterExternal(key string, i interface{}) {
+	if i == nil {
+		delete(ctx.override, key)
+		return
+	}
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Func, reflect.Ptr:
+		ctx.override[key] = v
+	default:
+		log.Printf("register external must variable address or func. not %v\n", v.Kind())
+	}
 }
 
 // SetPrintOutput is captured builtin print/println output
@@ -379,12 +388,12 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if err != nil {
 		return nil, err
 	}
-	f, err := parser.ParseFile(ctx.FileSet, "_testmain.go", data, 0)
+	f, err := parser.ParseFile(ctx.FileSet, "_testmain.go", data, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
 	return &sourcePackage{
-		Package: types.NewPackage(path, "main"),
+		Package: types.NewPackage(path+".test", "main"),
 		Files:   []*ast.File{f},
 		Dir:     dir,
 		Context: ctx,
@@ -400,7 +409,7 @@ func (ctx *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, e
 	for i, filename := range filenames {
 		go func(i int, filepath string) {
 			defer wg.Done()
-			files[i], errors[i] = parser.ParseFile(ctx.FileSet, filepath, nil, 0)
+			files[i], errors[i] = parser.ParseFile(ctx.FileSet, filepath, nil, parser.ParseComments)
 		}(i, filepath.Join(dir, filename))
 	}
 	wg.Wait()
