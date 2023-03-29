@@ -145,6 +145,9 @@ func IsClass(ext string) (isProj bool, ok bool) {
 }
 
 func NewContext(ctx *igop.Context) *Context {
+	if ctx.IsEvalMode() {
+		ctx = igop.NewContext(0)
+	}
 	return &Context{ctx: ctx, fset: token.NewFileSet(), gop: igop.NewTypesLoader(ctx, 0)}
 }
 
