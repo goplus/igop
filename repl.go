@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/constant"
+	"go/format"
 	"go/scanner"
 	"go/token"
 	"go/types"
@@ -80,6 +81,9 @@ func NewRepl(ctx *Context) *Repl {
 	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
 		r.lastDump = toDump(v)
 	})
+	RegisterCustomBuiltin("source", func() string {
+		return r.Source()
+	})
 	// reset runtime.GC to default
 	ctx.RegisterExternal("runtime.GC", runtime.GC)
 	ctx.evalCallFn = func(interp *Interp, call *ssa.Call, res ...interface{}) {
@@ -117,6 +121,9 @@ func (r *Repl) Interp() *Interp {
 }
 
 func (r *Repl) Source() string {
+	if data, err := format.Source([]byte(r.source)); err == nil {
+		return string(data)
+	}
 	return r.source
 }
 
@@ -287,6 +294,11 @@ func (r *Repl) check(filename string, src interface{}) (errors []error, err erro
 		DisableUnusedImportCheck: true,
 	}
 	tc.Error = func(err error) {
+		if te, ok := err.(types.Error); ok {
+			if strings.HasSuffix(te.Msg, errDeclaredNotUsed) {
+				return
+			}
+		}
 		errors = append(errors, err)
 	}
 	pkg := types.NewPackage(file.Name.Name, "")

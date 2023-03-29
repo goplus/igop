@@ -121,8 +121,17 @@ func (sp *sourcePackage) Load() (err error) {
 		}
 		if sp.Context.evalMode {
 			conf.DisableUnusedImportCheck = true
-		}
-		if sp.Context.Mode&EnableNoStrict != 0 {
+			conf.Error = func(e error) {
+				if te, ok := e.(types.Error); ok {
+					if strings.HasSuffix(te.Msg, errDeclaredNotUsed) {
+						return
+					}
+				}
+				if err == nil {
+					err = e
+				}
+			}
+		} else if sp.Context.Mode&EnableNoStrict != 0 {
 			conf.Error = func(e error) {
 				if te, ok := e.(types.Error); ok {
 					if strings.HasSuffix(te.Msg, errDeclaredNotUsed) || strings.HasSuffix(te.Msg, errImportedNotUsed) {
