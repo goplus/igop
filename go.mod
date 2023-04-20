@@ -8,6 +8,7 @@ require (
 	github.com/goplus/reflectx v1.0.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/peterh/liner v1.2.2
+	github.com/qiniu/x v1.11.9
 	github.com/visualfc/funcval v0.1.3
 	github.com/visualfc/goembed v0.3.2
 	github.com/visualfc/goid v0.2.0

@@ -123,3 +123,130 @@ func main() {
 }
 `)
 }
+
+func TestErrorWrap(t *testing.T) {
+	gopClTest(t, `
+import (
+    "strconv"
+)
+
+func add(x, y string) (int, error) {
+    return strconv.Atoi(x)? + strconv.Atoi(y)?, nil
+}
+
+func addSafe(x, y string) int {
+    return strconv.Atoi(x)?:0 + strconv.Atoi(y)?:0
+}
+
+println add("100", "23")!
+
+sum, err := add("10", "abc")
+println sum, err
+
+println addSafe("10", "abc")
+`, `package main
+
+import (
+	fmt "fmt"
+	strconv "strconv"
+	errors "github.com/qiniu/x/errors"
+)
+
+func add(x string, y string) (int, error) {
+//line main.gop:7
+	var _autoGo_1 int
+//line main.gop:7
+	{
+//line main.gop:7
+		var _gop_err error
+//line main.gop:7
+		_autoGo_1, _gop_err = strconv.Atoi(x)
+//line main.gop:7
+		if _gop_err != nil {
+//line main.gop:7
+			_gop_err = errors.NewFrame(_gop_err, "strconv.Atoi(x)", "main.gop", 7, "main.add")
+//line main.gop:7
+			return 0, _gop_err
+		}
+//line main.gop:7
+		goto _autoGo_2
+	_autoGo_2:
+//line main.gop:7
+	}
+//line main.gop:7
+	var _autoGo_3 int
+//line main.gop:7
+	{
+//line main.gop:7
+		var _gop_err error
+//line main.gop:7
+		_autoGo_3, _gop_err = strconv.Atoi(y)
+//line main.gop:7
+		if _gop_err != nil {
+//line main.gop:7
+			_gop_err = errors.NewFrame(_gop_err, "strconv.Atoi(y)", "main.gop", 7, "main.add")
+//line main.gop:7
+			return 0, _gop_err
+		}
+//line main.gop:7
+		goto _autoGo_4
+	_autoGo_4:
+//line main.gop:7
+	}
+//line main.gop:7
+	return _autoGo_1 + _autoGo_3, nil
+}
+func addSafe(x string, y string) int {
+//line main.gop:11
+	return func() (_gop_ret int) {
+//line main.gop:11
+		var _gop_err error
+//line main.gop:11
+		_gop_ret, _gop_err = strconv.Atoi(x)
+//line main.gop:11
+		if _gop_err != nil {
+//line main.gop:11
+			return 0
+		}
+//line main.gop:11
+		return
+	}() + func() (_gop_ret int) {
+//line main.gop:11
+		var _gop_err error
+//line main.gop:11
+		_gop_ret, _gop_err = strconv.Atoi(y)
+//line main.gop:11
+		if _gop_err != nil {
+//line main.gop:11
+			return 0
+		}
+//line main.gop:11
+		return
+	}()
+}
+func main() {
+//line main.gop:14
+	fmt.Println(func() (_gop_ret int) {
+//line main.gop:14
+		var _gop_err error
+//line main.gop:14
+		_gop_ret, _gop_err = add("100", "23")
+//line main.gop:14
+		if _gop_err != nil {
+//line main.gop:14
+			_gop_err = errors.NewFrame(_gop_err, "add(\"100\", \"23\")", "main.gop", 14, "main.main")
+//line main.gop:14
+			panic(_gop_err)
+		}
+//line main.gop:14
+		return
+	}())
+//line main.gop:16
+	sum, err := add("10", "abc")
+//line main.gop:17
+	fmt.Println(sum, err)
+//line main.gop:19
+	fmt.Println(addSafe("10", "abc"))
+}
+`)
+}
