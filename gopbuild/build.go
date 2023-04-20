@@ -19,6 +19,7 @@ package gopbuild
 //go:generate go run ../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin
 //go:generate go run ../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin/ng
 //go:generate go run ../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin/iox
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/qiniu/x/errors
 
 import (
 	"bytes"
@@ -39,6 +40,7 @@ import (
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/iox"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/ng"
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/errors"
 	_ "github.com/goplus/igop/pkg/io"
 	_ "github.com/goplus/igop/pkg/log"
 	_ "github.com/goplus/igop/pkg/math/big"
