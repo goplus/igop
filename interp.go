@@ -1088,7 +1088,7 @@ func (fr *frame) run() {
 		}()
 	}
 
-	for fr.ipc != -1 {
+	for fr.ipc != -1 && atomic.LoadInt32(&fr.pfn.Interp.exited) == 0 {
 		fn := fr.pfn.Instrs[fr.ipc]
 		fr.ipc++
 		fn(fr)
@@ -1303,9 +1303,13 @@ func (i *Interp) ExitCode() int {
 func (i *Interp) RunInit() (err error) {
 	i.goexited = 0
 	i.exitCode = 0
-	i.exited = 0
+	atomic.StoreInt32(&i.exited, 0)
 	_, err = i.RunFunc("init")
 	return
+}
+
+func (i *Interp) Abort() {
+	atomic.StoreInt32(&i.exited, 1)
 }
 
 func (i *Interp) RunMain() (exitCode int, err error) {
