@@ -69,8 +69,8 @@ type Loader interface {
 // Context ssa context
 type Context struct {
 	Loader       Loader                                                   // types loader
-	BuildContext build.Context                                            // build context
-	RunContext   context.Context                                          // run context.Context
+	BuildContext build.Context                                            // build context, default build.Default
+	RunContext   context.Context                                          // run context, default unset
 	output       io.Writer                                                // capture print/println output
 	FileSet      *token.FileSet                                           // file set
 	sizes        types.Sizes                                              // types unsafe sizes

@@ -17,6 +17,7 @@ package igop_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -2585,4 +2586,36 @@ func main() {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestRunContext(t *testing.T) {
+	var src string = `
+package main
+
+import "time"
+
+func main() {
+	println("hello world")
+	ch := make(chan int)
+	go func() {
+		for i := 0; i < 10; i++ {
+			timeout := time.After(time.Second * 1)
+			select {
+			case <-timeout:
+				println("work")
+			}
+		}
+		ch <- 1
+	}()
+	<-ch
+	println("exit")
+}
+`
+	ctx := igop.NewContext(0)
+	ctx.RunContext, _ = context.WithTimeout(context.Background(), 1e9)
+	code, err := ctx.RunFile("main.go", src, nil)
+	if code != 2 {
+		t.Fatalf("exit code must 2")
+	}
+	t.Log("cancel context:", err)
 }
