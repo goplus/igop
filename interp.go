@@ -1285,7 +1285,11 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		case plainError:
 			err = p
 		default:
-			err = fmt.Errorf("unexpected type: %T: %v", p, p)
+			if e, ok := p.(error); ok {
+				err = e
+			} else {
+				err = fmt.Errorf("unexpected type: %T: %v", p, p)
+			}
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {
