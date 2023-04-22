@@ -18,6 +18,7 @@ package igop
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -69,6 +70,7 @@ type Loader interface {
 type Context struct {
 	Loader       Loader                                                   // types loader
 	BuildContext build.Context                                            // build context
+	RunContext   context.Context                                          // run context.Context
 	output       io.Writer                                                // capture print/println output
 	FileSet      *token.FileSet                                           // file set
 	sizes        types.Sizes                                              // types unsafe sizes
@@ -506,6 +508,36 @@ func (ctx *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (e
 }
 
 func (ctx *Context) RunInterp(interp *Interp, input string, args []string) (exitCode int, err error) {
+	if ctx.RunContext != nil {
+		return ctx.runInterpWithContext(interp, input, args, ctx.RunContext)
+	}
+	return ctx.runInterp(interp, input, args)
+}
+
+func (p *Context) runInterpWithContext(interp *Interp, input string, args []string, ctx context.Context) (int, error) {
+	var exitCode int
+	var err error
+	ch := make(chan error, 1)
+	go func() {
+		exitCode, err = p.runInterp(interp, input, args)
+		ch <- err
+	}()
+	select {
+	case <-ctx.Done():
+		interp.Abort()
+		select {
+		case <-time.After(1e9):
+			exitCode = 2
+			err = fmt.Errorf("interrupt timeout: all goroutines are asleep - deadlock!")
+		case <-ch:
+			err = ctx.Err()
+		}
+	case err = <-ch:
+	}
+	return exitCode, err
+}
+
+func (ctx *Context) runInterp(interp *Interp, input string, args []string) (exitCode int, err error) {
 	// reset os args and flag
 	os.Args = []string{input}
 	if args != nil {
