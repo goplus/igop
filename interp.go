@@ -1303,7 +1303,7 @@ func (i *Interp) ExitCode() int {
 func (i *Interp) RunInit() (err error) {
 	i.goexited = 0
 	i.exitCode = 0
-	i.exited = 0
+	atomic.StoreInt32(&i.exited, 0)
 	_, err = i.RunFunc("init")
 	return
 }
