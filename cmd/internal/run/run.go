@@ -107,7 +107,11 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	code, err := ctx.RunInterp(interp, input, args)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		if e, ok := err.(igop.PanicError); ok {
+			fmt.Fprintf(os.Stderr, "panic: %v\n", e)
+		} else {
+			fmt.Fprintln(os.Stderr, err)
+		}
 		os.Exit(2)
 	}
 	os.Exit(code)
