@@ -129,7 +129,7 @@ type function struct {
 func (p *function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
-		fr := &frame{pfn: p, block: p.Main}
+		fr := &frame{interp: p.Interp, pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 		return fr
 	}
@@ -148,7 +148,7 @@ func (p *function) allocFrame(caller *frame) *frame {
 		if atomic.AddInt32(&p.used, 1) > int32(p.Interp.ctx.callForPool) {
 			atomic.StoreInt32(&p.cached, 1)
 		}
-		fr = &frame{pfn: p, block: p.Main}
+		fr = &frame{interp: p.Interp, pfn: p, block: p.Main}
 		fr.stack = append([]value{}, p.stack...)
 	}
 	fr.caller = caller
@@ -898,7 +898,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	case *ssa.Panic:
 		ix := pfn.regIndex(instr.X)
 		return func(fr *frame) {
-			panic(targetPanic{fr.reg(ix)})
+			panic(PanicError{Value: fr.reg(ix), fr: fr})
 		}
 	case *ssa.Go:
 		iv, ia, ib := getCallIndex(pfn, &instr.Call)

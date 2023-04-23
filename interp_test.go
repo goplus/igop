@@ -592,8 +592,13 @@ func TestPanicInfo(t *testing.T) {
 func TestPanicError(t *testing.T) {
 	src := `package main
 import "errors"
-func main() {
+
+func test() {
 	panic(errors.New("error info"))
+}
+
+func main() {
+	test()
 }
 `
 	_, err := igop.RunFile("main.go", src, nil, 0)
@@ -603,6 +608,18 @@ func main() {
 	if s := err.Error(); s != "error info" {
 		t.Fatalf("error %q", s)
 	}
+	pe, ok := err.(igop.PanicError)
+	if !ok {
+		t.Fatal("error type must igop.PanicError")
+	}
+	ve, ok := pe.Value.(error)
+	if !ok {
+		t.Fatal("e.Value type must error")
+	}
+	if s := ve.Error(); s != "error info" {
+		t.Fatalf("e.Value %q", s)
+	}
+	t.Log("dump panic stack\n", string(pe.Stack()))
 }
 
 func TestPanicErrorRecover(t *testing.T) {

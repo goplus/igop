@@ -17,14 +17,19 @@ import (
 )
 
 // If the target program panics, the interpreter panics with this type.
-type targetPanic struct {
-	v value
+type PanicError struct {
+	fr    *frame
+	Value value
 }
 
-func (p targetPanic) Error() string {
+func (p PanicError) Error() string {
 	var buf bytes.Buffer
-	writeany(&buf, p.v)
+	writeany(&buf, p.Value)
 	return buf.String()
+}
+
+func (p PanicError) Stack() []byte {
+	return debugStack(p.fr)
 }
 
 // If the target program calls exit, the interpreter panics with this type.
