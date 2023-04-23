@@ -1106,23 +1106,12 @@ func doRecover(caller *frame) value {
 		caller.caller != nil && !caller.caller._panic.isNil() {
 		p := caller.caller._panic.arg
 		caller.caller._panic.recovered = true
-		// TODO(adonovan): support runtime.Goexit.
 		switch p := p.(type) {
-		case targetPanic:
+		case PanicError:
 			// The target program explicitly called panic().
-			return p.v
-		case runtime.Error:
-			// The interpreter encountered a runtime error.
-			return p
-			//return iface{caller.i.runtimeErrorString, p.Error()}
-		case string:
-			return p
-		case plainError:
-			return p
-		case *reflect.ValueError:
-			return p
+			return p.Value
 		default:
-			panic(fmt.Sprintf("unexpected panic type %T in target call to recover()", p))
+			return p
 		}
 	}
 	return nil //iface{}
@@ -1276,20 +1265,12 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 				i.exitCode = <-i.chexit
 				atomic.StoreInt32(&i.exited, 1)
 			}
-		case targetPanic:
-			err = p
 		case runtime.Error:
 			err = p
-		case string:
-			err = plainError(p)
-		case plainError:
+		case PanicError:
 			err = p
 		default:
-			if e, ok := p.(error); ok {
-				err = e
-			} else {
-				err = fmt.Errorf("unexpected type: %T: %v", p, p)
-			}
+			err = PanicError{p}
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {

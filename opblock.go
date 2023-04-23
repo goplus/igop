@@ -898,7 +898,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	case *ssa.Panic:
 		ix := pfn.regIndex(instr.X)
 		return func(fr *frame) {
-			panic(targetPanic{fr.reg(ix)})
+			panic(PanicError{fr.reg(ix)})
 		}
 	case *ssa.Go:
 		iv, ia, ib := getCallIndex(pfn, &instr.Call)

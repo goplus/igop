@@ -127,7 +127,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 	case "panic":
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
-		panic(targetPanic{args[0]})
+		panic(PanicError{args[0]})
 
 	case "recover":
 		return doRecover(caller)
@@ -284,7 +284,7 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 	case "panic":
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
-		panic(targetPanic{args[0]})
+		panic(PanicError{args[0]})
 
 	case "recover":
 		doRecover(caller)
@@ -436,7 +436,7 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
 		arg0 := caller.reg(ia[0])
-		panic(targetPanic{arg0})
+		panic(PanicError{arg0})
 
 	case "recover":
 		caller.setReg(ir, doRecover(caller))
