@@ -603,6 +603,17 @@ func main() {
 	if s := err.Error(); s != "error info" {
 		t.Fatalf("error %q", s)
 	}
+	pe, ok := err.(igop.PanicError)
+	if !ok {
+		t.Fatal("error type must igop.PanicError")
+	}
+	ve, ok := pe.Value.(error)
+	if !ok {
+		t.Fatal("e.Value type must error")
+	}
+	if s := ve.Error(); s != "error info" {
+		t.Fatalf("e.Value %q", s)
+	}
 }
 
 func TestPanicErrorRecover(t *testing.T) {
