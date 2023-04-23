@@ -188,9 +188,9 @@ type _defer struct {
 }
 
 type frame struct {
+	interp  *Interp
 	caller  *frame
 	callee  *frame
-	_       *frame
 	pfn     *function
 	_defer  *_defer
 	_panic  *_panic
@@ -507,7 +507,7 @@ func (fr *frame) runDefer(d *_defer) (ok bool) {
 			}
 		}
 	}()
-	fr.pfn.Interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
+	fr.interp.callDiscardsResult(fr, d.fn, d.args, d.ssaArgs)
 	ok = true
 	return
 }
@@ -524,7 +524,7 @@ func (fr *frame) runDefer(d *_defer) (ok bool) {
 // If there was no initial state of panic, or it was recovered from,
 // runDefers returns normally.
 func (fr *frame) runDefers() {
-	interp := fr.pfn.Interp
+	interp := fr.interp
 	atomic.AddInt32(&interp.deferCount, 1)
 	fr.deferid = goroutineID()
 	interp.deferMap.Store(fr.deferid, fr)
@@ -1088,7 +1088,7 @@ func (fr *frame) run() {
 		}()
 	}
 
-	for fr.ipc != -1 && atomic.LoadInt32(&fr.pfn.Interp.exited) == 0 {
+	for fr.ipc != -1 && atomic.LoadInt32(&fr.interp.exited) == 0 {
 		fn := fr.pfn.Instrs[fr.ipc]
 		fr.ipc++
 		fn(fr)
@@ -1101,7 +1101,7 @@ func doRecover(caller *frame) value {
 	// function (two levels beneath the panicking function) to
 	// have any effect.  Thus we ignore both "defer recover()" and
 	// "defer f() -> g() -> recover()".
-	if caller.pfn.Interp.ctx.Mode&DisableRecover == 0 &&
+	if caller.interp.ctx.Mode&DisableRecover == 0 &&
 		caller._panic.isNil() &&
 		caller.caller != nil && !caller.caller._panic.isNil() {
 		p := caller.caller._panic.arg
@@ -1247,6 +1247,7 @@ func (i *Interp) toType(typ types.Type) reflect.Type {
 }
 
 func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
+	fr := &frame{interp: i}
 	defer func() {
 		if i.ctx.Mode&DisableRecover != 0 {
 			return
@@ -1270,11 +1271,15 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		case PanicError:
 			err = p
 		default:
-			err = PanicError{p}
+			pfr := fr
+			for pfr.callee != nil {
+				pfr = pfr.callee
+			}
+			err = PanicError{fr: pfr, Value: p}
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {
-		r = i.call(&frame{}, fn, args, nil)
+		r = i.call(fr, fn, args, nil)
 	} else {
 		err = fmt.Errorf("no function %v", name)
 	}
