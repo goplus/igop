@@ -431,7 +431,7 @@ func (ctx *Context) LoadFile(filename string, src interface{}) (*ssa.Package, er
 	}
 	root, _ := filepath.Split(filename)
 	ctx.setRoot(root)
-	return ctx.LoadAstFile("main", file)
+	return ctx.LoadAstFile(file.Name.Name, file)
 }
 
 func (ctx *Context) ParseFile(filename string, src interface{}) (*ast.File, error) {

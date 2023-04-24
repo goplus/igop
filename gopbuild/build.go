@@ -211,10 +211,15 @@ func (c *Context) ParseFile(filename string, src interface{}) (*Package, error) 
 func (c *Context) loadPackage(srcDir string, pkgs map[string]*ast.Package) (*Package, error) {
 	mainPkg, ok := pkgs["main"]
 	if !ok {
-		return nil, fmt.Errorf("not a main package")
+		for _, v := range pkgs {
+			mainPkg = v
+			break
+		}
 	}
-	if f, err := igop.ParseBuiltin(c.fset, "main"); err == nil {
-		mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
+	if c.ctx.Mode&igop.DisableCustomBuiltin == 0 {
+		if f, err := igop.ParseBuiltin(c.fset, mainPkg.Name); err == nil {
+			mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
+		}
 	}
 	conf := &cl.Config{
 		WorkingDir: srcDir, TargetDir: srcDir, Fset: c.fset}
