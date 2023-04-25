@@ -1298,6 +1298,14 @@ func (i *Interp) RunInit() (err error) {
 	return
 }
 
+func (i *Interp) Release() {
+	i.funcs = nil
+	i.msets = nil
+	i.globals = nil
+	i.preloadTypes = nil
+	i.record = nil
+}
+
 func (i *Interp) Abort() {
 	atomic.StoreInt32(&i.exited, 1)
 }
