@@ -152,8 +152,8 @@ func (i *Interp) tryDeferFrame() *frame {
 	return &frame{}
 }
 
-func (pfn *function) callFunctionByReflect(mtyp reflect.Type, args []reflect.Value) []reflect.Value {
-	return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), mtyp, pfn, args, nil)
+func (pfn *function) callFunctionByReflect(mtyp reflect.Type, args []reflect.Value, env []interface{}) []reflect.Value {
+	return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), mtyp, pfn, args, env)
 }
 
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
@@ -161,7 +161,7 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	if f := i.mainpkg.Prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 		pfn := i.loadFunction(f)
 		return func(args []reflect.Value) []reflect.Value {
-			return pfn.callFunctionByReflect(mtyp, args)
+			return pfn.callFunctionByReflect(mtyp, args, nil)
 		}
 	}
 	name := fn.FullName()
@@ -178,9 +178,9 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
-func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) reflect.Value {
+func (pfn *function) makeFunction(typ reflect.Type, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
+		return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), typ, pfn, args, env)
 	})
 }
 
@@ -1341,7 +1341,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.makeFunction(i.toType(fn.Type()), i.funcs[fn], nil).Interface(), true
+	return i.funcs[fn].makeFunction(i.toType(fn.Type()), nil).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
@@ -1418,7 +1418,7 @@ func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
 		v, ok = globalToValue(i, p)
 	case *ssa.Function:
 		typ := i.toType(p.Type())
-		v = i.makeFunction(typ, i.funcs[p], nil)
+		v = i.funcs[p].makeFunction(typ, nil)
 	case *ssa.Type:
 		v = i.toType(p.Type())
 	}

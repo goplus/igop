@@ -161,7 +161,7 @@ func (visit *visitor) findLinkFunc(sym *load.LinkSym) (ext reflect.Value, ok boo
 		}
 		typ := visit.intp.preToType(sig)
 		pfn := visit.intp.loadFunction(link)
-		ext = visit.intp.makeFunction(typ, pfn, nil)
+		ext = pfn.makeFunction(typ, nil)
 		ok = true
 	}
 	return
