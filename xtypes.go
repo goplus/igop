@@ -180,6 +180,16 @@ type TypesRecord struct {
 	nstack  nestedStack
 }
 
+func (r *TypesRecord) Release() {
+	r.loader = nil
+	r.rcache = nil
+	r.tcache = nil
+	r.ncache = nil
+	r.finder = nil
+	r.nested = nil
+	r.nstack.cache = nil
+}
+
 func NewTypesRecord(loader Loader, finder FindMethod, nested map[*types.Named]int) *TypesRecord {
 	return &TypesRecord{
 		loader: loader,

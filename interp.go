@@ -152,12 +152,16 @@ func (i *Interp) tryDeferFrame() *frame {
 	return &frame{}
 }
 
+func (pfn *function) callFunctionByReflect(mtyp reflect.Type, args []reflect.Value) []reflect.Value {
+	return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), mtyp, pfn, args, nil)
+}
+
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
 	if f := i.mainpkg.Prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 		pfn := i.loadFunction(f)
 		return func(args []reflect.Value) []reflect.Value {
-			return i.callFunctionByReflect(i.tryDeferFrame(), mtyp, pfn, args, nil)
+			return pfn.callFunctionByReflect(mtyp, args)
 		}
 	}
 	name := fn.FullName()
@@ -1299,6 +1303,10 @@ func (i *Interp) RunInit() (err error) {
 }
 
 func (i *Interp) Release() {
+	for _, v := range i.funcs {
+		v.Release()
+	}
+	i.record.Release()
 	i.funcs = nil
 	i.msets = nil
 	i.globals = nil

@@ -126,6 +126,20 @@ type function struct {
 	cached     int32                        // enable cached by pool
 }
 
+func (p *function) Release() {
+	p.Interp = nil
+	p.Fn = nil
+	p.pool = nil
+	p.index = nil
+	p.instrIndex = nil
+	p.Instrs = nil
+	p.Recover = nil
+	p.Blocks = nil
+	p.stack = nil
+	p.ssaInstrs = nil
+	p.Main = nil
+}
+
 func (p *function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
