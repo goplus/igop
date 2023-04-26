@@ -62,15 +62,18 @@ func init() {
 	RegisterExternal("runtime.Stack", runtimeStack)
 	RegisterExternal("runtime/debug.Stack", debugStack)
 	RegisterExternal("runtime/debug.PrintStack", debugPrintStack)
-	RegisterExternal("(reflect.Value).Pointer", func(v reflect.Value) uintptr {
-		if v.Kind() == reflect.Func {
-			if fv, n := funcval.Get(v.Interface()); n == 1 {
-				pc := (*makeFuncVal)(unsafe.Pointer(fv)).pfn.base
-				return uintptr(pc)
+
+	if funcval.IsSupport {
+		RegisterExternal("(reflect.Value).Pointer", func(v reflect.Value) uintptr {
+			if v.Kind() == reflect.Func {
+				if fv, n := funcval.Get(v.Interface()); n == 1 {
+					pc := (*makeFuncVal)(unsafe.Pointer(fv)).pfn.base
+					return uintptr(pc)
+				}
 			}
-		}
-		return v.Pointer()
-	})
+			return v.Pointer()
+		})
+	}
 }
 
 func runtimeFuncFileLine(fr *frame, f *runtime.Func, pc uintptr) (file string, line int) {
