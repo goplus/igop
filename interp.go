@@ -59,7 +59,6 @@ import (
 	"unsafe"
 
 	"github.com/goplus/igop/load"
-	"github.com/goplus/reflectx"
 	"github.com/visualfc/goid"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
@@ -1133,7 +1132,6 @@ func doRecover(caller *frame) value {
 //
 
 func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
-	reflectx.Reset()
 	return newInterp(ctx, mainpkg, nil)
 }
 

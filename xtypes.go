@@ -170,6 +170,7 @@ type FindMethod interface {
 }
 
 type TypesRecord struct {
+	rctx    *reflectx.Context // reflectx context
 	loader  Loader
 	finder  FindMethod
 	rcache  map[reflect.Type]types.Type
@@ -181,6 +182,7 @@ type TypesRecord struct {
 }
 
 func (r *TypesRecord) Release() {
+	r.rctx.Release()
 	r.loader = nil
 	r.rcache = nil
 	r.tcache = nil
@@ -191,6 +193,7 @@ func (r *TypesRecord) Release() {
 
 func NewTypesRecord(loader Loader, finder FindMethod, nested map[*types.Named]int) *TypesRecord {
 	return &TypesRecord{
+		rctx:   reflectx.NewContext(),
 		loader: loader,
 		finder: finder,
 		rcache: make(map[reflect.Type]types.Type),
@@ -306,7 +309,7 @@ func (r *TypesRecord) toInterfaceType(t *types.Interface) (reflect.Type, bool) {
 			ms[i].PkgPath = pkg.Path()
 		}
 	}
-	return reflectx.InterfaceOf(nil, ms), nested
+	return r.rctx.InterfaceOf(nil, ms), nested
 }
 
 func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
@@ -331,7 +334,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
 			}
 			pcount++
 		}
-		typ = reflectx.NewMethodSet(typ, mcount, pcount)
+		typ = r.rctx.NewMethodSet(typ, mcount, pcount)
 	}
 	r.saveType(t, typ, nested)
 	utype, _ := r.ToType(ut)
@@ -361,7 +364,7 @@ func (r *TypesRecord) toStructType(t *types.Struct) (reflect.Type, bool) {
 		}
 		flds[i] = r.toStructField(f, typ, t.Tag(i))
 	}
-	typ := reflectx.StructOf(flds)
+	typ := r.rctx.StructOf(flds)
 	methods := typeutil.IntuitiveMethodSet(t, nil)
 	if numMethods := len(methods); numMethods != 0 {
 		// anonymous structs with methods. struct { T }
@@ -373,7 +376,7 @@ func (r *TypesRecord) toStructType(t *types.Struct) (reflect.Type, bool) {
 			}
 			pcount++
 		}
-		typ = reflectx.NewMethodSet(typ, mcount, pcount)
+		typ = r.rctx.NewMethodSet(typ, mcount, pcount)
 		r.setMethods(typ, methods)
 	}
 	return typ, nested
@@ -459,7 +462,7 @@ func (r *TypesRecord) setMethods(typ reflect.Type, methods []*types.Selection) {
 		}
 		ms = append(ms, reflectx.MakeMethod(fn.Name(), pkgpath, pointer, mtyp, mfn))
 	}
-	err := reflectx.SetMethodSet(typ, ms, false)
+	err := r.rctx.SetMethodSet(typ, ms, false)
 	if err != nil {
 		log.Fatalf("SetMethodSet %v err, %v\n", typ, err)
 	}
