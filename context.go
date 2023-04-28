@@ -430,6 +430,14 @@ func (ctx *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, e
 	return files, nil
 }
 
+func (ctx *Context) LoadInterp(filename string, src interface{}) (*Interp, error) {
+	pkg, err := ctx.LoadFile(filename, src)
+	if err != nil {
+		return nil, err
+	}
+	return ctx.NewInterp(pkg)
+}
+
 func (ctx *Context) LoadFile(filename string, src interface{}) (*ssa.Package, error) {
 	file, err := ctx.ParseFile(filename, src)
 	if err != nil {
