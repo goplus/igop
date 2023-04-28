@@ -144,7 +144,7 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 }
 
 func (i *Interp) tryDeferFrame() *frame {
-	if atomic.LoadInt32(&i.deferCount) != 0 {
+	if i != nil && atomic.LoadInt32(&i.deferCount) != 0 {
 		if f, ok := i.deferMap.Load(goroutineID()); ok {
 			return f.(*frame)
 		}
@@ -152,12 +152,16 @@ func (i *Interp) tryDeferFrame() *frame {
 	return &frame{}
 }
 
+func (pfn *function) callFunctionByReflect(mtyp reflect.Type, args []reflect.Value, env []interface{}) []reflect.Value {
+	return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), mtyp, pfn, args, env)
+}
+
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
 	typ := fn.Type().(*types.Signature).Recv().Type()
 	if f := i.mainpkg.Prog.LookupMethod(typ, fn.Pkg(), fn.Name()); f != nil {
 		pfn := i.loadFunction(f)
 		return func(args []reflect.Value) []reflect.Value {
-			return i.callFunctionByReflect(i.tryDeferFrame(), mtyp, pfn, args, nil)
+			return pfn.callFunctionByReflect(mtyp, args, nil)
 		}
 	}
 	name := fn.FullName()
@@ -174,9 +178,9 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 	panic(fmt.Sprintf("Not found method %v", fn))
 }
 
-func (i *Interp) makeFunction(typ reflect.Type, pfn *function, env []value) reflect.Value {
+func (pfn *function) makeFunction(typ reflect.Type, env []value) reflect.Value {
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
+		return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), typ, pfn, args, env)
 	})
 }
 
@@ -1129,7 +1133,6 @@ func doRecover(caller *frame) value {
 //
 
 func NewInterp(ctx *Context, mainpkg *ssa.Package) (*Interp, error) {
-	reflectx.Reset()
 	return newInterp(ctx, mainpkg, nil)
 }
 
@@ -1298,6 +1301,32 @@ func (i *Interp) RunInit() (err error) {
 	return
 }
 
+// icall allocate stat
+func IcallStat() (capacity int, allocate int, aviable int) {
+	return reflectx.IcallStat()
+}
+
+// icall allocate
+func (i *Interp) IcallAlloc() int {
+	return i.record.rctx.IcallAlloc()
+}
+
+func (i *Interp) UnsafeReleaseIcall() {
+	i.record.rctx.Reset()
+}
+
+func (i *Interp) UnsafeRelease() {
+	i.record.Release()
+	for _, v := range i.funcs {
+		v.UnsafeRelease()
+	}
+	i.funcs = nil
+	i.msets = nil
+	i.globals = nil
+	i.preloadTypes = nil
+	i.record = nil
+}
+
 func (i *Interp) Abort() {
 	atomic.StoreInt32(&i.exited, 1)
 }
@@ -1325,7 +1354,7 @@ func (i *Interp) GetFunc(key string) (interface{}, bool) {
 	if !ok {
 		return nil, false
 	}
-	return i.makeFunction(i.toType(fn.Type()), i.funcs[fn], nil).Interface(), true
+	return i.funcs[fn].makeFunction(i.toType(fn.Type()), nil).Interface(), true
 }
 
 func (i *Interp) GetVarAddr(key string) (interface{}, bool) {
@@ -1402,7 +1431,7 @@ func (i *Interp) GetSymbol(key string) (m ssa.Member, v interface{}, ok bool) {
 		v, ok = globalToValue(i, p)
 	case *ssa.Function:
 		typ := i.toType(p.Type())
-		v = i.makeFunction(typ, i.funcs[p], nil)
+		v = i.funcs[p].makeFunction(typ, nil)
 	case *ssa.Type:
 		v = i.toType(p.Type())
 	}

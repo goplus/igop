@@ -126,6 +126,20 @@ type function struct {
 	cached     int32                        // enable cached by pool
 }
 
+func (p *function) UnsafeRelease() {
+	p.Interp = nil
+	p.Fn = nil
+	p.pool = nil
+	p.index = nil
+	p.instrIndex = nil
+	p.Instrs = nil
+	p.Recover = nil
+	p.Blocks = nil
+	p.stack = nil
+	p.ssaInstrs = nil
+	p.Main = nil
+}
+
 func (p *function) initPool() {
 	p.pool = &sync.Pool{}
 	p.pool.New = func() interface{} {
@@ -217,7 +231,7 @@ func (p *function) regInstr(v ssa.Value) uint32 {
 		if v.Blocks != nil {
 			typ := p.Interp.preToType(v.Type())
 			pfn := p.Interp.loadFunction(v)
-			vs = p.Interp.makeFunction(typ, pfn, nil).Interface()
+			vs = pfn.makeFunction(typ, nil).Interface()
 		} else {
 			ext, ok := findExternFunc(p.Interp, v)
 			if !ok {
@@ -494,7 +508,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			for i := range instr.Bindings {
 				bindings = append(bindings, fr.reg(ib[i]))
 			}
-			v := interp.makeFunction(typ, pfn, bindings)
+			v := pfn.makeFunction(typ, bindings)
 			fr.setReg(ir, v.Interface())
 		}
 	case *ssa.MakeChan:
@@ -1155,19 +1169,18 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	}
 }
 
-// makeFuncVal sync with Interp.makeFunc
-// func (i *Interp) makeFunc(typ reflect.Type, pfn *Function, env []value) reflect.Value {
+// makeFuncVal sync with function.makeFunction
+// func (pfn *function) makeFunction(typ reflect.Type, env []value) reflect.Value {
 // 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-// 		return i.callFunctionByReflect(i.tryDeferFrame(), typ, pfn, args, env)
+// 		return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), typ, pfn, args, env)
 // 	})
 // }
 
 type makeFuncVal struct {
 	funcval.FuncVal
-	interp *Interp
-	typ    reflect.Type
-	pfn    *function
-	env    []interface{}
+	pfn *function
+	typ reflect.Type
+	env []interface{}
 }
 
 var (
