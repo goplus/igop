@@ -59,6 +59,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/igop/load"
+	"github.com/goplus/reflectx"
 	"github.com/visualfc/goid"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
@@ -143,7 +144,7 @@ func (i *Interp) findType(rt reflect.Type, local bool) (types.Type, bool) {
 }
 
 func (i *Interp) tryDeferFrame() *frame {
-	if atomic.LoadInt32(&i.deferCount) != 0 {
+	if i != nil && atomic.LoadInt32(&i.deferCount) != 0 {
 		if f, ok := i.deferMap.Load(goroutineID()); ok {
 			return f.(*frame)
 		}
@@ -1300,11 +1301,25 @@ func (i *Interp) RunInit() (err error) {
 	return
 }
 
-func (i *Interp) Release() {
-	for _, v := range i.funcs {
-		v.Release()
-	}
+// icall allocate stat
+func IcallStat() (capacity int, allocate int, aviable int) {
+	return reflectx.IcallStat()
+}
+
+// icall allocate
+func (i *Interp) IcallAlloc() int {
+	return i.record.rctx.IcallAlloc()
+}
+
+func (i *Interp) UnsafeReleaseIcall() {
+	i.record.rctx.Reset()
+}
+
+func (i *Interp) UnsafeRelease() {
 	i.record.Release()
+	for _, v := range i.funcs {
+		v.UnsafeRelease()
+	}
 	i.funcs = nil
 	i.msets = nil
 	i.globals = nil

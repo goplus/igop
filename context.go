@@ -176,7 +176,7 @@ func NewContext(mode Mode) *Context {
 	return ctx
 }
 
-func (ctx *Context) Release() {
+func (ctx *Context) UnsafeRelease() {
 	ctx.pkgs = nil
 	ctx.Loader = nil
 	ctx.override = nil
@@ -510,6 +510,7 @@ func (ctx *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (e
 	if err != nil {
 		return 2, err
 	}
+	defer interp.UnsafeReleaseIcall()
 	return ctx.RunInterp(interp, input, args)
 }
 

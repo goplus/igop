@@ -182,7 +182,7 @@ type TypesRecord struct {
 }
 
 func (r *TypesRecord) Release() {
-	r.rctx.Release()
+	r.rctx.Reset()
 	r.loader = nil
 	r.rcache = nil
 	r.tcache = nil

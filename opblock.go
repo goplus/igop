@@ -126,7 +126,7 @@ type function struct {
 	cached     int32                        // enable cached by pool
 }
 
-func (p *function) Release() {
+func (p *function) UnsafeRelease() {
 	p.Interp = nil
 	p.Fn = nil
 	p.pool = nil

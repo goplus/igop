@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/goplus/gop v1.1.4-0.20230225130145-e37691ce5fea
 	github.com/goplus/gox v1.11.32
-	github.com/goplus/reflectx v1.1.0
+	github.com/goplus/reflectx v1.1.1
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/peterh/liner v1.2.2
 	github.com/qiniu/x v1.11.9
