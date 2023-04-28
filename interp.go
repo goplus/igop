@@ -1301,7 +1301,12 @@ func (i *Interp) RunInit() (err error) {
 	return
 }
 
-// icall allocate stat
+// ResetAllIcall is reset all reflectx icall, all interp methods invalid.
+func ResetAllIcall() {
+	reflectx.ResetAll()
+}
+
+// IcallStat return reflectx icall allocate stat
 func IcallStat() (capacity int, allocate int, aviable int) {
 	return reflectx.IcallStat()
 }
@@ -1311,10 +1316,12 @@ func (i *Interp) IcallAlloc() int {
 	return i.record.rctx.IcallAlloc()
 }
 
-func (i *Interp) UnsafeReleaseIcall() {
+// ResetIcall is reset reflectx icall, all methods invalid.
+func (i *Interp) ResetIcall() {
 	i.record.rctx.Reset()
 }
 
+// UnsafeRelease is unsafe release interp. interp all invalid.
 func (i *Interp) UnsafeRelease() {
 	i.record.Release()
 	for _, v := range i.funcs {
