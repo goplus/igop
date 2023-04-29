@@ -54,6 +54,7 @@ const (
 	EnablePrintAny                         // Enable builtin print for any type ( struct/array )
 	EnableNoStrict                         // Enable no strict mode
 	ExperimentalSupportGC                  // experimental support runtime.GC
+	SupportMultipleInterp                  // Support multiple interp
 )
 
 // Loader types loader interface
@@ -518,7 +519,6 @@ func (ctx *Context) RunPkg(mainPkg *ssa.Package, input string, args []string) (e
 	if err != nil {
 		return 2, err
 	}
-	defer interp.ResetIcall()
 	return ctx.RunInterp(interp, input, args)
 }
 

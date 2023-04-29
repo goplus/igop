@@ -1149,7 +1149,14 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		chexit:       make(chan int),
 		mainid:       goroutineID(),
 	}
-	i.record = NewTypesRecord(ctx.Loader, i, ctx.nestedMap)
+	var rctx *reflectx.Context
+	if ctx.Mode&SupportMultipleInterp == 0 {
+		reflectx.ResetAll()
+		rctx = reflectx.Default
+	} else {
+		rctx = reflectx.NewContext()
+	}
+	i.record = NewTypesRecord(rctx, ctx.Loader, i, ctx.nestedMap)
 	i.record.Load(mainpkg)
 
 	var pkgs []*ssa.Package
