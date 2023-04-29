@@ -191,9 +191,9 @@ func (r *TypesRecord) Release() {
 	r.nested = nil
 }
 
-func NewTypesRecord(loader Loader, finder FindMethod, nested map[*types.Named]int) *TypesRecord {
+func NewTypesRecord(rctx *reflectx.Context, loader Loader, finder FindMethod, nested map[*types.Named]int) *TypesRecord {
 	return &TypesRecord{
-		rctx:   reflectx.NewContext(),
+		rctx:   rctx,
 		loader: loader,
 		finder: finder,
 		rcache: make(map[reflect.Type]types.Type),
