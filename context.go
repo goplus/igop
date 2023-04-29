@@ -54,7 +54,7 @@ const (
 	EnablePrintAny                         // Enable builtin print for any type ( struct/array )
 	EnableNoStrict                         // Enable no strict mode
 	ExperimentalSupportGC                  // experimental support runtime.GC
-	SupportMultipleInterp                  // Support multiple interp
+	SupportMultipleInterp                  // Support multiple interp, must manual release interp reflectx icall.
 )
 
 // Loader types loader interface
