@@ -90,6 +90,7 @@ type Interp struct {
 	funcs        map[*ssa.Function]*function                 // ssa.Function -> *function
 	msets        map[reflect.Type](map[string]*ssa.Function) // user defined type method sets
 	chexit       chan int                                    // call os.Exit code by chan for runtime.Goexit
+	cherror      chan PanicError                             // call by go func error for context
 	deferMap     sync.Map                                    // defer goroutine id -> call frame
 	rfuncMap     sync.Map                                    // reflect.Value(fn).Pointer -> *function
 	typesMutex   sync.RWMutex                                // findType/toType mutex
@@ -1285,7 +1286,7 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 			for pfr.callee != nil {
 				pfr = pfr.callee
 			}
-			err = PanicError{fr: pfr, Value: p}
+			err = PanicError{stack: debugStack(pfr), Value: p}
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {

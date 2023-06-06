@@ -533,6 +533,7 @@ func (p *Context) runInterpWithContext(interp *Interp, input string, args []stri
 	var exitCode int
 	var err error
 	ch := make(chan error, 1)
+	interp.cherror = make(chan PanicError)
 	go func() {
 		exitCode, err = p.runInterp(interp, input, args)
 		ch <- err
@@ -548,6 +549,15 @@ func (p *Context) runInterpWithContext(interp *Interp, input string, args []stri
 			err = ctx.Err()
 		}
 	case err = <-ch:
+	case e := <-interp.cherror:
+		switch v := e.Value.(type) {
+		case exitPanic:
+			exitCode = int(v)
+		default:
+			err = e
+			interp.Abort()
+			exitCode = 2
+		}
 	}
 	return exitCode, err
 }

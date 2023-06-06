@@ -18,6 +18,7 @@
 package run
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -77,6 +78,7 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	ctx := igop.NewContext(mode)
 	ctx.BuildContext = base.BuildContext
+	ctx.RunContext = context.TODO()
 	var pkg *ssa.Package
 	var input string
 	if isDir {
@@ -108,7 +110,7 @@ func runCmd(cmd *base.Command, args []string) {
 	code, err := ctx.RunInterp(interp, input, args)
 	if err != nil {
 		if e, ok := err.(igop.PanicError); ok {
-			fmt.Fprintf(os.Stderr, "panic: %v\n", e)
+			fmt.Fprintf(os.Stderr, "panic: %v\n\n%s\n", e.Error(), e.Stack())
 		} else {
 			fmt.Fprintln(os.Stderr, err)
 		}
