@@ -916,10 +916,10 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		}
 	case *ssa.Go:
 		iv, ia, ib := getCallIndex(pfn, &instr.Call)
-		if interp.ctx.RunContext != nil {
-			return func(fr *frame) {
-				fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
-				atomic.AddInt32(&interp.goroutines, 1)
+		return func(fr *frame) {
+			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
+			atomic.AddInt32(&interp.goroutines, 1)
+			if interp.ctx.RunContext != nil {
 				go func() {
 					root := &frame{interp: interp}
 					switch f := fn.(type) {
@@ -937,11 +937,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 					interp.callDiscardsResult(root, fn, args, instr.Call.Args)
 					atomic.AddInt32(&interp.goroutines, -1)
 				}()
-			}
-		} else {
-			return func(fr *frame) {
-				fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
-				atomic.AddInt32(&interp.goroutines, 1)
+			} else {
 				go func() {
 					interp.callDiscardsResult(&frame{}, fn, args, instr.Call.Args)
 					atomic.AddInt32(&interp.goroutines, -1)
