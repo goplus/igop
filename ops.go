@@ -18,7 +18,7 @@ import (
 
 // If the target program panics, the interpreter panics with this type.
 type PanicError struct {
-	fr    *frame
+	stack []byte
 	Value value
 }
 
@@ -29,7 +29,7 @@ func (p PanicError) Error() string {
 }
 
 func (p PanicError) Stack() []byte {
-	return debugStack(p.fr)
+	return p.stack
 }
 
 // If the target program calls exit, the interpreter panics with this type.

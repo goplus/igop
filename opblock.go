@@ -912,17 +912,37 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 	case *ssa.Panic:
 		ix := pfn.regIndex(instr.X)
 		return func(fr *frame) {
-			panic(PanicError{Value: fr.reg(ix), fr: fr})
+			panic(PanicError{stack: debugStack(fr), Value: fr.reg(ix)})
 		}
 	case *ssa.Go:
 		iv, ia, ib := getCallIndex(pfn, &instr.Call)
 		return func(fr *frame) {
 			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
 			atomic.AddInt32(&interp.goroutines, 1)
-			go func() {
-				interp.callDiscardsResult(&frame{}, fn, args, instr.Call.Args)
-				atomic.AddInt32(&interp.goroutines, -1)
-			}()
+			if interp.ctx.RunContext != nil {
+				go func() {
+					root := &frame{interp: interp}
+					switch f := fn.(type) {
+					case *ssa.Function:
+						root.pfn = interp.funcs[f]
+					case *closure:
+						root.pfn = f.pfn
+					}
+					defer func() {
+						e := recover()
+						if e != nil {
+							interp.cherror <- PanicError{stack: debugStack(root), Value: e}
+						}
+					}()
+					interp.callDiscardsResult(root, fn, args, instr.Call.Args)
+					atomic.AddInt32(&interp.goroutines, -1)
+				}()
+			} else {
+				go func() {
+					interp.callDiscardsResult(&frame{}, fn, args, instr.Call.Args)
+					atomic.AddInt32(&interp.goroutines, -1)
+				}()
+			}
 		}
 	case *ssa.Defer:
 		iv, ia, ib := getCallIndex(pfn, &instr.Call)
