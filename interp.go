@@ -377,7 +377,7 @@ func (fr *frame) gc() {
 }
 
 func (fr *frame) valid() bool {
-	return fr != nil && fr.pfn != nil
+	return fr != nil && fr.pfn != nil && fr.block != nil
 }
 
 func (fr *frame) pc() uintptr {
