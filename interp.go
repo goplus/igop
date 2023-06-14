@@ -60,7 +60,7 @@ import (
 
 	"github.com/goplus/igop/load"
 	"github.com/goplus/reflectx"
-	"github.com/visualfc/goid"
+	"github.com/visualfc/gid"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )
@@ -1471,5 +1471,5 @@ func deref(typ types.Type) types.Type {
 }
 
 func goroutineID() int64 {
-	return goid.Get()
+	return gid.Get()
 }
