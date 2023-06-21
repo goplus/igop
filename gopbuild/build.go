@@ -34,6 +34,7 @@ import (
 	"github.com/goplus/gop/token"
 	"github.com/goplus/gox"
 	"github.com/goplus/igop"
+	"github.com/goplus/mod/gopmod"
 
 	_ "github.com/goplus/igop/pkg/bufio"
 	_ "github.com/goplus/igop/pkg/fmt"
@@ -50,25 +51,32 @@ import (
 	_ "github.com/goplus/igop/pkg/strings"
 )
 
+type Class = gopmod.Class
+type Project = gopmod.Project
+
 var (
-	classfile = make(map[string]*cl.Class)
+	classfile = make(map[string]*cl.Project)
 )
 
-func RegisterClassFileType(projExt, workExt string, pkgPaths ...string) {
-	cls := &cl.Class{
-		ProjExt:  projExt,
-		WorkExt:  workExt,
+func RegisterClassFileType(ext string, class string, works []*Class, pkgPaths ...string) {
+	cls := &cl.Project{
+		Ext:      ext,
+		Class:    class,
+		Works:    works,
 		PkgPaths: pkgPaths,
 	}
-	classfile[projExt] = cls
-	if workExt != "" {
-		classfile[workExt] = cls
+	if ext != "" {
+		classfile[ext] = cls
+	}
+	for _, w := range works {
+		classfile[w.Ext] = cls
 	}
 }
 
 func init() {
 	igop.RegisterFileProcess(".gop", BuildFile)
-	RegisterClassFileType(".gmx", ".spx", "github.com/goplus/spx", "math")
+	igop.RegisterFileProcess(".gopx", BuildFile)
+	RegisterClassFileType(".gmx", "Game", []*Class{{Ext: ".spx", Class: "Sprite"}}, "github.com/goplus/spx", "math")
 }
 
 func BuildFile(ctx *igop.Context, filename string, src interface{}) (data []byte, err error) {
@@ -141,7 +149,10 @@ type Context struct {
 
 func IsClass(ext string) (isProj bool, ok bool) {
 	if cls, ok := classfile[ext]; ok {
-		return ext == cls.ProjExt, true
+		return ext == cls.Ext, true
+	}
+	if ext == ".gopx" {
+		ok = true
 	}
 	return
 }
@@ -191,11 +202,16 @@ func (c *Context) ParseFSDir(fs parser.FileSystem, dir string) (*Package, error)
 
 func (c *Context) ParseFile(filename string, src interface{}) (*Package, error) {
 	srcDir, _ := filepath.Split(filename)
-	f, err := parser.ParseFile(c.fset, filename, src, 0)
+	isProj, isClass := IsClass(filepath.Ext(filename))
+	mode := parser.ParseComments
+	if isClass {
+		mode |= parser.ParseGoPlusClass
+	}
+	f, err := parser.ParseFile(c.fset, filename, src, mode)
 	if err != nil {
 		return nil, err
 	}
-	f.IsProj, f.IsClass = IsClass(filepath.Ext(filename))
+	f.IsProj, f.IsClass = isProj, isClass
 	name := f.Name.Name
 	pkgs := map[string]*ast.Package{
 		name: &ast.Package{
@@ -224,7 +240,7 @@ func (c *Context) loadPackage(srcDir string, pkgs map[string]*ast.Package) (*Pac
 	conf := &cl.Config{
 		WorkingDir: srcDir, TargetDir: srcDir, Fset: c.fset}
 	conf.Importer = c
-	conf.LookupClass = func(ext string) (c *cl.Class, ok bool) {
+	conf.LookupClass = func(ext string) (c *cl.Project, ok bool) {
 		c, ok = classfile[ext]
 		return
 	}

@@ -25,8 +25,12 @@ import (
 )
 
 func gopClTest(t *testing.T, gopcode, expected string) {
+	gopClTestEx(t, "main.gop", gopcode, expected)
+}
+
+func gopClTestEx(t *testing.T, filename string, gopcode, expected string) {
 	ctx := igop.NewContext(0)
-	data, err := BuildFile(ctx, "main.gop", gopcode)
+	data, err := BuildFile(ctx, filename, gopcode)
 	if err != nil {
 		t.Fatalf("build gop error: %v", err)
 	}
@@ -47,6 +51,53 @@ import fmt "fmt"
 func main() {
 //line main.gop:2
 	fmt.Println("Go+")
+}
+`)
+}
+
+func TestGopx(t *testing.T) {
+	gopClTestEx(t, "Rect.gopx", `
+println "Go+"
+`, `package main
+
+import fmt "fmt"
+
+type Rect struct {
+}
+
+func (this *Rect) Main() {
+//line Rect.gopx:2
+	fmt.Println("Go+")
+}
+func main() {
+}
+`)
+	gopClTestEx(t, "Rect.gopx", `
+var (
+	Buffer
+	v int
+)
+type Buffer struct {
+	buf []byte
+}
+println "Go+"
+`, `package main
+
+import fmt "fmt"
+
+type Buffer struct {
+	buf []byte
+}
+type Rect struct {
+	Buffer
+	v int
+}
+
+func (this *Rect) Main() {
+//line Rect.gopx:9
+	fmt.Println("Go+")
+}
+func main() {
 }
 `)
 }
