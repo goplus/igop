@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/pkg/bytes"
 )
 
 func gopClTest(t *testing.T, gopcode, expected string) {
@@ -95,6 +96,86 @@ type Rect struct {
 
 func (this *Rect) Main() {
 //line Rect.gopx:9
+	fmt.Println("Go+")
+}
+func main() {
+}
+`)
+	gopClTestEx(t, "Rect.gopx", `
+var (
+	*Buffer
+	v int
+)
+type Buffer struct {
+	buf []byte
+}
+println "Go+"
+`, `package main
+
+import fmt "fmt"
+
+type Buffer struct {
+	buf []byte
+}
+type Rect struct {
+	*Buffer
+	v int
+}
+
+func (this *Rect) Main() {
+//line Rect.gopx:9
+	fmt.Println("Go+")
+}
+func main() {
+}
+`)
+	gopClTestEx(t, "Rect.gopx", `
+import "bytes"
+var (
+	*bytes.Buffer
+	v int
+)
+println "Go+"
+`, `package main
+
+import (
+	fmt "fmt"
+	bytes "bytes"
+)
+
+type Rect struct {
+	*bytes.Buffer
+	v int
+}
+
+func (this *Rect) Main() {
+//line Rect.gopx:7
+	fmt.Println("Go+")
+}
+func main() {
+}
+`)
+	gopClTestEx(t, "Rect.gopx", `
+import "bytes"
+var (
+	bytes.Buffer
+	v int
+)
+println "Go+"
+`, `package main
+
+import (
+	fmt "fmt"
+	bytes "bytes"
+)
+
+type Rect struct {
+	bytes.Buffer
+	v int
+}
+
+func (this *Rect) Main() {
+//line Rect.gopx:7
 	fmt.Println("Go+")
 }
 func main() {
