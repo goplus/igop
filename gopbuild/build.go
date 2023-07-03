@@ -34,7 +34,6 @@ import (
 	"github.com/goplus/gop/token"
 	"github.com/goplus/gox"
 	"github.com/goplus/igop"
-	"github.com/goplus/mod/gopmod"
 
 	_ "github.com/goplus/igop/pkg/bufio"
 	_ "github.com/goplus/igop/pkg/fmt"
@@ -51,8 +50,7 @@ import (
 	_ "github.com/goplus/igop/pkg/strings"
 )
 
-type Class = gopmod.Class
-type Project = gopmod.Project
+type Class = cl.Class
 
 var (
 	classfile = make(map[string]*cl.Project)
