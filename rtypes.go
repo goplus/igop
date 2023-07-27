@@ -167,9 +167,13 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 		r.Import(dep)
 	}
 	if len(pkg.Source) > 0 {
-		tp, err := r.ctx.addImportFile(pkg.Path, pkg.Name+".go", pkg.Source)
-		if err != nil {
-			return nil, err
+		tp, ok := r.ctx.pkgs[pkg.Path]
+		if !ok {
+			var err error
+			tp, err = r.ctx.addImportFile(pkg.Path, pkg.Name+".go", pkg.Source)
+			if err != nil {
+				return nil, err
+			}
 		}
 		if err := tp.Load(); err != nil {
 			return nil, err
