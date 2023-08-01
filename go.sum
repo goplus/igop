@@ -42,8 +42,8 @@ github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKs
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/timandy/routine v1.1.1 h1:6/Z7qLFZj3GrzuRksBFzIG8YGUh8CLhjnnMePBQTrEI=
 github.com/timandy/routine v1.1.1/go.mod h1:OZHPOKSvqL/ZvqXFkNZyit0xIVelERptYXdAHH00adQ=
-github.com/visualfc/funcval v0.1.3 h1:hvqP5bkW2jeA4cf7QNM8bz+duJECFzQmSBmMJkkIt3A=
-github.com/visualfc/funcval v0.1.3/go.mod h1:3Izv+irhArmrTvy+lmL6pIq16gSOzx73CIka51J9eR0=
+github.com/visualfc/funcval v0.1.4 h1:lAI88zQYfRzmC7mKF4+swXeCZvb8wb1f3lMSDRAY2mQ=
+github.com/visualfc/funcval v0.1.4/go.mod h1:3Izv+irhArmrTvy+lmL6pIq16gSOzx73CIka51J9eR0=
 github.com/visualfc/gid v0.1.0 h1:sg95vChDrUS5hngkfg4yxN6JAF6qIwwvJ+TC8cuZVto=
 github.com/visualfc/gid v0.1.0/go.mod h1:YiRDLgdRp89d4OduAkhv5AAtc6XjUlx74IRLYofu3+E=
 github.com/visualfc/goembed v0.3.2 h1:a9m6o9VTzNk3mEF98C8cHp8f8P8BblyjsjajXGfTp8w=
