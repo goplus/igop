@@ -56,8 +56,8 @@ func main() {
 `)
 }
 
-func TestGopx(t *testing.T) {
-	gopClTestEx(t, "Rect.gopx", `
+func TestGox(t *testing.T) {
+	gopClTestEx(t, "Rect.gox", `
 println "Go+"
 `, `package main
 
@@ -67,13 +67,13 @@ type Rect struct {
 }
 
 func (this *Rect) Main() {
-//line Rect.gopx:2
+//line Rect.gox:2
 	fmt.Println("Go+")
 }
 func main() {
 }
 `)
-	gopClTestEx(t, "Rect.gopx", `
+	gopClTestEx(t, "Rect.gox", `
 var (
 	Buffer
 	v int
@@ -95,13 +95,13 @@ type Rect struct {
 }
 
 func (this *Rect) Main() {
-//line Rect.gopx:9
+//line Rect.gox:9
 	fmt.Println("Go+")
 }
 func main() {
 }
 `)
-	gopClTestEx(t, "Rect.gopx", `
+	gopClTestEx(t, "Rect.gox", `
 var (
 	*Buffer
 	v int
@@ -123,13 +123,13 @@ type Rect struct {
 }
 
 func (this *Rect) Main() {
-//line Rect.gopx:9
+//line Rect.gox:9
 	fmt.Println("Go+")
 }
 func main() {
 }
 `)
-	gopClTestEx(t, "Rect.gopx", `
+	gopClTestEx(t, "Rect.gox", `
 import "bytes"
 var (
 	*bytes.Buffer
@@ -149,13 +149,13 @@ type Rect struct {
 }
 
 func (this *Rect) Main() {
-//line Rect.gopx:7
+//line Rect.gox:7
 	fmt.Println("Go+")
 }
 func main() {
 }
 `)
-	gopClTestEx(t, "Rect.gopx", `
+	gopClTestEx(t, "Rect.gox", `
 import "bytes"
 var (
 	bytes.Buffer
@@ -175,7 +175,7 @@ type Rect struct {
 }
 
 func (this *Rect) Main() {
-//line Rect.gopx:7
+//line Rect.gox:7
 	fmt.Println("Go+")
 }
 func main() {
