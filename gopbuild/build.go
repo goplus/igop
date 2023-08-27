@@ -26,6 +26,7 @@ import (
 	"fmt"
 	goast "go/ast"
 	"go/types"
+	"path"
 	"path/filepath"
 
 	"github.com/goplus/gop/ast"
@@ -53,7 +54,7 @@ import (
 type Class = cl.Class
 
 var (
-	classfile = make(map[string]*cl.Project)
+	projects = make(map[string]*cl.Project)
 )
 
 func RegisterClassFileType(ext string, class string, works []*Class, pkgPaths ...string) {
@@ -64,16 +65,16 @@ func RegisterClassFileType(ext string, class string, works []*Class, pkgPaths ..
 		PkgPaths: pkgPaths,
 	}
 	if ext != "" {
-		classfile[ext] = cls
+		projects[ext] = cls
 	}
 	for _, w := range works {
-		classfile[w.Ext] = cls
+		projects[w.Ext] = cls
 	}
 }
 
 func init() {
 	igop.RegisterFileProcess(".gop", BuildFile)
-	igop.RegisterFileProcess(".gopx", BuildFile)
+	igop.RegisterFileProcess(".gox", BuildFile)
 	RegisterClassFileType(".gmx", "Game", []*Class{{Ext: ".spx", Class: "Sprite"}}, "github.com/goplus/spx", "math")
 }
 
@@ -145,12 +146,18 @@ type Context struct {
 	gop  igop.Loader
 }
 
-func IsClass(ext string) (isProj bool, ok bool) {
-	if cls, ok := classfile[ext]; ok {
-		return ext == cls.Ext, true
-	}
-	if ext == ".gopx" {
-		ok = true
+func ClassKind(fname string) (isProj, ok bool) {
+	ext := path.Ext(fname)
+	if c, ok := projects[ext]; ok {
+		for _, w := range c.Works {
+			if w.Ext == ext {
+				if ext != c.Ext || fname != "main"+ext {
+					return false, true
+				}
+				break
+			}
+		}
+		return true, true
 	}
 	return
 }
@@ -180,7 +187,7 @@ func (c *Context) Import(path string) (*types.Package, error) {
 
 func (c *Context) ParseDir(dir string) (*Package, error) {
 	pkgs, err := parser.ParseDirEx(c.fset, dir, parser.Config{
-		IsClass: IsClass,
+		ClassKind: ClassKind,
 	})
 	if err != nil {
 		return nil, err
@@ -190,7 +197,7 @@ func (c *Context) ParseDir(dir string) (*Package, error) {
 
 func (c *Context) ParseFSDir(fs parser.FileSystem, dir string) (*Package, error) {
 	pkgs, err := parser.ParseFSDir(c.fset, fs, dir, parser.Config{
-		IsClass: IsClass,
+		ClassKind: ClassKind,
 	})
 	if err != nil {
 		return nil, err
@@ -198,24 +205,51 @@ func (c *Context) ParseFSDir(fs parser.FileSystem, dir string) (*Package, error)
 	return c.loadPackage(dir, pkgs)
 }
 
-func (c *Context) ParseFile(filename string, src interface{}) (*Package, error) {
-	srcDir, _ := filepath.Split(filename)
-	isProj, isClass := IsClass(filepath.Ext(filename))
+func (c *Context) ParseFile(fname string, src interface{}) (*Package, error) {
+	srcDir, _ := filepath.Split(fname)
+	fnameRmGox := fname
+	ext := filepath.Ext(fname)
+	var err error
+	var isProj, isClass, isNormalGox, rmGox bool
+	switch ext {
+	case ".go", ".gop":
+	case ".gox":
+		isClass = true
+		t := fname[:len(fname)-4]
+		if c := filepath.Ext(t); c != "" {
+			ext, fnameRmGox, rmGox = c, t, true
+		} else {
+			isNormalGox = true
+		}
+		fallthrough
+	default:
+		if !isNormalGox {
+			if isProj, isClass = ClassKind(fnameRmGox); !isClass {
+				if rmGox {
+					return nil, fmt.Errorf("not found Go+ class by ext %q for %q", ext, fname)
+				}
+				return nil, nil
+			}
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
 	mode := parser.ParseComments
 	if isClass {
 		mode |= parser.ParseGoPlusClass
 	}
-	f, err := parser.ParseFile(c.fset, filename, src, mode)
+	f, err := parser.ParseFile(c.fset, fname, src, mode)
 	if err != nil {
 		return nil, err
 	}
-	f.IsProj, f.IsClass = isProj, isClass
+	f.IsProj, f.IsClass, f.IsNormalGox = isProj, isClass, isNormalGox
 	name := f.Name.Name
 	pkgs := map[string]*ast.Package{
 		name: &ast.Package{
 			Name: name,
 			Files: map[string]*ast.File{
-				filename: f,
+				fname: f,
 			},
 		},
 	}
@@ -239,7 +273,7 @@ func (c *Context) loadPackage(srcDir string, pkgs map[string]*ast.Package) (*Pac
 		WorkingDir: srcDir, TargetDir: srcDir, Fset: c.fset}
 	conf.Importer = c
 	conf.LookupClass = func(ext string) (c *cl.Project, ok bool) {
-		c, ok = classfile[ext]
+		c, ok = projects[ext]
 		return
 	}
 	if c.ctx.IsEvalMode() {
