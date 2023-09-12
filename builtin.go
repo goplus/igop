@@ -552,9 +552,16 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 			panic(err)
 		}
 		caller.setReg(ir, uintptr(offset))
+	case "clear":
+		arg0 := caller.reg(ia[0])
+		valueClear(reflect.ValueOf(arg0))
 	default:
 		panic("unknown built-in: " + fn)
 	}
+}
+
+func valueClear(v reflect.Value) {
+	reflect.ValueOf(v).MethodByName("Clear").Call(nil)
 }
 
 const ptrSize = 4 << (^uintptr(0) >> 63)

@@ -41,7 +41,7 @@ func main() {
 		name = "go121_export"
 		fname = "go121_pkgs.go"
 	case "go1.20":
-		tags = "//+build go1.20,!go1.20"
+		tags = "//+build go1.20,!go1.21"
 		name = "go120_export"
 		fname = "go120_pkgs.go"
 	case "go1.19":
