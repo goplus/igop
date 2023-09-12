@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.20
-// +build go1.20
+//go:build go1.20 && !go1.20
+// +build go1.20,!go1.20
 
 package textproto
 
@@ -20,8 +20,10 @@ func init() {
 		Deps: map[string]string{
 			"bufio":   "bufio",
 			"bytes":   "bytes",
+			"errors":  "errors",
 			"fmt":     "fmt",
 			"io":      "io",
+			"math":    "math",
 			"net":     "net",
 			"strconv": "strconv",
 			"strings": "strings",

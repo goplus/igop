@@ -36,8 +36,12 @@ func main() {
 	var name string
 	var fname string
 	switch ver {
+	case "go1.21":
+		tags = "//+build go1.21"
+		name = "go121_export"
+		fname = "go121_pkgs.go"
 	case "go1.20":
-		tags = "//+build go1.20"
+		tags = "//+build go1.20,!go1.20"
 		name = "go120_export"
 		fname = "go120_pkgs.go"
 	case "go1.19":
@@ -171,6 +175,8 @@ func isSkipPkg(pkg string) bool {
 	case "sync/atomc":
 		return true
 	case "runtime/cgo", "runtime/race":
+		return true
+	case "cmp":
 		return true
 	default:
 		if strings.HasPrefix(pkg, "vendor/") {

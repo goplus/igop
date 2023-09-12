@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.20
-// +build go1.20
+//go:build go1.20 && !go1.20
+// +build go1.20,!go1.20
 
 package hmac
 

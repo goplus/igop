@@ -61,7 +61,7 @@ func init() {
 
 	ver := runtime.Version()[:6]
 	switch ver {
-	case "go1.17", "go1.18", "go1.19", "go1.20":
+	case "go1.17", "go1.18", "go1.19", "go1.20", "go1.21":
 		// gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		// gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
