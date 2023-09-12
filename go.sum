@@ -17,8 +17,8 @@ github.com/goplus/libc v0.3.13/go.mod h1:xqG4/g3ilKBE/UDn5vkaE7RRQPQPyspj7ecuMuv
 github.com/goplus/mod v0.9.12/go.mod h1:YoPIowz71rnLLROA4YG0AC8bzDtPRyMaQwgTRLr8ri4=
 github.com/goplus/mod v0.11.2 h1:kgIdro905lTZgqGecTbZ416O8ayN+ca2DR5OB4ayeWI=
 github.com/goplus/mod v0.11.2/go.mod h1:d40I3nOr2qkGfLUjwc/BqLSq3oUUlQy5+/SpdiBKgY4=
-github.com/goplus/reflectx v1.1.1 h1:4acdcG7+uIHdl7le1vAEt9M2HwGWNlVqv1fd4YsdCg0=
-github.com/goplus/reflectx v1.1.1/go.mod h1:wHOS9ilbB4zrecI0W1dMmkW9JMcpXV7VjALVbNU9xfM=
+github.com/goplus/reflectx v1.2.0 h1:yf7geqcr80F+2F/pH+xvEtz5vgBFFBxPJuj71iQF8PQ=
+github.com/goplus/reflectx v1.2.0/go.mod h1:wHOS9ilbB4zrecI0W1dMmkW9JMcpXV7VjALVbNU9xfM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/mattn/go-runewidth v0.0.3 h1:a+kO+98RDGEfo6asOGMmpodZq4FNtnGP54yps8BzLR4=
 github.com/mattn/go-runewidth v0.0.3/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
