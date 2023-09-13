@@ -7,8 +7,8 @@ github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 h1:l5lAOZEym3oK3
 github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/goplus/c2go v0.7.10/go.mod h1:ryOieVZqh0jmlPp45AMh9/sXIreTnyjDREP0EMX+pF0=
 github.com/goplus/c2go v0.7.13/go.mod h1:s5NULWzUKi3erd3l4ahvpq+3qDGOvMjGb00a5o3h6zk=
-github.com/goplus/gop v1.1.6 h1:J1EeWvMZtsTqS6lCW0/XB5txs3wknXK4f73DI24J1gM=
-github.com/goplus/gop v1.1.6/go.mod h1:+kYk2ZSZ+rPD8AVoWTz3r5L/dkbtmUNvJOP0h1ET8KI=
+github.com/goplus/gop v1.1.4-0.20230902092212-f673ef3ba3c9 h1:5JID8rW6I8BSdctW6Usi1mdRx2TtlsVtOuiUn2aZUyk=
+github.com/goplus/gop v1.1.4-0.20230902092212-f673ef3ba3c9/go.mod h1:+kYk2ZSZ+rPD8AVoWTz3r5L/dkbtmUNvJOP0h1ET8KI=
 github.com/goplus/gox v1.11.21/go.mod h1:wRCRSNukie4cDqADF4w0Btc2Gk6V3p3V6hI5+rsVqa8=
 github.com/goplus/gox v1.11.32/go.mod h1:hdKq5ghywtKWnBJNQNVBkPITmWCqCFRwwd2LTYTfg2U=
 github.com/goplus/gox v1.11.37 h1:8oAXjokhvttO/4NZgfAJ02GE9OivbX2VSsEJWu3fGng=
