@@ -36,8 +36,12 @@ func main() {
 	var name string
 	var fname string
 	switch ver {
+	case "go1.21":
+		tags = "//+build go1.21"
+		name = "go121_export"
+		fname = "go121_pkgs.go"
 	case "go1.20":
-		tags = "//+build go1.20"
+		tags = "//+build go1.20,!go1.21"
 		name = "go120_export"
 		fname = "go120_pkgs.go"
 	case "go1.19":
@@ -79,8 +83,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	gpkgs := genericPkgs(pkgs)
 	// sync/atomic
-	cmd = exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name, "-src", "sync/atomic")
+	cmd = exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name, "-src")
+	cmd.Args = append(cmd.Args, gpkgs...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()
@@ -111,6 +118,24 @@ func main() {
 			panic(err)
 		}
 	}
+}
+
+var genericList = []string{
+	"sync/atomic",
+	"maps",
+	"slices",
+	"cmp",
+}
+
+func genericPkgs(std []string) (pkgs []string) {
+	for _, pkg := range std {
+		for _, v := range genericList {
+			if pkg == v {
+				pkgs = append(pkgs, v)
+			}
+		}
+	}
+	return
 }
 
 func makepkg(fname string, tags []string, std []string) error {
@@ -167,8 +192,6 @@ func stdList() []string {
 func isSkipPkg(pkg string) bool {
 	switch pkg {
 	case "syscall", "unsafe":
-		return true
-	case "sync/atomc":
 		return true
 	case "runtime/cgo", "runtime/race":
 		return true

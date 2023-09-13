@@ -2636,3 +2636,52 @@ func main() {
 	}
 	t.Log("cancel context:", err)
 }
+
+func TestReflectArray(t *testing.T) {
+	var src = `package main
+
+import (
+	"reflect"
+	"fmt"
+)
+
+type IntArray [2]int
+
+func (i IntArray) String() string {
+	return fmt.Sprintf("(%v,%v)", i[0], i[1])
+}
+
+func (i *IntArray) Set(x, y int) {
+	*(*int)(&i[0]), *(*int)(&i[1]) = x, y
+}
+
+func (i IntArray) Get() (int, int) {
+	return i[0], i[1]
+}
+
+func (i IntArray) Scale(v int) IntArray {
+	return IntArray{i[0] * v, i[1] * v}
+}
+
+func main() {
+	var a IntArray
+	a.Set(100,200)
+	b := a.Scale(5)
+	if b[0] != 500 || b[1] != 1000 {
+		panic("error")
+	}
+	typ := reflect.TypeOf((*IntArray)(nil)).Elem()
+	v := reflect.New(typ).Elem()
+	v.Addr().MethodByName("Set").Call([]reflect.Value{reflect.ValueOf(100),reflect.ValueOf(200)})
+	x := v.MethodByName("Scale").Call([]reflect.Value{reflect.ValueOf(5)})
+	if x[0].Index(0).Int() != 500 || x[0].Index(1).Int() != 1000 {
+		panic("error reflect")
+	}
+}
+`
+	ctx := igop.NewContext(0)
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

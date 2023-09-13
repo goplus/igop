@@ -61,7 +61,7 @@ func init() {
 
 	ver := runtime.Version()[:6]
 	switch ver {
-	case "go1.17", "go1.18", "go1.19", "go1.20":
+	case "go1.17", "go1.18", "go1.19", "go1.20", "go1.21":
 		// gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		// gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
@@ -85,6 +85,9 @@ func init() {
 		if ver == "go1.18" {
 			gorootTestSkips["typeparam/cons.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
 			gorootTestSkips["typeparam/list2.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
+		}
+		if ver == "go1.21" {
+			gorootTestSkips["fixedbugs/issue19658.go"] = "skip command"
 		}
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"

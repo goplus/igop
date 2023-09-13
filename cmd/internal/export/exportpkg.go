@@ -55,8 +55,16 @@ var (
 )
 
 func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte, error) {
-	imports := []string{fmt.Sprintf("%v %q\n", sname, pkg.Path)}
-	imports = append(imports, `"reflect"`)
+	var imports []string
+	if pkg.usedPkg {
+		imports = append(imports, fmt.Sprintf("q %q", pkg.Path))
+		imports = append(imports, "")
+	} else {
+		imports = append(imports, fmt.Sprintf("_ %q", pkg.Path))
+	}
+	if !pkg.IsEmpty() {
+		imports = append(imports, `"reflect"`)
+	}
 	if len(pkg.UntypedConsts) > 0 || len(pkg.TypedConsts) > 0 {
 		imports = append(imports, `"go/constant"`)
 		var hasToken bool
@@ -73,10 +81,12 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 	tmpl := template_pkg
 	if pkg.IsEmpty() {
 		tmpl = template_empty_pkg
-		imports = []string{fmt.Sprintf("_ %q", pkg.Path)}
 	}
 	if len(pkg.Source) > 0 {
 		tmpl = template_link_pkg
+		if pkg.IsEmpty() {
+			tmpl = template_emtpy_link_pkg
+		}
 		if len(pkg.Links) > 0 {
 			imports = append(imports, `_ "unsafe"`)
 		}
@@ -177,6 +187,30 @@ func init() {
 		Funcs: map[string]reflect.Value{$FUNCS},
 		TypedConsts: map[string]igop.TypedConst{$TYPEDCONSTS},
 		UntypedConsts: map[string]igop.UntypedConst{$UNTYPEDCONSTS},
+		Source: source,
+	})
+}
+$LINKS
+var source = $SOURCE
+`
+
+var template_emtpy_link_pkg = `// export by github.com/goplus/igop/cmd/qexp
+
+$TAGS
+
+package $PKGNAME
+
+import (
+	$IMPORTS
+
+	"github.com/goplus/igop"
+)
+
+func init() {
+	igop.RegisterPackage(&igop.Package {
+		Name: "$PKGNAME",
+		Path: "$PKGPATH",
+		Deps: map[string]string{$DEPS},
 		Source: source,
 	})
 }

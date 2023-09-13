@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.20
-// +build go1.20
+//go:build go1.20 && !go1.21
+// +build go1.20,!go1.21
 
 package template
 
@@ -23,6 +23,7 @@ func init() {
 			"encoding/json":       "json",
 			"fmt":                 "fmt",
 			"html":                "html",
+			"internal/godebug":    "godebug",
 			"io":                  "io",
 			"io/fs":               "fs",
 			"os":                  "os",
