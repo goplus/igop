@@ -3,7 +3,7 @@ module github.com/goplus/igop
 go 1.14
 
 require (
-	github.com/goplus/gop v1.1.6
+	github.com/goplus/gop v1.1.4-0.20230902092212-f673ef3ba3c9
 	github.com/goplus/gox v1.11.37
 	github.com/goplus/reflectx v1.2.1
 	github.com/modern-go/reflect2 v1.0.2
