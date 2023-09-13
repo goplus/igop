@@ -173,14 +173,14 @@ type Package struct {
 	UntypedConsts []string
 	Links         []string
 	Source        string
+	usedPkg       bool
 }
 
 func (p *Package) IsEmpty() bool {
 	return len(p.NamedTypes) == 0 && len(p.Interfaces) == 0 &&
 		len(p.AliasTypes) == 0 && len(p.Vars) == 0 &&
 		len(p.Funcs) == 0 && len(p.Consts) == 0 &&
-		len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0 &&
-		len(p.Source) == 0
+		len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0
 }
 
 /*
@@ -369,8 +369,10 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 			} else {
 				e.TypedConsts = append(e.TypedConsts, fmt.Sprintf("%q : {reflect.TypeOf(%v), %v}", t.Name(), pkgName+"."+t.Name(), p.constToLit(named, t.Val())))
 			}
+			e.usedPkg = true
 		case *types.Var:
 			e.Vars = append(e.Vars, fmt.Sprintf("%q : reflect.ValueOf(&%v)", t.Name(), pkgName+"."+t.Name()))
+			e.usedPkg = true
 		case *types.Func:
 			if hasTypeParam(t.Type()) {
 				if !flagExportSource {
@@ -380,6 +382,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 				continue
 			}
 			e.Funcs = append(e.Funcs, fmt.Sprintf("%q : reflect.ValueOf(%v)", t.Name(), pkgName+"."+t.Name()))
+			e.usedPkg = true
 		case *types.TypeName:
 			if hasTypeParam(t.Type()) {
 				if !flagExportSource {
@@ -398,6 +401,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 				default:
 					e.AliasTypes = append(e.AliasTypes, fmt.Sprintf("%q: reflect.TypeOf((*%v.%v)(nil)).Elem()", name, sname, name))
 				}
+				e.usedPkg = true
 				continue
 			}
 			typeName := t.Name()
@@ -406,6 +410,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 			} else {
 				e.NamedTypes = append(e.NamedTypes, fmt.Sprintf("%q : reflect.TypeOf((*%v.%v)(nil)).Elem()", typeName, pkgName, typeName))
 			}
+			e.usedPkg = true
 		default:
 			log.Panicf("unreachable %v %T\n", name, t)
 		}

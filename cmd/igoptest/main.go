@@ -86,6 +86,9 @@ func init() {
 			gorootTestSkips["typeparam/cons.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
 			gorootTestSkips["typeparam/list2.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
 		}
+		if ver == "go1.21" {
+			gorootTestSkips["fixedbugs/issue19658.go"] = "skip command"
+		}
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	case "go1.15":

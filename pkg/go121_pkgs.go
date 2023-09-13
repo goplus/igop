@@ -8,6 +8,7 @@ import (
 	_ "github.com/goplus/igop/pkg/archive/zip"
 	_ "github.com/goplus/igop/pkg/bufio"
 	_ "github.com/goplus/igop/pkg/bytes"
+	_ "github.com/goplus/igop/pkg/cmp"
 	_ "github.com/goplus/igop/pkg/compress/bzip2"
 	_ "github.com/goplus/igop/pkg/compress/flate"
 	_ "github.com/goplus/igop/pkg/compress/gzip"

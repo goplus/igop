@@ -83,8 +83,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	gpkgs := genericPkgs(pkgs)
 	// sync/atomic
-	cmd = exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name, "-src", "sync/atomic")
+	cmd = exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name, "-src")
+	cmd.Args = append(cmd.Args, gpkgs...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()
@@ -115,6 +118,24 @@ func main() {
 			panic(err)
 		}
 	}
+}
+
+var genericList = []string{
+	"sync/atomic",
+	"maps",
+	"slices",
+	"cmp",
+}
+
+func genericPkgs(std []string) (pkgs []string) {
+	for _, pkg := range std {
+		for _, v := range genericList {
+			if pkg == v {
+				pkgs = append(pkgs, v)
+			}
+		}
+	}
+	return
 }
 
 func makepkg(fname string, tags []string, std []string) error {
@@ -172,11 +193,7 @@ func isSkipPkg(pkg string) bool {
 	switch pkg {
 	case "syscall", "unsafe":
 		return true
-	case "sync/atomc":
-		return true
 	case "runtime/cgo", "runtime/race":
-		return true
-	case "cmp":
 		return true
 	default:
 		if strings.HasPrefix(pkg, "vendor/") {

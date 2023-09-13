@@ -25,13 +25,22 @@ import (
 )
 
 func hasTypeParam(t types.Type) bool {
-	switch t := t.(type) {
+	switch t1 := t.(type) {
 	case *types.TypeParam:
 		return true
 	case *types.Named:
-		return t.TypeParams() != nil
+		if i, ok := t.Underlying().(*types.Interface); ok {
+			for n := 0; n < i.NumEmbeddeds(); n++ {
+				if hasTypeParam(i.EmbeddedType(n)) {
+					return true
+				}
+			}
+		}
+		return t1.TypeParams() != nil
 	case *types.Signature:
-		return t.TypeParams() != nil
+		return t1.TypeParams() != nil
+	case *types.Union:
+		return true
 	}
 	return false
 }
