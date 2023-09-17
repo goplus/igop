@@ -45,6 +45,7 @@ type Linkname struct {
 // //go:linkname <localname> <importpath>.<name>
 // //go:linkname <localname> <importpath>.<type>.<name>
 // //go:linkname <localname> <importpath>.<(*type)>.<name>
+// //go:linkname <localname> linkname indicate by runtime package
 func ParseLinkname(fset *token.FileSet, pkgPath string, files []*ast.File) ([]*LinkSym, error) {
 	var links []*LinkSym
 	for _, file := range files {
@@ -77,7 +78,11 @@ func parseLinknameComment(pkgPath string, file *ast.File, comment *ast.Comment, 
 		return nil, fmt.Errorf(`//go:linkname only allowed in Go files that import "unsafe"`)
 	}
 	fields := strings.Fields(comment.Text)
-	if len(fields) != 3 {
+	if n := len(fields); n != 3 {
+		if n == 2 {
+			// //go:linkname <localname>
+			return nil, nil
+		}
 		return nil, fmt.Errorf(`usage: //go:linkname localname [linkname]`)
 	}
 
