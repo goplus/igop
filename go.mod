@@ -14,5 +14,5 @@ require (
 	github.com/visualfc/goembed v0.3.2
 	github.com/visualfc/xtype v0.2.0
 	golang.org/x/mod v0.12.0
-	golang.org/x/tools v0.11.1
+	golang.org/x/tools v0.13.0
 )
