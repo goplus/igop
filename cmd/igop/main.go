@@ -29,12 +29,9 @@ import (
 	"github.com/goplus/igop/cmd/internal/run"
 	"github.com/goplus/igop/cmd/internal/test"
 
-	_ "github.com/goplus/igop/cmd/igop/pkg/github.com/modern-go/reflect2"
 	_ "github.com/goplus/igop/pkg"
 	_ "github.com/goplus/reflectx/icall/icall8192"
 )
-
-//go:generate go run ../qexp -outdir pkg github.com/modern-go/reflect2
 
 func mainUsage() {
 	help.PrintUsage(os.Stderr, base.Igop)
