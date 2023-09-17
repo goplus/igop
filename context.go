@@ -107,12 +107,13 @@ func (ctx *Context) lookupPath(path string) (dir string, found bool) {
 }
 
 type sourcePackage struct {
-	Context *Context
-	Package *types.Package
-	Info    *types.Info
-	Dir     string
-	Files   []*ast.File
-	Links   []*load.LinkSym
+	Context  *Context
+	Package  *types.Package
+	Info     *types.Info
+	Files    []*ast.File
+	Links    []*load.LinkSym
+	Dir      string
+	Register bool // register package
 }
 
 func (sp *sourcePackage) Load() (err error) {
@@ -688,9 +689,11 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 				if pkg, ok := ctx.pkgs[p.Path()]; ok {
 					if ctx.Mode&EnableDumpImports != 0 {
 						if pkg.Dir != "" {
-							fmt.Println("# package", p.Path(), pkg.Dir)
+							fmt.Println("# source", p.Path(), pkg.Dir)
+						} else if pkg.Register {
+							fmt.Println("# package", p.Path(), "<generic>")
 						} else {
-							fmt.Println("# package", p.Path(), "<memory>")
+							fmt.Println("# source", p.Path(), "<memory>")
 						}
 					}
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
@@ -705,7 +708,7 @@ func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error
 						if indirect {
 							fmt.Println("# virtual", p.Path())
 						} else {
-							fmt.Println("# builtin", p.Path())
+							fmt.Println("# package", p.Path())
 						}
 					}
 					prog.CreatePackage(p, nil, nil, true).Build()

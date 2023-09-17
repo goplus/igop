@@ -178,6 +178,7 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 		if err := tp.Load(); err != nil {
 			return nil, err
 		}
+		tp.Register = true
 		r.packages[path] = tp.Package
 		r.installed[path] = pkg
 		return tp.Package, nil
