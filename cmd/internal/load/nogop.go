@@ -1,5 +1,5 @@
-//go:build !go1.16
-// +build !go1.16
+//go:build !go1.18
+// +build !go1.18
 
 /*
  * Copyright (c) 2022 The GoPlus Authors (goplus.org). All rights reserved.
