@@ -6,6 +6,7 @@ import (
 	q "github.com/goplus/gop/builtin/ng"
 
 	"go/constant"
+	"go/token"
 	"reflect"
 
 	"github.com/goplus/igop"
@@ -101,7 +102,13 @@ func init() {
 		},
 		TypedConsts: map[string]igop.TypedConst{},
 		UntypedConsts: map[string]igop.UntypedConst{
-			"GopPackage": {"untyped bool", constant.MakeBool(bool(q.GopPackage))},
+			"GopPackage":        {"untyped bool", constant.MakeBool(bool(q.GopPackage))},
+			"Int128_IsUntyped":  {"untyped bool", constant.MakeBool(bool(q.Int128_IsUntyped))},
+			"Int128_Max":        {"untyped int", constant.MakeFromLiteral("170141183460469231731687303715884105727", token.INT, 0)},
+			"Int128_Min":        {"untyped int", constant.MakeFromLiteral("-170141183460469231731687303715884105728", token.INT, 0)},
+			"Uint128_IsUntyped": {"untyped bool", constant.MakeBool(bool(q.Uint128_IsUntyped))},
+			"Uint128_Max":       {"untyped int", constant.MakeFromLiteral("340282366920938463463374607431768211455", token.INT, 0)},
+			"Uint128_Min":       {"untyped int", constant.MakeInt64(int64(q.Uint128_Min))},
 		},
 	})
 }
