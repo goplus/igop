@@ -47,7 +47,7 @@ func TestGop(t *testing.T) {
 println "Go+"
 `, `package main
 
-import fmt "fmt"
+import "fmt"
 
 func main() {
 //line main.gop:2
@@ -61,7 +61,7 @@ func TestGox(t *testing.T) {
 println "Go+"
 `, `package main
 
-import fmt "fmt"
+import "fmt"
 
 type Rect struct {
 }
@@ -84,7 +84,7 @@ type Buffer struct {
 println "Go+"
 `, `package main
 
-import fmt "fmt"
+import "fmt"
 
 type Buffer struct {
 	buf []byte
@@ -112,7 +112,7 @@ type Buffer struct {
 println "Go+"
 `, `package main
 
-import fmt "fmt"
+import "fmt"
 
 type Buffer struct {
 	buf []byte
@@ -139,8 +139,8 @@ println "Go+"
 `, `package main
 
 import (
-	fmt "fmt"
-	bytes "bytes"
+	"fmt"
+	"bytes"
 )
 
 type Rect struct {
@@ -165,8 +165,8 @@ println "Go+"
 `, `package main
 
 import (
-	fmt "fmt"
-	bytes "bytes"
+	"fmt"
+	"bytes"
 )
 
 type Rect struct {
@@ -190,9 +190,9 @@ println a+1/2r
 `, `package main
 
 import (
-	fmt "fmt"
-	ng "github.com/goplus/gop/builtin/ng"
-	big "math/big"
+	"fmt"
+	"github.com/goplus/gop/builtin/ng"
+	"math/big"
 )
 
 func main() {
@@ -211,7 +211,7 @@ v := typeof(100)
 println(v)
 `, `package main
 
-import fmt "fmt"
+import "fmt"
 
 func main() {
 //line main.gop:2
@@ -234,9 +234,9 @@ for line <- lines(r) {
 `, `package main
 
 import (
-	fmt "fmt"
-	iox "github.com/goplus/gop/builtin/iox"
-	io "io"
+	"fmt"
+	"github.com/goplus/gop/builtin/iox"
+	"io"
 )
 
 var r io.Reader
@@ -279,9 +279,9 @@ println addSafe("10", "abc")
 `, `package main
 
 import (
-	fmt "fmt"
-	strconv "strconv"
-	errors "github.com/qiniu/x/errors"
+	"fmt"
+	"strconv"
+	"github.com/qiniu/x/errors"
 )
 
 func add(x string, y string) (int, error) {
