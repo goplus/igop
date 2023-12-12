@@ -18,6 +18,7 @@ package igop
 
 import (
 	"fmt"
+	"go/ast"
 	"go/token"
 	"go/types"
 	"log"
@@ -68,23 +69,23 @@ func (visit *visitor) program() {
 	chks[""] = true // anonymous struct embed named type
 	for pkg := range visit.pkgs {
 		chks[pkg.Pkg.Path()] = true
-		for _, mem := range pkg.Members {
-			if fn, ok := mem.(*ssa.Function); ok {
-				visit.function(fn)
-			}
-		}
 	}
+
 	isExtern := func(typ reflect.Type) bool {
 		if typ.Kind() == reflect.Ptr {
 			typ = typ.Elem()
 		}
 		return !chks[typ.PkgPath()]
 	}
-	for _, T := range visit.prog.RuntimeTypes() {
+
+	methodsOf := func(T types.Type) {
+		if types.IsInterface(T) {
+			return
+		}
 		typ := visit.intp.preToType(T)
 		// skip extern type
 		if isExtern(typ) {
-			continue
+			return
 		}
 		mmap := make(map[string]*ssa.Function)
 		mset := visit.prog.MethodSets.MethodSet(T)
@@ -100,6 +101,30 @@ func (visit *visitor) program() {
 			visit.function(fn)
 		}
 		visit.intp.msets[typ] = mmap
+	}
+
+	exportedTypeHack := func(t *ssa.Type) {
+		if ast.IsExported(t.Name()) && !types.IsInterface(t.Type()) {
+			if named, ok := t.Type().(*types.Named); ok && !hasTypeParam(named) {
+				methodsOf(named)                   //  T
+				methodsOf(types.NewPointer(named)) // *T
+			}
+		}
+	}
+
+	for pkg := range visit.pkgs {
+		for _, mem := range pkg.Members {
+			switch mem := mem.(type) {
+			case *ssa.Function:
+				visit.function(mem)
+			case *ssa.Type:
+				exportedTypeHack(mem)
+			}
+		}
+	}
+
+	for _, T := range visit.prog.RuntimeTypes() {
+		methodsOf(T)
 	}
 }
 
