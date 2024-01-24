@@ -26,7 +26,6 @@ import (
 	"fmt"
 	goast "go/ast"
 	"go/types"
-	"path"
 	"path/filepath"
 
 	"github.com/goplus/gop/ast"
@@ -35,6 +34,7 @@ import (
 	"github.com/goplus/gop/token"
 	"github.com/goplus/gox"
 	"github.com/goplus/igop"
+	"github.com/goplus/mod/modfile"
 
 	_ "github.com/goplus/igop/pkg/bufio"
 	_ "github.com/goplus/igop/pkg/fmt"
@@ -147,17 +147,24 @@ type Context struct {
 }
 
 func ClassKind(fname string) (isProj, ok bool) {
-	ext := path.Ext(fname)
-	if c, ok := projects[ext]; ok {
-		for _, w := range c.Works {
-			if w.Ext == ext {
-				if ext != c.Ext && fname != "main"+ext {
-					return false, true
-				}
-				break
-			}
-		}
+	ext := modfile.ClassExt(fname)
+	switch ext {
+	case ".gmx":
 		return true, true
+	case ".spx":
+		return fname == "main.spx", true
+	default:
+		if c, ok := projects[ext]; ok {
+			for _, w := range c.Works {
+				if w.Ext == ext {
+					if ext != c.Ext || fname != "main"+ext {
+						return false, true
+					}
+					break
+				}
+			}
+			return true, true
+		}
 	}
 	return
 }
