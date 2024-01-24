@@ -13,8 +13,9 @@ github.com/goplus/gox v1.12.1/go.mod h1:wymoQJ7ydd42cTlaXb4wNbvn4LlKjR+j8PZehI7v
 github.com/goplus/gox v1.12.8 h1:xXpsGbNIIDmykOQwI/kDcoA3cOX5ISvLPlU5RiPtyZY=
 github.com/goplus/gox v1.12.8/go.mod h1:MOJnwqA8/rSUkn0vsayHFK7TD/3XQrdexMTqdzR70X0=
 github.com/goplus/mod v0.11.5/go.mod h1:NDC5E+XOT8vcJCMjqKhLDJHTHX7lyVN4Vbfi2U7dBhs=
-github.com/goplus/mod v0.11.8 h1:90Kbg+MJhrdsonNGXYx3HUcW4IbBlRHYpIMssJaMMxM=
 github.com/goplus/mod v0.11.8/go.mod h1:yl2QncBKTdXk+8UaNsdo4u2zSpGEJYA5JKjgD3K2h00=
+github.com/goplus/mod v0.12.1 h1:4M1py5liQ/bfxPPXcmVbYn3JAjfcDpTANtih5omFI6c=
+github.com/goplus/mod v0.12.1/go.mod h1:ZtlS9wHOcAVxZ/zq7WLdKVes1HG/8Yn3KNuWZGcpeTs=
 github.com/goplus/reflectx v1.2.1 h1:y3Bq7cmP/zO++VFpZetC3zljVM3LkGivh2GgUJLu4wI=
 github.com/goplus/reflectx v1.2.1/go.mod h1:wHOS9ilbB4zrecI0W1dMmkW9JMcpXV7VjALVbNU9xfM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
@@ -28,8 +29,9 @@ github.com/peterh/liner v1.2.2/go.mod h1:xFwJyiKIXJZUKItq5dGHZSTBRAuG/CpeNpWLyiN
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/qiniu/x v1.13.0/go.mod h1:INZ2TSWSJVWO/RuELQROERcslBwVgFG7MkTfEdaQz9E=
-github.com/qiniu/x v1.13.1 h1:hi7tkXFq6BWGbBpMoLV7kvA2elop69j6Kl7TlxnFAiU=
 github.com/qiniu/x v1.13.1/go.mod h1:INZ2TSWSJVWO/RuELQROERcslBwVgFG7MkTfEdaQz9E=
+github.com/qiniu/x v1.13.2 h1:mgWOfB9Rpk6AEtlBoObZVxH+b2FHSntYrxc4KX5Ta98=
+github.com/qiniu/x v1.13.2/go.mod h1:INZ2TSWSJVWO/RuELQROERcslBwVgFG7MkTfEdaQz9E=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
