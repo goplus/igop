@@ -151,7 +151,7 @@ func ClassKind(fname string) (isProj, ok bool) {
 	if c, ok := projects[ext]; ok {
 		for _, w := range c.Works {
 			if w.Ext == ext {
-				if ext != c.Ext || fname != "main"+ext {
+				if ext != c.Ext && fname != "main"+ext {
 					return false, true
 				}
 				break
