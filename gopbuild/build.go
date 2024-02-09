@@ -73,6 +73,7 @@ func RegisterClassFileType(ext string, class string, works []*Class, pkgPaths ..
 }
 
 func init() {
+	cl.SetDebug(cl.FlagNoMarkAutogen)
 	igop.RegisterFileProcess(".gop", BuildFile)
 	igop.RegisterFileProcess(".gox", BuildFile)
 	RegisterClassFileType(".gmx", "Game", []*Class{{Ext: ".spx", Class: "Sprite"}}, "github.com/goplus/spx", "math")
@@ -276,8 +277,7 @@ func (c *Context) loadPackage(srcDir string, pkgs map[string]*ast.Package) (*Pac
 			mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
 		}
 	}
-	conf := &cl.Config{
-		WorkingDir: srcDir, TargetDir: srcDir, Fset: c.fset}
+	conf := &cl.Config{Fset: c.fset}
 	conf.Importer = c
 	conf.LookupClass = func(ext string) (c *cl.Project, ok bool) {
 		c, ok = projects[ext]
