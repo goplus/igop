@@ -1,6 +1,5 @@
 # iGo+ The Go/Go+ Interpreter
 
-github.com/goplus/igop/actions/workflows/go117.yml)
 [![Go1.18](https://github.com/goplus/igop/workflows/Go1.18/badge.svg)](https://github.com/goplus/igop/actions/workflows/go118.yml)
 [![Go1.19](https://github.com/goplus/igop/workflows/Go1.19/badge.svg)](https://github.com/goplus/igop/actions/workflows/go119.yml)
 [![Go1.20](https://github.com/goplus/igop/workflows/Go1.20/badge.svg)](https://github.com/goplus/igop/actions/workflows/go120.yml)
@@ -11,7 +10,7 @@ github.com/goplus/igop/actions/workflows/go117.yml)
 
 ### Go Version
 
-- Go1.16 ~ Go1.22
+- Go1.18 ~ Go1.22
 - macOS Linux Windows  WebAssembly GopherJS and more.
 
 ### ABI
