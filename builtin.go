@@ -555,6 +555,58 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 	case "clear":
 		arg0 := caller.reg(ia[0])
 		valueClear(reflect.ValueOf(arg0))
+	case "max":
+		v := reflect.ValueOf(caller.reg(ia[0]))
+		for _, i := range ia {
+			arg := reflect.ValueOf(caller.reg(i))
+			if i > 0 {
+				switch v.Kind() {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					if v.Int() < arg.Int() {
+						v = arg
+					}
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+					if v.Uint() < arg.Uint() {
+						v = arg
+					}
+				case reflect.Float32, reflect.Float64:
+					if v.Float() < arg.Float() {
+						v = arg
+					}
+				case reflect.String:
+					if v.String() < arg.String() {
+						v = arg
+					}
+				}
+			}
+		}
+		caller.setReg(ir, v.Interface())
+	case "min":
+		v := reflect.ValueOf(caller.reg(ia[0]))
+		for _, i := range ia {
+			arg := reflect.ValueOf(caller.reg(i))
+			if i > 0 {
+				switch v.Kind() {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					if v.Int() > arg.Int() {
+						v = arg
+					}
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+					if v.Uint() > arg.Uint() {
+						v = arg
+					}
+				case reflect.Float32, reflect.Float64:
+					if v.Float() > arg.Float() {
+						v = arg
+					}
+				case reflect.String:
+					if v.String() > arg.String() {
+						v = arg
+					}
+				}
+			}
+		}
+		caller.setReg(ir, v.Interface())
 	default:
 		panic("unknown built-in: " + fn)
 	}
