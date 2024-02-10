@@ -118,8 +118,8 @@ func init() {
 		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5963.go"] = "skip windows"
 		if ver == "go1.22" {
-			gorootTestSkips["fixedbugs/recover4.go"] = "skip windows"
-			gorootTestSkips["fixedbugs/sigchld.go"] = "skip windows"
+			gorootTestSkips["recover4.go"] = "skip windows"
+			gorootTestSkips["sigchld.go"] = "skip windows"
 		}
 
 		skips := make(map[string]string)
