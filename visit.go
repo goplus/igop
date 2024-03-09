@@ -93,8 +93,13 @@ func (visit *visitor) program() {
 			sel := mset.At(i)
 			obj := sel.Obj()
 			// skip embed extern type method
-			if pkg := obj.Pkg(); pkg != nil && !chks[pkg.Path()] {
-				continue
+			if pkg := obj.Pkg(); pkg != nil {
+				if !chks[pkg.Path()] {
+					continue
+				}
+				if visit.intp.ctx.Mode&CheckGopOverloadFunc != 0 && obj.Pos() == token.NoPos {
+					continue
+				}
 			}
 			fn := visit.prog.MethodValue(sel)
 			mmap[obj.Name()] = fn
