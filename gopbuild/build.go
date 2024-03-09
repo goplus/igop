@@ -28,11 +28,11 @@ import (
 	"go/types"
 	"path/filepath"
 
+	"github.com/goplus/gogen"
 	"github.com/goplus/gop/ast"
 	"github.com/goplus/gop/cl"
 	"github.com/goplus/gop/parser"
 	"github.com/goplus/gop/token"
-	"github.com/goplus/gox"
 	"github.com/goplus/igop"
 	"github.com/goplus/mod/modfile"
 
@@ -126,19 +126,19 @@ func BuildDir(ctx *igop.Context, dir string) (data []byte, err error) {
 
 type Package struct {
 	Fset *token.FileSet
-	Pkg  *gox.Package
+	Pkg  *gogen.Package
 }
 
 func (p *Package) ToSource() ([]byte, error) {
 	var buf bytes.Buffer
-	if err := gox.WriteTo(&buf, p.Pkg); err != nil {
+	if err := gogen.WriteTo(&buf, p.Pkg); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
 func (p *Package) ToAst() *goast.File {
-	return gox.ASTFile(p.Pkg)
+	return gogen.ASTFile(p.Pkg)
 }
 
 type Context struct {
