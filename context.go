@@ -55,6 +55,7 @@ const (
 	EnableNoStrict                         // Enable no strict mode
 	ExperimentalSupportGC                  // experimental support runtime.GC
 	SupportMultipleInterp                  // Support multiple interp, must manual release interp reflectx icall.
+	CheckGopOverloadFunc                   // Check and skip gop overload func
 )
 
 // Loader types loader interface

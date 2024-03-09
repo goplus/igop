@@ -28,11 +28,11 @@ import (
 	"go/types"
 	"path/filepath"
 
+	"github.com/goplus/gogen"
 	"github.com/goplus/gop/ast"
 	"github.com/goplus/gop/cl"
 	"github.com/goplus/gop/parser"
 	"github.com/goplus/gop/token"
-	"github.com/goplus/gox"
 	"github.com/goplus/igop"
 	"github.com/goplus/mod/modfile"
 
@@ -126,24 +126,25 @@ func BuildDir(ctx *igop.Context, dir string) (data []byte, err error) {
 
 type Package struct {
 	Fset *token.FileSet
-	Pkg  *gox.Package
+	Pkg  *gogen.Package
 }
 
 func (p *Package) ToSource() ([]byte, error) {
 	var buf bytes.Buffer
-	if err := gox.WriteTo(&buf, p.Pkg); err != nil {
+	if err := p.Pkg.WriteTo(&buf); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
 func (p *Package) ToAst() *goast.File {
-	return gox.ASTFile(p.Pkg)
+	return p.Pkg.ASTFile()
 }
 
 type Context struct {
 	ctx  *igop.Context
 	fset *token.FileSet
+	imp  *igop.Importer
 	gop  igop.Loader
 }
 
@@ -174,7 +175,8 @@ func NewContext(ctx *igop.Context) *Context {
 	if ctx.IsEvalMode() {
 		ctx = igop.NewContext(0)
 	}
-	return &Context{ctx: ctx, fset: token.NewFileSet(), gop: igop.NewTypesLoader(ctx, 0)}
+	ctx.Mode |= igop.CheckGopOverloadFunc
+	return &Context{ctx: ctx, imp: igop.NewImporter(ctx), fset: token.NewFileSet(), gop: igop.NewTypesLoader(ctx, 0)}
 }
 
 func isGopPackage(path string) bool {
@@ -190,7 +192,7 @@ func (c *Context) Import(path string) (*types.Package, error) {
 	if isGopPackage(path) {
 		return c.gop.Import(path)
 	}
-	return c.ctx.Loader.Import(path)
+	return c.imp.Import(path)
 }
 
 func (c *Context) ParseDir(dir string) (*Package, error) {
