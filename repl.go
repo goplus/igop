@@ -23,6 +23,7 @@ import (
 	"go/scanner"
 	"go/token"
 	"go/types"
+	"reflect"
 	"runtime"
 	"strings"
 
@@ -53,19 +54,37 @@ type Repl struct {
 	imports   []string               // import lines
 	globals   []string               // global var/func/type
 	infuncs   []string               // in main func
-	lastDump  []string               // last __igop_repl_dump__
+	lastEval  []*Eval                // last __igop_repl_eval__
 }
 
-func toDump(i []interface{}) (dump []string) {
+type Eval struct {
+	Value interface{} // constant.Value or interface{}
+	Type  reflect.Type
+}
+
+func (e *Eval) String() string {
+	if c, ok := e.Value.(constant.Value); ok {
+		s, _ := xconst.ExactConstantEx(c, true)
+		if c.Kind() == constant.Float {
+			es := c.ExactString()
+			return fmt.Sprintf("%v untyped %v\n(%v)", s, e.Type, es)
+		} else {
+			return fmt.Sprintf("%v untyped %v", s, e.Type)
+		}
+	}
+	return fmt.Sprintf("%v %v", e.Value, e.Type)
+}
+
+func toEval(i []interface{}) (eval []*Eval) {
 	for _, v := range i {
-		dump = append(dump, fmt.Sprintf("%v %T", v, v))
+		eval = append(eval, &Eval{v, reflect.TypeOf(v)})
 	}
 	return
 }
 
-func toResultDump(interp *Interp, vs []interface{}, rs *types.Tuple) (dump []string) {
+func toResultEval(interp *Interp, vs []interface{}, rs *types.Tuple) (eval []*Eval) {
 	for i, v := range vs {
-		dump = append(dump, fmt.Sprintf("%v %v", v, interp.toType(rs.At(i).Type())))
+		eval = append(eval, &Eval{v, interp.toType(rs.At(i).Type())})
 	}
 	return
 }
@@ -77,8 +96,8 @@ func NewRepl(ctx *Context) *Repl {
 	}
 	ctx.SetEvalMode(true)
 	RegisterCustomBuiltin("__igop_repl_used__", func(v interface{}) {})
-	RegisterCustomBuiltin("__igop_repl_dump__", func(v ...interface{}) {
-		r.lastDump = toDump(v)
+	RegisterCustomBuiltin("__igop_repl_eval__", func(v ...interface{}) {
+		r.lastEval = toEval(v)
 	})
 	// reset runtime.GC to default
 	ctx.RegisterExternal("runtime.GC", runtime.GC)
@@ -93,7 +112,7 @@ func NewRepl(ctx *Context) *Repl {
 		if strings.Contains(v.Name(), "__igop_repl_") {
 			return
 		}
-		r.lastDump = toResultDump(interp, res, call.Call.Signature().Results())
+		r.lastEval = toResultEval(interp, res, call.Call.Signature().Results())
 	}
 	if f, err := ParseBuiltin(r.ctx.FileSet, "main"); err == nil {
 		r.builtin = f
@@ -105,11 +124,11 @@ func (r *Repl) SetFileName(filename string) {
 	r.fileName = filename
 }
 
-func (r *Repl) Eval(expr string) (tok token.Token, dump []string, err error) {
-	r.lastDump = nil
+func (r *Repl) Eval(expr string) (tok token.Token, dump []*Eval, err error) {
+	r.lastEval = nil
 	tok = r.firstToken(expr)
 	err = r.eval(tok, expr)
-	return tok, r.lastDump, err
+	return tok, r.lastEval, err
 }
 
 func (r *Repl) Interp() *Interp {
@@ -188,9 +207,14 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			return errors[0]
 		}
 	default:
+		orgExpr := expr
 		switch tok {
 		case token.FOR, token.IF, token.SWITCH, token.SELECT:
 			expr = "func(){\n" + expr + "\n}()"
+		case token.INT, token.FLOAT, token.IMAG, token.CHAR, token.STRING,
+			token.ADD, token.SUB, token.NOT, token.XOR,
+			token.LPAREN, token.LBRACK, token.LBRACE:
+			expr = "__igop_repl_eval__(" + expr + ")"
 		}
 		inMain = true
 		src = r.buildSource(expr, tok)
@@ -207,16 +231,22 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 			if strings.HasSuffix(e.Msg, errDeclaredNotUsed) {
 				v := e.Msg[0 : len(e.Msg)-len(errDeclaredNotUsed)-1]
 				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
-				// fixed = append(fixed, "__igop_repl_dump__("+v+")")
+				// fixed = append(fixed, "__igop_repl_eval__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
 				if _, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errIsNotUsed)])); ok {
-					// r.lastDump = []string{c.Lit}
-					// return nil
-					expr = "const __igop_repl_const__ = " + expr
+					expr = "const __igop_repl_const__ = " + orgExpr
 					tok = token.CONST
 					evalConst = true
 				} else {
-					expr = "__igop_repl_dump__(" + expr + ")"
+					expr = "__igop_repl_eval__(" + orgExpr + ")"
+				}
+			} else if strings.HasSuffix(e.Msg, errDumpOverflows) {
+				if _, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errDumpOverflows)])); ok {
+					expr = "const __igop_repl_const__ = " + orgExpr
+					tok = token.CONST
+					evalConst = true
+				} else {
+					return e
 				}
 			} else {
 				return e
@@ -246,14 +276,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	if evalConst {
 		m := i.mainpkg.Members["__igop_repl_const__"]
 		c, _ := m.(*ssa.NamedConst)
-		s, _ := xconst.ExactConstantEx(c.Value.Value, true)
-		kind := c.Value.Value.Kind()
-		if kind == constant.Float {
-			es := c.Value.Value.ExactString()
-			r.lastDump = []string{fmt.Sprintf("%v %v\n(%v)", s, c.Type(), es)}
-		} else {
-			r.lastDump = []string{fmt.Sprintf("%v %v", s, c.Type())}
-		}
+		r.lastEval = []*Eval{&Eval{c.Value.Value, i.toType(c.Type())}}
 		return nil
 	}
 	r.interp = i
@@ -273,6 +296,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 
 const (
 	errIsNotUsed      = "is not used"
+	errDumpOverflows  = "to __igop_repl_eval__ (overflows)"
 	errMaybeGoFunLit  = `expected 'IDENT', found '{'`
 	errMaybeGopFunLit = `expected '(',`
 )

@@ -206,7 +206,7 @@ func (r *REPL) Run(line string) error {
 		}
 		expr = line
 	}
-	tok, dump, err := r.Eval(expr)
+	tok, eval, err := r.Eval(expr)
 	if err != nil {
 		if checkMore(tok, err) {
 			r.more += "\n" + line
@@ -217,12 +217,16 @@ func (r *REPL) Run(line string) error {
 		}
 		return err
 	}
-	switch len(dump) {
+	switch len(eval) {
 	case 0:
 	case 1:
-		r.Printf("%v\n", dump[0])
+		r.Printf("%v\n", eval[0])
 	default:
-		r.Printf("(%v)\n", strings.Join(dump, ", "))
+		var info []string
+		for _, v := range eval {
+			info = append(info, v.String())
+		}
+		r.Printf("(%v)\n", strings.Join(info, ", "))
 	}
 	r.SetNormal()
 	return nil

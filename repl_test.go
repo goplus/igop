@@ -390,3 +390,39 @@ func TestReplSelect(t *testing.T) {
 		}
 	}
 }
+
+func TestReplLiteral(t *testing.T) {
+	ctx := igop.NewContext(0)
+	repl := igop.NewRepl(ctx)
+	list := []string{
+		`100`,
+		`100.0*200`,
+		`(100*200)`,
+		`map[int]string{1:"100"}`,
+		`1e100<<2`,
+		`+100*2`,
+		`-100/2`,
+		`^100`,
+		`"hello"+"world"`,
+	}
+	result := []string{
+		`[100 int]`,
+		`[20000 float64]`,
+		`[20000 int]`,
+		`[map[1:100] map[int]string]`,
+		`[40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 untyped int]`,
+		`[200 int]`,
+		`[-50 int]`,
+		`[-101 int]`,
+		`[helloworld string]`,
+	}
+	for i, expr := range list {
+		_, v, err := repl.Eval(expr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if fmt.Sprint(v) != result[i] {
+			t.Fatalf("expr:%v dump:%v src:%v", expr, v, repl.Source())
+		}
+	}
+}
