@@ -343,6 +343,9 @@ func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*so
 	if embed != nil {
 		files = append(files, embed)
 	}
+	if bp.Name == "main" {
+		path = "main"
+	}
 	tp := &sourcePackage{
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
