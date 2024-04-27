@@ -30,13 +30,18 @@ func IsDir(target string) (bool, error) {
 	return fi.IsDir(), nil
 }
 
-func ContainsExt(srcDir string, ext string) bool {
+func ContainsExt(srcDir string, exts ...string) bool {
 	if f, err := os.Open(srcDir); err == nil {
 		defer f.Close()
 		fis, _ := f.Readdir(-1)
 		for _, fi := range fis {
-			if !fi.IsDir() && filepath.Ext(fi.Name()) == ext {
-				return true
+			if !fi.IsDir() {
+				ext := filepath.Ext(fi.Name())
+				for _, v := range exts {
+					if v == ext {
+						return true
+					}
+				}
 			}
 		}
 	}

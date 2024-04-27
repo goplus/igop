@@ -20,6 +20,7 @@ package gopbuild
 //go:generate go run ../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin/ng
 //go:generate go run ../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin/iox
 //go:generate go run ../cmd/qexp -outdir ../pkg github.com/qiniu/x/errors
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/qiniu/x/gsh
 
 import (
 	"bytes"
@@ -37,16 +38,23 @@ import (
 	"github.com/goplus/mod/modfile"
 
 	_ "github.com/goplus/igop/pkg/bufio"
+	_ "github.com/goplus/igop/pkg/context"
+	_ "github.com/goplus/igop/pkg/errors"
 	_ "github.com/goplus/igop/pkg/fmt"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/iox"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/ng"
 	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/errors"
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/gsh"
 	_ "github.com/goplus/igop/pkg/io"
 	_ "github.com/goplus/igop/pkg/log"
+	_ "github.com/goplus/igop/pkg/math"
 	_ "github.com/goplus/igop/pkg/math/big"
 	_ "github.com/goplus/igop/pkg/math/bits"
 	_ "github.com/goplus/igop/pkg/os"
+	_ "github.com/goplus/igop/pkg/os/exec"
+	_ "github.com/goplus/igop/pkg/path/filepath"
+	_ "github.com/goplus/igop/pkg/runtime"
 	_ "github.com/goplus/igop/pkg/strconv"
 	_ "github.com/goplus/igop/pkg/strings"
 )
@@ -76,7 +84,9 @@ func init() {
 	cl.SetDebug(cl.FlagNoMarkAutogen)
 	igop.RegisterFileProcess(".gop", BuildFile)
 	igop.RegisterFileProcess(".gox", BuildFile)
+	igop.RegisterFileProcess(".gsh", BuildFile)
 	RegisterClassFileType(".gmx", "Game", []*Class{{Ext: ".spx", Class: "Sprite"}}, "github.com/goplus/spx", "math")
+	RegisterClassFileType(".gsh", "App", nil, "github.com/qiniu/x/gsh", "math")
 }
 
 func BuildFile(ctx *igop.Context, filename string, src interface{}) (data []byte, err error) {
@@ -151,7 +161,7 @@ type Context struct {
 func ClassKind(fname string) (isProj, ok bool) {
 	ext := modfile.ClassExt(fname)
 	switch ext {
-	case ".gmx":
+	case ".gmx", ".gsh":
 		return true, true
 	case ".spx":
 		return fname == "main.spx", true
