@@ -474,10 +474,10 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 	case reflect.Interface:
 		n := rt.NumMethod()
 		imethods = make([]*types.Func, n)
-		pkg := r.GetPackage(rt.PkgPath())
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
 			sig := typesDummySig
+			pkg := r.GetPackage(im.PkgPath)
 			imethods[i] = types.NewFunc(token.NoPos, pkg, im.Name, sig)
 		}
 		typ = types.NewInterfaceType(imethods, nil)
@@ -533,10 +533,11 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		}
 	} else if kind == reflect.Interface {
 		n := rt.NumMethod()
-		pkg := named.Obj().Pkg()
+		pkg := r.GetPackage(rt.PkgPath())
 		recv := types.NewVar(token.NoPos, pkg, "", typ)
 		for i := 0; i < n; i++ {
 			im := rt.Method(i)
+			pkg := r.GetPackage(im.PkgPath)
 			sig := r.toMethod(pkg, recv, 0, im.Type)
 			imethods[i] = types.NewFunc(token.NoPos, pkg, im.Name, sig)
 		}
