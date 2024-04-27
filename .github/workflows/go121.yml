@@ -10,7 +10,7 @@ jobs:
 
   macos:
     name: Test Go1.21 for macOS
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
 
     - name: Set up Go 1.21
