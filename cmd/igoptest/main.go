@@ -129,6 +129,7 @@ func init() {
 		gorootTestSkips = skips
 	} else if runtime.GOOS == "darwin" {
 		gorootTestSkips["locklinear.go"] = "skip github"
+		gorootTestSkips["env.go"] = "skip github"
 	}
 }
 
