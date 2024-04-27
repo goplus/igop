@@ -40,5 +40,5 @@ func BuildGopDir(ctx *igop.Context, path string) error {
 }
 
 func IsGopProject(dir string) bool {
-	return ContainsExt(dir, ".gop")
+	return ContainsExt(dir, ".gop", ".gox")
 }

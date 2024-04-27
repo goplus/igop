@@ -384,3 +384,46 @@ func main() {
 }
 `)
 }
+
+func TestGsh(t *testing.T) {
+	gopClTestEx(t, "exec.gsh", `
+gop "run", "./foo"
+exec "gop run ./foo"
+exec "FOO=100 gop run ./foo"
+exec {"FOO": "101"}, "gop", "run", "./foo"
+exec "gop", "run", "./foo"
+exec "ls $HOME"
+ls "${HOME}"
+
+`, `package main
+
+import "github.com/qiniu/x/gsh"
+
+type exec struct {
+	gsh.App
+}
+//line exec.gsh:2
+func (this *exec) MainEntry() {
+//line exec.gsh:2:1
+	this.Gop_Exec("gop", "run", "./foo")
+//line exec.gsh:3:1
+	this.Exec__1("gop run ./foo")
+//line exec.gsh:4:1
+	this.Exec__1("FOO=100 gop run ./foo")
+//line exec.gsh:5:1
+	this.Exec__0(map[string]string{"FOO": "101"}, "gop", "run", "./foo")
+//line exec.gsh:6:1
+	this.Exec__2("gop", "run", "./foo")
+//line exec.gsh:7:1
+	this.Exec__1("ls $HOME")
+//line exec.gsh:8:1
+	this.Gop_Exec("ls", this.Gop_Env("HOME"))
+}
+func (this *exec) Main() {
+	gsh.Gopt_App_Main(this)
+}
+func main() {
+	new(exec).Main()
+}
+`)
+}
