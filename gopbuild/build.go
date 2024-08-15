@@ -152,10 +152,10 @@ func (p *Package) ToAst() *goast.File {
 }
 
 type Context struct {
-	ctx  *igop.Context
-	fset *token.FileSet
-	imp  *igop.Importer
-	gop  igop.Loader
+	Context  *igop.Context
+	FileSet  *token.FileSet
+	Importer *igop.Importer
+	Loader   igop.Loader
 }
 
 func ClassKind(fname string) (isProj, ok bool) {
@@ -186,7 +186,7 @@ func NewContext(ctx *igop.Context) *Context {
 		ctx = igop.NewContext(0)
 	}
 	ctx.Mode |= igop.CheckGopOverloadFunc
-	return &Context{ctx: ctx, imp: igop.NewImporter(ctx), fset: token.NewFileSet(), gop: igop.NewTypesLoader(ctx, 0)}
+	return &Context{Context: ctx, Importer: igop.NewImporter(ctx), FileSet: token.NewFileSet(), Loader: igop.NewTypesLoader(ctx, 0)}
 }
 
 func isGopPackage(path string) bool {
@@ -200,13 +200,13 @@ func isGopPackage(path string) bool {
 
 func (c *Context) Import(path string) (*types.Package, error) {
 	if isGopPackage(path) {
-		return c.gop.Import(path)
+		return c.Loader.Import(path)
 	}
-	return c.imp.Import(path)
+	return c.Importer.Import(path)
 }
 
 func (c *Context) ParseDir(dir string) (*Package, error) {
-	pkgs, err := parser.ParseDirEx(c.fset, dir, parser.Config{
+	pkgs, err := parser.ParseDirEx(c.FileSet, dir, parser.Config{
 		ClassKind: ClassKind,
 	})
 	if err != nil {
@@ -216,7 +216,7 @@ func (c *Context) ParseDir(dir string) (*Package, error) {
 }
 
 func (c *Context) ParseFSDir(fs parser.FileSystem, dir string) (*Package, error) {
-	pkgs, err := parser.ParseFSDir(c.fset, fs, dir, parser.Config{
+	pkgs, err := parser.ParseFSDir(c.FileSet, fs, dir, parser.Config{
 		ClassKind: ClassKind,
 	})
 	if err != nil {
@@ -259,7 +259,7 @@ func (c *Context) ParseFile(fname string, src interface{}) (*Package, error) {
 	if isClass {
 		mode |= parser.ParseGoPlusClass
 	}
-	f, err := parser.ParseFile(c.fset, fname, src, mode)
+	f, err := parser.ParseFile(c.FileSet, fname, src, mode)
 	if err != nil {
 		return nil, err
 	}
@@ -284,23 +284,23 @@ func (c *Context) loadPackage(srcDir string, pkgs map[string]*ast.Package) (*Pac
 			break
 		}
 	}
-	if c.ctx.Mode&igop.DisableCustomBuiltin == 0 {
-		if f, err := igop.ParseBuiltin(c.fset, mainPkg.Name); err == nil {
+	if c.Context.Mode&igop.DisableCustomBuiltin == 0 {
+		if f, err := igop.ParseBuiltin(c.FileSet, mainPkg.Name); err == nil {
 			mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
 		}
 	}
-	conf := &cl.Config{Fset: c.fset}
+	conf := &cl.Config{Fset: c.FileSet}
 	conf.Importer = c
 	conf.LookupClass = func(ext string) (c *cl.Project, ok bool) {
 		c, ok = projects[ext]
 		return
 	}
-	if c.ctx.IsEvalMode() {
+	if c.Context.IsEvalMode() {
 		conf.NoSkipConstant = true
 	}
 	out, err := cl.NewPackage("", mainPkg, conf)
 	if err != nil {
 		return nil, err
 	}
-	return &Package{c.fset, out}, nil
+	return &Package{c.FileSet, out}, nil
 }
