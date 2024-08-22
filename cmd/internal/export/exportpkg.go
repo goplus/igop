@@ -65,18 +65,27 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 	if !pkg.IsEmpty() {
 		imports = append(imports, `"reflect"`)
 	}
+	var hasToken bool
 	if len(pkg.UntypedConsts) > 0 || len(pkg.TypedConsts) > 0 {
 		imports = append(imports, `"go/constant"`)
-		var hasToken bool
 		for _, c := range pkg.UntypedConsts {
 			if strings.Index(c, "token.") >= 0 {
 				hasToken = true
 				break
 			}
 		}
-		if hasToken {
-			imports = append(imports, `"go/token"`)
+	}
+	if len(pkg.GenericFuncTypeConstructors) > 0 {
+		imports = append(imports, `"go/types"`)
+		for _, c := range pkg.GenericFuncTypeConstructors {
+			if strings.Index(c, "token.") >= 0 {
+				hasToken = true
+				break
+			}
 		}
+	}
+	if hasToken {
+		imports = append(imports, `"go/token"`)
 	}
 	tmpl := template_pkg
 	if pkg.IsEmpty() {
@@ -100,6 +109,7 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 		"$ALIASTYPES", joinList(pkg.AliasTypes),
 		"$VARS", joinList(pkg.Vars),
 		"$FUNCS", joinList(pkg.Funcs),
+		"$GENERIC_FUNC_TYPE_CONSTRUCTORS", joinList(pkg.GenericFuncTypeConstructors),
 		"$TYPEDCONSTS", joinList(pkg.TypedConsts),
 		"$UNTYPEDCONSTS", joinList(pkg.UntypedConsts),
 		"$TAGS", strings.Join(tagList, "\n"),
@@ -136,6 +146,7 @@ func init() {
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
+		GenericFuncTypeConstructors: map[string]igop.GenericFuncTypeConstructor{$GENERIC_FUNC_TYPE_CONSTRUCTORS},
 		TypedConsts: map[string]igop.TypedConst{$TYPEDCONSTS},
 		UntypedConsts: map[string]igop.UntypedConst{$UNTYPEDCONSTS},
 	})
@@ -185,6 +196,7 @@ func init() {
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
+		GenericFuncTypeConstructors: map[string]igop.GenericFuncTypeConstructor{$GENERIC_FUNC_TYPE_CONSTRUCTORS},
 		TypedConsts: map[string]igop.TypedConst{$TYPEDCONSTS},
 		UntypedConsts: map[string]igop.UntypedConst{$UNTYPEDCONSTS},
 		Source: source,

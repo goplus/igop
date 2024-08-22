@@ -18,6 +18,7 @@ package igop
 
 import (
 	"go/constant"
+	"go/types"
 	"log"
 	"reflect"
 	"sort"
@@ -62,18 +63,21 @@ type UntypedConst struct {
 	Value constant.Value
 }
 
+type GenericFuncTypeConstructor func(tl *TypesLoader, pkg *types.Package) *types.Func
+
 type Package struct {
-	Interfaces    map[string]reflect.Type
-	NamedTypes    map[string]reflect.Type
-	AliasTypes    map[string]reflect.Type
-	Vars          map[string]reflect.Value
-	Funcs         map[string]reflect.Value
-	TypedConsts   map[string]TypedConst
-	UntypedConsts map[string]UntypedConst
-	Deps          map[string]string // path -> name
-	Name          string
-	Path          string
-	Source        string
+	Interfaces                  map[string]reflect.Type
+	NamedTypes                  map[string]reflect.Type
+	AliasTypes                  map[string]reflect.Type
+	Vars                        map[string]reflect.Value
+	Funcs                       map[string]reflect.Value
+	GenericFuncTypeConstructors map[string]GenericFuncTypeConstructor
+	TypedConsts                 map[string]TypedConst
+	UntypedConsts               map[string]UntypedConst
+	Deps                        map[string]string // path -> name
+	Name                        string
+	Path                        string
+	Source                      string
 }
 
 // merge same package
@@ -89,6 +93,9 @@ func (p *Package) merge(same *Package) {
 	}
 	for k, v := range same.Funcs {
 		p.Funcs[k] = v
+	}
+	for k, v := range same.GenericFuncTypeConstructors {
+		p.GenericFuncTypeConstructors[k] = v
 	}
 	for k, v := range same.UntypedConsts {
 		p.UntypedConsts[k] = v

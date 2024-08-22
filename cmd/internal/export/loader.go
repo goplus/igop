@@ -160,26 +160,27 @@ type Package struct {
 */
 
 type Package struct {
-	Name          string
-	Path          string
-	Deps          []string
-	NamedTypes    []string
-	Interfaces    []string
-	AliasTypes    []string
-	Vars          []string
-	Funcs         []string
-	Consts        []string
-	TypedConsts   []string
-	UntypedConsts []string
-	Links         []string
-	Source        string
-	usedPkg       bool
+	Name                        string
+	Path                        string
+	Deps                        []string
+	NamedTypes                  []string
+	Interfaces                  []string
+	AliasTypes                  []string
+	Vars                        []string
+	Funcs                       []string
+	GenericFuncTypeConstructors []string
+	Consts                      []string
+	TypedConsts                 []string
+	UntypedConsts               []string
+	Links                       []string
+	Source                      string
+	usedPkg                     bool
 }
 
 func (p *Package) IsEmpty() bool {
 	return len(p.NamedTypes) == 0 && len(p.Interfaces) == 0 &&
 		len(p.AliasTypes) == 0 && len(p.Vars) == 0 &&
-		len(p.Funcs) == 0 && len(p.Consts) == 0 &&
+		len(p.Funcs) == 0 && len(p.GenericFuncTypeConstructors) == 0 && len(p.Consts) == 0 &&
 		len(p.TypedConsts) == 0 && len(p.UntypedConsts) == 0
 }
 
@@ -342,6 +343,103 @@ func (p *Program) ExportSource(e *Package, info *loader.PackageInfo) error {
 	return nil
 }
 
+type typeSerializer struct {
+	typeParams map[*types.TypeParam]string // *types.TypeParam -> local var name
+}
+
+func newTypeSerializer() *typeSerializer {
+	return &typeSerializer{typeParams: make(map[*types.TypeParam]string)}
+}
+
+func (s *typeSerializer) serializeNamed(t *types.Named) string {
+	obj := t.Obj()
+	pkg := obj.Pkg()
+	if pkg == nil {
+		return fmt.Sprintf("types.Universe.Lookup(%q)", obj.Name())
+	}
+	str := "func () types.Type {"
+	str += fmt.Sprintf("if pkg.Path() == %q {\n", pkg.Path())
+	str += fmt.Sprintf("return pkg.Scope().Lookup(%q).Type()\n", obj.Name())
+	str += "} else {\n"
+	str += fmt.Sprintf("return tl.GetPackage(%q).Scope().Lookup(%q).Type()\n", pkg.Path(), obj.Name())
+	str += "}\n"
+	str += "}()"
+	return str
+}
+
+func (s *typeSerializer) serializeTypeParam(tp *types.TypeParam) (ref, def string) {
+	if varName, ok := s.typeParams[tp]; ok {
+		return varName, ""
+	}
+	varName := fmt.Sprintf("tp_%d", len(s.typeParams)+1)
+	s.typeParams[tp] = varName
+	def = fmt.Sprintf("%s := types.NewTypeParam(types.NewTypeName(token.NoPos, pkg, %q, nil), %s)\n", varName, tp.Obj().Name(), s.serialize(tp.Constraint()))
+	return varName, def
+}
+
+func (s *typeSerializer) serializeSignature(sig *types.Signature) string {
+	str := "func () *types.Signature {"
+	tpVarNames := make([]string, sig.TypeParams().Len())
+	for i := 0; i < sig.TypeParams().Len(); i++ {
+		tp := sig.TypeParams().At(i)
+		tpVarName, tpVarDef := s.serializeTypeParam(tp)
+		tpVarNames[i] = tpVarName
+		str += tpVarDef
+	}
+	pVarNames := make([]string, sig.Params().Len())
+	for i := 0; i < sig.Params().Len(); i++ {
+		p := sig.Params().At(i)
+		pVarName := fmt.Sprintf("p_%d", i+1)
+		pVarNames[i] = pVarName
+		str += fmt.Sprintf("%s := types.NewParam(token.NoPos, pkg, %q, %s)\n", pVarName, p.Name(), s.serialize(p.Type()))
+	}
+	rVarNames := make([]string, sig.Results().Len())
+	for i := 0; i < sig.Results().Len(); i++ {
+		r := sig.Results().At(i)
+		rVarName := fmt.Sprintf("r_%d", i)
+		rVarNames[i] = rVarName
+		str += fmt.Sprintf("%s := types.NewVar(token.NoPos, pkg, %q, %s)\n", rVarName, r.Name(), s.serialize(r.Type()))
+	}
+	str += fmt.Sprintf("return types.NewSignatureType(nil, nil, []*types.TypeParam{%s}, types.NewTuple(%s), types.NewTuple(%s), false)\n",
+		strings.Join(tpVarNames, ", "), strings.Join(pVarNames, ", "), strings.Join(rVarNames, ", "))
+	str += "}()"
+	return str
+}
+
+func (s *typeSerializer) serialize(typ types.Type) string {
+	switch t := typ.(type) {
+	case *types.Basic:
+		return fmt.Sprintf("types.Typ[%v]", t.Kind())
+	case *types.Named:
+		return s.serializeNamed(t)
+	case *types.Pointer:
+		return fmt.Sprintf("types.NewPointer(%s)", s.serialize(t.Elem()))
+	case *types.Slice:
+		return fmt.Sprintf("types.NewSlice(%s)", s.serialize(t.Elem()))
+	case *types.Array:
+		return fmt.Sprintf("types.NewArray(%s, %v)", s.serialize(t.Elem()), t.Len())
+	case *types.Map:
+		return fmt.Sprintf("types.NewMap(%s, %s)", s.serialize(t.Key()), s.serialize(t.Elem()))
+	case *types.Chan:
+		return fmt.Sprintf("types.NewChan(%v, %s)", t.Dir(), s.serialize(t.Elem()))
+	case *types.Signature:
+		return s.serializeSignature(t)
+	case *types.Interface:
+		// if is "any" interface
+		if t == types.Universe.Lookup("any").Type() {
+			return `types.Universe.Lookup("any").Type()`
+		}
+		log.Panicf("unsupported type non-any interface %T", t)
+	case *types.TypeParam:
+		ref, _ := s.serializeTypeParam(t)
+		return ref
+	default:
+		log.Panicf("unsupported type %T", t)
+	}
+	log.Panicf("unsupported type %T", typ)
+	return ""
+}
+
 func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 	info := p.prog.Package(path)
 	if info == nil {
@@ -375,9 +473,13 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 			e.usedPkg = true
 		case *types.Func:
 			if hasTypeParam(t.Type()) {
-				if !flagExportSource {
-					log.Println("skip typeparam", t)
-				}
+				ts := newTypeSerializer()
+				sig := t.Type().(*types.Signature)
+				str := "func(tl *igop.TypesLoader, pkg *types.Package) *types.Func {\n"
+				str += fmt.Sprintf("return types.NewFunc(token.NoPos, pkg, %q, %s)\n", t.Name(), ts.serialize(sig))
+				str += "}"
+				e.GenericFuncTypeConstructors = append(e.GenericFuncTypeConstructors, fmt.Sprintf("%q : %s", t.Name(), str))
+
 				foundGeneric = true
 				continue
 			}

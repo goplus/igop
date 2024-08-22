@@ -230,6 +230,9 @@ func (r *TypesLoader) installPackage(pkg *Package) (err error) {
 	for name, fn := range pkg.Funcs {
 		r.InsertFunc(p, name, fn)
 	}
+	for name, f := range pkg.GenericFuncTypeConstructors {
+		r.InsertGenericFunc(p, name, f)
+	}
 	for name, v := range pkg.Vars {
 		r.InsertVar(p, name, v.Elem())
 	}
@@ -258,6 +261,10 @@ func (r *TypesLoader) InsertAlias(p *types.Package, name string, rt reflect.Type
 func (r *TypesLoader) InsertFunc(p *types.Package, name string, v reflect.Value) {
 	typ := r.ToType(v.Type())
 	p.Scope().Insert(types.NewFunc(token.NoPos, p, name, typ.(*types.Signature)))
+}
+
+func (r *TypesLoader) InsertGenericFunc(p *types.Package, name string, f GenericFuncTypeConstructor) {
+	p.Scope().Insert(f(r, p))
 }
 
 func (r *TypesLoader) InsertVar(p *types.Package, name string, v reflect.Value) {

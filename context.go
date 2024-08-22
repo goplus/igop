@@ -788,16 +788,17 @@ func RunTest(path string, args []string, mode Mode) error {
 
 var (
 	builtinPkg = &Package{
-		Name:          "builtin",
-		Path:          "github.com/goplus/igop/builtin",
-		Deps:          make(map[string]string),
-		Interfaces:    map[string]reflect.Type{},
-		NamedTypes:    map[string]reflect.Type{},
-		AliasTypes:    map[string]reflect.Type{},
-		Vars:          map[string]reflect.Value{},
-		Funcs:         map[string]reflect.Value{},
-		TypedConsts:   map[string]TypedConst{},
-		UntypedConsts: map[string]UntypedConst{},
+		Name:                        "builtin",
+		Path:                        "github.com/goplus/igop/builtin",
+		Deps:                        make(map[string]string),
+		Interfaces:                  map[string]reflect.Type{},
+		NamedTypes:                  map[string]reflect.Type{},
+		AliasTypes:                  map[string]reflect.Type{},
+		Vars:                        map[string]reflect.Value{},
+		Funcs:                       map[string]reflect.Value{},
+		GenericFuncTypeConstructors: map[string]GenericFuncTypeConstructor{},
+		TypedConsts:                 map[string]TypedConst{},
+		UntypedConsts:               map[string]UntypedConst{},
 	}
 	builtinPrefix = "Builtin_"
 )
