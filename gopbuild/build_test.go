@@ -427,3 +427,46 @@ func main() {
 }
 `)
 }
+
+func TestPackagePatch(t *testing.T) {
+	ctx := igop.NewContext(0)
+	RegisterPackagePatch(ctx, "github.com/qiniu/x/gsh", `package gsh
+import "github.com/qiniu/x/gsh"
+
+func Gopt_App_Gopx_GetWidget[T any](app any, name string) {
+	var _ gsh.App
+	println(app, name)
+}
+`)
+	expected := `package main
+
+import (
+	"github.com/qiniu/x/gsh"
+	gsh1 "github.com/qiniu/x/gsh@patch"
+)
+
+type App struct {
+	gsh.App
+}
+//line main.gsh:2
+func (this *App) MainEntry() {
+//line main.gsh:2:1
+	gsh1.Gopt_App_Gopx_GetWidget[int](this, "info")
+}
+func (this *App) Main() {
+	gsh.Gopt_App_Main(this)
+}
+func main() {
+	new(App).Main()
+}
+`
+	data, err := BuildFile(ctx, "main.gsh", `
+getWidget(int,"info")
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != expected {
+		t.Fatal("build error", string(data))
+	}
+}

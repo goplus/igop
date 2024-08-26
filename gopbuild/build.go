@@ -156,6 +156,7 @@ type Context struct {
 	FileSet  *token.FileSet
 	Importer *igop.Importer
 	Loader   igop.Loader
+	pkgs     map[string]*types.Package
 }
 
 func ClassKind(fname string) (isProj, ok bool) {
@@ -186,7 +187,12 @@ func NewContext(ctx *igop.Context) *Context {
 		ctx = igop.NewContext(0)
 	}
 	ctx.Mode |= igop.CheckGopOverloadFunc
-	return &Context{Context: ctx, Importer: igop.NewImporter(ctx), FileSet: token.NewFileSet(), Loader: igop.NewTypesLoader(ctx, 0)}
+	return &Context{Context: ctx, Importer: igop.NewImporter(ctx), FileSet: token.NewFileSet(),
+		Loader: igop.NewTypesLoader(ctx, 0), pkgs: make(map[string]*types.Package)}
+}
+
+func RegisterPackagePatch(ctx *igop.Context, path string, src string) error {
+	return ctx.AddImportFile(path+"@patch", "src.go", src)
 }
 
 func isGopPackage(path string) bool {
@@ -198,11 +204,28 @@ func isGopPackage(path string) bool {
 	return false
 }
 
-func (c *Context) Import(path string) (*types.Package, error) {
+func (c *Context) importPath(path string) (*types.Package, error) {
 	if isGopPackage(path) {
 		return c.Loader.Import(path)
 	}
 	return c.Importer.Import(path)
+}
+
+func (c *Context) Import(path string) (*types.Package, error) {
+	if pkg, ok := c.pkgs[path]; ok {
+		return pkg, nil
+	}
+	pkg, err := c.importPath(path)
+	if err != nil {
+		return nil, err
+	}
+	if patch, err := c.Context.Loader.Import(path + "@patch"); err == nil {
+		for _, name := range patch.Scope().Names() {
+			pkg.Scope().Insert(patch.Scope().Lookup(name))
+		}
+	}
+	c.pkgs[path] = pkg
+	return pkg, nil
 }
 
 func (c *Context) ParseDir(dir string) (*Package, error) {
