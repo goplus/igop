@@ -79,7 +79,7 @@ type Context struct {
 	Lookup       func(root, path string) (dir string, found bool)         // lookup external import
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{}) // internal eval func for repl
 	debugFunc    func(*DebugInfo)                                         // debug func
-	pkgs         map[string]*sourcePackage                                // imports
+	pkgs         map[string]*SourcePackage                                // imports
 	override     map[string]reflect.Value                                 // override function
 	evalInit     map[string]bool                                          // eval init check
 	nestedMap    map[*types.Named]int                                     // nested named index
@@ -107,22 +107,26 @@ func (ctx *Context) lookupPath(path string) (dir string, found bool) {
 	return
 }
 
-type sourcePackage struct {
+type SourcePackage struct {
 	Context  *Context
 	Package  *types.Package
 	Info     *types.Info
+	Importer types.Importer
 	Files    []*ast.File
 	Links    []*load.LinkSym
 	Dir      string
 	Register bool // register package
 }
 
-func (sp *sourcePackage) Load() (err error) {
+func (sp *SourcePackage) Load() (err error) {
 	if sp.Info == nil {
 		sp.Info = newTypesInfo()
+		if sp.Importer == nil {
+			sp.Importer = NewImporter(sp.Context)
+		}
 		conf := &types.Config{
 			Sizes:    sp.Context.sizes,
-			Importer: NewImporter(sp.Context),
+			Importer: sp.Importer,
 		}
 		if sp.Context.evalMode {
 			conf.DisableUnusedImportCheck = true
@@ -161,7 +165,7 @@ func NewContext(mode Mode) *Context {
 		Mode:         mode,
 		BuilderMode:  0, //ssa.SanityCheckFunctions,
 		BuildContext: build.Default,
-		pkgs:         make(map[string]*sourcePackage),
+		pkgs:         make(map[string]*SourcePackage),
 		override:     make(map[string]reflect.Value),
 		nestedMap:    make(map[*types.Named]int),
 		callForPool:  64,
@@ -245,7 +249,7 @@ func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error)
 		return nil, err
 	}
 	bp.ImportPath = importPath
-	var sp *sourcePackage
+	var sp *SourcePackage
 	if test {
 		sp, err = ctx.loadTestPackage(bp, importPath, dir)
 	} else {
@@ -293,7 +297,11 @@ func (ctx *Context) AddImport(path string, dir string) (err error) {
 	return
 }
 
-func (ctx *Context) addImportFile(path string, filename string, src interface{}) (*sourcePackage, error) {
+func (ctx *Context) SourcePackage(path string) *SourcePackage {
+	return ctx.pkgs[path]
+}
+
+func (ctx *Context) addImportFile(path string, filename string, src interface{}) (*SourcePackage, error) {
 	tp, err := ctx.loadPackageFile(path, filename, src)
 	if err != nil {
 		return nil, err
@@ -302,7 +310,7 @@ func (ctx *Context) addImportFile(path string, filename string, src interface{})
 	return tp, nil
 }
 
-func (ctx *Context) addImport(path string, dir string) (*sourcePackage, error) {
+func (ctx *Context) addImport(path string, dir string) (*SourcePackage, error) {
 	bp, err := ctx.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
@@ -316,13 +324,13 @@ func (ctx *Context) addImport(path string, dir string) (*sourcePackage, error) {
 	return tp, nil
 }
 
-func (ctx *Context) loadPackageFile(path string, filename string, src interface{}) (*sourcePackage, error) {
+func (ctx *Context) loadPackageFile(path string, filename string, src interface{}) (*SourcePackage, error) {
 	file, err := ctx.ParseFile(filename, src)
 	if err != nil {
 		return nil, err
 	}
 	pkg := types.NewPackage(path, file.Name.Name)
-	tp := &sourcePackage{
+	tp := &SourcePackage{
 		Context: ctx,
 		Package: pkg,
 		Files:   []*ast.File{file},
@@ -331,7 +339,7 @@ func (ctx *Context) loadPackageFile(path string, filename string, src interface{
 	return tp, nil
 }
 
-func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*sourcePackage, error) {
+func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*SourcePackage, error) {
 	files, err := ctx.parseGoFiles(dir, append(bp.GoFiles, bp.CgoFiles...))
 	if err != nil {
 		return nil, err
@@ -346,7 +354,7 @@ func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*so
 	if bp.Name == "main" {
 		path = "main"
 	}
-	tp := &sourcePackage{
+	tp := &SourcePackage{
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
 		Dir:     dir,
@@ -356,7 +364,7 @@ func (ctx *Context) loadPackage(bp *build.Package, path string, dir string) (*so
 	return tp, nil
 }
 
-func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) (*sourcePackage, error) {
+func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) (*SourcePackage, error) {
 	if len(bp.TestGoFiles) == 0 && len(bp.XTestGoFiles) == 0 {
 		return nil, ErrNoTestFiles
 	}
@@ -371,7 +379,7 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if embed != nil {
 		files = append(files, embed)
 	}
-	tp := &sourcePackage{
+	tp := &SourcePackage{
 		Package: types.NewPackage(path, bp.Name),
 		Files:   files,
 		Dir:     dir,
@@ -390,7 +398,7 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 		if embed != nil {
 			files = append(files, embed)
 		}
-		tp := &sourcePackage{
+		tp := &SourcePackage{
 			Package: types.NewPackage(path+"_test", bp.Name+"_test"),
 			Files:   files,
 			Dir:     dir,
@@ -406,7 +414,7 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if err != nil {
 		return nil, err
 	}
-	return &sourcePackage{
+	return &SourcePackage{
 		Package: types.NewPackage(path+".test", "main"),
 		Files:   []*ast.File{f},
 		Dir:     dir,
@@ -485,7 +493,7 @@ func (ctx *Context) LoadAstFile(path string, file *ast.File) (*ssa.Package, erro
 	if embed != nil {
 		files = append(files, embed)
 	}
-	sp := &sourcePackage{
+	sp := &SourcePackage{
 		Context: ctx,
 		Package: types.NewPackage(path, file.Name.Name),
 		Files:   files,
@@ -507,7 +515,7 @@ func (ctx *Context) LoadAstPackage(path string, apkg *ast.Package) (*ssa.Package
 			files = append([]*ast.File{f}, files...)
 		}
 	}
-	sp := &sourcePackage{
+	sp := &SourcePackage{
 		Context: ctx,
 		Package: types.NewPackage(path, apkg.Name),
 		Files:   files,
@@ -668,7 +676,7 @@ func (ctx *Context) RunTest(dir string, args []string) error {
 	return ctx.TestPkg(pkg, dir, args)
 }
 
-func (ctx *Context) buildPackage(sp *sourcePackage) (pkg *ssa.Package, err error) {
+func (ctx *Context) buildPackage(sp *SourcePackage) (pkg *ssa.Package, err error) {
 	if ctx.Mode&DisableRecover == 0 {
 		defer func() {
 			if e := recover(); e != nil {
