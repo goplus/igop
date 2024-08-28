@@ -156,6 +156,7 @@ type Context struct {
 	FileSet  *token.FileSet
 	Importer *igop.Importer
 	Loader   igop.Loader
+	pkgs     map[string]*types.Package
 }
 
 func ClassKind(fname string) (isProj, ok bool) {
@@ -186,7 +187,17 @@ func NewContext(ctx *igop.Context) *Context {
 		ctx = igop.NewContext(0)
 	}
 	ctx.Mode |= igop.CheckGopOverloadFunc
-	return &Context{Context: ctx, Importer: igop.NewImporter(ctx), FileSet: token.NewFileSet(), Loader: igop.NewTypesLoader(ctx, 0)}
+	c := &Context{Context: ctx, Importer: igop.NewImporter(ctx), FileSet: token.NewFileSet(),
+		Loader: igop.NewTypesLoader(ctx, 0), pkgs: make(map[string]*types.Package)}
+	return c
+}
+
+func RegisterPackagePatch(ctx *igop.Context, path string, src interface{}) error {
+	err := ctx.AddImportFile(path+"@patch", "src.go", src)
+	if err != nil {
+		return err
+	}
+	return ctx.AddImportFile(path+"@patch.gop", "src.go", src)
 }
 
 func isGopPackage(path string) bool {
@@ -198,11 +209,57 @@ func isGopPackage(path string) bool {
 	return false
 }
 
-func (c *Context) Import(path string) (*types.Package, error) {
+func (c *Context) importPath(path string) (gop bool, pkg *types.Package, err error) {
 	if isGopPackage(path) {
-		return c.Loader.Import(path)
+		gop = true
+		pkg, err = c.Loader.Import(path)
+	} else {
+		pkg, err = c.Importer.Import(path)
 	}
-	return c.Importer.Import(path)
+	return
+}
+
+func (c *Context) Import(path string) (*types.Package, error) {
+	if pkg, ok := c.pkgs[path]; ok {
+		return pkg, nil
+	}
+	gop, pkg, err := c.importPath(path)
+	if err != nil {
+		return pkg, err
+	}
+	c.pkgs[path] = pkg
+	if gop {
+		if sp := c.Context.SourcePackage(path + "@patch.gop"); sp != nil {
+			sp.Importer = c
+			err := sp.Load()
+			if err != nil {
+				return nil, err
+			}
+			patch := types.NewPackage(path+"@patch", pkg.Name())
+			for _, name := range sp.Package.Scope().Names() {
+				obj := sp.Package.Scope().Lookup(name)
+				switch obj.(type) {
+				case *types.Func:
+					obj = types.NewFunc(obj.Pos(), patch, obj.Name(), obj.Type().(*types.Signature))
+				case *types.TypeName:
+					named := obj.Type().(*types.Named)
+					var methods []*types.Func
+					if n := named.NumMethods(); n > 0 {
+						methods = make([]*types.Func, n)
+						for i := 0; i < n; i++ {
+							methods[i] = named.Method(i)
+						}
+					}
+					obj = types.NewTypeName(obj.Pos(), patch, obj.Name(), nil)
+					types.NewNamed(obj.(*types.TypeName), named.Underlying(), methods)
+				default:
+					continue
+				}
+				pkg.Scope().Insert(obj)
+			}
+		}
+	}
+	return pkg, nil
 }
 
 func (c *Context) ParseDir(dir string) (*Package, error) {

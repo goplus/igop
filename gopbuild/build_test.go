@@ -427,3 +427,77 @@ func main() {
 }
 `)
 }
+
+func TestPackagePatch(t *testing.T) {
+	ctx := igop.NewContext(0)
+	RegisterPackagePatch(ctx, "github.com/qiniu/x/gsh", `package gsh
+import "github.com/qiniu/x/gsh"
+
+type Point struct {
+	X int
+	Y int
+}
+
+func (p *Point) Info() {
+	println(p.X, p.Y)
+}
+
+type Info interface {
+	Info()
+}
+
+func Dump(i Info) {
+	i.Info()
+}
+
+func Gopt_App_Gopx_GetWidget[T any](app any, name string) {
+	var _ gsh.App
+	println(app, name)
+}
+`)
+	src := `
+getWidget(int,"info")
+pt := &Point{100,200}
+pt.Info()
+println(pt.X)
+dump(pt)
+`
+	expected := `package main
+
+import (
+	"fmt"
+	"github.com/qiniu/x/gsh"
+	gsh1 "github.com/qiniu/x/gsh@patch"
+)
+
+type App struct {
+	gsh.App
+}
+//line main.gsh:2
+func (this *App) MainEntry() {
+//line main.gsh:2:1
+	gsh1.Gopt_App_Gopx_GetWidget[int](this, "info")
+//line main.gsh:3:1
+	pt := &gsh1.Point{100, 200}
+//line main.gsh:4:1
+	pt.Info()
+//line main.gsh:5:1
+	fmt.Println(pt.X)
+//line main.gsh:6:1
+	gsh1.Dump(pt)
+}
+func (this *App) Main() {
+	gsh.Gopt_App_Main(this)
+}
+func main() {
+	new(App).Main()
+}
+`
+	data, err := BuildFile(ctx, "main.gsh", src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != expected {
+		t.Fatal("build error:\n", string(data))
+	}
+}
