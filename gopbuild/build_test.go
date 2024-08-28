@@ -30,7 +30,10 @@ func gopClTest(t *testing.T, gopcode, expected string) {
 }
 
 func gopClTestEx(t *testing.T, filename string, gopcode, expected string) {
-	ctx := igop.NewContext(0)
+	gopClTestWith(t, igop.NewContext(0), filename, gopcode, expected)
+}
+
+func gopClTestWith(t *testing.T, ctx *igop.Context, filename string, gopcode, expected string) {
 	data, err := BuildFile(ctx, filename, gopcode)
 	if err != nil {
 		t.Fatalf("build gop error: %v", err)
@@ -428,9 +431,8 @@ func main() {
 `)
 }
 
-func TestPackagePatch(t *testing.T) {
-	ctx := igop.NewContext(0)
-	RegisterPackagePatch(ctx, "github.com/qiniu/x/gsh", `package gsh
+var patch_data = `package gsh
+
 import "github.com/qiniu/x/gsh"
 
 type Point struct {
@@ -454,15 +456,21 @@ func Gopt_App_Gopx_GetWidget[T any](app any, name string) {
 	var _ gsh.App
 	println(app, name)
 }
-`)
-	src := `
+`
+
+func TestPackagePatch(t *testing.T) {
+	ctx := igop.NewContext(0)
+	err := RegisterPackagePatch(ctx, "github.com/qiniu/x/gsh", patch_data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gopClTestWith(t, ctx, "main.gsh", `
 getWidget(int,"info")
 pt := &Point{100,200}
 pt.Info()
 println(pt.X)
 dump(pt)
-`
-	expected := `package main
+`, `package main
 
 import (
 	"fmt"
@@ -492,12 +500,34 @@ func (this *App) Main() {
 func main() {
 	new(App).Main()
 }
-`
-	data, err := BuildFile(ctx, "main.gsh", src)
+`)
+}
+
+func TestPackagePatchNoUse(t *testing.T) {
+	ctx := igop.NewContext(0)
+	err := RegisterPackagePatch(ctx, "github.com/qiniu/x/gsh", patch_data)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(data) != expected {
-		t.Fatal("build error:\n", string(data))
-	}
+	gopClTestWith(t, ctx, "main.gsh", `
+ls "${HOME}"
+`, `package main
+
+import "github.com/qiniu/x/gsh"
+
+type App struct {
+	gsh.App
+}
+//line main.gsh:2
+func (this *App) MainEntry() {
+//line main.gsh:2:1
+	this.Gop_Exec("ls", this.Gop_Env("HOME"))
+}
+func (this *App) Main() {
+	gsh.Gopt_App_Main(this)
+}
+func main() {
+	new(App).Main()
+}
+`)
 }

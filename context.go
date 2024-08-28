@@ -730,6 +730,10 @@ func (ctx *Context) buildPackage(sp *SourcePackage) (pkg *ssa.Package, err error
 	}
 	var addin []*types.Package
 	for _, pkg := range ctx.Loader.Packages() {
+		path := pkg.Path()
+		if _, ok := ctx.pkgs[path]; ok && strings.HasSuffix(path, "@patch") {
+			continue
+		}
 		if !pkg.Complete() {
 			addin = append(addin, pkg)
 		}
