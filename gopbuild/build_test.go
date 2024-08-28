@@ -501,3 +501,26 @@ func main() {
 		t.Fatal("build error:\n", string(data))
 	}
 }
+
+func TestPackagePatchRun(t *testing.T) {
+	ctx := igop.NewContext(0)
+	RegisterPackagePatch(ctx, "github.com/qiniu/x/gsh", `package gsh
+type Point struct {
+	X int
+	Y int
+}`)
+	src := `
+println 1
+`
+	data, err := BuildFile(ctx, "main.gsh", src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	code, err := ctx.RunFile("main.go", data, nil)
+	if err != nil {
+		t.Fatal("RunFile error:", err)
+	}
+	if code != 0 {
+		t.Fatal("run error:", code)
+	}
+}
