@@ -96,6 +96,7 @@ func init() {
 			gorootTestSkips["fixedbugs/issue38093.go"] = "skip js"
 			gorootTestSkips["fixedbugs/issue64565.go"] = "skip command"
 			gorootTestSkips["fixedbugs/issue9355.go"] = "skip command"
+			gorootTestSkips["fixedbugs/issue69110.go"] = "skip runtime link"
 			gorootTestSkips["linkmain_run.go"] = "skip link"
 			gorootTestSkips["linkobj.go"] = "skip link"
 			gorootTestSkips["linkx_run.go"] = "skip link"
