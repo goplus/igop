@@ -911,6 +911,12 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		}
 	case *ssa.Panic:
 		ix := pfn.regIndex(instr.X)
+		if interp.ctx.panicFunc != nil {
+			return func(fr *frame) {
+				var err error = PanicError{stack: debugStack(fr), Value: fr.reg(ix)}
+				panic(interp.ctx.handlePanic(fr, instr, err))
+			}
+		}
 		return func(fr *frame) {
 			panic(PanicError{stack: debugStack(fr), Value: fr.reg(ix)})
 		}
@@ -1070,7 +1076,7 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	case *ssa.Builtin:
 		fname := fn.Name()
 		return func(fr *frame) {
-			interp.callBuiltinByStack(fr, fname, call.Args, ir, ia)
+			interp.callBuiltinByStack(fr, fname, fn, call.Args, ir, ia)
 		}
 	case *ssa.MakeClosure:
 		ifn := interp.loadFunction(fn.Fn.(*ssa.Function))

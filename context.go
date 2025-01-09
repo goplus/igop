@@ -79,6 +79,7 @@ type Context struct {
 	Lookup       func(root, path string) (dir string, found bool)         // lookup external import
 	evalCallFn   func(interp *Interp, call *ssa.Call, res ...interface{}) // internal eval func for repl
 	debugFunc    func(*DebugInfo)                                         // debug func
+	panicFunc    func(*PanicInfo)                                         // panic func
 	pkgs         map[string]*SourcePackage                                // imports
 	override     map[string]reflect.Value                                 // override function
 	evalInit     map[string]bool                                          // eval init check
@@ -210,6 +211,25 @@ func (ctx *Context) SetLeastCallForEnablePool(count int) {
 func (ctx *Context) SetDebug(fn func(*DebugInfo)) {
 	ctx.BuilderMode |= ssa.GlobalDebug
 	ctx.debugFunc = fn
+}
+
+func (ctx *Context) SetPanic(fn func(*PanicInfo)) {
+	ctx.panicFunc = fn
+}
+
+type funcInstr interface {
+	Parent() *ssa.Function
+	Pos() token.Pos
+	String() string
+}
+
+func (ctx *Context) handlePanic(fr *frame, fn funcInstr, err error) error {
+	info := &PanicInfo{funcInstr: fn, fset: ctx.FileSet, Error: err}
+	ctx.panicFunc(info)
+	if info.Error != nil {
+		return info.Error
+	}
+	return err
 }
 
 // RegisterExternal register external value must variable address or func.

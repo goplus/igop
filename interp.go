@@ -594,6 +594,16 @@ func (i *DebugInfo) AsFunc() (*types.Func, bool) {
 	return v, ok
 }
 
+type PanicInfo struct {
+	funcInstr
+	fset  *token.FileSet
+	Error error // PanicError
+}
+
+func (i *PanicInfo) Position() token.Position {
+	return i.fset.Position(i.Pos())
+}
+
 // prepareCall determines the function value and argument values for a
 // function call in a Call, Go or Defer instruction, performing
 // interface method lookup if needed.

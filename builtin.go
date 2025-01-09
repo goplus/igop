@@ -127,7 +127,11 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 	case "panic":
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
-		panic(PanicError{stack: debugStack(caller), Value: args[0]})
+		var err error = PanicError{stack: debugStack(caller), Value: args[0]}
+		if inter.ctx.panicFunc != nil {
+			err = inter.ctx.handlePanic(caller, fn, err)
+		}
+		panic(err)
 
 	case "recover":
 		return doRecover(caller)
@@ -284,7 +288,11 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 	case "panic":
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
-		panic(PanicError{stack: debugStack(caller), Value: args[0]})
+		var err error = PanicError{stack: debugStack(caller), Value: args[0]}
+		if inter.ctx.panicFunc != nil {
+			err = inter.ctx.handlePanic(caller, fn, err)
+		}
+		panic(err)
 
 	case "recover":
 		doRecover(caller)
@@ -328,8 +336,8 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
-func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa.Value, ir register, ia []register) {
-	switch fn {
+func (interp *Interp) callBuiltinByStack(caller *frame, fname string, fn *ssa.Builtin, ssaArgs []ssa.Value, ir register, ia []register) {
+	switch fname {
 	case "append":
 		if len(ia) == 1 {
 			caller.copyReg(ir, ia[0])
@@ -365,7 +373,7 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		reflect.ValueOf(arg0).SetMapIndex(reflect.ValueOf(arg1), reflect.Value{})
 
 	case "print", "println": // print(any, ...)
-		ln := fn == "println"
+		ln := fname == "println"
 		var buf bytes.Buffer
 		for i := 0; i < len(ia); i++ {
 			arg := caller.reg(ia[i])
@@ -436,7 +444,11 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
 		arg0 := caller.reg(ia[0])
-		panic(PanicError{stack: debugStack(caller), Value: arg0})
+		var err error = PanicError{stack: debugStack(caller), Value: arg0}
+		if interp.ctx.panicFunc != nil {
+			err = interp.ctx.handlePanic(caller, fn, err)
+		}
+		panic(err)
 
 	case "recover":
 		caller.setReg(ir, doRecover(caller))
@@ -608,7 +620,7 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fn string, ssaArgs []ssa
 		}
 		caller.setReg(ir, v.Interface())
 	default:
-		panic("unknown built-in: " + fn)
+		panic("unknown built-in: " + fname)
 	}
 }
 
