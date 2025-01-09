@@ -1074,10 +1074,7 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	iv, ia, ib := getCallIndex(pfn, call)
 	switch fn := call.Value.(type) {
 	case *ssa.Builtin:
-		fname := fn.Name()
-		return func(fr *frame) {
-			interp.callBuiltinByStack(fr, fname, fn, call.Args, ir, ia)
-		}
+		return interp.makeBuiltinByStack(fn, call.Args, ir, ia)
 	case *ssa.MakeClosure:
 		ifn := interp.loadFunction(fn.Fn.(*ssa.Function))
 		ia = append(ia, ib...)

@@ -334,169 +334,202 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 	}
 }
 
-// callBuiltin interprets a call to builtin fn with arguments args,
+// makeBuiltinByStack interprets a call to builtin fn with arguments args,
 // returning its result.
-func (interp *Interp) callBuiltinByStack(caller *frame, fname string, fn *ssa.Builtin, ssaArgs []ssa.Value, ir register, ia []register) {
-	switch fname {
+func (interp *Interp) makeBuiltinByStack(fn *ssa.Builtin, ssaArgs []ssa.Value, ir register, ia []register) func(fr *frame) {
+	switch fn.Name() {
 	case "append":
 		if len(ia) == 1 {
-			caller.copyReg(ir, ia[0])
-			return
+			return func(fr *frame) {
+				fr.copyReg(ir, ia[0])
+			}
 		}
-		arg0 := caller.reg(ia[0])
-		arg1 := caller.reg(ia[1])
-		v0 := reflect.ValueOf(arg0)
-		v1 := reflect.ValueOf(arg1)
-		// append([]byte, ...string) []byte
-		if v1.Kind() == reflect.String {
-			v1 = reflect.ValueOf([]byte(v1.String()))
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			arg1 := fr.reg(ia[1])
+			v0 := reflect.ValueOf(arg0)
+			v1 := reflect.ValueOf(arg1)
+			// append([]byte, ...string) []byte
+			if v1.Kind() == reflect.String {
+				v1 = reflect.ValueOf([]byte(v1.String()))
+			}
+			i0 := v0.Len()
+			i1 := v1.Len()
+			if i0+i1 < i0 {
+				panic(runtimeError(errAppendOutOfRange))
+			}
+			fr.setReg(ir, reflect.AppendSlice(v0, v1).Interface())
 		}
-		i0 := v0.Len()
-		i1 := v1.Len()
-		if i0+i1 < i0 {
-			panic(runtimeError(errAppendOutOfRange))
-		}
-		caller.setReg(ir, reflect.AppendSlice(v0, v1).Interface())
-
 	case "copy": // copy([]T, []T) int or copy([]byte, string) int
-		arg0 := caller.reg(ia[0])
-		arg1 := caller.reg(ia[1])
-		caller.setReg(ir, reflect.Copy(reflect.ValueOf(arg0), reflect.ValueOf(arg1)))
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			arg1 := fr.reg(ia[1])
+			fr.setReg(ir, reflect.Copy(reflect.ValueOf(arg0), reflect.ValueOf(arg1)))
+		}
 
 	case "close": // close(chan T)
-		arg0 := caller.reg(ia[0])
-		reflect.ValueOf(arg0).Close()
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			reflect.ValueOf(arg0).Close()
+		}
 
 	case "delete": // delete(map[K]value, K)
-		arg0 := caller.reg(ia[0])
-		arg1 := caller.reg(ia[1])
-		reflect.ValueOf(arg0).SetMapIndex(reflect.ValueOf(arg1), reflect.Value{})
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			arg1 := fr.reg(ia[1])
+			reflect.ValueOf(arg0).SetMapIndex(reflect.ValueOf(arg1), reflect.Value{})
+		}
 
 	case "print", "println": // print(any, ...)
-		ln := fname == "println"
-		var buf bytes.Buffer
-		for i := 0; i < len(ia); i++ {
-			arg := caller.reg(ia[i])
-			if i > 0 && ln {
-				buf.WriteRune(' ')
-			}
-			if len(ssaArgs) > i {
-				typ := interp.toType(ssaArgs[i].Type())
-				if typ.Kind() == reflect.Interface {
-					writeinterface(&buf, arg)
-					continue
+		ln := fn.Name() == "println"
+		return func(fr *frame) {
+			var buf bytes.Buffer
+			for i := 0; i < len(ia); i++ {
+				arg := fr.reg(ia[i])
+				if i > 0 && ln {
+					buf.WriteRune(' ')
 				}
+				if len(ssaArgs) > i {
+					typ := interp.toType(ssaArgs[i].Type())
+					if typ.Kind() == reflect.Interface {
+						writeinterface(&buf, arg)
+						continue
+					}
+				}
+				writevalue(&buf, arg, interp.ctx.Mode&EnablePrintAny != 0)
 			}
-			writevalue(&buf, arg, interp.ctx.Mode&EnablePrintAny != 0)
+			if ln {
+				buf.WriteRune('\n')
+			}
+			interp.ctx.writeOutput(buf.Bytes())
 		}
-		if ln {
-			buf.WriteRune('\n')
-		}
-		interp.ctx.writeOutput(buf.Bytes())
 
 	case "len":
-		arg0 := caller.reg(ia[0])
-		caller.setReg(ir, reflect.ValueOf(arg0).Len())
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			fr.setReg(ir, reflect.ValueOf(arg0).Len())
+		}
 
 	case "cap":
-		arg0 := caller.reg(ia[0])
-		caller.setReg(ir, reflect.ValueOf(arg0).Cap())
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			fr.setReg(ir, reflect.ValueOf(arg0).Cap())
+		}
 
 	case "real":
-		arg0 := caller.reg(ia[0])
-		c := reflect.ValueOf(arg0)
-		switch c.Kind() {
-		case reflect.Complex64:
-			caller.setReg(ir, real(complex64(c.Complex())))
-		case reflect.Complex128:
-			caller.setReg(ir, real(c.Complex()))
-		default:
-			panic(fmt.Sprintf("real: illegal operand: %T", c))
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			c := reflect.ValueOf(arg0)
+			switch c.Kind() {
+			case reflect.Complex64:
+				fr.setReg(ir, real(complex64(c.Complex())))
+			case reflect.Complex128:
+				fr.setReg(ir, real(c.Complex()))
+			default:
+				panic(fmt.Sprintf("real: illegal operand: %T", c))
+			}
 		}
 
 	case "imag":
-		arg0 := caller.reg(ia[0])
-		c := reflect.ValueOf(arg0)
-		switch c.Kind() {
-		case reflect.Complex64:
-			caller.setReg(ir, imag(complex64(c.Complex())))
-		case reflect.Complex128:
-			caller.setReg(ir, imag(c.Complex()))
-		default:
-			panic(fmt.Sprintf("imag: illegal operand: %T", c))
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			c := reflect.ValueOf(arg0)
+			switch c.Kind() {
+			case reflect.Complex64:
+				fr.setReg(ir, imag(complex64(c.Complex())))
+			case reflect.Complex128:
+				fr.setReg(ir, imag(c.Complex()))
+			default:
+				panic(fmt.Sprintf("imag: illegal operand: %T", c))
+			}
 		}
 
 	case "complex":
-		arg0 := caller.reg(ia[0])
-		arg1 := caller.reg(ia[1])
-		r := reflect.ValueOf(arg0)
-		i := reflect.ValueOf(arg1)
-		switch r.Kind() {
-		case reflect.Float32:
-			caller.setReg(ir, complex(float32(r.Float()), float32(i.Float())))
-		case reflect.Float64:
-			caller.setReg(ir, complex(r.Float(), i.Float()))
-		default:
-			panic(fmt.Sprintf("complex: illegal operand: %v", r.Kind()))
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			arg1 := fr.reg(ia[1])
+			r := reflect.ValueOf(arg0)
+			i := reflect.ValueOf(arg1)
+			switch r.Kind() {
+			case reflect.Float32:
+				fr.setReg(ir, complex(float32(r.Float()), float32(i.Float())))
+			case reflect.Float64:
+				fr.setReg(ir, complex(r.Float(), i.Float()))
+			default:
+				panic(fmt.Sprintf("complex: illegal operand: %v", r.Kind()))
+			}
 		}
 
 	case "panic":
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
-		arg0 := caller.reg(ia[0])
-		var err error = PanicError{stack: debugStack(caller), Value: arg0}
 		if interp.ctx.panicFunc != nil {
-			err = interp.ctx.handlePanic(caller, fn, err)
+			return func(fr *frame) {
+				arg0 := fr.reg(ia[0])
+				var err error = PanicError{stack: debugStack(fr), Value: arg0}
+				panic(interp.ctx.handlePanic(fr, fn, err))
+			}
 		}
-		panic(err)
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			panic(PanicError{stack: debugStack(fr), Value: arg0})
+		}
 
 	case "recover":
-		caller.setReg(ir, doRecover(caller))
+		return func(fr *frame) {
+			fr.setReg(ir, doRecover(fr))
+		}
 
 	case "ssa:wrapnilchk":
-		recv := caller.reg(ia[0])
-		if reflect.ValueOf(recv).IsNil() {
-			recvType := caller.reg(ia[1])
-			methodName := caller.reg(ia[2])
-			var info value
-			if s, ok := recvType.(string); ok && strings.HasPrefix(s, "main.") {
-				info = s[5:]
-			} else {
-				info = recvType
+		return func(fr *frame) {
+			recv := fr.reg(ia[0])
+			if reflect.ValueOf(recv).IsNil() {
+				recvType := fr.reg(ia[1])
+				methodName := fr.reg(ia[2])
+				var info value
+				if s, ok := recvType.(string); ok && strings.HasPrefix(s, "main.") {
+					info = s[5:]
+				} else {
+					info = recvType
+				}
+				panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
+					recvType, methodName, info)))
 			}
-			panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
-				recvType, methodName, info)))
+			fr.setReg(ir, recv)
 		}
-		caller.setReg(ir, recv)
 
 	case "Add":
-		arg0 := caller.reg(ia[0])
-		arg1 := caller.reg(ia[1])
-		ptr := arg0.(unsafe.Pointer)
-		length := asInt(arg1)
-		caller.setReg(ir, unsafe.Pointer(uintptr(ptr)+uintptr(length)))
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			arg1 := fr.reg(ia[1])
+			ptr := arg0.(unsafe.Pointer)
+			length := asInt(arg1)
+			fr.setReg(ir, unsafe.Pointer(uintptr(ptr)+uintptr(length)))
+		}
 	case "Slice":
 		//func Slice(ptr *ArbitraryType, len IntegerType) []ArbitraryType
 		//(*[len]ArbitraryType)(unsafe.Pointer(ptr))[:]
-		arg0 := caller.reg(ia[0])
-		arg1 := caller.reg(ia[1])
-		ptr := reflect.ValueOf(arg0)
-		etyp := ptr.Type().Elem()
-		length := asInt(arg1)
-		if ptr.IsNil() {
-			if length == 0 {
-				caller.setReg(ir, reflect.New(reflect.SliceOf(etyp)).Elem().Interface())
-				return
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			arg1 := fr.reg(ia[1])
+			ptr := reflect.ValueOf(arg0)
+			etyp := ptr.Type().Elem()
+			length := asInt(arg1)
+			if ptr.IsNil() {
+				if length == 0 {
+					fr.setReg(ir, reflect.New(reflect.SliceOf(etyp)).Elem().Interface())
+					return
+				}
+				panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
 			}
-			panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
+			mem, overflow := mulUintptr(etyp.Size(), uintptr(length))
+			if overflow || mem > -uintptr(ptr.Pointer()) {
+				panic(runtimeError("unsafe.Slice: len out of range"))
+			}
+			typ := reflect.ArrayOf(length, etyp)
+			v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
+			fr.setReg(ir, v.Elem().Slice(0, length).Interface())
 		}
-		mem, overflow := mulUintptr(etyp.Size(), uintptr(length))
-		if overflow || mem > -uintptr(ptr.Pointer()) {
-			panic(runtimeError("unsafe.Slice: len out of range"))
-		}
-		typ := reflect.ArrayOf(length, etyp)
-		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
-		caller.setReg(ir, v.Elem().Slice(0, length).Interface())
 	case "SliceData":
 		// SliceData returns a pointer to the underlying array of the argument
 		// slice.
@@ -505,14 +538,16 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fname string, fn *ssa.Bu
 		//   - Otherwise, SliceData returns a non-nil pointer to an
 		//     unspecified memory address.
 		// func SliceData(slice []ArbitraryType) *ArbitraryType
-		arg0 := caller.reg(ia[0])
-		v := reflect.ValueOf(arg0)
-		if v.Cap() > 0 {
-			caller.setReg(ir, v.Slice(0, 1).Index(0).Addr().Interface())
-		} else if v.IsNil() {
-			caller.setReg(ir, reflect.Zero(reflect.PtrTo(v.Type().Elem())).Interface())
-		} else {
-			caller.setReg(ir, reflect.New(v.Type().Elem()).Interface())
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			v := reflect.ValueOf(arg0)
+			if v.Cap() > 0 {
+				fr.setReg(ir, v.Slice(0, 1).Index(0).Addr().Interface())
+			} else if v.IsNil() {
+				fr.setReg(ir, reflect.Zero(reflect.PtrTo(v.Type().Elem())).Interface())
+			} else {
+				fr.setReg(ir, reflect.New(v.Type().Elem()).Interface())
+			}
 		}
 	case "String":
 		// String returns a string value whose underlying bytes
@@ -527,21 +562,23 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fname string, fn *ssa.Bu
 		// Since Go strings are immutable, the bytes passed to String
 		// must not be modified afterwards.
 		// func String(ptr *byte, len IntegerType) string
-		ptr := caller.reg(ia[0]).(*byte)
-		length := asInt(caller.reg(ia[1]))
-		if ptr == nil {
-			if length == 0 {
-				caller.setReg(ir, "")
-				return
+		return func(fr *frame) {
+			ptr := fr.reg(ia[0]).(*byte)
+			length := asInt(fr.reg(ia[1]))
+			if ptr == nil {
+				if length == 0 {
+					fr.setReg(ir, "")
+					return
+				}
+				panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
 			}
-			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
+			mem, overflow := mulUintptr(1, uintptr(length))
+			if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
+				panic(runtimeError("unsafe.String: len out of range"))
+			}
+			sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
+			fr.setReg(ir, *(*string)(unsafe.Pointer(&sh)))
 		}
-		mem, overflow := mulUintptr(1, uintptr(length))
-		if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
-			panic(runtimeError("unsafe.String: len out of range"))
-		}
-		sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
-		caller.setReg(ir, *(*string)(unsafe.Pointer(&sh)))
 	case "StringData":
 		// StringData returns a pointer to the underlying bytes of str.
 		// For an empty string the return value is unspecified, and may be nil.
@@ -549,78 +586,92 @@ func (interp *Interp) callBuiltinByStack(caller *frame, fname string, fn *ssa.Bu
 		// Since Go strings are immutable, the bytes returned by StringData
 		// must not be modified.
 		// func StringData(str string) *byte
-		s := caller.string(ia[0])
-		data := (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
-		caller.setReg(ir, (*byte)(unsafe.Pointer(data)))
+		return func(fr *frame) {
+			s := fr.string(ia[0])
+			data := (*reflect.StringHeader)(unsafe.Pointer(&s)).Data
+			fr.setReg(ir, (*byte)(unsafe.Pointer(data)))
+		}
 	case "Sizeof": // instance of generic function
-		typ := reflect.TypeOf(caller.reg(ia[0]))
-		caller.setReg(ir, uintptr(typ.Size()))
+		return func(fr *frame) {
+			typ := reflect.TypeOf(fr.reg(ia[0]))
+			fr.setReg(ir, uintptr(typ.Size()))
+		}
 	case "Alignof": // instance of generic function
-		typ := reflect.TypeOf(caller.reg(ia[0]))
-		caller.setReg(ir, uintptr(typ.Align()))
+		return func(fr *frame) {
+			typ := reflect.TypeOf(fr.reg(ia[0]))
+			fr.setReg(ir, uintptr(typ.Align()))
+		}
 	case "Offsetof": // instance of generic function
-		offset, err := builtinOffsetof(caller.pfn, caller.ipc-1)
-		if err != nil {
-			panic(err)
+		return func(fr *frame) {
+			offset, err := builtinOffsetof(fr.pfn, fr.ipc-1)
+			if err != nil {
+				panic(err)
+			}
+			fr.setReg(ir, uintptr(offset))
 		}
-		caller.setReg(ir, uintptr(offset))
 	case "clear":
-		arg0 := caller.reg(ia[0])
-		valueClear(reflect.ValueOf(arg0))
+		return func(fr *frame) {
+			arg0 := fr.reg(ia[0])
+			valueClear(reflect.ValueOf(arg0))
+		}
 	case "max":
-		v := reflect.ValueOf(caller.reg(ia[0]))
-		for _, i := range ia {
-			arg := reflect.ValueOf(caller.reg(i))
-			if i > 0 {
-				switch v.Kind() {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					if v.Int() < arg.Int() {
-						v = arg
-					}
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-					if v.Uint() < arg.Uint() {
-						v = arg
-					}
-				case reflect.Float32, reflect.Float64:
-					if v.Float() < arg.Float() {
-						v = arg
-					}
-				case reflect.String:
-					if v.String() < arg.String() {
-						v = arg
+		return func(fr *frame) {
+			v := reflect.ValueOf(fr.reg(ia[0]))
+			for _, i := range ia {
+				arg := reflect.ValueOf(fr.reg(i))
+				if i > 0 {
+					switch v.Kind() {
+					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+						if v.Int() < arg.Int() {
+							v = arg
+						}
+					case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+						if v.Uint() < arg.Uint() {
+							v = arg
+						}
+					case reflect.Float32, reflect.Float64:
+						if v.Float() < arg.Float() {
+							v = arg
+						}
+					case reflect.String:
+						if v.String() < arg.String() {
+							v = arg
+						}
 					}
 				}
 			}
+			fr.setReg(ir, v.Interface())
 		}
-		caller.setReg(ir, v.Interface())
 	case "min":
-		v := reflect.ValueOf(caller.reg(ia[0]))
-		for _, i := range ia {
-			arg := reflect.ValueOf(caller.reg(i))
-			if i > 0 {
-				switch v.Kind() {
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					if v.Int() > arg.Int() {
-						v = arg
-					}
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-					if v.Uint() > arg.Uint() {
-						v = arg
-					}
-				case reflect.Float32, reflect.Float64:
-					if v.Float() > arg.Float() {
-						v = arg
-					}
-				case reflect.String:
-					if v.String() > arg.String() {
-						v = arg
+		return func(fr *frame) {
+			v := reflect.ValueOf(fr.reg(ia[0]))
+			for _, i := range ia {
+				arg := reflect.ValueOf(fr.reg(i))
+				if i > 0 {
+					switch v.Kind() {
+					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+						if v.Int() > arg.Int() {
+							v = arg
+						}
+					case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+						if v.Uint() > arg.Uint() {
+							v = arg
+						}
+					case reflect.Float32, reflect.Float64:
+						if v.Float() > arg.Float() {
+							v = arg
+						}
+					case reflect.String:
+						if v.String() > arg.String() {
+							v = arg
+						}
 					}
 				}
 			}
+			fr.setReg(ir, v.Interface())
 		}
-		caller.setReg(ir, v.Interface())
 	default:
-		panic("unknown built-in: " + fname)
+		panic("unknown built-in: " + fn.Name())
 	}
 }
 
