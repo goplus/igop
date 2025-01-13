@@ -217,29 +217,31 @@ func (ctx *Context) SetPanic(fn func(*PanicInfo)) {
 	ctx.panicFunc = fn
 }
 
-type PanicInfo struct {
-	funcInstr
-	fset  *token.FileSet
-	fr    *frame
-	Error error // PanicError
-}
+type Frame = frame
 
-func (i *PanicInfo) Position() token.Position {
-	return i.fset.Position(i.Pos())
-}
-
-func (i *PanicInfo) CallerFrames() (frames []runtime.Frame) {
+func (fr *Frame) CallerFrames() (frames []runtime.Frame) {
 	rpc := make([]uintptr, 64)
-	n := runtimeCallers(i.fr, 1, rpc)
+	n := runtimeCallers(fr, 1, rpc)
 	fs := runtime.CallersFrames(rpc[:n])
 	for {
-		f, more := runtimeFramesNext(i.fr, fs)
+		f, more := runtimeFramesNext(fr, fs)
 		frames = append(frames, f)
 		if !more {
 			break
 		}
 	}
 	return
+}
+
+type PanicInfo struct {
+	funcInstr
+	*Frame
+	fset  *token.FileSet
+	Error error // PanicError
+}
+
+func (i *PanicInfo) Position() token.Position {
+	return i.fset.Position(i.Pos())
 }
 
 type funcInstr interface {
@@ -249,7 +251,7 @@ type funcInstr interface {
 }
 
 func (ctx *Context) handlePanic(fr *frame, fn funcInstr, err error) error {
-	info := &PanicInfo{funcInstr: fn, fset: ctx.FileSet, fr: fr, Error: err}
+	info := &PanicInfo{funcInstr: fn, Frame: fr, fset: ctx.FileSet, Error: err}
 	ctx.panicFunc(info)
 	if info.Error != nil {
 		return info.Error
