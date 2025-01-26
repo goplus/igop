@@ -531,3 +531,23 @@ func main() {
 }
 `)
 }
+
+func TestStringSlice(t *testing.T) {
+	gopClTest(t, `
+println "a".repeat(10)
+println "hello".toTitle
+`, `package main
+
+import (
+	"fmt"
+	"strings"
+)
+//line main.gop:2
+func main() {
+//line main.gop:2:1
+	fmt.Println(strings.Repeat("a", 10))
+//line main.gop:3:1
+	fmt.Println(strings.ToTitle("hello"))
+}
+`)
+}
