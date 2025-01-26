@@ -19,6 +19,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -2681,6 +2683,79 @@ func main() {
 `
 	ctx := igop.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// A FileInfo describes a file and is returned by Stat.
+type fileInfo struct {
+	name    string
+	size    int64
+	mode    fs.FileMode
+	modTime time.Time
+	isDir   bool
+}
+
+func (f fileInfo) Name() string {
+	return f.name
+}
+func (f fileInfo) Size() int64 {
+	return f.size
+}
+func (f fileInfo) Mode() fs.FileMode {
+	return f.mode
+}
+func (f fileInfo) ModTime() time.Time {
+	return f.modTime
+}
+func (f fileInfo) IsDir() bool {
+	return f.isDir
+}
+func (f fileInfo) Sys() interface{} {
+	return nil
+}
+
+func TestBuildContext(t *testing.T) {
+	ctx := igop.NewContext(0)
+	const pkgDir = "mypkg"
+	const mypkg = `package mypkg
+import "fmt"
+
+func Demo(n int) {
+	fmt.Println(n)
+}
+`
+	ctx.Lookup = func(root, path string) (dir string, found bool) {
+		if path == "mypkg" {
+			return pkgDir, true
+		}
+		return
+	}
+	ctx.BuildContext.IsDir = func(path string) bool {
+		if path == pkgDir {
+			return true
+		}
+		return false
+	}
+	ctx.BuildContext.ReadDir = func(dir string) ([]fs.FileInfo, error) {
+		if dir == pkgDir {
+			return []fs.FileInfo{&fileInfo{name: "mypkg.go", size: int64(len(mypkg)), mode: 0644}}, nil
+		}
+		return nil, nil
+	}
+	ctx.BuildContext.OpenFile = func(path string) (io.ReadCloser, error) {
+		var buf bytes.Buffer
+		buf.WriteString(mypkg)
+		return io.NopCloser(&buf), nil
+	}
+	_, err := ctx.RunFile("main.go", `package main
+import "mypkg"
+
+func main() {
+	mypkg.Demo(100)
+}
+`, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

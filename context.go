@@ -100,7 +100,7 @@ func (ctx *Context) lookupPath(path string) (dir string, found bool) {
 		dir, found = ctx.Lookup(ctx.root, path)
 	}
 	if !found {
-		bp, err := build.Import(path, ctx.root, build.FindOnly)
+		bp, err := ctx.BuildContext.Import(path, ctx.root, build.FindOnly)
 		if err == nil && bp.ImportPath == path {
 			return bp.Dir, true
 		}
@@ -469,6 +469,18 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	}, nil
 }
 
+func (ctx *Context) openFile(path string) (io.ReadCloser, error) {
+	if fn := ctx.BuildContext.OpenFile; fn != nil {
+		return fn(path)
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err // nil interface
+	}
+	return f, nil
+}
+
 func (ctx *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, error) {
 	files := make([]*ast.File, len(filenames))
 	errors := make([]error, len(filenames))
@@ -478,7 +490,13 @@ func (ctx *Context) parseGoFiles(dir string, filenames []string) ([]*ast.File, e
 	for i, filename := range filenames {
 		go func(i int, filepath string) {
 			defer wg.Done()
-			files[i], errors[i] = parser.ParseFile(ctx.FileSet, filepath, nil, parser.ParseComments)
+			r, err := ctx.openFile(filepath)
+			if err != nil {
+				errors[i] = err
+			} else {
+				files[i], errors[i] = parser.ParseFile(ctx.FileSet, filepath, r, parser.ParseComments)
+				r.Close()
+			}
 		}(i, filepath.Join(dir, filename))
 	}
 	wg.Wait()
