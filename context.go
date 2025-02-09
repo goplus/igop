@@ -135,7 +135,7 @@ func (sp *SourcePackage) Load() (err error) {
 		if sp.Context.Mode&EnableNoStrict != 0 {
 			conf.Error = func(e error) {
 				if te, ok := e.(types.Error); ok {
-					if strings.HasSuffix(te.Msg, errDeclaredNotUsed) || strings.HasSuffix(te.Msg, errImportedNotUsed) {
+					if hasTypesNotUsedError(te.Msg) {
 						println(fmt.Sprintf("igop warning: %v", e))
 						return
 					}
