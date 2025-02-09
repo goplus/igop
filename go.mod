@@ -1,8 +1,6 @@
 module github.com/goplus/igop
 
-go 1.21
-
-toolchain go1.23.6
+go 1.16
 
 require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00
@@ -19,11 +17,4 @@ require (
 	github.com/visualfc/xtype v0.2.0
 	golang.org/x/mod v0.20.0
 	golang.org/x/tools v0.19.0
-)
-
-require (
-	github.com/mattn/go-runewidth v0.0.3 // indirect
-	github.com/timandy/routine v1.1.4 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
 )
