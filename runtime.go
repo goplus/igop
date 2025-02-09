@@ -205,22 +205,6 @@ func runtimeFunc(pfn *function) *runtime.Func {
 	return (*runtime.Func)(unsafe.Pointer(f))
 }
 
-/*
-	type Frames struct {
-		// callers is a slice of PCs that have not yet been expanded to frames.
-		callers []uintptr
-
-		// frames is a slice of Frames that have yet to be returned.
-		frames     []Frame
-		frameStore [2]Frame
-	}
-*/
-type runtimeFrames struct {
-	callers    []uintptr
-	frames     []runtime.Frame
-	frameStore [2]runtime.Frame
-}
-
 func runtimeFramesNext(fr *frame, frames *runtime.Frames) (frame runtime.Frame, more bool) {
 	ci := (*runtimeFrames)(unsafe.Pointer(frames))
 	for len(ci.frames) < 2 {
