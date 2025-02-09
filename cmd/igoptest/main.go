@@ -61,7 +61,7 @@ func init() {
 
 	ver := runtime.Version()[:6]
 	switch ver {
-	case "go1.17", "go1.18", "go1.19", "go1.20", "go1.21", "go1.22":
+	case "go1.17", "go1.18", "go1.19", "go1.20", "go1.21", "go1.22", "go1.23":
 		// gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		// gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
@@ -81,15 +81,14 @@ func init() {
 		gorootTestSkips["fixedbugs/issue42076.go"] = "skip cgo"
 		gorootTestSkips["fixedbugs/issue46903.go"] = "skip cgo"
 		gorootTestSkips["fixedbugs/issue51733.go"] = "skip cgo"
+		//go1.21
+		gorootTestSkips["fixedbugs/issue19658.go"] = "skip command"
 		// gorootTestSkips["fixedbugs/issue57823.go"] = "GC"
 		if ver == "go1.18" {
 			gorootTestSkips["typeparam/cons.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
 			gorootTestSkips["typeparam/list2.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
 		}
-		if ver == "go1.21" || ver == "go1.22" {
-			gorootTestSkips["fixedbugs/issue19658.go"] = "skip command"
-		}
-		if ver == "go1.22" {
+		if ver == "go1.22" || ver == "go1.23" {
 			gorootTestSkips["fixedbugs/bug369.go"] = "skip command"
 			gorootTestSkips["fixedbugs/issue10607.go"] = "skip command"
 			gorootTestSkips["fixedbugs/issue21317.go"] = "skip command"
@@ -101,6 +100,11 @@ func init() {
 			gorootTestSkips["linkobj.go"] = "skip link"
 			gorootTestSkips["linkx_run.go"] = "skip link"
 			gorootTestSkips["chanlinear.go"] = "skip -gc-exp"
+		}
+		if ver == "go1.23" {
+			gorootTestSkips["fixedbugs/issue62203.go"] = "BUG, maps"
+			gorootTestSkips["fixedbugs/issue69434.go"] = "BUG, iter"
+			gorootTestSkips["fixedbugs/issue69507.go"] = "BUG, range-over-func"
 		}
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
@@ -118,7 +122,7 @@ func init() {
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5963.go"] = "skip windows"
-		if ver == "go1.22" {
+		if ver == "go1.22" || ver == "go1.23" {
 			gorootTestSkips["recover4.go"] = "skip windows"
 			gorootTestSkips["sigchld.go"] = "skip windows"
 		}
