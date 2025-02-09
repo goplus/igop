@@ -7,7 +7,7 @@ require (
 	github.com/goplus/gogen v1.16.6
 	github.com/goplus/gop v1.2.0-pre.1.0.20250205022253-3d37fda99e10
 	github.com/goplus/mod v0.13.16
-	github.com/goplus/reflectx v1.3.0
+	github.com/goplus/reflectx v1.3.1
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/peterh/liner v1.2.2
 	github.com/qiniu/x v1.13.11

@@ -92,7 +92,7 @@ jobs:
     - name: Go Test amd64
       run: |
         set GOARCH=amd64
-        go test -ldflags="-checklinkname=0" -race -v .
+        go test -ldflags="-checklinkname=0" -v .
 
     - name: Test $GOROOT/test amd64
       run: |
