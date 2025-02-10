@@ -5,12 +5,13 @@
 [![Go1.20](https://github.com/goplus/igop/workflows/Go1.20/badge.svg)](https://github.com/goplus/igop/actions/workflows/go120.yml)
 [![Go1.21](https://github.com/goplus/igop/workflows/Go1.21/badge.svg)](https://github.com/goplus/igop/actions/workflows/go121.yml)
 [![Go1.22](https://github.com/goplus/igop/workflows/Go1.22/badge.svg)](https://github.com/goplus/igop/actions/workflows/go122.yml)
+[![Go1.23](https://github.com/goplus/igop/workflows/Go1.23/badge.svg)](https://github.com/goplus/igop/actions/workflows/go123.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/goplus/igop.svg)](https://pkg.go.dev/github.com/goplus/igop)
 
 
 ### Go Version
 
-- Go1.18 ~ Go1.22
+- Go1.18 ~ Go1.23
 - macOS Linux Windows  WebAssembly GopherJS and more.
 
 ### ABI
@@ -26,10 +27,11 @@ support ABI0 and ABIInternal
     - Go1.20: amd64 arm64 ppc64/ppc64le riscv64
     - Go1.21: amd64 arm64 ppc64/ppc64le riscv64
     - Go1.22: amd64 arm64 ppc64/ppc64le riscv64
+    - Go1.23: amd64 arm64 ppc64/ppc64le riscv64
 
 ### Generics
 
-- support generics (Go1.18 ~ Go1.22)
+- support generics (Go1.18 ~ Go1.23)
 - support [Go1.20 nested type-parameterized declarations](https://github.com/golang/go/blob/master/test/typeparam/nested.go) on Go1.18/Go1.19 (Experimental)
 
 ### runtime.GC
