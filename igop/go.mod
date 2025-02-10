@@ -2,7 +2,7 @@ module github.com/goplus/igop/igop
 
 go 1.23
 
-require github.com/goplus/igop v0.29.0
+require github.com/goplus/igop v0.30.0
 
 require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
