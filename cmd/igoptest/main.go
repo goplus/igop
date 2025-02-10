@@ -58,7 +58,6 @@ func init() {
 	// const ulp = (1.0 + (2.0 / 3.0)) - (5.0 / 3.0)
 	// Go 1.14 1.15 1.16 ulp = 1.4916681462400413e-154
 	// Go 1.17 1.18 ulp = 0
-
 	ver := runtime.Version()[:6]
 	switch ver {
 	case "go1.17", "go1.18", "go1.19", "go1.20", "go1.21", "go1.22", "go1.23":
@@ -134,17 +133,21 @@ func init() {
 }
 
 var (
-	goCmd    string
-	gossaCmd string
+	cmdGo   string
+	cmdIgop string
 )
 
 func init() {
+	var igop = "igop"
+	if runtime.Version()[:6] == "go1.23" {
+		igop = "igop2"
+	}
 	var err error
-	gossaCmd, err = exec.LookPath("igop")
+	cmdIgop, err = exec.LookPath(igop)
 	if err != nil {
 		panic(fmt.Sprintf("not found igop: %v", err))
 	}
-	goCmd, err = exec.LookPath("go")
+	cmdGo, err = exec.LookPath("go")
 	if err != nil {
 		panic(fmt.Sprintf("not found go: %v", err))
 	}
@@ -153,7 +156,7 @@ func init() {
 func runCommand(input string, chkout bool) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
-	cmd := exec.Command(gossaCmd, "run", "-exp-gc", input)
+	cmd := exec.Command(cmdIgop, "run", "-exp-gc", input)
 	data, err := cmd.CombinedOutput()
 	if len(data) > 0 {
 		fmt.Println(string(data))
@@ -244,7 +247,7 @@ func getGorootTestRuns() (dir string, run []runfile, runoutput []string) {
 }
 
 func execRunoutput(input string) (string, error) {
-	cmd := exec.Command(goCmd, "run", input)
+	cmd := exec.Command(cmdGo, "run", input)
 	data, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
