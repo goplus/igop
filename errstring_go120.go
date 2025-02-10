@@ -1,5 +1,5 @@
-//go:build go1.20
-// +build go1.20
+//go:build go1.20 && !go1.23
+// +build go1.20,!go1.23
 
 /*
  * Copyright (c) 2022 The GoPlus Authors (goplus.org). All rights reserved.
@@ -19,9 +19,22 @@
 
 package igop
 
+import "strings"
+
 const (
 	errDeclaredNotUsed     = "declared and not used"
 	errImportedNotUsed     = "imported and not used"
 	errAppendOutOfRange    = "len out of range"
 	errSliceToArrayPointer = "cannot convert slice with length %v to array or pointer to array with length %v"
 )
+
+func hasTypesNotUsedError(msg string) bool {
+	return strings.HasSuffix(msg, errDeclaredNotUsed) || strings.HasSuffix(msg, errImportedNotUsed)
+}
+
+func isTypesDeclaredNotUsed(msg string) (string, bool) {
+	if strings.HasSuffix(msg, errDeclaredNotUsed) {
+		return msg[0 : len(msg)-len(errDeclaredNotUsed)-1], true
+	}
+	return "", false
+}

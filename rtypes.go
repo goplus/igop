@@ -22,6 +22,7 @@ import (
 	"go/importer"
 	"go/token"
 	"go/types"
+	"log"
 	"reflect"
 	"runtime"
 	"strings"
@@ -176,6 +177,7 @@ func (r *TypesLoader) Import(path string) (*types.Package, error) {
 			}
 		}
 		if err := tp.Load(); err != nil {
+			log.Printf("igop warning: load pkg %v source error: %v\n", pkg.Path, err)
 			return nil, err
 		}
 		tp.Register = true

@@ -19,9 +19,22 @@
 
 package igop
 
+import "strings"
+
 const (
 	errDeclaredNotUsed     = "declared but not used"
 	errImportedNotUsed     = "imported but not used"
 	errAppendOutOfRange    = "growslice: cap out of range"
 	errSliceToArrayPointer = "cannot convert slice with length %v to pointer to array with length %v"
 )
+
+func hasTypesNotUsedError(msg string) bool {
+	return strings.HasSuffix(msg, errDeclaredNotUsed) || strings.HasSuffix(msg, errImportedNotUsed)
+}
+
+func isTypesDeclaredNotUsed(msg string) (string, bool) {
+	if strings.HasSuffix(msg, errDeclaredNotUsed) {
+		return msg[0 : len(msg)-len(errDeclaredNotUsed)-1], true
+	}
+	return "", false
+}

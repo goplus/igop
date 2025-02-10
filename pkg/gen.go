@@ -30,14 +30,25 @@ import (
 	"strings"
 )
 
+var (
+	gover = runtime.Version()[:6]
+)
+
 func main() {
-	ver := runtime.Version()[:6]
 	var tags string
 	var name string
 	var fname string
-	switch ver {
+	switch gover {
+	case "go1.23":
+		tags = "//+build go1.23"
+		name = "go123_export"
+		fname = "go123_pkgs.go"
+	case "go1.22":
+		tags = "//+build go1.22,!go1.23"
+		name = "go122_export"
+		fname = "go122_pkgs.go"
 	case "go1.21":
-		tags = "//+build go1.21"
+		tags = "//+build go1.21,!go1.22"
 		name = "go121_export"
 		fname = "go121_pkgs.go"
 	case "go1.20":
@@ -72,7 +83,7 @@ func main() {
 
 	pkgs := stdList()
 
-	log.Println(ver, name, tags)
+	log.Println(gover, name, tags)
 	log.Println(pkgs)
 
 	cmd := exec.Command("qexp", "-outdir", ".", "-addtags", tags, "-filename", name)
@@ -118,6 +129,20 @@ func main() {
 			panic(err)
 		}
 	}
+
+	if gover == "go1.23" {
+		for _, pkg := range []string{"iter", "maps"} {
+			log.Printf("export go1.23 %v patch", pkg)
+			data, err := os.ReadFile("./_go123/" + pkg + "_export.go")
+			if err != nil {
+				panic(err)
+			}
+			err = os.WriteFile("./"+pkg+"/go123_export.go", data, 0666)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }
 
 var genericList = []string{
@@ -125,6 +150,7 @@ var genericList = []string{
 	"maps",
 	"slices",
 	"cmp",
+	"iter",
 }
 
 func genericPkgs(std []string) (pkgs []string) {
@@ -195,6 +221,10 @@ func isSkipPkg(pkg string) bool {
 		return true
 	case "runtime/cgo", "runtime/race":
 		return true
+	case "plugin":
+		if gover == "go1.23" {
+			return true
+		}
 	default:
 		if strings.HasPrefix(pkg, "vendor/") {
 			return true
