@@ -42,16 +42,16 @@ experimental support runtime.GC and runtime.SetFinalizer
 
 ### install igop command line
 
-Go version < 1.17:
-
-```shell
-go get -u github.com/goplus/igop/cmd/igop
-```
-
-Go version >= 1.17:
+Go version <= 1.22:
 
 ```shell
 go install github.com/goplus/igop/cmd/igop@latest
+```
+
+Go version == 1.23
+```
+git clone https://github.com/goplus/igop
+(cd cmd/igop2 && go install -ldflags="-checklinkname=0")
 ```
 
 ### igop command
