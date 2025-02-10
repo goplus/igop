@@ -138,12 +138,8 @@ var (
 )
 
 func init() {
-	var igop = "igop"
-	if runtime.Version()[:6] == "go1.23" {
-		igop = "igop2"
-	}
 	var err error
-	cmdIgop, err = exec.LookPath(igop)
+	cmdIgop, err = exec.LookPath("igop")
 	if err != nil {
 		panic(fmt.Sprintf("not found igop: %v", err))
 	}
