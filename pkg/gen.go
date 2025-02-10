@@ -129,6 +129,20 @@ func main() {
 			panic(err)
 		}
 	}
+
+	if gover == "go1.23" {
+		for _, pkg := range []string{"iter", "maps"} {
+			log.Printf("export go1.23 %v patch", pkg)
+			data, err := os.ReadFile("./_go123/" + pkg + "_export.go")
+			if err != nil {
+				panic(err)
+			}
+			err = os.WriteFile("./"+pkg+"/go123_export.go", data, 0666)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }
 
 var genericList = []string{
@@ -136,6 +150,7 @@ var genericList = []string{
 	"maps",
 	"slices",
 	"cmp",
+	"iter",
 }
 
 func genericPkgs(std []string) (pkgs []string) {
@@ -206,7 +221,7 @@ func isSkipPkg(pkg string) bool {
 		return true
 	case "runtime/cgo", "runtime/race":
 		return true
-	case "iter", "slices", "plugin":
+	case "plugin":
 		if gover == "go1.23" {
 			return true
 		}
