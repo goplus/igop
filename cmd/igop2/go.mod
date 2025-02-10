@@ -1,4 +1,4 @@
-module igop
+module github.com/goplus/igop/cmd/igop2
 
 go 1.23
 
