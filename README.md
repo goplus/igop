@@ -51,7 +51,7 @@ go install github.com/goplus/igop/cmd/igop@latest
 Go version == 1.23
 ```
 git clone https://github.com/goplus/igop
-(cd cmd/igop2 && go install -ldflags="-checklinkname=0")
+(cd igop && go install -ldflags="-checklinkname=0")
 ```
 
 ### igop command
