@@ -133,8 +133,10 @@ func toMockType(typ types.Type) reflect.Type {
 			outs[i] = tyEmptyStruct
 		}
 		return reflect.FuncOf(ins, outs, variadic)
+	case *typesutil.Alias:
+		return toMockType(typesutil.Unalias(t))
 	default:
-		panic(fmt.Errorf("toEmptyType: unreachable %v", typ))
+		panic(fmt.Errorf("toEmptyType: unreachable %T", typ))
 	}
 }
 

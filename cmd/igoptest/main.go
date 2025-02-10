@@ -101,10 +101,6 @@ func init() {
 			gorootTestSkips["linkx_run.go"] = "skip link"
 			gorootTestSkips["chanlinear.go"] = "skip -gc-exp"
 		}
-		if ver == "go1.23" {
-			gorootTestSkips["fixedbugs/issue69434.go"] = "TODO, update golang.org/x/tools"
-			gorootTestSkips["fixedbugs/issue69507.go"] = "TODO, update golang.org/x/tools"
-		}
 	case "go1.16":
 		gorootTestSkips["fixedbugs/issue7740.go"] = "BUG, const float"
 	case "go1.15":
