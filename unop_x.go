@@ -60,7 +60,7 @@ func makeUnOpMUL(pfn *function, instr *ssa.UnOp) func(fr *frame) {
 		return func(fr *frame) {
 			elem := v.Elem()
 			if !elem.IsValid() {
-				panic(runtimeError("invalid memory address or nil pointer dereference"))
+				panic(fr.runtimeError(instr, "invalid memory address or nil pointer dereference"))
 			}
 			fr.setReg(ir, elem.Interface())
 		}
@@ -68,7 +68,7 @@ func makeUnOpMUL(pfn *function, instr *ssa.UnOp) func(fr *frame) {
 	return func(fr *frame) {
 		elem := reflect.ValueOf(fr.reg(ix)).Elem()
 		if !elem.IsValid() {
-			panic(runtimeError("invalid memory address or nil pointer dereference"))
+			panic(fr.runtimeError(instr, "invalid memory address or nil pointer dereference"))
 		}
 		fr.setReg(ir, elem.Interface())
 	}

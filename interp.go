@@ -480,6 +480,20 @@ func (fr *frame) copyReg(dst register, src register) {
 	fr.stack[dst] = fr.stack[src]
 }
 
+func (fr *frame) runtimeError(instr funcInstr, text string) error {
+	if fr.interp.ctx.panicFunc != nil {
+		return fr.interp.ctx.handlePanic(fr, instr, runtimeError(text))
+	}
+	return runtimeError(text)
+}
+
+func (fr *frame) plainError(instr funcInstr, text string) error {
+	if fr.interp.ctx.panicFunc != nil {
+		return fr.interp.ctx.handlePanic(fr, instr, plainError(text))
+	}
+	return plainError(text)
+}
+
 type _panic struct {
 	arg       interface{}
 	link      *_panic
@@ -1263,6 +1277,13 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 		if i.ctx.Mode&DisableRecover != 0 {
 			return
 		}
+		wrapPanicError := func(p interface{}) error {
+			pfr := fr
+			for pfr.callee != nil {
+				pfr = pfr.callee
+			}
+			return PanicError{stack: debugStack(pfr), Value: p}
+		}
 		switch p := recover().(type) {
 		case nil:
 			// nothing
@@ -1277,16 +1298,19 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 				i.exitCode = <-i.chexit
 				atomic.StoreInt32(&i.exited, 1)
 			}
-		case runtime.Error:
-			err = p
 		case PanicError:
 			err = p
-		default:
-			pfr := fr
-			for pfr.callee != nil {
-				pfr = pfr.callee
+		case runtime.Error:
+			err = p
+			if i.ctx.panicFunc != nil {
+				err := wrapPanicError(p)
+				i.ctx.handlePanic(fr, i.mainpkg.Func(name), err)
 			}
-			err = PanicError{stack: debugStack(pfr), Value: p}
+		default:
+			err = wrapPanicError(p)
+			if i.ctx.panicFunc != nil {
+				i.ctx.handlePanic(fr, i.mainpkg.Func(name), err)
+			}
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {

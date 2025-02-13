@@ -262,42 +262,42 @@ func slice(fr *frame, instr *ssa.Slice, makesliceCheck bool, ix, ih, il, im regi
 
 	if makesliceCheck {
 		if hi < 0 {
-			panic(runtimeError("makeslice: len out of range"))
+			panic(fr.runtimeError(instr, "makeslice: len out of range"))
 		} else if hi > max {
-			panic(runtimeError("makeslice: cap out of range"))
+			panic(fr.runtimeError(instr, "makeslice: cap out of range"))
 		}
 	} else {
 		if slice3 {
 			if max < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v]", max)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [::%v]", max)))
 			} else if max > Cap {
 				if kind == reflect.Slice {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with capacity %v", max, Cap)))
+					panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [::%v] with capacity %v", max, Cap)))
 				} else {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [::%v] with length %v", max, Cap)))
+					panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [::%v] with length %v", max, Cap)))
 				}
 			} else if hi < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:]", hi)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [:%v:]", hi)))
 			} else if hi > max {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v:%v]", hi, max)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [:%v:%v]", hi, max)))
 			} else if lo < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v::]", lo)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [%v::]", lo)))
 			} else if lo > hi {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v:]", lo, hi)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [%v:%v:]", lo, hi)))
 			}
 		} else {
 			if hi < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v]", hi)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [:%v]", hi)))
 			} else if hi > Cap {
 				if kind == reflect.Slice {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with capacity %v", hi, Cap)))
+					panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [:%v] with capacity %v", hi, Cap)))
 				} else {
-					panic(runtimeError(fmt.Sprintf("slice bounds out of range [:%v] with length %v", hi, Cap)))
+					panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [:%v] with length %v", hi, Cap)))
 				}
 			} else if lo < 0 {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:]", lo)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [%v:]", lo)))
 			} else if lo > hi {
-				panic(runtimeError(fmt.Sprintf("slice bounds out of range [%v:%v]", lo, hi)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("slice bounds out of range [%v:%v]", lo, hi)))
 			}
 		}
 	}
@@ -1331,16 +1331,16 @@ failed:
 // typeAssert checks whether dynamic type of itf is instr.AssertedType.
 // It returns the extracted value on success, and panics on failure,
 // unless instr.CommaOk, in which case it always returns a "value,ok" tuple.
-func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, xtyp reflect.Type, iv interface{}) value {
+func typeAssert(fr *frame, instr *ssa.TypeAssert, typ reflect.Type, xtyp reflect.Type, iv interface{}) value {
 	var v value
 	var err error
 	if iv == nil {
 		if xtyp == tyErrorInterface {
-			err = runtimeError("invalid memory address or nil pointer dereference")
+			err = fr.runtimeError(instr, "invalid memory address or nil pointer dereference")
 		} else if xtyp == typ {
-			err = plainError(fmt.Sprintf("interface conversion: interface is nil, not %v", typ))
+			err = fr.plainError(instr, fmt.Sprintf("interface conversion: interface is nil, not %v", typ))
 		} else {
-			err = plainError(fmt.Sprintf("interface conversion: %v is nil, not %v", xtyp, typ))
+			err = fr.plainError(instr, fmt.Sprintf("interface conversion: %v is nil, not %v", xtyp, typ))
 		}
 		// }
 	} else {
@@ -1350,22 +1350,22 @@ func typeAssert(i *Interp, instr *ssa.TypeAssert, typ reflect.Type, xtyp reflect
 			v = iv
 		} else {
 			if !rt.AssignableTo(typ) {
-				err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v", xtyp, rt, typ))
+				err = fr.runtimeError(instr, fmt.Sprintf("interface conversion: %v is %v, not %v", xtyp, rt, typ))
 				if itype, ok := instr.AssertedType.Underlying().(*types.Interface); ok {
-					if it, ok := i.findType(rt, false); ok {
+					if it, ok := fr.interp.findType(rt, false); ok {
 						if meth, _ := types.MissingMethod(it, itype, true); meth != nil {
-							err = runtimeError(fmt.Sprintf("interface conversion: %v is not %v: missing method %s",
+							err = fr.runtimeError(instr, fmt.Sprintf("interface conversion: %v is not %v: missing method %s",
 								rt, instr.AssertedType, meth.Name()))
 						}
 					}
 				} else if typ.PkgPath() == rt.PkgPath() && typ.Name() == rt.Name() {
-					t1, ok1 := i.findType(typ, false)
-					t2, ok2 := i.findType(rt, false)
+					t1, ok1 := fr.interp.findType(typ, false)
+					t2, ok2 := fr.interp.findType(rt, false)
 					if ok1 && ok2 {
 						n1, ok1 := t1.(*types.Named)
 						n2, ok2 := t2.(*types.Named)
 						if ok1 && ok2 && n1.Obj().Parent() != n2.Obj().Parent() {
-							err = runtimeError(fmt.Sprintf("interface conversion: %v is %v, not %v (types from different scopes)", xtyp, rt, typ))
+							err = fr.runtimeError(instr, fmt.Sprintf("interface conversion: %v is %v, not %v (types from different scopes)", xtyp, rt, typ))
 						}
 					}
 				}
