@@ -5,7 +5,6 @@
 package igop
 
 import (
-	"bytes"
 	"fmt"
 	"go/constant"
 	"go/token"
@@ -15,27 +14,6 @@ import (
 
 	"golang.org/x/tools/go/ssa"
 )
-
-// If the target program panics, the interpreter panics with this type.
-type PanicError struct {
-	stack []byte
-	Value value
-}
-
-func (p PanicError) Error() string {
-	var buf bytes.Buffer
-	writeany(&buf, p.Value)
-	return buf.String()
-}
-
-func (p PanicError) Stack() []byte {
-	return p.stack
-}
-
-// If the target program calls exit, the interpreter panics with this type.
-type exitPanic int
-
-type goexitPanic int
 
 func xtypeValue(c *ssa.Const, kind types.BasicKind) value {
 	switch kind {
@@ -219,7 +197,7 @@ func asUint64(x value) uint64 {
 			panic(fmt.Sprintf("cannot convert %T to uint64", x))
 		}
 	}
-	panic(runtimeError("negative shift amount"))
+	panic(RuntimeError("negative shift amount"))
 }
 
 // slice returns x[lo:hi:max].  Any of lo, hi and max may be nil.
@@ -1266,7 +1244,7 @@ func unop(instr *ssa.UnOp, x value) value {
 	case token.MUL:
 		v := reflect.ValueOf(x).Elem()
 		if !v.IsValid() {
-			panic(runtimeError("invalid memory address or nil pointer dereference"))
+			panic(RuntimeError("invalid memory address or nil pointer dereference"))
 		}
 		return v.Interface()
 		//return load(deref(instr.X.Type()), x.(*value))
