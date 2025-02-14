@@ -52,7 +52,6 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -478,6 +477,20 @@ func (fr *frame) pointer(ir register) unsafe.Pointer {
 
 func (fr *frame) copyReg(dst register, src register) {
 	fr.stack[dst] = fr.stack[src]
+}
+
+func (fr *frame) runtimeError(instr funcInstr, text string) error {
+	if fr.interp.ctx.panicFunc != nil {
+		return fr.interp.ctx.handlePanic(fr, instr, RuntimeError(text))
+	}
+	return RuntimeError(text)
+}
+
+func (fr *frame) plainError(instr funcInstr, text string) error {
+	if fr.interp.ctx.panicFunc != nil {
+		return fr.interp.ctx.handlePanic(fr, instr, PlainError(text))
+	}
+	return PlainError(text)
 }
 
 type _panic struct {
@@ -1277,16 +1290,18 @@ func (i *Interp) RunFunc(name string, args ...Value) (r Value, err error) {
 				i.exitCode = <-i.chexit
 				atomic.StoreInt32(&i.exited, 1)
 			}
-		case runtime.Error:
-			err = p
 		case PanicError:
 			err = p
 		default:
+			// runtimeError / plainError ...
 			pfr := fr
 			for pfr.callee != nil {
 				pfr = pfr.callee
 			}
-			err = PanicError{stack: debugStack(pfr), Value: p}
+			err = FatalError{stack: debugStack(pfr), Value: p}
+			if i.ctx.panicFunc != nil {
+				i.ctx.handlePanic(fr, i.mainpkg.Func(name), err)
+			}
 		}
 	}()
 	if fn := i.mainpkg.Func(name); fn != nil {

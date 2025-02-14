@@ -520,7 +520,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 				size := fr.reg(is)
 				buffer := asInt(size)
 				if buffer < 0 {
-					panic(runtimeError("makechan: size out of range"))
+					panic(fr.runtimeError(instr, "makechan: size out of range"))
 				}
 				fr.setReg(ir, reflect.MakeChan(typ, buffer).Interface())
 			}
@@ -530,7 +530,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			size := fr.reg(is)
 			buffer := asInt(size)
 			if buffer < 0 {
-				panic(runtimeError("makechan: size out of range"))
+				panic(fr.runtimeError(instr, "makechan: size out of range"))
 			}
 			fr.setReg(ir, reflect.MakeChan(ctyp, buffer).Convert(typ).Interface())
 		}
@@ -556,11 +556,11 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		return func(fr *frame) {
 			Len := asInt(fr.reg(il))
 			if Len < 0 || Len >= maxMemLen {
-				panic(runtimeError("makeslice: len out of range"))
+				panic(fr.runtimeError(instr, "makeslice: len out of range"))
 			}
 			Cap := asInt(fr.reg(ic))
 			if Cap < 0 || Cap >= maxMemLen {
-				panic(runtimeError("makeslice: cap out of range"))
+				panic(fr.runtimeError(instr, "makeslice: cap out of range"))
 			}
 			fr.setReg(ir, reflect.MakeSlice(typ, Len, Cap).Interface())
 		}
@@ -587,7 +587,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		return func(fr *frame) {
 			v, err := fieldAddrX(fr.reg(ix), instr.Field)
 			if err != nil {
-				panic(runtimeError(err.Error()))
+				panic(fr.runtimeError(instr, err.Error()))
 			}
 			fr.setReg(ir, v)
 		}
@@ -597,7 +597,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		return func(fr *frame) {
 			v, err := fieldX(fr.reg(ix), instr.Field)
 			if err != nil {
-				panic(runtimeError(err.Error()))
+				panic(fr.runtimeError(instr, err.Error()))
 			}
 			fr.setReg(ir, v)
 		}
@@ -616,15 +616,15 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			case reflect.Slice:
 			case reflect.Array:
 			case reflect.Invalid:
-				panic(runtimeError("invalid memory address or nil pointer dereference"))
+				panic(fr.runtimeError(instr, "invalid memory address or nil pointer dereference"))
 			default:
 				panic(fmt.Sprintf("unexpected x type in IndexAddr: %T", x))
 			}
 			index := asInt(idx)
 			if index < 0 {
-				panic(runtimeError(fmt.Sprintf("index out of range [%v]", index)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("index out of range [%v]", index)))
 			} else if length := v.Len(); index >= length {
-				panic(runtimeError(fmt.Sprintf("index out of range [%v] with length %v", index, length)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("index out of range [%v] with length %v", index, length)))
 			}
 			fr.setReg(ir, v.Index(index).Addr().Interface())
 		}
@@ -638,9 +638,9 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			index := asInt(idx)
 			v := reflect.ValueOf(x)
 			if index < 0 {
-				panic(runtimeError(fmt.Sprintf("index out of range [%v]", index)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("index out of range [%v]", index)))
 			} else if length := v.Len(); index >= length {
-				panic(runtimeError(fmt.Sprintf("index out of range [%v] with length %v", index, length)))
+				panic(fr.runtimeError(instr, fmt.Sprintf("index out of range [%v] with length %v", index, length)))
 			}
 			fr.setReg(ir, v.Index(index).Interface())
 		}
@@ -748,7 +748,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			vLen := v.Len()
 			tLen := typ.Elem().Len()
 			if tLen > vLen {
-				panic(runtimeError(fmt.Sprintf(errSliceToArrayPointer, vLen, tLen)))
+				panic(fr.runtimeError(instr, fmt.Sprintf(errSliceToArrayPointer, vLen, tLen)))
 			}
 			fr.setReg(ir, v.Convert(typ).Interface())
 		}
@@ -788,12 +788,12 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 		ix, kx, vx := pfn.regIndex3(instr.X)
 		if kx.isStatic() {
 			return func(fr *frame) {
-				fr.setReg(ir, typeAssert(interp, instr, typ, xtyp, vx))
+				fr.setReg(ir, typeAssert(fr, instr, typ, xtyp, vx))
 			}
 		}
 		return func(fr *frame) {
 			v := fr.reg(ix)
-			fr.setReg(ir, typeAssert(interp, instr, typ, xtyp, v))
+			fr.setReg(ir, typeAssert(fr, instr, typ, xtyp, v))
 		}
 	case *ssa.Extract:
 		if *instr.Referrers() == nil {

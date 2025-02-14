@@ -17,6 +17,7 @@
 package igop
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 )
@@ -36,18 +37,55 @@ func (r ExitError) Error() string {
 	return fmt.Sprintf("exit %v", int(r))
 }
 
-type plainError string
+type PlainError string
 
-func (e plainError) RuntimeError() {}
+func (e PlainError) RuntimeError() {}
 
-func (e plainError) Error() string {
+func (e PlainError) Error() string {
 	return string(e)
 }
 
-type runtimeError string
+type RuntimeError string
 
-func (e runtimeError) RuntimeError() {}
+func (e RuntimeError) RuntimeError() {}
 
-func (e runtimeError) Error() string {
+func (e RuntimeError) Error() string {
 	return "runtime error: " + string(e)
 }
+
+// If the target program panics, the interpreter panics with this type.
+type PanicError struct {
+	stack []byte
+	Value value
+}
+
+func (p PanicError) Error() string {
+	var buf bytes.Buffer
+	writeany(&buf, p.Value)
+	return buf.String()
+}
+
+func (p PanicError) Stack() []byte {
+	return p.stack
+}
+
+// run func fatal error
+type FatalError struct {
+	stack []byte
+	Value value
+}
+
+func (p FatalError) Error() string {
+	var buf bytes.Buffer
+	writeany(&buf, p.Value)
+	return buf.String()
+}
+
+func (p FatalError) Stack() []byte {
+	return p.stack
+}
+
+// If the target program calls exit, the interpreter panics with this type.
+type exitPanic int
+
+type goexitPanic int

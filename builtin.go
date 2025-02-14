@@ -32,7 +32,7 @@ import (
 
 // callBuiltin interprets a call to builtin fn with arguments args,
 // returning its result.
-func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
+func (inter *Interp) callBuiltin(fr *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) value {
 	switch fnName := fn.Name(); fnName {
 	case "append":
 		if len(args) == 1 {
@@ -47,7 +47,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 		i0 := v0.Len()
 		i1 := v1.Len()
 		if i0+i1 < i0 {
-			panic(runtimeError(errAppendOutOfRange))
+			panic(fr.runtimeError(fn, errAppendOutOfRange))
 		}
 		return reflect.AppendSlice(v0, v1).Interface()
 
@@ -127,14 +127,14 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 	case "panic":
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
-		var err error = PanicError{stack: debugStack(caller), Value: args[0]}
+		var err error = PanicError{stack: debugStack(fr), Value: args[0]}
 		if inter.ctx.panicFunc != nil {
-			err = inter.ctx.handlePanic(caller, fn, err)
+			err = inter.ctx.handlePanic(fr, fn, err)
 		}
 		panic(err)
 
 	case "recover":
-		return doRecover(caller)
+		return doRecover(fr)
 
 	case "ssa:wrapnilchk":
 		recv := args[0]
@@ -147,7 +147,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 			} else {
 				info = recvType
 			}
-			panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
+			panic(fr.plainError(fn, fmt.Sprintf("value method %s.%s called using nil *%s pointer",
 				recvType, methodName, info)))
 		}
 		return recv
@@ -166,11 +166,11 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 			if length == 0 {
 				return reflect.New(reflect.SliceOf(etyp)).Elem().Interface()
 			}
-			panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
+			panic(fr.runtimeError(fn, "unsafe.Slice: ptr is nil and len is not zero"))
 		}
 		mem, overflow := mulUintptr(etyp.Size(), uintptr(length))
 		if overflow || mem > -uintptr(ptr.Pointer()) {
-			panic(runtimeError("unsafe.Slice: len out of range"))
+			panic(fr.runtimeError(fn, "unsafe.Slice: len out of range"))
 		}
 		typ := reflect.ArrayOf(length, etyp)
 		v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
@@ -210,11 +210,11 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 			if length == 0 {
 				return ""
 			}
-			panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
+			panic(fr.runtimeError(fn, "unsafe.String: ptr is nil and len is not zero"))
 		}
 		mem, overflow := mulUintptr(1, uintptr(length))
 		if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
-			panic(runtimeError("unsafe.String: len out of range"))
+			panic(fr.runtimeError(fn, "unsafe.String: len out of range"))
 		}
 		sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
 		return *(*string)(unsafe.Pointer(&sh))
@@ -235,7 +235,7 @@ func (inter *Interp) callBuiltin(caller *frame, fn *ssa.Builtin, args []value, s
 
 // callBuiltinDiscardsResult interprets a call to builtin fn with arguments args,
 // discards its result.
-func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) {
+func (inter *Interp) callBuiltinDiscardsResult(fr *frame, fn *ssa.Builtin, args []value, ssaArgs []ssa.Value) {
 	switch fnName := fn.Name(); fnName {
 	case "append":
 		panic("discards result of " + fnName)
@@ -288,14 +288,14 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 	case "panic":
 		// ssa.Panic handles most cases; this is only for "go
 		// panic" or "defer panic".
-		var err error = PanicError{stack: debugStack(caller), Value: args[0]}
+		var err error = PanicError{stack: debugStack(fr), Value: args[0]}
 		if inter.ctx.panicFunc != nil {
-			err = inter.ctx.handlePanic(caller, fn, err)
+			err = inter.ctx.handlePanic(fr, fn, err)
 		}
 		panic(err)
 
 	case "recover":
-		doRecover(caller)
+		doRecover(fr)
 
 	case "ssa:wrapnilchk":
 		recv := args[0]
@@ -308,7 +308,7 @@ func (inter *Interp) callBuiltinDiscardsResult(caller *frame, fn *ssa.Builtin, a
 			} else {
 				info = recvType
 			}
-			panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
+			panic(fr.plainError(fn, fmt.Sprintf("value method %s.%s called using nil *%s pointer",
 				recvType, methodName, info)))
 		}
 
@@ -356,7 +356,7 @@ func (interp *Interp) makeBuiltinByStack(fn *ssa.Builtin, ssaArgs []ssa.Value, i
 			i0 := v0.Len()
 			i1 := v1.Len()
 			if i0+i1 < i0 {
-				panic(runtimeError(errAppendOutOfRange))
+				panic(fr.runtimeError(fn, errAppendOutOfRange))
 			}
 			fr.setReg(ir, reflect.AppendSlice(v0, v1).Interface())
 		}
@@ -492,7 +492,7 @@ func (interp *Interp) makeBuiltinByStack(fn *ssa.Builtin, ssaArgs []ssa.Value, i
 				} else {
 					info = recvType
 				}
-				panic(plainError(fmt.Sprintf("value method %s.%s called using nil *%s pointer",
+				panic(fr.plainError(fn, fmt.Sprintf("value method %s.%s called using nil *%s pointer",
 					recvType, methodName, info)))
 			}
 			fr.setReg(ir, recv)
@@ -520,11 +520,11 @@ func (interp *Interp) makeBuiltinByStack(fn *ssa.Builtin, ssaArgs []ssa.Value, i
 					fr.setReg(ir, reflect.New(reflect.SliceOf(etyp)).Elem().Interface())
 					return
 				}
-				panic(runtimeError("unsafe.Slice: ptr is nil and len is not zero"))
+				panic(fr.runtimeError(fn, "unsafe.Slice: ptr is nil and len is not zero"))
 			}
 			mem, overflow := mulUintptr(etyp.Size(), uintptr(length))
 			if overflow || mem > -uintptr(ptr.Pointer()) {
-				panic(runtimeError("unsafe.Slice: len out of range"))
+				panic(fr.runtimeError(fn, "unsafe.Slice: len out of range"))
 			}
 			typ := reflect.ArrayOf(length, etyp)
 			v := reflect.NewAt(typ, unsafe.Pointer(ptr.Pointer()))
@@ -570,11 +570,11 @@ func (interp *Interp) makeBuiltinByStack(fn *ssa.Builtin, ssaArgs []ssa.Value, i
 					fr.setReg(ir, "")
 					return
 				}
-				panic(runtimeError("unsafe.String: ptr is nil and len is not zero"))
+				panic(fr.runtimeError(fn, "unsafe.String: ptr is nil and len is not zero"))
 			}
 			mem, overflow := mulUintptr(1, uintptr(length))
 			if overflow || mem > -uintptr(unsafe.Pointer(ptr)) {
-				panic(runtimeError("unsafe.String: len out of range"))
+				panic(fr.runtimeError(fn, "unsafe.String: len out of range"))
 			}
 			sh := reflect.StringHeader{Data: uintptr(unsafe.Pointer(ptr)), Len: length}
 			fr.setReg(ir, *(*string)(unsafe.Pointer(&sh)))
@@ -603,7 +603,7 @@ func (interp *Interp) makeBuiltinByStack(fn *ssa.Builtin, ssaArgs []ssa.Value, i
 		}
 	case "Offsetof": // instance of generic function
 		return func(fr *frame) {
-			offset, err := builtinOffsetof(fr.pfn, fr.ipc-1)
+			offset, err := builtinOffsetof(fr, fn, fr.ipc-1)
 			if err != nil {
 				panic(err)
 			}
@@ -693,27 +693,28 @@ func mulUintptr(a, b uintptr) (uintptr, bool) {
 	return a * b, overflow
 }
 
-func builtinOffsetof(pfn *function, pc int) (int64, error) {
+func builtinOffsetof(fr *frame, fn *ssa.Builtin, pc int) (int64, error) {
+	pfn := fr.pfn
 	pos := pfn.ssaInstrs[pc].Pos()
 	paths, info, ok := pathEnclosingInterval(pfn.Interp.ctx, pos)
 	if !ok {
-		return -1, plainError("unsafe.Offsetof not found code")
+		return -1, fr.plainError(fn, "unsafe.Offsetof not found code")
 	}
 	call, ok := paths[0].(*ast.CallExpr)
 	if !ok {
-		return -1, plainError("unsafe.Offsetof not found call")
+		return -1, fr.plainError(fn, "unsafe.Offsetof not found call")
 	}
 	selx, ok := call.Args[0].(*ast.SelectorExpr)
 	if !ok {
-		return -1, plainError("unsafe.Offsetof not found selector expr")
+		return -1, fr.plainError(fn, "unsafe.Offsetof not found selector expr")
 	}
 	sel, _ := info.Selections[selx]
 	if sel == nil {
-		return -1, plainError("unsafe.Offsetof not found selector type")
+		return -1, fr.plainError(fn, "unsafe.Offsetof not found selector type")
 	}
 	instrs, found := foundFieldAddr(pfn, pc)
 	if !found || len(sel.Index()) > len(instrs) {
-		return -1, plainError("unsafe.Offsetof not found FieldAddr instr")
+		return -1, fr.plainError(fn, "unsafe.Offsetof not found FieldAddr instr")
 	}
 	instr := instrs[len(sel.Index())-1]
 	return selOffsetof(pfn.Interp.ctx.sizes, instr.X.Type().Underlying().(*types.Pointer).Elem().Underlying().(*types.Struct), sel.Index(), selx.Sel.Name)

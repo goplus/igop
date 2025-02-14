@@ -237,7 +237,7 @@ type PanicInfo struct {
 	funcInstr
 	*Frame
 	fset  *token.FileSet
-	Error error // PanicError
+	Error error // PanicError / FatalError / PlainError / RuntimeError
 }
 
 func (i *PanicInfo) Position() token.Position {
