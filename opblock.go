@@ -1248,6 +1248,9 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 	var ext reflect.Value
 	return func(fr *frame) {
 		v := fr.reg(iv)
+		if v == nil {
+			panic(fr.runtimeError(instr, "runtime error: invalid memory address or nil pointer dereference"))
+		}
 		rtype := reflect.TypeOf(v)
 		// find user type method *ssa.Function
 		if mset, ok := interp.msets[rtype]; ok {
@@ -1260,7 +1263,7 @@ func makeCallMethodInstr(interp *Interp, instr ssa.Value, call *ssa.CallCommon, 
 			ext, found = findExternMethod(rtype, mname)
 		}
 		if !found {
-			panic(fmt.Errorf("no code for method: %v.%v", rtype, mname))
+			panic(fr.plainError(instr, fmt.Sprintf("no code for method: %v.%v", rtype, mname)))
 		}
 		interp.callExternalByStack(fr, ext, ir, ia)
 	}
