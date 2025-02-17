@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00
 	github.com/goplus/gogen v1.16.6
-	github.com/goplus/gop v1.2.0-pre.1.0.20250213234611-07a54ca31c87
+	github.com/goplus/gop v1.3.0
 	github.com/goplus/mod v0.13.17
 	github.com/goplus/reflectx v1.3.2
 	github.com/modern-go/reflect2 v1.0.2
