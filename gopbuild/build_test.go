@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/goplus/igop"
+	_ "github.com/goplus/igop/gopbuild/pkg"
 	_ "github.com/goplus/igop/pkg/bytes"
 )
 
@@ -74,6 +75,8 @@ func (this *Rect) Main() {
 	fmt.Println("Go+")
 }
 func main() {
+//line Rect.gox:2:1
+	new(Rect).Main()
 }
 `)
 	gopClTestEx(t, "Rect.gox", `
@@ -102,6 +105,8 @@ func (this *Rect) Main() {
 	fmt.Println("Go+")
 }
 func main() {
+//line Rect.gox:9:1
+	new(Rect).Main()
 }
 `)
 	gopClTestEx(t, "Rect.gox", `
@@ -130,6 +135,8 @@ func (this *Rect) Main() {
 	fmt.Println("Go+")
 }
 func main() {
+//line Rect.gox:9:1
+	new(Rect).Main()
 }
 `)
 	gopClTestEx(t, "Rect.gox", `
@@ -156,6 +163,8 @@ func (this *Rect) Main() {
 	fmt.Println("Go+")
 }
 func main() {
+//line Rect.gox:7:1
+	new(Rect).Main()
 }
 `)
 	gopClTestEx(t, "Rect.gox", `
@@ -182,6 +191,8 @@ func (this *Rect) Main() {
 	fmt.Println("Go+")
 }
 func main() {
+//line Rect.gox:7:1
+	new(Rect).Main()
 }
 `)
 }
@@ -548,6 +559,23 @@ func main() {
 	fmt.Println(strings.Repeat("a", 10))
 //line main.gop:3:1
 	fmt.Println(strings.ToTitle("hello"))
+}
+`)
+}
+
+func TestEcho(t *testing.T) {
+	gopClTest(t, `
+echo type(100)
+`, `package main
+
+import (
+	"fmt"
+	"reflect"
+)
+//line main.gop:2
+func main() {
+//line main.gop:2:1
+	fmt.Println(reflect.TypeOf(100))
 }
 `)
 }
