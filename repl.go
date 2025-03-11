@@ -164,6 +164,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	var src string
 	var inMain bool
 	var evalConst bool
+	var lastErrors []error
 	switch tok {
 	case token.PACKAGE:
 		// skip package
@@ -251,6 +252,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 				return e
 			}
 		}
+		lastErrors = errors
 		if len(fixed) != 0 {
 			expr += "\n" + strings.Join(fixed, "\n")
 		}
@@ -258,6 +260,9 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 	}
 	r.pkg, err = r.ctx.LoadFile(r.fileName, src)
 	if err != nil {
+		if lastErrors != nil {
+			return lastErrors[0]
+		}
 		return err
 	}
 	i, err := newInterp(r.ctx, r.pkg, r.globalMap)
