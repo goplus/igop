@@ -951,16 +951,7 @@ func makeInstr(interp *Interp, pfn *function, instr ssa.Instruction) func(fr *fr
 			}
 		}
 	case *ssa.Defer:
-		iv, ia, ib := getCallIndex(pfn, &instr.Call)
-		return func(fr *frame) {
-			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
-			fr._defer = &_defer{
-				fn:      fn,
-				args:    args,
-				ssaArgs: instr.Call.Args,
-				tail:    fr._defer,
-			}
-		}
+		return makeDefer(interp, pfn, instr)
 	case *ssa.Send:
 		ic := pfn.regIndex(instr.Chan)
 		ix := pfn.regIndex(instr.X)

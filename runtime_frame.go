@@ -19,7 +19,11 @@
 
 package igop
 
-import "runtime"
+import (
+	"runtime"
+
+	"golang.org/x/tools/go/ssa"
+)
 
 /*
 	type Frames struct {
@@ -36,4 +40,17 @@ type runtimeFrames struct {
 	callers    []uintptr
 	frames     []runtime.Frame
 	frameStore [2]runtime.Frame
+}
+
+func makeDefer(interp *Interp, pfn *function, instr *ssa.Defer) func(fr *frame) {
+	iv, ia, ib := getCallIndex(pfn, &instr.Call)
+	return func(fr *frame) {
+		fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
+		fr._defer = &_defer{
+			fn:      fn,
+			args:    args,
+			ssaArgs: instr.Call.Args,
+			tail:    fr._defer,
+		}
+	}
 }
