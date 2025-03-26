@@ -19,7 +19,12 @@
 
 package igop
 
-import "runtime"
+import (
+	"reflect"
+	"runtime"
+
+	"golang.org/x/tools/go/ssa"
+)
 
 /*
 	type Frames struct {
@@ -40,4 +45,48 @@ type runtimeFrames struct {
 	nextPC     uintptr
 	frames     []runtime.Frame
 	frameStore [2]runtime.Frame
+}
+
+var (
+	deferStack int = -1
+)
+
+func init() {
+	st, ok := reflect.TypeOf((*ssa.Defer)(nil)).Elem().FieldByName("DeferStack")
+	if ok {
+		deferStack = st.Index[0]
+	}
+}
+
+func makeDefer(interp *Interp, pfn *function, instr *ssa.Defer) func(fr *frame) {
+	iv, ia, ib := getCallIndex(pfn, &instr.Call)
+	var v ssa.Value // = instr.DeferStack
+	if deferStack != -1 {
+		sf := reflect.ValueOf(instr).Elem().Field(deferStack)
+		if !sf.IsNil() {
+			v = sf.Interface().(ssa.Value)
+		}
+	}
+	if v == nil {
+		return func(fr *frame) {
+			fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
+			fr._defer = &_defer{
+				fn:      fn,
+				args:    args,
+				ssaArgs: instr.Call.Args,
+				tail:    fr._defer,
+			}
+		}
+	}
+	id := pfn.regIndex(v)
+	return func(fr *frame) {
+		fn, args := interp.prepareCall(fr, &instr.Call, iv, ia, ib)
+		defers := fr.reg(id).(**_defer)
+		*defers = &_defer{
+			fn:      fn,
+			args:    args,
+			ssaArgs: instr.Call.Args,
+			tail:    *defers,
+		}
+	}
 }

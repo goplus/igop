@@ -670,6 +670,10 @@ func (interp *Interp) makeBuiltinByStack(fn *ssa.Builtin, ssaArgs []ssa.Value, i
 			}
 			fr.setReg(ir, v.Interface())
 		}
+	case "ssa:deferstack":
+		return func(fr *frame) {
+			fr.setReg(ir, &fr._defer)
+		}
 	default:
 		panic("unknown built-in: " + fn.Name())
 	}

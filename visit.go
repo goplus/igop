@@ -38,7 +38,11 @@ func checkPackages(intp *Interp, pkgs []*ssa.Package) (err error) {
 	if intp.ctx.Mode&DisableRecover == 0 {
 		defer func() {
 			if v := recover(); v != nil {
-				err = v.(error)
+				if e, ok := v.(error); ok {
+					err = e
+				} else {
+					err = fmt.Errorf("%v", v)
+				}
 			}
 		}()
 	}
