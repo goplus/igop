@@ -29,9 +29,9 @@ func init() {
 		},
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]reflect.Type{
-			"ScanErrorHandler": reflect.TypeOf((*q.ScanErrorHandler)(nil)).Elem(),
-			"ScanMode":         reflect.TypeOf((*q.ScanMode)(nil)).Elem(),
-			"Scanner":          reflect.TypeOf((*q.Scanner)(nil)).Elem(),
+			"ErrorHandler": reflect.TypeOf((*q.ErrorHandler)(nil)).Elem(),
+			"Mode":         reflect.TypeOf((*q.Mode)(nil)).Elem(),
+			"Scanner":      reflect.TypeOf((*q.Scanner)(nil)).Elem(),
 		},
 		AliasTypes: map[string]reflect.Type{
 			"Error":     reflect.TypeOf((*q.Error)(nil)).Elem(),

@@ -31,7 +31,8 @@ func init() {
 			"ErrNoDocFound": reflect.ValueOf(&q.ErrNoDocFound),
 		},
 		Funcs: map[string]reflect.Value{
-			"New": reflect.ValueOf(q.New),
+			"New":   reflect.ValueOf(q.New),
+			"NewEx": reflect.ValueOf(q.NewEx),
 		},
 		TypedConsts:   map[string]igop.TypedConst{},
 		UntypedConsts: map[string]igop.UntypedConst{},

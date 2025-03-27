@@ -22,11 +22,14 @@ func init() {
 		},
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]reflect.Type{
-			"Mode": reflect.TypeOf((*q.Mode)(nil)).Elem(),
+			"Config": reflect.TypeOf((*q.Config)(nil)).Elem(),
 		},
-		AliasTypes: map[string]reflect.Type{},
-		Vars:       map[string]reflect.Value{},
+		AliasTypes: map[string]reflect.Type{
+			"RetProcParser": reflect.TypeOf((*q.RetProcParser)(nil)).Elem(),
+		},
+		Vars: map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
+			"ParseEx":   reflect.ValueOf(q.ParseEx),
 			"ParseFile": reflect.ValueOf(q.ParseFile),
 		},
 		TypedConsts:   map[string]igop.TypedConst{},
