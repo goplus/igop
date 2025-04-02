@@ -30,6 +30,7 @@ func init() {
 		AliasTypes: map[string]reflect.Type{},
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
+			"Diff":       reflect.ValueOf(q.Diff),
 			"Expect":     reflect.ValueOf(q.Expect),
 			"Fprint":     reflect.ValueOf(q.Fprint),
 			"FprintNode": reflect.ValueOf(q.FprintNode),

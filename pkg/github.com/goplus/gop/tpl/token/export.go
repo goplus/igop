@@ -63,7 +63,9 @@ func init() {
 			"NE":             {reflect.TypeOf(q.NE), constant.MakeInt64(int64(q.NE))},
 			"NoPos":          {reflect.TypeOf(q.NoPos), constant.MakeInt64(int64(q.NoPos))},
 			"OR_ASSIGN":      {reflect.TypeOf(q.OR_ASSIGN), constant.MakeInt64(int64(q.OR_ASSIGN))},
+			"POW":            {reflect.TypeOf(q.POW), constant.MakeInt64(int64(q.POW))},
 			"QUO_ASSIGN":     {reflect.TypeOf(q.QUO_ASSIGN), constant.MakeInt64(int64(q.QUO_ASSIGN))},
+			"RAT":            {reflect.TypeOf(q.RAT), constant.MakeInt64(int64(q.RAT))},
 			"REM_ASSIGN":     {reflect.TypeOf(q.REM_ASSIGN), constant.MakeInt64(int64(q.REM_ASSIGN))},
 			"SHL":            {reflect.TypeOf(q.SHL), constant.MakeInt64(int64(q.SHL))},
 			"SHL_ASSIGN":     {reflect.TypeOf(q.SHL_ASSIGN), constant.MakeInt64(int64(q.SHL_ASSIGN))},
@@ -72,6 +74,7 @@ func init() {
 			"SRARROW":        {reflect.TypeOf(q.SRARROW), constant.MakeInt64(int64(q.SRARROW))},
 			"STRING":         {reflect.TypeOf(q.STRING), constant.MakeInt64(int64(q.STRING))},
 			"SUB_ASSIGN":     {reflect.TypeOf(q.SUB_ASSIGN), constant.MakeInt64(int64(q.SUB_ASSIGN))},
+			"UNIT":           {reflect.TypeOf(q.UNIT), constant.MakeInt64(int64(q.UNIT))},
 			"XOR_ASSIGN":     {reflect.TypeOf(q.XOR_ASSIGN), constant.MakeInt64(int64(q.XOR_ASSIGN))},
 		},
 		UntypedConsts: map[string]igop.UntypedConst{
