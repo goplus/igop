@@ -28,6 +28,7 @@ func init() {
 		Vars: map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
 			"Call":         reflect.ValueOf(q.Call),
+			"CallObject":   reflect.ValueOf(q.CallObject),
 			"Compare":      reflect.ValueOf(q.Compare),
 			"Eval":         reflect.ValueOf(q.Eval),
 			"Float":        reflect.ValueOf(q.Float),
