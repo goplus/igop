@@ -33,7 +33,7 @@ func init() {
 			"EvalOp":       reflect.ValueOf(q.EvalOp),
 			"IfElse":       reflect.ValueOf(q.IfElse),
 			"InitUniverse": reflect.ValueOf(q.InitUniverse),
-			"ListOp":       reflect.ValueOf(q.ListOp),
+			"List":         reflect.ValueOf(q.List),
 			"LogicOp":      reflect.ValueOf(q.LogicOp),
 			"MathOp":       reflect.ValueOf(q.MathOp),
 			"RangeOp":      reflect.ValueOf(q.RangeOp),

@@ -38,6 +38,7 @@ func init() {
 			"LogicOp":      reflect.ValueOf(q.LogicOp),
 			"MathOp":       reflect.ValueOf(q.MathOp),
 			"NewModule":    reflect.ValueOf(q.NewModule),
+			"RangeOp":      reflect.ValueOf(q.RangeOp),
 			"UnaryOp":      reflect.ValueOf(q.UnaryOp),
 		},
 		TypedConsts:   map[string]igop.TypedConst{},
