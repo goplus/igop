@@ -21,6 +21,7 @@ import (
 	"fmt"
 	goast "go/ast"
 	"go/types"
+	"os"
 	"path/filepath"
 
 	"github.com/goplus/gogen"
@@ -81,7 +82,7 @@ func BuildFSDir(ctx *igop.Context, fs parser.FileSystem, dir string) (data []byt
 	defer func() {
 		r := recover()
 		if r != nil {
-			err = fmt.Errorf("compile %v failed. %v", dir, err)
+			err = fmt.Errorf("compile %v failed. %v", dir, r)
 		}
 	}()
 	c := NewContext(ctx)
@@ -96,7 +97,7 @@ func BuildDir(ctx *igop.Context, dir string) (data []byte, err error) {
 	defer func() {
 		r := recover()
 		if r != nil {
-			err = fmt.Errorf("compile %v failed. %v", dir, err)
+			err = fmt.Errorf("compile %v failed. %v", dir, r)
 		}
 	}()
 	c := NewContext(ctx)
@@ -109,19 +110,47 @@ func BuildDir(ctx *igop.Context, dir string) (data []byte, err error) {
 
 type Package struct {
 	Fset *token.FileSet
-	Pkg  *gogen.Package
+	Pkgs []*gogen.Package
+}
+
+func (p *Package) MainPkg() *gogen.Package {
+	if len(p.Pkgs) == 0 {
+		return nil
+	}
+	for _, pkg := range p.Pkgs {
+		if pkg.Types.Name() == "main" {
+			return pkg
+		}
+	}
+	return p.Pkgs[0]
 }
 
 func (p *Package) ToSource() ([]byte, error) {
+	pkg := p.MainPkg()
+	if pkg == nil {
+		return nil, os.ErrNotExist
+	}
 	var buf bytes.Buffer
-	if err := p.Pkg.WriteTo(&buf); err != nil {
+	if err := pkg.WriteTo(&buf); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (p *Package) ToAst() *goast.File {
-	return p.Pkg.ASTFile()
+func (p *Package) ToAst() (*goast.File, error) {
+	pkg := p.MainPkg()
+	if pkg == nil {
+		return nil, os.ErrNotExist
+	}
+	return pkg.ASTFile(), nil
+}
+
+func (p *Package) ForEachFile(fn func(pkg *gogen.Package, fname string)) {
+	for _, pkg := range p.Pkgs {
+		pkg.ForEachFile(func(fname string, file *gogen.File) {
+			fn(pkg, fname)
+		})
+	}
 }
 
 type Context struct {
@@ -306,31 +335,28 @@ func (c *Context) ParseFile(fname string, src interface{}) (*Package, error) {
 	return c.loadPackage(srcDir, pkgs)
 }
 
-func (c *Context) loadPackage(srcDir string, pkgs map[string]*ast.Package) (*Package, error) {
-	mainPkg, ok := pkgs["main"]
-	if !ok {
-		for _, v := range pkgs {
-			mainPkg = v
-			break
+func (c *Context) loadPackage(srcDir string, apkgs map[string]*ast.Package) (*Package, error) {
+	var pkgs []*gogen.Package
+	for _, apkg := range apkgs {
+		if c.Context.Mode&igop.DisableCustomBuiltin == 0 {
+			if f, err := igop.ParseBuiltin(c.FileSet, apkg.Name); err == nil {
+				apkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
+			}
 		}
-	}
-	if c.Context.Mode&igop.DisableCustomBuiltin == 0 {
-		if f, err := igop.ParseBuiltin(c.FileSet, mainPkg.Name); err == nil {
-			mainPkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
+		conf := &cl.Config{Fset: c.FileSet}
+		conf.Importer = c
+		conf.LookupClass = func(ext string) (c *cl.Project, ok bool) {
+			c, ok = projects[ext]
+			return
 		}
+		if c.Context.IsEvalMode() {
+			conf.NoSkipConstant = true
+		}
+		out, err := cl.NewPackage("", apkg, conf)
+		if err != nil {
+			return nil, err
+		}
+		pkgs = append(pkgs, out)
 	}
-	conf := &cl.Config{Fset: c.FileSet}
-	conf.Importer = c
-	conf.LookupClass = func(ext string) (c *cl.Project, ok bool) {
-		c, ok = projects[ext]
-		return
-	}
-	if c.Context.IsEvalMode() {
-		conf.NoSkipConstant = true
-	}
-	out, err := cl.NewPackage("", mainPkg, conf)
-	if err != nil {
-		return nil, err
-	}
-	return &Package{c.FileSet, out}, nil
+	return &Package{c.FileSet, pkgs}, nil
 }
