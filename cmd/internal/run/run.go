@@ -26,6 +26,7 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/igop/cmd/internal/flags"
 	"github.com/goplus/igop/cmd/internal/load"
 	"golang.org/x/tools/go/ssa"
 )
@@ -44,8 +45,8 @@ var (
 
 func init() {
 	Cmd.Run = runCmd
-	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|
-		base.OmitVFlag|base.OmitExperimentalGCFlag)
+	flags.AddBuildFlags(Cmd, flags.OmitModFlag|flags.OmitSSAFlag|flags.OmitSSATraceFlag|
+		flags.OmitVFlag|flags.OmitExperimentalGCFlag)
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -64,20 +65,20 @@ func runCmd(cmd *base.Command, args []string) {
 		log.Fatalln("input arg check failed:", err)
 	}
 	var mode igop.Mode
-	if base.BuildSSA {
+	if flags.BuildSSA {
 		mode |= igop.EnableDumpInstr
 	}
-	if base.DebugSSATrace {
+	if flags.DebugSSATrace {
 		mode |= igop.EnableTracing
 	}
-	if base.BuildX {
+	if flags.BuildX {
 		mode |= igop.EnableDumpImports
 	}
-	if base.ExperimentalGC {
+	if flags.ExperimentalGC {
 		mode |= igop.ExperimentalSupportGC
 	}
 	ctx := igop.NewContext(mode)
-	ctx.BuildContext = base.BuildContext
+	ctx.BuildContext = flags.BuildContext
 	ctx.RunContext = context.TODO()
 	var pkg *ssa.Package
 	var input string
@@ -104,7 +105,7 @@ func runCmd(cmd *base.Command, args []string) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
-	if base.BuildV {
+	if flags.BuildV {
 		fmt.Println(pkg.Pkg.Path())
 	}
 	code, err := ctx.RunInterp(interp, input, args)

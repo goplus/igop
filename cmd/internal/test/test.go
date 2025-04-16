@@ -26,6 +26,9 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/igop/cmd/internal/flags"
+	_ "github.com/goplus/igop/pkg/github.com/goplus/igop/x/testdeps"
+	_ "github.com/goplus/igop/pkg/testing"
 )
 
 // Cmd - igop test
@@ -36,8 +39,8 @@ var Cmd = &base.Command{
 
 func init() {
 	Cmd.Run = runCmd
-	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitSSATraceFlag|
-		base.OmitVFlag|base.OmitExperimentalGCFlag)
+	flags.AddBuildFlags(Cmd, flags.OmitModFlag|flags.OmitSSAFlag|flags.OmitSSATraceFlag|
+		flags.OmitVFlag|flags.OmitExperimentalGCFlag)
 }
 
 func runCmd(cmd *base.Command, args []string) {
@@ -91,20 +94,20 @@ func runCmd(cmd *base.Command, args []string) {
 		}
 	})
 	var mode igop.Mode
-	if base.BuildSSA {
+	if flags.BuildSSA {
 		mode |= igop.EnableDumpInstr
 	}
-	if base.DebugSSATrace {
+	if flags.DebugSSATrace {
 		mode |= igop.EnableTracing
 	}
-	if base.BuildX {
+	if flags.BuildX {
 		mode |= igop.EnableDumpImports
 	}
-	if base.ExperimentalGC {
+	if flags.ExperimentalGC {
 		mode |= igop.ExperimentalSupportGC
 	}
 	ctx := igop.NewContext(mode)
-	ctx.BuildContext = base.BuildContext
+	ctx.BuildContext = flags.BuildContext
 
 	pkg, err := ctx.LoadDir(path, true)
 	if err != nil {
