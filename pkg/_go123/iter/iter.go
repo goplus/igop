@@ -194,7 +194,7 @@ import (
 	"runtime"
 	"unsafe"
 
-	"github.com/goplus/igop/race"
+	"github.com/goplus/igop/x/race"
 )
 
 // Seq is an iterator over sequences of individual values.
