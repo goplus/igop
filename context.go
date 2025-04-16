@@ -287,7 +287,7 @@ func (ctx *Context) writeOutput(data []byte) (n int, err error) {
 	return os.Stdout.Write(data)
 }
 
-func (ctx *Context) LoadFS(fsys fs.FS, test bool, importPath string) (pkg *ssa.Package, err error) {
+func (ctx *Context) LoadFS(fsys fs.FS, test bool, getImportPath func(pkgName string, dir string) (string, bool)) (pkg *ssa.Package, err error) {
 	ctx.BuildContext.JoinPath = func(elem ...string) string {
 		return filepath.Join(elem...)
 	}
@@ -314,22 +314,29 @@ func (ctx *Context) LoadFS(fsys fs.FS, test bool, importPath string) (pkg *ssa.P
 	ctx.BuildContext.OpenFile = func(name string) (io.ReadCloser, error) {
 		return fsys.Open(name)
 	}
-	return ctx.LoadDirEx(".", test, importPath)
+	return ctx.LoadDirEx(".", test, getImportPath)
 }
 
 func (ctx *Context) LoadDir(dir string, test bool) (pkg *ssa.Package, err error) {
-	return ctx.LoadDirEx(dir, test, "")
+	return ctx.LoadDirEx(dir, test, func(pkgName string, dir string) (string, bool) {
+		path, err := load.GetImportPath(pkgName, dir)
+		if err != nil {
+			log.Println("GetImportPath error:", err)
+			return "", false
+		}
+		return path, true
+	})
 }
 
-func (ctx *Context) LoadDirEx(dir string, test bool, importPath string) (pkg *ssa.Package, err error) {
+func (ctx *Context) LoadDirEx(dir string, test bool, getImportPath func(pkgName string, dir string) (string, bool)) (pkg *ssa.Package, err error) {
 	bp, err := ctx.BuildContext.ImportDir(dir, 0)
 	if err != nil {
 		return nil, err
 	}
-	if importPath == "" {
-		importPath, err = load.GetImportPath(bp.Name, dir)
-		if err != nil {
-			return nil, err
+	importPath := bp.Name
+	if getImportPath != nil {
+		if path, ok := getImportPath(bp.Name, dir); ok {
+			importPath = path
 		}
 	}
 	bp.ImportPath = importPath
