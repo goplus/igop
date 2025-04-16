@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-// Package build implements the ``igop build'' command.
+// Package build implements the “igop build” command.
 package build
 
 import (
@@ -24,6 +24,7 @@ import (
 
 	"github.com/goplus/igop"
 	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/igop/cmd/internal/flags"
 	"github.com/goplus/igop/cmd/internal/load"
 	"golang.org/x/tools/go/ssa"
 )
@@ -42,7 +43,7 @@ var (
 
 func init() {
 	Cmd.Run = buildCmd
-	base.AddBuildFlags(Cmd, base.OmitModFlag|base.OmitSSAFlag|base.OmitVFlag)
+	flags.AddBuildFlags(Cmd, flags.OmitModFlag|flags.OmitSSAFlag|flags.OmitVFlag)
 }
 
 func buildCmd(cmd *base.Command, args []string) {
@@ -56,14 +57,14 @@ func buildCmd(cmd *base.Command, args []string) {
 	}
 	path := paths[0]
 	var mode igop.Mode
-	if base.BuildSSA {
+	if flags.BuildSSA {
 		mode |= igop.EnableDumpInstr
 	}
-	if base.BuildX {
+	if flags.BuildX {
 		mode |= igop.EnableDumpImports
 	}
 	ctx := igop.NewContext(mode)
-	ctx.BuildContext = base.BuildContext
+	ctx.BuildContext = flags.BuildContext
 	path, _ = filepath.Abs(path)
 	isDir, err := load.IsDir(path)
 	if err != nil {
@@ -92,7 +93,7 @@ func buildCmd(cmd *base.Command, args []string) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
-	if base.BuildV {
+	if flags.BuildV {
 		fmt.Println(pkg.Pkg.Path())
 	}
 }

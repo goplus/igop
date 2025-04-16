@@ -24,6 +24,7 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -34,8 +35,8 @@ import (
 )
 
 // TestMain create testmain data form package
-func TestMain(bp *build.Package) ([]byte, error) {
-	t, err := loadTestFuncs(bp)
+func TestMain(ctx *build.Context, bp *build.Package) ([]byte, error) {
+	t, err := loadTestFuncs(ctx, bp)
 	if err != nil {
 		return nil, err
 	}
@@ -106,18 +107,19 @@ type coverInfo struct {
 // loadTestFuncs returns the testFuncs describing the tests that will be run.
 // The returned testFuncs is always non-nil, even if an error occurred while
 // processing test files.
-func loadTestFuncs(bp *build.Package) (*testFuncs, error) {
+func loadTestFuncs(ctx *build.Context, bp *build.Package) (*testFuncs, error) {
 	t := &testFuncs{
+		Context: ctx,
 		Package: bp,
 	}
 	var err error
 	for _, file := range bp.TestGoFiles {
-		if lerr := t.load(filepath.Join(bp.Dir, file), "_test", &t.ImportTest, &t.NeedTest); lerr != nil && err == nil {
+		if lerr := t.load(t.joinPath(bp.Dir, file), "_test", &t.ImportTest, &t.NeedTest); lerr != nil && err == nil {
 			err = lerr
 		}
 	}
 	for _, file := range bp.XTestGoFiles {
-		if lerr := t.load(filepath.Join(bp.Dir, file), "_xtest", &t.ImportXtest, &t.NeedXtest); lerr != nil && err == nil {
+		if lerr := t.load(t.joinPath(bp.Dir, file), "_xtest", &t.ImportXtest, &t.NeedXtest); lerr != nil && err == nil {
 			err = lerr
 		}
 	}
@@ -139,6 +141,7 @@ type testFuncs struct {
 	FuzzTargets []testFunc
 	Examples    []testFunc
 	TestMain    *testFunc
+	Context     *build.Context
 	Package     *build.Package
 	ImportTest  bool
 	NeedTest    bool
@@ -185,9 +188,29 @@ type testFunc struct {
 
 var testFileSet = token.NewFileSet()
 
+// joinPath calls ctxt.JoinPath (if not nil) or else filepath.Join.
+func (t *testFuncs) joinPath(elem ...string) string {
+	if f := t.Context.JoinPath; f != nil {
+		return f(elem...)
+	}
+	return filepath.Join(elem...)
+}
+
+func (t *testFuncs) openFile(path string) (io.ReadCloser, error) {
+	if fn := t.Context.OpenFile; fn != nil {
+		return fn(path)
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err // nil interface
+	}
+	return f, nil
+}
+
 func (t *testFuncs) load(filename, pkg string, doImport, seen *bool) error {
 	// Pass in the overlaid source if we have an overlay for this file.
-	src, err := os.Open(filename)
+	src, err := t.openFile(filename)
 	if err != nil {
 		return err
 	}

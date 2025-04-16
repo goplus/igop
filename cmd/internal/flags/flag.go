@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package base
+package flags
 
 import (
 	"go/build"
-	"runtime"
 	"strings"
 
+	"github.com/goplus/igop/cmd/internal/base"
 	"github.com/goplus/igop/load"
 )
 
@@ -36,7 +36,6 @@ var (
 )
 
 func defaultContext() build.Context {
-	runtime.GC()
 	return build.Default
 }
 
@@ -52,7 +51,7 @@ const (
 )
 
 // AddBuildFlags adds the flags common to the build, run, and test commands.
-func AddBuildFlags(cmd *Command, mask BuildFlagMask) {
+func AddBuildFlags(cmd *base.Command, mask BuildFlagMask) {
 	cmd.Flag.BoolVar(&BuildX, "x", false, "print the commands.")
 	if mask&OmitVFlag != 0 {
 		cmd.Flag.BoolVar(&BuildV, "v", false, "print the names of packages as they are compiled.")

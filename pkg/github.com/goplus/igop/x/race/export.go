@@ -3,7 +3,7 @@
 package race
 
 import (
-	q "github.com/goplus/igop/race"
+	q "github.com/goplus/igop/x/race"
 
 	"go/constant"
 	"reflect"
@@ -14,7 +14,7 @@ import (
 func init() {
 	igop.RegisterPackage(&igop.Package{
 		Name: "race",
-		Path: "github.com/goplus/igop/race",
+		Path: "github.com/goplus/igop/x/race",
 		Deps: map[string]string{
 			"unsafe": "unsafe",
 		},
