@@ -583,6 +583,10 @@ func SetValue(v reflect.Value, x reflect.Value) {
 		v.SetString(x.String())
 	case reflect.UnsafePointer:
 		v.SetPointer(unsafe.Pointer(x.Pointer()))
+	case reflect.Struct:
+		// force set
+		(*reflectValue)(unsafe.Pointer(&x)).typ = (*reflectValue)(unsafe.Pointer(&v)).typ
+		v.Set(x)
 	default:
 		v.Set(x)
 	}

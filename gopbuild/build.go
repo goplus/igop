@@ -61,6 +61,7 @@ func init() {
 	igop.RegisterFileProcess(".gsh", BuildFile)
 	RegisterClassFileType(".gmx", "Game", []*Class{{Ext: ".spx", Class: "Sprite"}}, "github.com/goplus/spx", "math")
 	RegisterClassFileType(".gsh", "App", nil, "github.com/qiniu/x/gsh", "math")
+	RegisterClassFileType("_test.gox", "App", []*Class{{Ext: "_test.gox", Class: "Case"}}, "github.com/goplus/gop/test")
 }
 
 func BuildFile(ctx *igop.Context, filename string, src interface{}) (data []byte, err error) {

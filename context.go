@@ -120,6 +120,10 @@ type SourcePackage struct {
 	Register bool // register package
 }
 
+func (sp *SourcePackage) Loaded() bool {
+	return sp.Info != nil
+}
+
 func (sp *SourcePackage) Load() (err error) {
 	if sp.Info == nil {
 		sp.Info = newTypesInfo()
@@ -811,7 +815,6 @@ func (ctx *Context) buildPackage(sp *SourcePackage) (pkg *ssa.Package, err error
 		for _, p := range pkgs {
 			if !created[p] {
 				created[p] = true
-				createAll(p.Imports())
 				if pkg, ok := ctx.pkgs[p.Path()]; ok {
 					if ctx.Mode&EnableDumpImports != 0 {
 						if pkg.Dir != "" {
@@ -822,9 +825,14 @@ func (ctx *Context) buildPackage(sp *SourcePackage) (pkg *ssa.Package, err error
 							fmt.Println("# source", p.Path(), "<memory>")
 						}
 					}
+					if !pkg.Loaded() {
+						continue
+					}
+					createAll(p.Imports())
 					prog.CreatePackage(p, pkg.Files, pkg.Info, true).Build()
 					ctx.checkNested(pkg.Package, pkg.Info)
 				} else {
+					createAll(p.Imports())
 					var indirect bool
 					if !p.Complete() {
 						indirect = true
