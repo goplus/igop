@@ -38,6 +38,9 @@ import (
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/scanner"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/token"
 
+	// test
+	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/test"
+
 	// tpl
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl/ast"
