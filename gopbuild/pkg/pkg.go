@@ -10,17 +10,35 @@ package pkg
 //go:generate go run ../../cmd/qexp -outdir ../../pkg github.com/goplus/gop/scanner
 //go:generate go run ../../cmd/qexp -outdir ../../pkg github.com/goplus/gop/token
 //go:generate go run ../../cmd/qexp -outdir ../../pkg github.com/goplus/gop/tpl/...
+//go:generate go run ../../cmd/qexp -outdir ../../pkg -code github.com/goplus/gop/test
 
 import (
-	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/ast"
+	// builtin
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/iox"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/ng"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/stringslice"
+
+	_ "github.com/goplus/igop/pkg/errors"
+	_ "github.com/goplus/igop/pkg/fmt"
+	_ "github.com/goplus/igop/pkg/io"
+	_ "github.com/goplus/igop/pkg/math"
+	_ "github.com/goplus/igop/pkg/math/big"
+	_ "github.com/goplus/igop/pkg/reflect"
+	_ "github.com/goplus/igop/pkg/strconv"
+	_ "github.com/goplus/igop/pkg/strings"
+
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/errors"
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/stringutil"
+
+	// gop
+	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/ast"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/parser"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/printer"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/scanner"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/token"
+
+	// tpl
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl/ast"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl/cl"
@@ -39,18 +57,9 @@ import (
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl/variant/delay"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl/variant/math"
 	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/tpl/variant/time"
-	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/errors"
-	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/gsh"
-	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/stringutil"
 
-	_ "github.com/goplus/igop/pkg/errors"
-	_ "github.com/goplus/igop/pkg/fmt"
-	_ "github.com/goplus/igop/pkg/io"
-	_ "github.com/goplus/igop/pkg/math"
-	_ "github.com/goplus/igop/pkg/math/big"
+	// gsh
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/gsh"
 	_ "github.com/goplus/igop/pkg/os"
 	_ "github.com/goplus/igop/pkg/os/exec"
-	_ "github.com/goplus/igop/pkg/reflect"
-	_ "github.com/goplus/igop/pkg/strconv"
-	_ "github.com/goplus/igop/pkg/strings"
 )
