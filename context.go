@@ -522,8 +522,16 @@ func (ctx *Context) loadTestPackage(bp *build.Package, path string, dir string) 
 	if embed != nil {
 		files = append(files, embed)
 	}
+	// fix pkg name
+	name := bp.Name
+	if name == "main" {
+		name = "main@test"
+		for _, f := range files {
+			f.Name.Name = name
+		}
+	}
 	tp := &SourcePackage{
-		Package: types.NewPackage(path, bp.Name),
+		Package: types.NewPackage(path, name),
 		Files:   files,
 		Dir:     dir,
 		Context: ctx,
