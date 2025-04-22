@@ -415,7 +415,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 			log.Panicf("unreachable %v %T\n", name, t)
 		}
 	}
-	if flagExportSource && foundGeneric {
+	if (flagExportSource && foundGeneric) || flagExportCode {
 		if err := p.ExportSource(e, info); err != nil {
 			log.Println("export source failed", err)
 		}
