@@ -345,7 +345,7 @@ func findExternFunc(interp *Interp, fn *ssa.Function) (ext reflect.Value, ok boo
 	}
 	if fn.Pkg != nil {
 		if recv := fn.Signature.Recv(); recv == nil {
-			if pkg, found := interp.installed(fn.Pkg.Pkg.Path()); found {
+			if pkg, found := LookupPackage(fn.Pkg.Pkg.Path()); found {
 				ext, ok = pkg.Funcs[fn.Name()]
 			}
 		} else if typ, found := interp.ctx.Loader.LookupReflect(recv.Type()); found {
