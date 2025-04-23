@@ -148,6 +148,7 @@ package main
 import (
 	"github.com/goplus/igop"
 	_ "github.com/goplus/igop/gopbuild"
+	_ "github.com/goplus/igop/gopbuild/pkg"
 )
 
 var gopSrc string = `
@@ -157,7 +158,7 @@ fields := [
 	"and data science",
 ]
 
-println "The Go+ language for", fields.join(", ")
+echo "The Go+ language for", fields.join(", ")
 `
 
 func main() {
