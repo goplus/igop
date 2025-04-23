@@ -2,18 +2,18 @@ module github.com/goplus/igop/igop
 
 go 1.23
 
-require github.com/goplus/igop v0.36.0
+require github.com/goplus/igop v0.39.1
 
 require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
-	github.com/goplus/gogen v1.16.9 // indirect
-	github.com/goplus/gop v1.3.8 // indirect
-	github.com/goplus/mod v0.13.17 // indirect
+	github.com/goplus/gogen v1.17.2 // indirect
+	github.com/goplus/gop v1.4.0 // indirect
+	github.com/goplus/mod v0.16.0 // indirect
 	github.com/goplus/reflectx v1.3.2 // indirect
 	github.com/mattn/go-runewidth v0.0.3 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/peterh/liner v1.2.2 // indirect
-	github.com/qiniu/x v1.13.12 // indirect
+	github.com/qiniu/x v1.13.19 // indirect
 	github.com/timandy/routine v1.1.4 // indirect
 	github.com/visualfc/funcval v0.1.4 // indirect
 	github.com/visualfc/gid v0.2.0 // indirect
