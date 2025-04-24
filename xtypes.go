@@ -262,7 +262,7 @@ func (r *TypesRecord) ToType(typ types.Type) (reflect.Type, bool) {
 		elem, nested = r.ToType(t.Elem())
 		rt = reflect.ChanOf(toReflectChanDir(t.Dir()), elem)
 	case *types.Struct:
-		rt, nested = r.toStructType(t)
+		rt, nested = r.toStructType(t, true)
 	case *types.Named:
 		rt, nested = r.toNamedType(t)
 	case *types.Interface:
@@ -342,7 +342,12 @@ func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
 		typ = r.rctx.NewMethodSet(typ, mcount, pcount)
 	}
 	r.saveType(t, typ, nested)
-	utype, _ := r.ToType(ut)
+	var utype reflect.Type
+	if st, ok := ut.(*types.Struct); ok {
+		utype, _ = r.toStructType(st, false)
+	} else {
+		utype, _ = r.ToType(ut)
+	}
 	reflectx.SetUnderlying(typ, utype)
 	if typeargs {
 		pkgpath, name, _, _ = r.extractNamed(t, true)
@@ -354,7 +359,7 @@ func (r *TypesRecord) toNamedType(t *types.Named) (reflect.Type, bool) {
 	return typ, nested
 }
 
-func (r *TypesRecord) toStructType(t *types.Struct) (reflect.Type, bool) {
+func (r *TypesRecord) toStructType(t *types.Struct, mset bool) (reflect.Type, bool) {
 	n := t.NumFields()
 	if n == 0 {
 		return tyEmptyStruct, false
@@ -370,19 +375,21 @@ func (r *TypesRecord) toStructType(t *types.Struct) (reflect.Type, bool) {
 		flds[i] = r.toStructField(f, typ, t.Tag(i))
 	}
 	typ := r.rctx.StructOf(flds)
-	methods := typeutil.IntuitiveMethodSet(t, nil)
-	if numMethods := len(methods); numMethods != 0 {
-		// anonymous structs with methods. struct { T }
-		var mcount, pcount int
-		for i := 0; i < numMethods; i++ {
-			sig := methods[i].Type().(*types.Signature)
-			if !isPointer(sig.Recv().Type()) {
-				mcount++
+	if mset {
+		methods := typeutil.IntuitiveMethodSet(t, nil)
+		if numMethods := len(methods); numMethods != 0 {
+			// anonymous structs with methods. struct { T }
+			var mcount, pcount int
+			for i := 0; i < numMethods; i++ {
+				sig := methods[i].Type().(*types.Signature)
+				if !isPointer(sig.Recv().Type()) {
+					mcount++
+				}
+				pcount++
 			}
-			pcount++
+			typ = r.rctx.NewMethodSet(typ, mcount, pcount)
+			r.setMethods(typ, methods)
 		}
-		typ = r.rctx.NewMethodSet(typ, mcount, pcount)
-		r.setMethods(typ, methods)
 	}
 	return typ, nested
 }

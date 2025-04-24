@@ -47,16 +47,17 @@ import (
 type Mode uint
 
 const (
-	DisableRecover        Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
-	DisableCustomBuiltin                   // Disable load custom builtin func
-	EnableDumpImports                      // print import packages
-	EnableDumpInstr                        // Print packages & SSA instruction code
-	EnableTracing                          // Print a trace of all instructions as they are interpreted.
-	EnablePrintAny                         // Enable builtin print for any type ( struct/array )
-	EnableNoStrict                         // Enable no strict mode
-	ExperimentalSupportGC                  // experimental support runtime.GC
-	SupportMultipleInterp                  // Support multiple interp, must manual release interp reflectx icall.
-	CheckGopOverloadFunc                   // Check and skip gop overload func
+	DisableRecover           Mode = 1 << iota // Disable recover() in target programs; show interpreter crash instead.
+	DisableCustomBuiltin                      // Disable load custom builtin func
+	EnableDumpImports                         // print import packages
+	EnableDumpInstr                           // Print packages & SSA instruction code
+	EnableTracing                             // Print a trace of all instructions as they are interpreted.
+	EnablePrintAny                            // Enable builtin print for any type ( struct/array )
+	EnableNoStrict                            // Enable no strict mode
+	ExperimentalSupportGC                     // experimental support runtime.GC
+	SupportMultipleInterp                     // Support multiple interp, must manual release interp reflectx icall.
+	CheckGopOverloadFunc                      // Check and skip gop overload func
+	DisableImethodForReflect                  // Disable support reflect.Value.Method.Call for less imethod and memory space.
 )
 
 // Loader types loader interface
