@@ -1172,12 +1172,33 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 	} else {
 		rctx = reflectx.NewContext()
 	}
+	prog := mainpkg.Prog
+	imethods := make(map[string]*types.Signature)
+	for _, pkg := range prog.AllPackages() {
+		for _, member := range pkg.Members {
+			if iface, ok := member.Type().Underlying().(*types.Interface); ok {
+				for i := 0; i < iface.NumMethods(); i++ {
+					m := iface.Method(i)
+					imethods[m.Name()] = m.Type().(*types.Signature)
+				}
+			}
+		}
+	}
+	rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
+		if (ctx.Mode&DisableImethodForReflect == 0) && ast.IsExported(method.Name) {
+			return true
+		}
+		if _, ok := imethods[method.Name]; ok {
+			return true
+		}
+		return false
+	})
 	i.record = NewTypesRecord(rctx, ctx.Loader, i, ctx.nestedMap)
 	i.record.Load(mainpkg)
 
 	var pkgs []*ssa.Package
 
-	for _, pkg := range mainpkg.Prog.AllPackages() {
+	for _, pkg := range prog.AllPackages() {
 		// skip external pkg
 		if pkg.Func("init").Blocks == nil {
 			continue
