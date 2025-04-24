@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/gopbuild/pkg"
+	_ "github.com/goplus/igop/gopbuild/pkg/gsh"
 	_ "github.com/goplus/igop/pkg/bytes"
 )
 
