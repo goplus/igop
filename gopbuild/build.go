@@ -33,14 +33,16 @@ import (
 	"github.com/goplus/mod/modfile"
 )
 
-type Class = cl.Class
+type Class = modfile.Class
+type Project = modfile.Project
+type Import = modfile.Import
 
 var (
-	projects = make(map[string]*cl.Project)
+	projects = make(map[string]*modfile.Project)
 )
 
-func RegisterClassFileType(ext string, class string, works []*Class, pkgPaths ...string) {
-	cls := &cl.Project{
+func RegisterClassFileType(ext string, class string, works []*modfile.Class, pkgPaths ...string) {
+	cls := &modfile.Project{
 		Ext:      ext,
 		Class:    class,
 		Works:    works,
@@ -51,6 +53,15 @@ func RegisterClassFileType(ext string, class string, works []*Class, pkgPaths ..
 	}
 	for _, w := range works {
 		projects[w.Ext] = cls
+	}
+}
+
+func RegisterProject(proj *modfile.Project) {
+	if proj.Ext != "" {
+		projects[proj.Ext] = proj
+	}
+	for _, w := range proj.Works {
+		projects[w.Ext] = proj
 	}
 }
 

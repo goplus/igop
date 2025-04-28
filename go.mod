@@ -3,8 +3,7 @@ module github.com/goplus/igop
 go 1.18
 
 require (
-	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00
-	github.com/goplus/gogen v1.17.2
+	github.com/goplus/gogen v1.17.3
 	github.com/goplus/gop v1.4.0
 	github.com/goplus/mod v0.16.0
 	github.com/goplus/reflectx v1.4.0
@@ -20,6 +19,7 @@ require (
 )
 
 require (
+	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/mattn/go-runewidth v0.0.3 // indirect
 	github.com/timandy/routine v1.1.4 // indirect
 	golang.org/x/sys v0.21.0 // indirect
