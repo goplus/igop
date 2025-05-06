@@ -33,7 +33,7 @@ support ABI0 and ABIInternal
 
 ### Generics
 
-- support generics (Go1.18 ~ Go1.23)
+- support generics (Go1.18 ~ Go1.24)
 - support [Go1.20 nested type-parameterized declarations](https://github.com/golang/go/blob/master/test/typeparam/nested.go) on Go1.18/Go1.19 (Experimental)
 
 ### runtime.GC
