@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.20 && !go1.21 && js
-// +build go1.20,!go1.21,js
+//go:build go1.23 && !go1.24 && js
+// +build go1.23,!go1.24,js
 
 package js
 
