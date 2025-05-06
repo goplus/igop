@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.23
-// +build go1.23
+//go:build go1.23 && !go1.24
+// +build go1.23,!go1.24
 
 package slices
 

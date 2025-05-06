@@ -60,7 +60,7 @@ func init() {
 	// Go 1.17 1.18 ulp = 0
 	ver := runtime.Version()[:6]
 	switch ver {
-	case "go1.17", "go1.18", "go1.19", "go1.20", "go1.21", "go1.22", "go1.23":
+	case "go1.17", "go1.18", "go1.19", "go1.20", "go1.21", "go1.22", "go1.23", "go1.24":
 		// gorootTestSkips["fixedbugs/issue45045.go"] = "runtime.SetFinalizer"
 		// gorootTestSkips["fixedbugs/issue46725.go"] = "runtime.SetFinalizer"
 		gorootTestSkips["abi/fibish.go"] = "slow, 34s"
@@ -87,7 +87,7 @@ func init() {
 			gorootTestSkips["typeparam/cons.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
 			gorootTestSkips["typeparam/list2.go"] = "skip golang.org/x/tools v0.7.0 on go1.18"
 		}
-		if ver == "go1.22" || ver == "go1.23" {
+		if ver == "go1.22" || ver == "go1.23" || ver == "go1.24" {
 			gorootTestSkips["fixedbugs/bug369.go"] = "skip command"
 			gorootTestSkips["fixedbugs/issue10607.go"] = "skip command"
 			gorootTestSkips["fixedbugs/issue21317.go"] = "skip command"
@@ -116,7 +116,7 @@ func init() {
 		gorootTestSkips["fixedbugs/issue15002.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5493.go"] = "skip windows"
 		gorootTestSkips["fixedbugs/issue5963.go"] = "skip windows"
-		if ver == "go1.22" || ver == "go1.23" {
+		if ver == "go1.22" || ver == "go1.23" || ver == "go1.24" {
 			gorootTestSkips["recover4.go"] = "skip windows"
 			gorootTestSkips["sigchld.go"] = "skip windows"
 		}
