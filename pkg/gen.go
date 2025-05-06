@@ -39,8 +39,12 @@ func main() {
 	var name string
 	var fname string
 	switch gover {
+	case "go1.24":
+		tags = "//+build go1.24"
+		name = "go124_export"
+		fname = "go124_pkgs.go"
 	case "go1.23":
-		tags = "//+build go1.23"
+		tags = "//+build go1.23,!go1.24"
 		name = "go123_export"
 		fname = "go123_pkgs.go"
 	case "go1.22":
@@ -130,14 +134,15 @@ func main() {
 		}
 	}
 
-	if gover == "go1.23" {
+	switch gover {
+	case "go1.23", "go1.24":
 		for _, pkg := range []string{"iter", "maps"} {
-			log.Printf("export go1.23 %v patch", pkg)
-			data, err := os.ReadFile("./_go123/" + pkg + "_export.go")
+			log.Printf("export %v: %v patch", pkg, pkg+"/"+fname)
+			data, err := os.ReadFile("./_" + strings.Replace(gover, ".", "", -1) + "/" + pkg + "_export.go")
 			if err != nil {
 				panic(err)
 			}
-			err = os.WriteFile("./"+pkg+"/go123_export.go", data, 0666)
+			err = os.WriteFile("./"+pkg+"/"+name+".go", data, 0666)
 			if err != nil {
 				panic(err)
 			}
@@ -222,7 +227,7 @@ func isSkipPkg(pkg string) bool {
 	case "runtime/cgo", "runtime/race":
 		return true
 	case "plugin":
-		if gover == "go1.23" {
+		if gover == "go1.23" || gover == "go1.24" {
 			return true
 		}
 	default:

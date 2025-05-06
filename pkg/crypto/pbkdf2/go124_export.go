@@ -1,0 +1,26 @@
+// export by github.com/goplus/igop/cmd/qexp
+
+//go:build go1.24
+// +build go1.24
+
+package pbkdf2
+
+import (
+	_ "crypto/pbkdf2"
+
+	"github.com/goplus/igop"
+)
+
+func init() {
+	igop.RegisterPackage(&igop.Package{
+		Name: "pbkdf2",
+		Path: "crypto/pbkdf2",
+		Deps: map[string]string{
+			"crypto/internal/fips140/pbkdf2": "pbkdf2",
+			"crypto/internal/fips140hash":    "fips140hash",
+			"crypto/internal/fips140only":    "fips140only",
+			"errors":                         "errors",
+			"hash":                           "hash",
+		},
+	})
+}

@@ -1,6 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//+build go1.14,!go1.15
+//go:build go1.14 && !go1.15
+// +build go1.14,!go1.15
 
 package unicode
 
