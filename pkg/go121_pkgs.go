@@ -145,7 +145,6 @@ import (
 	_ "github.com/goplus/igop/pkg/sync"
 	_ "github.com/goplus/igop/pkg/sync/atomic"
 	_ "github.com/goplus/igop/pkg/syscall"
-	_ "github.com/goplus/igop/pkg/testing"
 	_ "github.com/goplus/igop/pkg/text/scanner"
 	_ "github.com/goplus/igop/pkg/text/tabwriter"
 	_ "github.com/goplus/igop/pkg/text/template"

@@ -1,7 +1,7 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-//go:build go1.20 && !go1.21 && js
-// +build go1.20,!go1.21,js
+//go:build go1.24 && js
+// +build go1.24,js
 
 package js
 
@@ -19,9 +19,10 @@ func init() {
 		Name: "js",
 		Path: "syscall/js",
 		Deps: map[string]string{
-			"runtime": "runtime",
-			"sync":    "sync",
-			"unsafe":  "unsafe",
+			"internal/synctest": "synctest",
+			"runtime":           "runtime",
+			"sync":              "sync",
+			"unsafe":            "unsafe",
 		},
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]reflect.Type{
