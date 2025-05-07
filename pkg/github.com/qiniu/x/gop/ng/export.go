@@ -3,7 +3,7 @@
 package ng
 
 import (
-	q "github.com/goplus/gop/builtin/ng"
+	q "github.com/qiniu/x/gop/ng"
 
 	"go/constant"
 	"go/token"
@@ -15,7 +15,7 @@ import (
 func init() {
 	igop.RegisterPackage(&igop.Package{
 		Name: "ng",
-		Path: "github.com/goplus/gop/builtin/ng",
+		Path: "github.com/qiniu/x/gop/ng",
 		Deps: map[string]string{
 			"fmt":       "fmt",
 			"log":       "log",
