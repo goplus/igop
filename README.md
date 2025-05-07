@@ -27,9 +27,9 @@ support ABI0 and ABIInternal
     - Go1.19: amd64 arm64 ppc64/ppc64le riscv64
     - Go1.20: amd64 arm64 ppc64/ppc64le riscv64
     - Go1.21: amd64 arm64 ppc64/ppc64le riscv64
-    - Go1.22: amd64 arm64 ppc64/ppc64le riscv64
-    - Go1.23: amd64 arm64 ppc64/ppc64le riscv64
-    - Go1.24: amd64 arm64 ppc64/ppc64le riscv64
+    - Go1.22: amd64 arm64 ppc64/ppc64le riscv64 loong64
+    - Go1.23: amd64 arm64 ppc64/ppc64le riscv64 loong64
+    - Go1.24: amd64 arm64 ppc64/ppc64le riscv64 loong64
 
 ### Generics
 
