@@ -52,7 +52,7 @@ go install github.com/goplus/igop/cmd/igop@latest
 
 Go version >= 1.23
 ```
-go install -ldflags="-checklinkname=0" github.com/goplus/igop/igop@v0.23.8
+go install -ldflags="-checklinkname=0" github.com/goplus/igop/igop@v0.23.9
 ```
 
 ### igop command
