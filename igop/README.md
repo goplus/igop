@@ -5,7 +5,7 @@
 - build use `-ldflags="-checklinkname=0"` for support linkname
 
 ### Install igop for Go version >= 1.23
-`go install -ldflags="-checklinkname=0" github.com/goplus/igop/igop@v0.23.8`
+`go install -ldflags="-checklinkname=0" github.com/goplus/igop/igop@v0.23.9`
 
 
 ### Local development environment
