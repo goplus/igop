@@ -58,6 +58,7 @@ const (
 	SupportMultipleInterp                     // Support multiple interp, must manual release interp reflectx icall.
 	CheckGopOverloadFunc                      // Check and skip gop overload func
 	DisableImethodForReflect                  // Disable support reflect.Value.Method.Call for less imethod and memory space.
+	DisableAutoLoadPatchs                     // Disable automatic loading of package patches.
 )
 
 // Loader types loader interface
@@ -187,6 +188,14 @@ func NewContext(mode Mode) *Context {
 	ctx.sizes = types.SizesFor("gc", runtime.GOARCH)
 	ctx.Lookup = new(load.ListDriver).Lookup
 
+	if mode&DisableAutoLoadPatchs == 0 {
+		for path, src := range registerPatchs {
+			err := ctx.AddImportFile(path, path+".go", src)
+			if err != nil {
+				log.Printf("import %v failed: %v\n", path, err)
+			}
+		}
+	}
 	return ctx
 }
 

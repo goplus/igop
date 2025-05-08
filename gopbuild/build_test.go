@@ -23,6 +23,7 @@ import (
 
 	"github.com/goplus/igop"
 	_ "github.com/goplus/igop/gopbuild/pkg/gsh"
+	_ "github.com/goplus/igop/gopbuild/pkg/tpl"
 	_ "github.com/goplus/igop/pkg/bytes"
 )
 
@@ -571,6 +572,92 @@ import (
 func main() {
 //line main.gop:2:1
 	fmt.Println(reflect.TypeOf(100))
+}
+`)
+}
+
+func TestTplPatch(t *testing.T) {
+	gopClTest(t, `import "gop/tpl"
+
+cl := tpl`+"`"+`
+expr = INT % "," => {
+    return tpl.ListOp[int](self, v => {
+        return v.(*tpl.Token).Lit.int!
+    })
+}
+`+"`"+`!
+
+echo cl.parseExpr("1, 2, 3", nil)!
+`, `package main
+
+import (
+	"fmt"
+	"github.com/goplus/gop/tpl"
+	"github.com/goplus/gop/tpl/types"
+	tpl1 "github.com/goplus/gop/tpl@patch"
+	"github.com/qiniu/x/errors"
+	"strconv"
+)
+//line main.gop:3
+func main() {
+//line main.gop:3:1
+	cl := func() (_gop_ret tpl.Compiler) {
+//line main.gop:3:1
+		var _gop_err error
+//line main.gop:3:1
+		_gop_ret, _gop_err = tpl.NewEx(`+"`"+`
+expr = INT % "," => {
+    return tpl.ListOp[int](self, v => {
+        return v.(*tpl.Token).Lit.int!
+    })
+}
+`+"`"+`, "main.gop", 3, 10, "expr", func(self []interface{}) interface{} {
+//line main.gop:5:1
+			return tpl1.ListOp[int](self, func(v any) int {
+//line main.gop:6:1
+				return func() (_gop_ret int) {
+//line main.gop:6:1
+					var _gop_err error
+//line main.gop:6:1
+					_gop_ret, _gop_err = strconv.Atoi(v.(*types.Token).Lit)
+//line main.gop:6:1
+					if _gop_err != nil {
+//line main.gop:6:1
+						_gop_err = errors.NewFrame(_gop_err, "v.(*tpl.Token).Lit.int", "main.gop", 6, "main.main")
+//line main.gop:6:1
+						panic(_gop_err)
+					}
+//line main.gop:6:1
+					return
+				}()
+			})
+		})
+//line main.gop:3:1
+		if _gop_err != nil {
+//line main.gop:3:1
+			_gop_err = errors.NewFrame(_gop_err, "tpl`+"`"+`\nexpr = INT % \",\" => {\n    return tpl.ListOp[int](self, v => {\n        return v.(*tpl.Token).Lit.int!\n    })\n}\n`+"`"+`", "main.gop", 3, "main.main")
+//line main.gop:3:1
+			panic(_gop_err)
+		}
+//line main.gop:3:1
+		return
+	}()
+//line main.gop:11:1
+	fmt.Println(func() (_gop_ret interface{}) {
+//line main.gop:11:1
+		var _gop_err error
+//line main.gop:11:1
+		_gop_ret, _gop_err = cl.ParseExpr("1, 2, 3", nil)
+//line main.gop:11:1
+		if _gop_err != nil {
+//line main.gop:11:1
+			_gop_err = errors.NewFrame(_gop_err, "cl.parseExpr(\"1, 2, 3\", nil)", "main.gop", 11, "main.main")
+//line main.gop:11:1
+			panic(_gop_err)
+		}
+//line main.gop:11:1
+		return
+	}())
 }
 `)
 }

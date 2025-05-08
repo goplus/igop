@@ -237,40 +237,38 @@ func (c *Context) Import(path string) (*types.Package, error) {
 	if pkg, ok := c.pkgs[path]; ok {
 		return pkg, nil
 	}
-	gop, pkg, err := c.importPath(path)
+	_, pkg, err := c.importPath(path)
 	if err != nil {
 		return pkg, err
 	}
 	c.pkgs[path] = pkg
-	if gop {
-		if sp := c.Context.SourcePackage(path + "@patch.gop"); sp != nil {
-			sp.Importer = c
-			err := sp.Load()
-			if err != nil {
-				return nil, err
-			}
-			patch := types.NewPackage(path+"@patch", pkg.Name())
-			for _, name := range sp.Package.Scope().Names() {
-				obj := sp.Package.Scope().Lookup(name)
-				switch obj.(type) {
-				case *types.Func:
-					obj = types.NewFunc(obj.Pos(), patch, obj.Name(), obj.Type().(*types.Signature))
-				case *types.TypeName:
-					named := obj.Type().(*types.Named)
-					var methods []*types.Func
-					if n := named.NumMethods(); n > 0 {
-						methods = make([]*types.Func, n)
-						for i := 0; i < n; i++ {
-							methods[i] = named.Method(i)
-						}
+	if sp := c.Context.SourcePackage(path + "@patch.gop"); sp != nil {
+		sp.Importer = c
+		err := sp.Load()
+		if err != nil {
+			return nil, err
+		}
+		patch := types.NewPackage(path+"@patch", pkg.Name())
+		for _, name := range sp.Package.Scope().Names() {
+			obj := sp.Package.Scope().Lookup(name)
+			switch obj.(type) {
+			case *types.Func:
+				obj = types.NewFunc(obj.Pos(), patch, obj.Name(), obj.Type().(*types.Signature))
+			case *types.TypeName:
+				named := obj.Type().(*types.Named)
+				var methods []*types.Func
+				if n := named.NumMethods(); n > 0 {
+					methods = make([]*types.Func, n)
+					for i := 0; i < n; i++ {
+						methods[i] = named.Method(i)
 					}
-					obj = types.NewTypeName(obj.Pos(), patch, obj.Name(), nil)
-					types.NewNamed(obj.(*types.TypeName), named.Underlying(), methods)
-				default:
-					continue
 				}
-				pkg.Scope().Insert(obj)
+				obj = types.NewTypeName(obj.Pos(), patch, obj.Name(), nil)
+				types.NewNamed(obj.(*types.TypeName), named.Underlying(), methods)
+			default:
+				continue
 			}
+			pkg.Scope().Insert(obj)
 		}
 	}
 	return pkg, nil
