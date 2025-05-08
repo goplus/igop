@@ -3,7 +3,7 @@
 package stringslice
 
 import (
-	q "github.com/goplus/gop/builtin/stringslice"
+	q "github.com/qiniu/x/stringslice"
 
 	"reflect"
 
@@ -13,7 +13,7 @@ import (
 func init() {
 	igop.RegisterPackage(&igop.Package{
 		Name: "stringslice",
-		Path: "github.com/goplus/gop/builtin/stringslice",
+		Path: "github.com/qiniu/x/stringslice",
 		Deps: map[string]string{
 			"github.com/qiniu/x/stringutil": "stringutil",
 			"strings":                       "strings",

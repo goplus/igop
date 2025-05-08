@@ -3,13 +3,13 @@ module github.com/goplus/igop
 go 1.18
 
 require (
-	github.com/goplus/gogen v1.17.3
-	github.com/goplus/gop v1.4.0
-	github.com/goplus/mod v0.16.0
+	github.com/goplus/gogen v1.18.0
+	github.com/goplus/gop v1.4.5
+	github.com/goplus/mod v0.16.1
 	github.com/goplus/reflectx v1.4.2
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/peterh/liner v1.2.2
-	github.com/qiniu/x v1.13.19
+	github.com/qiniu/x v1.14.0
 	github.com/visualfc/funcval v0.1.4
 	github.com/visualfc/gid v0.2.0
 	github.com/visualfc/goembed v0.3.2

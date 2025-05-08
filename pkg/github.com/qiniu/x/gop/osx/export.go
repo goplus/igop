@@ -1,9 +1,9 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-package iox
+package osx
 
 import (
-	q "github.com/goplus/gop/builtin/iox"
+	q "github.com/qiniu/x/gop/osx"
 
 	"reflect"
 
@@ -12,11 +12,13 @@ import (
 
 func init() {
 	igop.RegisterPackage(&igop.Package{
-		Name: "iox",
-		Path: "github.com/goplus/gop/builtin/iox",
+		Name: "osx",
+		Path: "github.com/qiniu/x/gop/osx",
 		Deps: map[string]string{
 			"bufio": "bufio",
+			"fmt":   "fmt",
 			"io":    "io",
+			"os":    "os",
 		},
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]reflect.Type{
@@ -31,6 +33,8 @@ func init() {
 			"BLines":     reflect.ValueOf(q.BLines),
 			"EnumBLines": reflect.ValueOf(q.EnumBLines),
 			"EnumLines":  reflect.ValueOf(q.EnumLines),
+			"Errorln":    reflect.ValueOf(q.Errorln),
+			"Fatal":      reflect.ValueOf(q.Fatal),
 			"Lines":      reflect.ValueOf(q.Lines),
 		},
 		TypedConsts:   map[string]igop.TypedConst{},

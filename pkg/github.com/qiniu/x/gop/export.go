@@ -1,9 +1,9 @@
 // export by github.com/goplus/igop/cmd/qexp
 
-package builtin
+package gop
 
 import (
-	q "github.com/goplus/gop/builtin"
+	q "github.com/qiniu/x/gop"
 
 	"go/constant"
 	"reflect"
@@ -13,8 +13,8 @@ import (
 
 func init() {
 	igop.RegisterPackage(&igop.Package{
-		Name:       "builtin",
-		Path:       "github.com/goplus/gop/builtin",
+		Name:       "gop",
+		Path:       "github.com/qiniu/x/gop",
 		Deps:       map[string]string{},
 		Interfaces: map[string]reflect.Type{},
 		NamedTypes: map[string]reflect.Type{

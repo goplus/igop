@@ -1,14 +1,15 @@
 package gopbuild
 
-//go:generate go run ../../cmd/qexp -outdir ../pkg github.com/goplus/gop/builtin/...
-//go:generate go run ../../cmd/qexp -outdir ../pkg github.com/qiniu/x/stringutil
-//go:generate go run ../../cmd/qexp -outdir ../pkg github.com/qiniu/x/errors
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/qiniu/x/gop/...
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/qiniu/x/errors
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/qiniu/x/stringutil
+//go:generate go run ../cmd/qexp -outdir ../pkg github.com/qiniu/x/stringslice
 
 import (
-	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin"
-	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/iox"
-	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/ng"
-	_ "github.com/goplus/igop/pkg/github.com/goplus/gop/builtin/stringslice"
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/gop"
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/gop/ng"
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/gop/osx"
+	_ "github.com/goplus/igop/pkg/github.com/qiniu/x/stringslice"
 
 	_ "github.com/goplus/igop/pkg/errors"
 	_ "github.com/goplus/igop/pkg/fmt"
