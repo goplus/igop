@@ -14,12 +14,9 @@ import (
 	_ "unsafe"
 
 	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/cmd/igop/exec/pkg/github.com/modern-go/reflect2"
 	_ "github.com/goplus/igop/gopbuild"
 	_ "github.com/goplus/igop/gopbuild/pkg"
 )
-
-//go:generate go run ../qexp -outdir pkg github.com/modern-go/reflect2
 
 type operandMode byte
 type builtinId int

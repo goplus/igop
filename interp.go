@@ -93,7 +93,7 @@ type Interp struct {
 	deferMap     sync.Map                                    // defer goroutine id -> call frame
 	rfuncMap     sync.Map                                    // reflect.Value(fn).Pointer -> *function
 	typesMutex   sync.RWMutex                                // findType/toType mutex
-	mainid       int64                                       // main goroutine id
+	mainid       uint64                                      // main goroutine id
 	exitCode     int                                         // call os.Exit code
 	goroutines   int32                                       // atomically updated
 	deferCount   int32                                       // fast has defer check
@@ -202,7 +202,7 @@ type frame struct {
 	stack   []value // result args env datas
 	ipc     int
 	pred    int
-	deferid int64
+	deferid uint64
 }
 
 func dumpBlock(block *ssa.BasicBlock, level int, pc ssa.Instruction) {
@@ -1535,6 +1535,6 @@ func deref(typ types.Type) types.Type {
 	return typ
 }
 
-func goroutineID() int64 {
+func goroutineID() uint64 {
 	return gid.Get()
 }
