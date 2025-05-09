@@ -152,7 +152,7 @@ import (
 	_ "github.com/goplus/igop/gopbuild"
 )
 
-var gopSrc string = `
+var source = `
 fields := [
 	"engineering",
 	"STEM education", 
@@ -163,7 +163,7 @@ echo "The Go+ language for", fields.join(", ")
 `
 
 func main() {
-	_, err := igop.RunFile("main.gop", gopSrc, nil, 0)
+	_, err := igop.RunFile("main.gop", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}
