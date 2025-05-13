@@ -22,6 +22,10 @@ func (t *Alias) Obj() *types.TypeName {
 	panic(unsupported)
 }
 
+func (t *Alias) TypeParams() *types.TypeParamList {
+	panic(unsupported)
+}
+
 func NewAlias(obj *types.TypeName, rhs types.Type) *Alias {
 	return &Alias{}
 }
