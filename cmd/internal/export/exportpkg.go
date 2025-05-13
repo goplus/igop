@@ -74,6 +74,14 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 				break
 			}
 		}
+		if !hasToken {
+			for _, c := range pkg.TypedConsts {
+				if strings.Index(c, "token.") >= 0 {
+					hasToken = true
+					break
+				}
+			}
+		}
 		if hasToken {
 			imports = append(imports, `"go/token"`)
 		}
