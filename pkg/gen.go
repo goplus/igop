@@ -136,7 +136,7 @@ func main() {
 
 	switch gover {
 	case "go1.23", "go1.24":
-		for _, pkg := range []string{"iter", "maps"} {
+		for _, pkg := range []string{"iter"} {
 			log.Printf("export %v: %v patch", pkg, pkg+"/"+fname)
 			data, err := os.ReadFile("./_" + strings.Replace(gover, ".", "", -1) + "/" + pkg + "_export.go")
 			if err != nil {

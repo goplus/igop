@@ -32,6 +32,7 @@ func init() {
 			"internal/profilerecord":    "profilerecord",
 			"internal/runtime/atomic":   "atomic",
 			"internal/runtime/exithook": "exithook",
+			"internal/runtime/maps":     "maps",
 			"internal/runtime/math":     "math",
 			"internal/runtime/sys":      "sys",
 			"internal/stringslite":      "stringslite",
