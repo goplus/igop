@@ -36,6 +36,7 @@ type Program struct {
 	prog *loader.Program
 	ctx  *build.Context
 	fset *token.FileSet
+	imps map[*loader.PackageInfo][]*ast.ImportSpec
 }
 
 func NewProgram(ctx *build.Context) *Program {
@@ -43,7 +44,7 @@ func NewProgram(ctx *build.Context) *Program {
 		ctx = &build.Default
 		ctx.BuildTags = strings.Split(flagBuildTags, ",")
 	}
-	return &Program{ctx: ctx, fset: token.NewFileSet()}
+	return &Program{ctx: ctx, fset: token.NewFileSet(), imps: make(map[*loader.PackageInfo][]*ast.ImportSpec)}
 }
 
 func (p *Program) Load(pkgs []string) error {
@@ -66,6 +67,7 @@ func (p *Program) Load(pkgs []string) error {
 
 func (p *Program) typeCheck(info *loader.PackageInfo, files []*ast.File) {
 	for _, file := range files {
+		p.imps[info] = append(p.imps[info], file.Imports...)
 		for _, decl := range file.Decls {
 			if fn, ok := decl.(*ast.FuncDecl); ok {
 				if funcHasTypeParams(fn) {
@@ -271,13 +273,26 @@ func (p *Program) ExportSource(e *Package, info *loader.PackageInfo) error {
 	outf.Name = ast.NewIdent(pkgName)
 
 	var specs []ast.Spec
+	impls := p.imps[info]
 	for _, im := range pkg.Imports() {
-		specs = append(specs, &ast.ImportSpec{
+		spec := &ast.ImportSpec{
 			Path: &ast.BasicLit{
 				Kind:  token.STRING,
 				Value: strconv.Quote(im.Path()),
 			},
-		})
+		}
+		for _, i := range impls {
+			if i.Name == nil {
+				continue
+			}
+			// update name
+			if path, err := strconv.Unquote(i.Path.Value); err == nil && path == im.Path() {
+				if spec.Name == nil || spec.Name.Name == "_" {
+					spec.Name = i.Name
+				}
+			}
+		}
+		specs = append(specs, spec)
 	}
 	if len(specs) > 0 {
 		outf.Decls = append(outf.Decls, &ast.GenDecl{
