@@ -2760,3 +2760,38 @@ func main() {
 		t.Fatal(err)
 	}
 }
+
+func TestRuntimeRefelct(t *testing.T) {
+	ctx := igop.NewContext(igop.DisableImethodForReflect)
+	ctx.RegisterExternal("main.run", func(v interface{}) {
+		if e, ok := v.(interface{ MainEntry() }); ok {
+			e.MainEntry()
+		}
+	})
+	_, err := ctx.RunFile("main.go", `package main
+
+type Game struct {
+	run bool
+}
+
+func (p *Game) MainEntry() {
+	println("main entry")
+	p.run = true
+}
+
+type T = Game
+
+func run(interface{})
+
+func main() {
+	g := &T{}
+	run(g)
+	if !g.run {
+		panic("error")
+	}
+}
+`, nil)
+	if err != nil {
+		panic(err)
+	}
+}
