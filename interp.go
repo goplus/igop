@@ -57,7 +57,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/igop/internal/typesutil"
+	"github.com/goplus/igop/internal/typesalias"
 	"github.com/goplus/igop/load"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/gid"
@@ -1202,8 +1202,8 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			switch t := typ.(type) {
 			case *types.Named:
 				rtyps[t.String()] = true
-			case *typesutil.Alias:
-				typ = typesutil.Unalias(t)
+			case *typesalias.Alias:
+				typ = typesalias.Unalias(t)
 				goto retry
 			}
 		}
