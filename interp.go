@@ -57,6 +57,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
+	"github.com/goplus/igop/internal/typesalias"
 	"github.com/goplus/igop/load"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/gid"
@@ -1184,15 +1185,40 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			}
 		}
 	}
-	rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
-		if (ctx.Mode&DisableImethodForReflect == 0) && ast.IsExported(method.Name) {
-			return true
+	if ctx.Mode&DisableImethodForReflect == 0 {
+		rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
+			if ast.IsExported(method.Name) {
+				return true
+			}
+			if _, ok := imethods[method.Name]; ok {
+				return true
+			}
+			return false
+		})
+	} else {
+		rtyps := make(map[string]bool)
+		for _, typ := range prog.RuntimeTypes() {
+		retry:
+			switch t := typ.(type) {
+			case *types.Named:
+				rtyps[t.String()] = true
+			case *typesalias.Alias:
+				typ = typesalias.Unalias(t)
+				goto retry
+			}
 		}
-		if _, ok := imethods[method.Name]; ok {
-			return true
-		}
-		return false
-	})
+		rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
+			if _, ok := rtyps[typ.String()]; ok {
+				if ast.IsExported(method.Name) {
+					return true
+				}
+				if _, ok := imethods[method.Name]; ok {
+					return true
+				}
+			}
+			return false
+		})
+	}
 	i.record = NewTypesRecord(rctx, ctx.Loader, i, ctx.nestedMap)
 	i.record.Load(mainpkg)
 

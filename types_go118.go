@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goplus/igop/internal/typesutil"
+	"github.com/goplus/igop/internal/typesalias"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/types/typeutil"
 )
@@ -36,7 +36,7 @@ const (
 )
 
 func hasTypeParam(typ types.Type) bool {
-	return typesutil.HasTypeParam(typ)
+	return typesalias.HasTypeParam(typ)
 }
 
 type nestedStack struct {

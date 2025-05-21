@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"unsafe"
 
-	"github.com/goplus/igop/internal/typesutil"
+	"github.com/goplus/igop/internal/typesalias"
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/types/typeutil"
@@ -133,8 +133,8 @@ func toMockType(typ types.Type) reflect.Type {
 			outs[i] = tyEmptyStruct
 		}
 		return reflect.FuncOf(ins, outs, variadic)
-	case *typesutil.Alias:
-		return toMockType(typesutil.Unalias(t))
+	case *typesalias.Alias:
+		return toMockType(typesalias.Unalias(t))
 	default:
 		panic(fmt.Errorf("toEmptyType: unreachable %T", typ))
 	}
@@ -282,8 +282,8 @@ func (r *TypesRecord) ToType(typ types.Type) (reflect.Type, bool) {
 	case *types.Tuple:
 		_, nested = r.ToTypeList(t)
 		rt = reflect.TypeOf((*_tuple)(nil)).Elem()
-	case *typesutil.Alias:
-		return r.ToType(typesutil.Unalias(t))
+	case *typesalias.Alias:
+		return r.ToType(typesalias.Unalias(t))
 	default:
 		panic(fmt.Errorf("ToType: not handled %T", typ))
 	}
