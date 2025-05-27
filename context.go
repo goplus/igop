@@ -59,6 +59,7 @@ const (
 	CheckGopOverloadFunc                      // Check and skip gop overload func
 	DisableImethodForReflect                  // Disable support reflect.Value.Method.Call for less imethod and memory space.
 	DisableAutoLoadPatchs                     // Disable automatic loading of package patches.
+	EnableLoadAllImethod                      // Enable load all imethod.
 )
 
 // Loader types loader interface

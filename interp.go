@@ -1185,12 +1185,19 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 			}
 		}
 	}
-	if ctx.Mode&DisableImethodForReflect == 0 {
+	if ctx.Mode&EnableLoadAllImethod != 0 {
+		rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
+			return true
+		})
+	} else if ctx.Mode&DisableImethodForReflect == 0 {
 		rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
 			if ast.IsExported(method.Name) {
 				return true
 			}
 			if _, ok := imethods[method.Name]; ok {
+				return true
+			}
+			if typ.PkgPath() != method.PkgPath {
 				return true
 			}
 			return false
@@ -1213,6 +1220,9 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 					return true
 				}
 				if _, ok := imethods[method.Name]; ok {
+					return true
+				}
+				if typ.PkgPath() != method.PkgPath {
 					return true
 				}
 			}
