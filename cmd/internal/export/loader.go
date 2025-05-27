@@ -53,6 +53,8 @@ func (p *Program) Load(pkgs []string) error {
 	cfg.Fset = p.fset
 	if flagExportSource {
 		cfg.AfterTypeCheck = p.typeCheck
+	} else if flagExportCode {
+		cfg.AfterTypeCheck = p.typeCheckCode
 	}
 	for _, pkg := range pkgs {
 		cfg.Import(pkg)
@@ -63,6 +65,12 @@ func (p *Program) Load(pkgs []string) error {
 	}
 	p.prog = iprog
 	return nil
+}
+
+func (p *Program) typeCheckCode(info *loader.PackageInfo, files []*ast.File) {
+	for _, file := range files {
+		p.imps[info] = append(p.imps[info], file.Imports...)
+	}
 }
 
 func (p *Program) typeCheck(info *loader.PackageInfo, files []*ast.File) {
@@ -390,7 +398,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 			e.usedPkg = true
 		case *types.Func:
 			if hasTypeParam(t.Type()) {
-				if !flagExportSource {
+				if !flagExportSource && !flagExportCode {
 					log.Println("skip typeparam", t)
 				}
 				foundGeneric = true
@@ -400,7 +408,7 @@ func (p *Program) ExportPkg(path string, sname string) (*Package, error) {
 			e.usedPkg = true
 		case *types.TypeName:
 			if hasTypeParam(t.Type()) {
-				if !flagExportSource {
+				if !flagExportSource && !flagExportCode {
 					log.Println("skip typeparam", t)
 				}
 				foundGeneric = true

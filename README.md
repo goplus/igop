@@ -55,6 +55,11 @@ Go version >= 1.23
 go install -ldflags="-checklinkname=0" github.com/goplus/ixgo/ixgo@v0.1.0
 ```
 
+### install ixgo export command line
+```shell
+go install github.com/goplus/ixgo/cmd/qexp@latest
+```
+
 ### ixgo command
 
 ```
