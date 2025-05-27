@@ -25,8 +25,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/goplus/igop"
-	"github.com/goplus/igop/constant"
+	"github.com/goplus/ixgo"
+	"github.com/goplus/ixgo/constant"
 )
 
 // parseSymbol breaks str apart into a pkg, symbol and method
@@ -53,7 +53,7 @@ func parseSymbol(str string) (pkg, symbol string, method string, err error) {
 }
 
 func findPkg(name string) (pkg string, found bool) {
-	list := igop.PackageList()
+	list := ixgo.PackageList()
 	for _, v := range list {
 		if name == v {
 			return v, true
@@ -67,7 +67,7 @@ func findPkg(name string) (pkg string, found bool) {
 	return
 }
 
-func lookupSymbol(p *igop.Package, sym string) (info string, found bool) {
+func lookupSymbol(p *ixgo.Package, sym string) (info string, found bool) {
 	if v, ok := p.UntypedConsts[sym]; ok {
 		return fmt.Sprintf("const %v.%v %v = %v", p.Name, sym, v.Typ, constant.ExactConstant(v.Value)), true
 	}
@@ -119,7 +119,7 @@ func lookupSymbol(p *igop.Package, sym string) (info string, found bool) {
 	return
 }
 
-func dumpPkg(p *igop.Package) string {
+func dumpPkg(p *ixgo.Package) string {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "package %v // import %q\n\n", p.Name, p.Path)
 	// untyped const

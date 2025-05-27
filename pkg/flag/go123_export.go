@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.23 && !go1.24
 // +build go1.23,!go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "flag",
 		Path: "flag",
 		Deps: map[string]string{
@@ -81,11 +81,11 @@ func init() {
 			"Visit":         reflect.ValueOf(q.Visit),
 			"VisitAll":      reflect.ValueOf(q.VisitAll),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"ContinueOnError": {reflect.TypeOf(q.ContinueOnError), constant.MakeInt64(int64(q.ContinueOnError))},
 			"ExitOnError":     {reflect.TypeOf(q.ExitOnError), constant.MakeInt64(int64(q.ExitOnError))},
 			"PanicOnError":    {reflect.TypeOf(q.PanicOnError), constant.MakeInt64(int64(q.PanicOnError))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

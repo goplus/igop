@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "dwarf",
 		Path: "debug/dwarf",
 		Deps: map[string]string{
@@ -76,7 +76,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"New": reflect.ValueOf(q.New),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"AttrAbstractOrigin":        {reflect.TypeOf(q.AttrAbstractOrigin), constant.MakeInt64(int64(q.AttrAbstractOrigin))},
 			"AttrAccessibility":         {reflect.TypeOf(q.AttrAccessibility), constant.MakeInt64(int64(q.AttrAccessibility))},
 			"AttrAddrBase":              {reflect.TypeOf(q.AttrAddrBase), constant.MakeInt64(int64(q.AttrAddrBase))},
@@ -288,6 +288,6 @@ func init() {
 			"TagVolatileType":           {reflect.TypeOf(q.TagVolatileType), constant.MakeInt64(int64(q.TagVolatileType))},
 			"TagWithStmt":               {reflect.TypeOf(q.TagWithStmt), constant.MakeInt64(int64(q.TagWithStmt))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

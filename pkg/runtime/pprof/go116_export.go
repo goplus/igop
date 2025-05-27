@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "pprof",
 		Path: "runtime/pprof",
 		Deps: map[string]string{
@@ -58,7 +58,7 @@ func init() {
 			"WithLabels":         reflect.ValueOf(q.WithLabels),
 			"WriteHeapProfile":   reflect.ValueOf(q.WriteHeapProfile),
 		},
-		TypedConsts:   map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		TypedConsts:   map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

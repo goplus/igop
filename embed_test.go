@@ -17,17 +17,17 @@
  * limitations under the License.
  */
 
-package igop_test
+package ixgo_test
 
 import (
 	"testing"
 
-	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/pkg/embed"
+	"github.com/goplus/ixgo"
+	_ "github.com/goplus/ixgo/pkg/embed"
 )
 
 func TestEmbed(t *testing.T) {
-	_, err := igop.Run("./testdata/embed", nil, 0)
+	_, err := ixgo.Run("./testdata/embed", nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ var data string
 func main() {
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
@@ -66,7 +66,7 @@ var data1, data2 string
 func main() {
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
@@ -86,7 +86,7 @@ import (
 func main() {
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
@@ -106,7 +106,7 @@ var data1 [][]byte
 func main() {
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
@@ -126,7 +126,7 @@ var data1 = "hello"
 func main() {
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
@@ -146,7 +146,7 @@ var data1 []byte
 func main() {
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}

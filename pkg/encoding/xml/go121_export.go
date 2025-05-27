@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.21 && !go1.22
 // +build go1.21,!go1.22
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "xml",
 		Path: "encoding/xml",
 		Deps: map[string]string{
@@ -73,8 +73,8 @@ func init() {
 			"NewTokenDecoder": reflect.ValueOf(q.NewTokenDecoder),
 			"Unmarshal":       reflect.ValueOf(q.Unmarshal),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"Header": {"untyped string", constant.MakeString(string(q.Header))},
 		},
 	})

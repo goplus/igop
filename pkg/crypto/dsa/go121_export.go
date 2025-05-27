@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.21 && !go1.22
 // +build go1.21,!go1.22
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "dsa",
 		Path: "crypto/dsa",
 		Deps: map[string]string{
@@ -41,12 +41,12 @@ func init() {
 			"Sign":               reflect.ValueOf(q.Sign),
 			"Verify":             reflect.ValueOf(q.Verify),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"L1024N160": {reflect.TypeOf(q.L1024N160), constant.MakeInt64(int64(q.L1024N160))},
 			"L2048N224": {reflect.TypeOf(q.L2048N224), constant.MakeInt64(int64(q.L2048N224))},
 			"L2048N256": {reflect.TypeOf(q.L2048N256), constant.MakeInt64(int64(q.L2048N256))},
 			"L3072N256": {reflect.TypeOf(q.L3072N256), constant.MakeInt64(int64(q.L3072N256))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

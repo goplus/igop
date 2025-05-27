@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.21 && !go1.22
 // +build go1.21,!go1.22
@@ -10,11 +10,11 @@ import (
 	"reflect"
 	_ "unsafe"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name:       "maps",
 		Path:       "maps",
 		Deps:       map[string]string{},
@@ -25,8 +25,8 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"clone": reflect.ValueOf(_clone),
 		},
-		TypedConsts:   map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		TypedConsts:   map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 		Source:        source,
 	})
 }

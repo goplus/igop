@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.19 && !go1.20
 // +build go1.19,!go1.20
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "parser",
 		Path: "go/parser",
 		Deps: map[string]string{
@@ -46,7 +46,7 @@ func init() {
 			"ParseExprFrom": reflect.ValueOf(q.ParseExprFrom),
 			"ParseFile":     reflect.ValueOf(q.ParseFile),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"AllErrors":            {reflect.TypeOf(q.AllErrors), constant.MakeInt64(int64(q.AllErrors))},
 			"DeclarationErrors":    {reflect.TypeOf(q.DeclarationErrors), constant.MakeInt64(int64(q.DeclarationErrors))},
 			"ImportsOnly":          {reflect.TypeOf(q.ImportsOnly), constant.MakeInt64(int64(q.ImportsOnly))},
@@ -56,6 +56,6 @@ func init() {
 			"SpuriousErrors":       {reflect.TypeOf(q.SpuriousErrors), constant.MakeInt64(int64(q.SpuriousErrors))},
 			"Trace":                {reflect.TypeOf(q.Trace), constant.MakeInt64(int64(q.Trace))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

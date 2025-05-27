@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.24
 // +build go1.24
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "color",
 		Path: "image/color",
 		Deps: map[string]string{},
@@ -61,7 +61,7 @@ func init() {
 			"RGBToYCbCr": reflect.ValueOf(q.RGBToYCbCr),
 			"YCbCrToRGB": reflect.ValueOf(q.YCbCrToRGB),
 		},
-		TypedConsts:   map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		TypedConsts:   map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

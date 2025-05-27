@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-// Package test implements the “igop test” command.
+// Package test implements the “ixgo test” command.
 package test
 
 import (
@@ -24,16 +24,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goplus/igop"
-	"github.com/goplus/igop/cmd/internal/base"
-	"github.com/goplus/igop/cmd/internal/flags"
-	_ "github.com/goplus/igop/pkg/github.com/goplus/igop/x/testdeps"
-	_ "github.com/goplus/igop/pkg/testing"
+	"github.com/goplus/ixgo"
+	"github.com/goplus/ixgo/cmd/internal/base"
+	"github.com/goplus/ixgo/cmd/internal/flags"
+	_ "github.com/goplus/ixgo/pkg/github.com/goplus/ixgo/x/testdeps"
+	_ "github.com/goplus/ixgo/pkg/testing"
 )
 
-// Cmd - igop test
+// Cmd - ixgo test
 var Cmd = &base.Command{
-	UsageLine: "igop test [build/test flags] [package]",
+	UsageLine: "ixgo test [build/test flags] [package]",
 	Short:     "test a package",
 }
 
@@ -93,20 +93,20 @@ func runCmd(cmd *base.Command, args []string) {
 			}
 		}
 	})
-	var mode igop.Mode
+	var mode ixgo.Mode
 	if flags.BuildSSA {
-		mode |= igop.EnableDumpInstr
+		mode |= ixgo.EnableDumpInstr
 	}
 	if flags.DebugSSATrace {
-		mode |= igop.EnableTracing
+		mode |= ixgo.EnableTracing
 	}
 	if flags.BuildX {
-		mode |= igop.EnableDumpImports
+		mode |= ixgo.EnableDumpImports
 	}
 	if flags.ExperimentalGC {
-		mode |= igop.ExperimentalSupportGC
+		mode |= ixgo.ExperimentalSupportGC
 	}
-	ctx := igop.NewContext(mode)
+	ctx := ixgo.NewContext(mode)
 	ctx.BuildContext = flags.BuildContext
 
 	pkg, err := ctx.LoadDir(path, true)

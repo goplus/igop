@@ -185,7 +185,7 @@ func makeFuncSHL(buf *bytes.Buffer, kinds []*TypeKind) {
 	buf.WriteString("\tpanic(\"unreachable\")\n}\n")
 }
 
-var pkg_head = `package igop
+var pkg_head = `package ixgo
 
 import (
 	"reflect"

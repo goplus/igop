@@ -51,7 +51,7 @@ import (
 	"reflect"
 {{end}}
 	"testing"
-	"github.com/goplus/igop/x/testdeps"
+	"github.com/goplus/ixgo/x/testdeps"
 
 {{if .ImportTest}}
 	{{if .NeedTest}}_test{{else}}_{{end}} {{.Package.ImportPath | printf "%q"}}

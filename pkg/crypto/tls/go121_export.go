@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.21 && !go1.22
 // +build go1.21,!go1.22
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "tls",
 		Path: "crypto/tls",
 		Deps: map[string]string{
@@ -110,7 +110,7 @@ func init() {
 			"VersionName":              reflect.ValueOf(q.VersionName),
 			"X509KeyPair":              reflect.ValueOf(q.X509KeyPair),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"CurveP256":                                     {reflect.TypeOf(q.CurveP256), constant.MakeInt64(int64(q.CurveP256))},
 			"CurveP384":                                     {reflect.TypeOf(q.CurveP384), constant.MakeInt64(int64(q.CurveP384))},
 			"CurveP521":                                     {reflect.TypeOf(q.CurveP521), constant.MakeInt64(int64(q.CurveP521))},
@@ -176,7 +176,7 @@ func init() {
 			"VerifyClientCertIfGiven":                       {reflect.TypeOf(q.VerifyClientCertIfGiven), constant.MakeInt64(int64(q.VerifyClientCertIfGiven))},
 			"X25519":                                        {reflect.TypeOf(q.X25519), constant.MakeInt64(int64(q.X25519))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"VersionSSL30": {"untyped int", constant.MakeInt64(int64(q.VersionSSL30))},
 			"VersionTLS10": {"untyped int", constant.MakeInt64(int64(q.VersionTLS10))},
 			"VersionTLS11": {"untyped int", constant.MakeInt64(int64(q.VersionTLS11))},

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.19 && !go1.20
 // +build go1.19,!go1.20
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "pe",
 		Path: "debug/pe",
 		Deps: map[string]string{
@@ -54,8 +54,8 @@ func init() {
 			"NewFile": reflect.ValueOf(q.NewFile),
 			"Open":    reflect.ValueOf(q.Open),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"COFFSymbolSize":                                 {"untyped int", constant.MakeInt64(int64(q.COFFSymbolSize))},
 			"IMAGE_COMDAT_SELECT_ANY":                        {"untyped int", constant.MakeInt64(int64(q.IMAGE_COMDAT_SELECT_ANY))},
 			"IMAGE_COMDAT_SELECT_ASSOCIATIVE":                {"untyped int", constant.MakeInt64(int64(q.IMAGE_COMDAT_SELECT_ASSOCIATIVE))},

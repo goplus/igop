@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ import (
 	"runtime"
 	"strings"
 
-	xconst "github.com/goplus/igop/constant"
+	xconst "github.com/goplus/ixgo/constant"
 	"golang.org/x/tools/go/ssa"
 )
 

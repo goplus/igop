@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.20 && !go1.21
 // +build go1.20,!go1.21
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "runtime",
 		Path: "runtime",
 		Deps: map[string]string{
@@ -83,11 +83,11 @@ func init() {
 			"UnlockOSThread":          reflect.ValueOf(q.UnlockOSThread),
 			"Version":                 reflect.ValueOf(q.Version),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"GOARCH": {reflect.TypeOf(q.GOARCH), constant.MakeString(string(q.GOARCH))},
 			"GOOS":   {reflect.TypeOf(q.GOOS), constant.MakeString(string(q.GOOS))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"Compiler": {"untyped string", constant.MakeString(string(q.Compiler))},
 		},
 	})

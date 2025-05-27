@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 
-package igop_test
+package ixgo_test
 
 import (
 	"runtime"
 	"strings"
 	"testing"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func TestUnsafeBuiltins(t *testing.T) {
@@ -93,7 +93,7 @@ func mustPanic(f func()) {
 	f()
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -190,7 +190,7 @@ func init() {
 	if strings.HasPrefix(runtime.Version(), "go1.2") {
 		src = strings.ReplaceAll(src, "to pointer to array", "to array or pointer to array")
 	}
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

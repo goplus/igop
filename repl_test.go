@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package igop_test
+package ixgo_test
 
 import (
 	"fmt"
 	"go/token"
 	"testing"
 
-	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/pkg/fmt"
+	"github.com/goplus/ixgo"
+	_ "github.com/goplus/ixgo/pkg/fmt"
 )
 
 func TestReplExpr(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -50,8 +50,8 @@ func TestReplExpr(t *testing.T) {
 }
 
 func TestReplImports(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -78,8 +78,8 @@ func TestReplImports(t *testing.T) {
 }
 
 func TestReplClosure(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -109,8 +109,8 @@ func TestReplClosure(t *testing.T) {
 }
 
 func TestReplVar(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`a := 1`,
 		`b := 2`,
@@ -144,8 +144,8 @@ func TestReplVar(t *testing.T) {
 }
 
 func TestReplType(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`type T struct {
 	X int
@@ -184,8 +184,8 @@ func TestReplType(t *testing.T) {
 }
 
 func TestReplFunc(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`a := "hello"`,
 		`import "fmt"`,
@@ -219,8 +219,8 @@ func TestReplFunc(t *testing.T) {
 }
 
 func TestReplTok(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`a := "hello"`,
 		`import "fmt"`,
@@ -251,8 +251,8 @@ func TestReplTok(t *testing.T) {
 }
 
 func TestReplInit(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`var i int = 10`,
 		`var j int = 20`,
@@ -286,8 +286,8 @@ func TestReplInit(t *testing.T) {
 }
 
 func TestReplFunLit(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`var a int`,
 		`func(x int){ a = x }(100)`,
@@ -313,8 +313,8 @@ func TestReplFunLit(t *testing.T) {
 }
 
 func TestReplFor(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`import "fmt"`,
 		`for i := 0; i < 3; i++ { fmt.Println(i) }`,
@@ -329,8 +329,8 @@ func TestReplFor(t *testing.T) {
 }
 
 func TestReplIf(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`import "fmt"`,
 		`a := 2`,
@@ -346,8 +346,8 @@ func TestReplIf(t *testing.T) {
 }
 
 func TestReplSwitch(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`import "fmt"`,
 		`a := 2`,
@@ -368,8 +368,8 @@ func TestReplSwitch(t *testing.T) {
 }
 
 func TestReplSelect(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`import "fmt"`,
 		`a := 1`,
@@ -392,8 +392,8 @@ func TestReplSelect(t *testing.T) {
 }
 
 func TestReplLiteral(t *testing.T) {
-	ctx := igop.NewContext(0)
-	repl := igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(0)
+	repl := ixgo.NewRepl(ctx)
 	list := []string{
 		`100`,
 		`100.0*200`,

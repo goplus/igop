@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.24
 // +build go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "mlkem",
 		Path: "crypto/mlkem",
 		Deps: map[string]string{
@@ -38,8 +38,8 @@ func init() {
 			"NewEncapsulationKey1024": reflect.ValueOf(q.NewEncapsulationKey1024),
 			"NewEncapsulationKey768":  reflect.ValueOf(q.NewEncapsulationKey768),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"CiphertextSize1024":       {"untyped int", constant.MakeInt64(int64(q.CiphertextSize1024))},
 			"CiphertextSize768":        {"untyped int", constant.MakeInt64(int64(q.CiphertextSize768))},
 			"EncapsulationKeySize1024": {"untyped int", constant.MakeInt64(int64(q.EncapsulationKeySize1024))},

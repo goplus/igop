@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-// Package build implements the “igop build” command.
+// Package build implements the “ixgo build” command.
 package build
 
 import (
@@ -22,18 +22,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/goplus/igop"
-	"github.com/goplus/igop/cmd/internal/base"
-	"github.com/goplus/igop/cmd/internal/flags"
-	"github.com/goplus/igop/cmd/internal/load"
+	"github.com/goplus/ixgo"
+	"github.com/goplus/ixgo/cmd/internal/base"
+	"github.com/goplus/ixgo/cmd/internal/flags"
+	"github.com/goplus/ixgo/cmd/internal/load"
 	"golang.org/x/tools/go/ssa"
 )
 
 // -----------------------------------------------------------------------------
 
-// Cmd - igop build
+// Cmd - ixgo build
 var Cmd = &base.Command{
-	UsageLine: "igop build [build flags] [package]",
+	UsageLine: "ixgo build [build flags] [package]",
 	Short:     "compile a Go/Go+ package",
 }
 
@@ -56,14 +56,14 @@ func buildCmd(cmd *base.Command, args []string) {
 		paths = []string{"."}
 	}
 	path := paths[0]
-	var mode igop.Mode
+	var mode ixgo.Mode
 	if flags.BuildSSA {
-		mode |= igop.EnableDumpInstr
+		mode |= ixgo.EnableDumpInstr
 	}
 	if flags.BuildX {
-		mode |= igop.EnableDumpImports
+		mode |= ixgo.EnableDumpImports
 	}
-	ctx := igop.NewContext(mode)
+	ctx := ixgo.NewContext(mode)
 	ctx.BuildContext = flags.BuildContext
 	path, _ = filepath.Abs(path)
 	isDir, err := load.IsDir(path)

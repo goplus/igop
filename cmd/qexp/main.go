@@ -19,8 +19,8 @@ package main
 import (
 	"os"
 
-	"github.com/goplus/igop/cmd/internal/base"
-	"github.com/goplus/igop/cmd/internal/export"
+	"github.com/goplus/ixgo/cmd/internal/base"
+	"github.com/goplus/ixgo/cmd/internal/export"
 )
 
 func main() {

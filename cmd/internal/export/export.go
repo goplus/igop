@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/ixgo/cmd/internal/base"
 )
 
 var (
@@ -50,10 +50,10 @@ func init() {
 	flag.BoolVar(&flagExportCode, "code", false, "export source code mode")
 }
 
-// Cmd - igop build
+// Cmd - ixgo build
 var Cmd = &base.Command{
-	UsageLine: "igop export [flags] [package]",
-	Short:     "export Go package to igop builtin package",
+	UsageLine: "ixgo export [flags] [package]",
+	Short:     "export Go package to ixgo builtin package",
 }
 
 var (

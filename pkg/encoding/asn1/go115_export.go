@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "asn1",
 		Path: "encoding/asn1",
 		Deps: map[string]string{
@@ -53,8 +53,8 @@ func init() {
 			"Unmarshal":           reflect.ValueOf(q.Unmarshal),
 			"UnmarshalWithParams": reflect.ValueOf(q.UnmarshalWithParams),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"ClassApplication":     {"untyped int", constant.MakeInt64(int64(q.ClassApplication))},
 			"ClassContextSpecific": {"untyped int", constant.MakeInt64(int64(q.ClassContextSpecific))},
 			"ClassPrivate":         {"untyped int", constant.MakeInt64(int64(q.ClassPrivate))},

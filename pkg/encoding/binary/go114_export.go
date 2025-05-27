@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "binary",
 		Path: "encoding/binary",
 		Deps: map[string]string{
@@ -44,8 +44,8 @@ func init() {
 			"Varint":      reflect.ValueOf(q.Varint),
 			"Write":       reflect.ValueOf(q.Write),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"MaxVarintLen16": {"untyped int", constant.MakeInt64(int64(q.MaxVarintLen16))},
 			"MaxVarintLen32": {"untyped int", constant.MakeInt64(int64(q.MaxVarintLen32))},
 			"MaxVarintLen64": {"untyped int", constant.MakeInt64(int64(q.MaxVarintLen64))},

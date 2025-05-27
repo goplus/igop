@@ -160,7 +160,7 @@ var pkg_head = `/*
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"reflect"

@@ -4,5 +4,5 @@
 package pkg
 
 import (
-	_ "github.com/goplus/igop/pkg/log/syslog"
+	_ "github.com/goplus/ixgo/pkg/log/syslog"
 )

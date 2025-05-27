@@ -24,18 +24,18 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/goplus/igop"
-	"github.com/goplus/igop/cmd/internal/base"
-	"github.com/goplus/igop/cmd/internal/flags"
-	"github.com/goplus/igop/cmd/internal/load"
+	"github.com/goplus/ixgo"
+	"github.com/goplus/ixgo/cmd/internal/base"
+	"github.com/goplus/ixgo/cmd/internal/flags"
+	"github.com/goplus/ixgo/cmd/internal/load"
 	"golang.org/x/tools/go/ssa"
 )
 
 // -----------------------------------------------------------------------------
 
-// Cmd - igop run
+// Cmd - ixgo run
 var Cmd = &base.Command{
-	UsageLine: "igop run [build flags] [package] [arguments...]",
+	UsageLine: "ixgo run [build flags] [package] [arguments...]",
 	Short:     "run a Go/Go+ package",
 }
 
@@ -64,20 +64,20 @@ func runCmd(cmd *base.Command, args []string) {
 	if err != nil {
 		log.Fatalln("input arg check failed:", err)
 	}
-	var mode igop.Mode
+	var mode ixgo.Mode
 	if flags.BuildSSA {
-		mode |= igop.EnableDumpInstr
+		mode |= ixgo.EnableDumpInstr
 	}
 	if flags.DebugSSATrace {
-		mode |= igop.EnableTracing
+		mode |= ixgo.EnableTracing
 	}
 	if flags.BuildX {
-		mode |= igop.EnableDumpImports
+		mode |= ixgo.EnableDumpImports
 	}
 	if flags.ExperimentalGC {
-		mode |= igop.ExperimentalSupportGC
+		mode |= ixgo.ExperimentalSupportGC
 	}
-	ctx := igop.NewContext(mode)
+	ctx := ixgo.NewContext(mode)
 	ctx.BuildContext = flags.BuildContext
 	ctx.RunContext = context.TODO()
 	var pkg *ssa.Package
@@ -110,7 +110,7 @@ func runCmd(cmd *base.Command, args []string) {
 	}
 	code, err := ctx.RunInterp(interp, input, args)
 	if err != nil {
-		if e, ok := err.(igop.PanicError); ok {
+		if e, ok := err.(ixgo.PanicError); ok {
 			fmt.Fprintf(os.Stderr, "panic: %v\n\n%s\n", e.Error(), e.Stack())
 		} else {
 			fmt.Fprintln(os.Stderr, err)

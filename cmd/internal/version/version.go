@@ -14,21 +14,21 @@
  limitations under the License.
 */
 
-// Package build implements the ``igop version'' command.
+// Package build implements the ``ixgo version'' command.
 package version
 
 import (
 	"fmt"
 	"runtime"
 
-	"github.com/goplus/igop/cmd/internal/base"
+	"github.com/goplus/ixgo/cmd/internal/base"
 )
 
 // -----------------------------------------------------------------------------
 
-// Cmd - igop build
+// Cmd - ixgo build
 var Cmd = &base.Command{
-	UsageLine: "igop version",
+	UsageLine: "ixgo version",
 	Short:     "print version",
 }
 
@@ -41,5 +41,5 @@ func init() {
 }
 
 func versionCmd(cmd *base.Command, args []string) {
-	fmt.Printf("igop build %v %v/%v\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("ixgo build %v %v/%v\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 }

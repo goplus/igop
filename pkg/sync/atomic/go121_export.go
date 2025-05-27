@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.21 && !go1.22
 // +build go1.21,!go1.22
@@ -11,11 +11,11 @@ import (
 	"reflect"
 	_ "unsafe"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "atomic",
 		Path: "sync/atomic",
 		Deps: map[string]string{
@@ -66,8 +66,8 @@ func init() {
 			"runtime_procPin":       reflect.ValueOf(_runtime_procPin),
 			"runtime_procUnpin":     reflect.ValueOf(_runtime_procUnpin),
 		},
-		TypedConsts:   map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		TypedConsts:   map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 		Source:        source,
 	})
 }

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -9,11 +9,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "fstest",
 		Path: "testing/fstest",
 		Deps: map[string]string{
@@ -30,7 +30,7 @@ func init() {
 			"time":           "time",
 		},
 		Interfaces: map[string]reflect.Type{},
-		NamedTypes: map[string]igop.NamedType{
+		NamedTypes: map[string]ixgo.NamedType{
 			"MapFS":   {reflect.TypeOf((*q.MapFS)(nil)).Elem(), "Glob,Open,ReadDir,ReadFile,Stat,Sub", ""},
 			"MapFile": {reflect.TypeOf((*q.MapFile)(nil)).Elem(), "", ""},
 		},
@@ -39,7 +39,7 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"TestFS": reflect.ValueOf(q.TestFS),
 		},
-		TypedConsts:   map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		TypedConsts:   map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

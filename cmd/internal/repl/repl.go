@@ -23,17 +23,17 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/goplus/igop"
-	"github.com/goplus/igop/cmd/internal/base"
-	_ "github.com/goplus/igop/pkg"
-	"github.com/goplus/igop/repl"
+	"github.com/goplus/ixgo"
+	"github.com/goplus/ixgo/cmd/internal/base"
+	_ "github.com/goplus/ixgo/pkg"
+	"github.com/goplus/ixgo/repl"
 	"github.com/peterh/liner"
 )
 
-// Cmd - igop test
+// Cmd - ixgo test
 var Cmd = &base.Command{
-	UsageLine: "igop repl",
-	Short:     "igop repl mode",
+	UsageLine: "ixgo repl",
+	Short:     "ixgo repl mode",
 }
 
 var (
@@ -46,7 +46,7 @@ var (
 
 func init() {
 	Cmd.Run = runCmd
-	flag.BoolVar(&flagGoPlus, "gop", true, "support Go+ mode")
+	flag.BoolVar(&flagGoPlus, "xgo", true, "support XGo mode")
 	flag.BoolVar(&flagGoOnly, "go", false, "use Go mode only")
 	flag.BoolVar(&flagDumpInstr, "dump", false, "dump SSA instruction code")
 	flag.BoolVar(&flagTrace, "trace", false, "trace interpreter code")
@@ -69,7 +69,7 @@ func (u *LinerUI) Printf(format string, a ...interface{}) {
 }
 
 var (
-	welcomeGo string = fmt.Sprintf("iGo+ v0.9.9 (build %v %v/%v)", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	welcomeGo string = fmt.Sprintf("iXGo v0.9.9 (build %v %v/%v)", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 )
 
 var helpGo string = `Use ?expr to dump expr information
@@ -98,7 +98,7 @@ func runCmd(cmd *base.Command, args []string) {
 	var help string
 	var welcome string
 	if supportGoplus && flagGoPlus {
-		welcome = welcomeGo + " (Go+ version " + gopVersion + ")"
+		welcome = welcomeGo + " (XGo version " + gopVersion + ")"
 		help = helpGop
 	} else {
 		welcome = welcomeGo
@@ -119,24 +119,24 @@ func runCmd(cmd *base.Command, args []string) {
 		return nil
 	})
 	ui := &LinerUI{state: state}
-	var mode igop.Mode
+	var mode ixgo.Mode
 	if flagDumpInstr {
-		mode |= igop.EnableDumpInstr
+		mode |= ixgo.EnableDumpInstr
 	}
 	if flagTrace {
-		mode |= igop.EnableTracing
+		mode |= ixgo.EnableTracing
 	}
 	var r *repl.REPL
-	igop.RegisterCustomBuiltin("exit", func() {
+	ixgo.RegisterCustomBuiltin("exit", func() {
 		r.Interp().Exit(0)
 	})
-	igop.RegisterCustomBuiltin("help", func() {
+	ixgo.RegisterCustomBuiltin("help", func() {
 		fmt.Println(help)
 	})
 	r = repl.NewREPL(mode)
 	r.SetUI(ui)
 	if supportGoplus && flagGoPlus {
-		r.SetFileName("main.gop")
+		r.SetFileName("main.xgo")
 	}
 	for {
 		line, err := ui.state.Prompt(ui.prompt)
@@ -159,7 +159,7 @@ func runCmd(cmd *base.Command, args []string) {
 		switch e := err.(type) {
 		case nil:
 			//
-		case igop.ExitError:
+		case ixgo.ExitError:
 			fmt.Printf("exit %v\n", int(e))
 			return
 		default:

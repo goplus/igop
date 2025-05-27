@@ -1,13 +1,13 @@
-# iGo+ The Go/Go+ Interpreter
+# iXGo The Go/XGo Interpreter
 
-[![Go1.18](https://github.com/goplus/igop/workflows/Go1.18/badge.svg)](https://github.com/goplus/igop/actions/workflows/go118.yml)
-[![Go1.19](https://github.com/goplus/igop/workflows/Go1.19/badge.svg)](https://github.com/goplus/igop/actions/workflows/go119.yml)
-[![Go1.20](https://github.com/goplus/igop/workflows/Go1.20/badge.svg)](https://github.com/goplus/igop/actions/workflows/go120.yml)
-[![Go1.21](https://github.com/goplus/igop/workflows/Go1.21/badge.svg)](https://github.com/goplus/igop/actions/workflows/go121.yml)
-[![Go1.22](https://github.com/goplus/igop/workflows/Go1.22/badge.svg)](https://github.com/goplus/igop/actions/workflows/go122.yml)
-[![Go1.23](https://github.com/goplus/igop/workflows/Go1.23/badge.svg)](https://github.com/goplus/igop/actions/workflows/go123.yml)
-[![Go1.24](https://github.com/goplus/igop/workflows/Go1.24/badge.svg)](https://github.com/goplus/igop/actions/workflows/go124.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/goplus/igop.svg)](https://pkg.go.dev/github.com/goplus/igop)
+[![Go1.18](https://github.com/goplus/ixgo/workflows/Go1.18/badge.svg)](https://github.com/goplus/ixgo/actions/workflows/go118.yml)
+[![Go1.19](https://github.com/goplus/ixgo/workflows/Go1.19/badge.svg)](https://github.com/goplus/ixgo/actions/workflows/go119.yml)
+[![Go1.20](https://github.com/goplus/ixgo/workflows/Go1.20/badge.svg)](https://github.com/goplus/ixgo/actions/workflows/go120.yml)
+[![Go1.21](https://github.com/goplus/ixgo/workflows/Go1.21/badge.svg)](https://github.com/goplus/ixgo/actions/workflows/go121.yml)
+[![Go1.22](https://github.com/goplus/ixgo/workflows/Go1.22/badge.svg)](https://github.com/goplus/ixgo/actions/workflows/go122.yml)
+[![Go1.23](https://github.com/goplus/ixgo/workflows/Go1.23/badge.svg)](https://github.com/goplus/ixgo/actions/workflows/go123.yml)
+[![Go1.24](https://github.com/goplus/ixgo/workflows/Go1.24/badge.svg)](https://github.com/goplus/ixgo/actions/workflows/go124.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/goplus/ixgo.svg)](https://pkg.go.dev/github.com/goplus/ixgo)
 
 
 ### Go Version
@@ -38,37 +38,37 @@ support ABI0 and ABIInternal
 
 ### runtime.GC
 
-`igop.Mode ExperimentalSupportGC`
+`ixgo.Mode ExperimentalSupportGC`
 
 experimental support runtime.GC and runtime.SetFinalizer
 
-### install igop command line
+### install ixgo command line
 
 Go version <= 1.22:
 
 ```shell
-go install github.com/goplus/igop/cmd/igop@latest
+go install github.com/goplus/ixgo/cmd/ixgo@latest
 ```
 
 Go version >= 1.23
 ```
-go install -ldflags="-checklinkname=0" github.com/goplus/igop/igop@v0.23.9
+go install -ldflags="-checklinkname=0" github.com/goplus/ixgo/ixgo@v0.23.9
 ```
 
-### igop command
+### ixgo command
 
 ```
-igop             # igop repl mode
-igop run         # run a Go/Go+ package
-igop build       # compile a Go/Go+ package
-igop test        # test a package
-igop verson      # print version
-igop export      # export Go package to igop builtin package
+ixgo             # ixgo repl mode
+ixgo run         # run a Go/XGo package
+ixgo build       # compile a Go/XGo package
+ixgo test        # test a package
+ixgo verson      # print version
+ixgo export      # export Go package to ixgo builtin package
 ```
 
-### igop run mode
+### ixgo run mode
 ```
-Usage: igop run [build flags] [package] [arguments...]
+Usage: ixgo run [build flags] [package] [arguments...]
   -exp-gc
     	experimental support runtime.GC
   -mod value
@@ -83,20 +83,20 @@ Usage: igop run [build flags] [package] [arguments...]
   -x	print the commands.
 ```
 
-### igop repl mode
+### ixgo repl mode
 
 ```shell
-igop                       # run repl mode, support Go/Go+
-igop repl                  # run repl mode, support Go/Go+
-igop repl -go              # run repl mode, disable Go+ syntax
+ixgo                       # run repl mode, support Go/XGo
+ixgo repl                  # run repl mode, support Go/XGo
+ixgo repl -go              # run repl mode, disable XGo syntax
 ```
 
-### igop test unsupport features
+### ixgo test unsupport features
 
 - test -fuzz
 - test -cover
 
-### igop demo
+### ixgo demo
 
 #### go js playground (gopherjs)
 
@@ -118,8 +118,8 @@ igop repl -go              # run repl mode, disable Go+ syntax
 package main
 
 import (
-	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/pkg/fmt"
+	"github.com/goplus/ixgo"
+	_ "github.com/goplus/ixgo/pkg/fmt"
 )
 
 var source = `
@@ -135,21 +135,21 @@ func main() {
 `
 
 func main() {
-	_, err := igop.RunFile("main.go", source, nil, 0)
+	_, err := ixgo.RunFile("main.go", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}
 }
 ```
 
-#### run simple Go+ source demo
+#### run simple XGo source demo
 
 ```go
 package main
 
 import (
-	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/gopbuild"
+	"github.com/goplus/ixgo"
+	_ "github.com/goplus/ixgo/gopbuild"
 )
 
 var source = `
@@ -159,17 +159,17 @@ fields := [
 	"and data science",
 ]
 
-echo "The Go+ language for", fields.join(", ")
+echo "The XGo language for", fields.join(", ")
 `
 
 func main() {
-	_, err := igop.RunFile("main.gop", source, nil, 0)
+	_, err := ixgo.RunFile("main.gop", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}
 }
 ```
 
-#### igop more demo
+#### ixgo more demo
 
 <https://github.com/visualfc/igop_demo>

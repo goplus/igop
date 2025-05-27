@@ -1,6 +1,6 @@
 package pkg
 
 import (
-	_ "github.com/goplus/igop/pkg/github.com/goplus/igop/x/testdeps"
-	_ "github.com/goplus/igop/pkg/testing"
+	_ "github.com/goplus/ixgo/pkg/github.com/goplus/ixgo/x/testdeps"
+	_ "github.com/goplus/ixgo/pkg/testing"
 )

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.21 && !go1.22
 // +build go1.21,!go1.22
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "lzw",
 		Path: "compress/lzw",
 		Deps: map[string]string{
@@ -36,10 +36,10 @@ func init() {
 			"NewReader": reflect.ValueOf(q.NewReader),
 			"NewWriter": reflect.ValueOf(q.NewWriter),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"LSB": {reflect.TypeOf(q.LSB), constant.MakeInt64(int64(q.LSB))},
 			"MSB": {reflect.TypeOf(q.MSB), constant.MakeInt64(int64(q.MSB))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

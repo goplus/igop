@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.24
 // +build go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "io",
 		Path: "io",
 		Deps: map[string]string{
@@ -80,8 +80,8 @@ func init() {
 			"TeeReader":        reflect.ValueOf(q.TeeReader),
 			"WriteString":      reflect.ValueOf(q.WriteString),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"SeekCurrent": {"untyped int", constant.MakeInt64(int64(q.SeekCurrent))},
 			"SeekEnd":     {"untyped int", constant.MakeInt64(int64(q.SeekEnd))},
 			"SeekStart":   {"untyped int", constant.MakeInt64(int64(q.SeekStart))},

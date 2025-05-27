@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"unsafe"
 
-	"github.com/goplus/igop/internal/typesalias"
+	"github.com/goplus/ixgo/internal/typesalias"
 	"github.com/goplus/reflectx"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/types/typeutil"

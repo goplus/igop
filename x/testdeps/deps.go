@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goplus/igop/x/testlog"
+	"github.com/goplus/ixgo/x/testlog"
 )
 
 // TestDeps is an implementation of the testing.testDeps interface,

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "crc32",
 		Path: "hash/crc32",
 		Deps: map[string]string{
@@ -40,8 +40,8 @@ func init() {
 			"NewIEEE":      reflect.ValueOf(q.NewIEEE),
 			"Update":       reflect.ValueOf(q.Update),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"Castagnoli": {"untyped int", constant.MakeInt64(int64(q.Castagnoli))},
 			"IEEE":       {"untyped int", constant.MakeInt64(int64(q.IEEE))},
 			"Koopman":    {"untyped int", constant.MakeInt64(int64(q.Koopman))},

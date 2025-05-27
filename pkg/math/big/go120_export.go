@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.20 && !go1.21
 // +build go1.20,!go1.21
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "big",
 		Path: "math/big",
 		Deps: map[string]string{
@@ -51,7 +51,7 @@ func init() {
 			"NewRat":     reflect.ValueOf(q.NewRat),
 			"ParseFloat": reflect.ValueOf(q.ParseFloat),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"Above":         {reflect.TypeOf(q.Above), constant.MakeInt64(int64(q.Above))},
 			"AwayFromZero":  {reflect.TypeOf(q.AwayFromZero), constant.MakeInt64(int64(q.AwayFromZero))},
 			"Below":         {reflect.TypeOf(q.Below), constant.MakeInt64(int64(q.Below))},
@@ -62,7 +62,7 @@ func init() {
 			"ToPositiveInf": {reflect.TypeOf(q.ToPositiveInf), constant.MakeInt64(int64(q.ToPositiveInf))},
 			"ToZero":        {reflect.TypeOf(q.ToZero), constant.MakeInt64(int64(q.ToZero))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"MaxBase": {"untyped rune", constant.MakeInt64(int64(q.MaxBase))},
 			"MaxExp":  {"untyped int", constant.MakeInt64(int64(q.MaxExp))},
 			"MaxPrec": {"untyped int", constant.MakeInt64(int64(q.MaxPrec))},

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.24
 // +build go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "syscall",
 		Path: "syscall",
 		Deps: map[string]string{
@@ -129,7 +129,7 @@ func init() {
 			"Write":               reflect.ValueOf(q.Write),
 			"Wstat":               reflect.ValueOf(q.Wstat),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"SIGABRT": {reflect.TypeOf(q.SIGABRT), constant.MakeString(string(q.SIGABRT))},
 			"SIGALRM": {reflect.TypeOf(q.SIGALRM), constant.MakeString(string(q.SIGALRM))},
 			"SIGHUP":  {reflect.TypeOf(q.SIGHUP), constant.MakeString(string(q.SIGHUP))},
@@ -137,7 +137,7 @@ func init() {
 			"SIGKILL": {reflect.TypeOf(q.SIGKILL), constant.MakeString(string(q.SIGKILL))},
 			"SIGTERM": {reflect.TypeOf(q.SIGTERM), constant.MakeString(string(q.SIGTERM))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"DMAPPEND":        {"untyped int", constant.MakeInt64(int64(q.DMAPPEND))},
 			"DMAUTH":          {"untyped int", constant.MakeInt64(int64(q.DMAUTH))},
 			"DMDIR":           {"untyped int", constant.MakeInt64(int64(q.DMDIR))},

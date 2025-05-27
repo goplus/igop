@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.23 && !go1.24
 // +build go1.23,!go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name:       "unicode",
 		Path:       "unicode",
 		Deps:       map[string]string{},
@@ -308,8 +308,8 @@ func init() {
 			"ToTitle":    reflect.ValueOf(q.ToTitle),
 			"ToUpper":    reflect.ValueOf(q.ToUpper),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"LowerCase":       {"untyped int", constant.MakeInt64(int64(q.LowerCase))},
 			"MaxASCII":        {"untyped rune", constant.MakeInt64(int64(q.MaxASCII))},
 			"MaxCase":         {"untyped int", constant.MakeInt64(int64(q.MaxCase))},

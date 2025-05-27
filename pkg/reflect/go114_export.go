@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "reflect",
 		Path: "reflect",
 		Deps: map[string]string{
@@ -71,7 +71,7 @@ func init() {
 			"ValueOf":         reflect.ValueOf(q.ValueOf),
 			"Zero":            reflect.ValueOf(q.Zero),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"Array":         {reflect.TypeOf(q.Array), constant.MakeInt64(int64(q.Array))},
 			"Bool":          {reflect.TypeOf(q.Bool), constant.MakeInt64(int64(q.Bool))},
 			"BothDir":       {reflect.TypeOf(q.BothDir), constant.MakeInt64(int64(q.BothDir))},
@@ -106,6 +106,6 @@ func init() {
 			"Uintptr":       {reflect.TypeOf(q.Uintptr), constant.MakeInt64(int64(q.Uintptr))},
 			"UnsafePointer": {reflect.TypeOf(q.UnsafePointer), constant.MakeInt64(int64(q.UnsafePointer))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

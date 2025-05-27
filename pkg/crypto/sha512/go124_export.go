@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.24
 // +build go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "sha512",
 		Path: "crypto/sha512",
 		Deps: map[string]string{
@@ -38,8 +38,8 @@ func init() {
 			"Sum512_224": reflect.ValueOf(q.Sum512_224),
 			"Sum512_256": reflect.ValueOf(q.Sum512_256),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"BlockSize": {"untyped int", constant.MakeInt64(int64(q.BlockSize))},
 			"Size":      {"untyped int", constant.MakeInt64(int64(q.Size))},
 			"Size224":   {"untyped int", constant.MakeInt64(int64(q.Size224))},

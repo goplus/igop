@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.19 && !go1.20
 // +build go1.19,!go1.20
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "zip",
 		Path: "archive/zip",
 		Deps: map[string]string{
@@ -59,10 +59,10 @@ func init() {
 			"RegisterCompressor":   reflect.ValueOf(q.RegisterCompressor),
 			"RegisterDecompressor": reflect.ValueOf(q.RegisterDecompressor),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"Deflate": {reflect.TypeOf(q.Deflate), constant.MakeInt64(int64(q.Deflate))},
 			"Store":   {reflect.TypeOf(q.Store), constant.MakeInt64(int64(q.Store))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

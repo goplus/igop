@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.22 && !go1.23
 // +build go1.22,!go1.23
@@ -8,11 +8,11 @@ package cmp
 import (
 	_ "cmp"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name:   "cmp",
 		Path:   "cmp",
 		Deps:   map[string]string{},

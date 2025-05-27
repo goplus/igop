@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.18 && !go1.19
 // +build go1.18,!go1.19
@@ -10,11 +10,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "fcgi",
 		Path: "net/http/fcgi",
 		Deps: map[string]string{
@@ -44,7 +44,7 @@ func init() {
 			"ProcessEnv": reflect.ValueOf(q.ProcessEnv),
 			"Serve":      reflect.ValueOf(q.Serve),
 		},
-		TypedConsts:   map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		TypedConsts:   map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

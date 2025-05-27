@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.14,!go1.15
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "template",
 		Path: "html/template",
 		Deps: map[string]string{
@@ -64,7 +64,7 @@ func init() {
 			"ParseGlob":        reflect.ValueOf(q.ParseGlob),
 			"URLQueryEscaper":  reflect.ValueOf(q.URLQueryEscaper),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"ErrAmbigContext":      {reflect.TypeOf(q.ErrAmbigContext), constant.MakeInt64(int64(q.ErrAmbigContext))},
 			"ErrBadHTML":           {reflect.TypeOf(q.ErrBadHTML), constant.MakeInt64(int64(q.ErrBadHTML))},
 			"ErrBranchEnd":         {reflect.TypeOf(q.ErrBranchEnd), constant.MakeInt64(int64(q.ErrBranchEnd))},
@@ -78,6 +78,6 @@ func init() {
 			"ErrSlashAmbig":        {reflect.TypeOf(q.ErrSlashAmbig), constant.MakeInt64(int64(q.ErrSlashAmbig))},
 			"OK":                   {reflect.TypeOf(q.OK), constant.MakeInt64(int64(q.OK))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/goplus/igop/load"
+	"github.com/goplus/ixgo/load"
 	"github.com/visualfc/xtype"
 	"golang.org/x/tools/go/ssa"
 )

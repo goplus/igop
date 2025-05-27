@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "log",
 		Path: "log",
 		Deps: map[string]string{
@@ -51,8 +51,8 @@ func init() {
 			"SetPrefix": reflect.ValueOf(q.SetPrefix),
 			"Writer":    reflect.ValueOf(q.Writer),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"LUTC":          {"untyped int", constant.MakeInt64(int64(q.LUTC))},
 			"Ldate":         {"untyped int", constant.MakeInt64(int64(q.Ldate))},
 			"Llongfile":     {"untyped int", constant.MakeInt64(int64(q.Llongfile))},

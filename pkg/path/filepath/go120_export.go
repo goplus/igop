@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.20 && !go1.21
 // +build go1.20,!go1.21
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "filepath",
 		Path: "path/filepath",
 		Deps: map[string]string{
@@ -60,8 +60,8 @@ func init() {
 			"Walk":         reflect.ValueOf(q.Walk),
 			"WalkDir":      reflect.ValueOf(q.WalkDir),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"ListSeparator": {"untyped rune", constant.MakeInt64(int64(q.ListSeparator))},
 			"Separator":     {"untyped rune", constant.MakeInt64(int64(q.Separator))},
 		},
