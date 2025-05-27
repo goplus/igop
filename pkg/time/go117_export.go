@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "time",
 		Path: "time",
 		Deps: map[string]string{
@@ -62,7 +62,7 @@ func init() {
 			"UnixMilli":              reflect.ValueOf(q.UnixMilli),
 			"Until":                  reflect.ValueOf(q.Until),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"April":       {reflect.TypeOf(q.April), constant.MakeInt64(int64(q.April))},
 			"August":      {reflect.TypeOf(q.August), constant.MakeInt64(int64(q.August))},
 			"December":    {reflect.TypeOf(q.December), constant.MakeInt64(int64(q.December))},
@@ -89,7 +89,7 @@ func init() {
 			"Tuesday":     {reflect.TypeOf(q.Tuesday), constant.MakeInt64(int64(q.Tuesday))},
 			"Wednesday":   {reflect.TypeOf(q.Wednesday), constant.MakeInt64(int64(q.Wednesday))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"ANSIC":       {"untyped string", constant.MakeString(string(q.ANSIC))},
 			"Kitchen":     {"untyped string", constant.MakeString(string(q.Kitchen))},
 			"Layout":      {"untyped string", constant.MakeString(string(q.Layout))},

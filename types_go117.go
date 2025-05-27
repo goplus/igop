@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"go/ast"

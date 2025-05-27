@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.21 && !go1.22
 // +build go1.21,!go1.22
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "sql",
 		Path: "database/sql",
 		Deps: map[string]string{
@@ -75,7 +75,7 @@ func init() {
 			"OpenDB":   reflect.ValueOf(q.OpenDB),
 			"Register": reflect.ValueOf(q.Register),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"LevelDefault":         {reflect.TypeOf(q.LevelDefault), constant.MakeInt64(int64(q.LevelDefault))},
 			"LevelLinearizable":    {reflect.TypeOf(q.LevelLinearizable), constant.MakeInt64(int64(q.LevelLinearizable))},
 			"LevelReadCommitted":   {reflect.TypeOf(q.LevelReadCommitted), constant.MakeInt64(int64(q.LevelReadCommitted))},
@@ -85,6 +85,6 @@ func init() {
 			"LevelSnapshot":        {reflect.TypeOf(q.LevelSnapshot), constant.MakeInt64(int64(q.LevelSnapshot))},
 			"LevelWriteCommitted":  {reflect.TypeOf(q.LevelWriteCommitted), constant.MakeInt64(int64(q.LevelWriteCommitted))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

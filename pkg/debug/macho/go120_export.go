@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.20 && !go1.21
 // +build go1.20,!go1.21
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "macho",
 		Path: "debug/macho",
 		Deps: map[string]string{
@@ -82,7 +82,7 @@ func init() {
 			"Open":       reflect.ValueOf(q.Open),
 			"OpenFat":    reflect.ValueOf(q.OpenFat),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"ARM64_RELOC_ADDEND":              {reflect.TypeOf(q.ARM64_RELOC_ADDEND), constant.MakeInt64(int64(q.ARM64_RELOC_ADDEND))},
 			"ARM64_RELOC_BRANCH26":            {reflect.TypeOf(q.ARM64_RELOC_BRANCH26), constant.MakeInt64(int64(q.ARM64_RELOC_BRANCH26))},
 			"ARM64_RELOC_GOT_LOAD_PAGE21":     {reflect.TypeOf(q.ARM64_RELOC_GOT_LOAD_PAGE21), constant.MakeInt64(int64(q.ARM64_RELOC_GOT_LOAD_PAGE21))},
@@ -169,6 +169,6 @@ func init() {
 			"X86_64_RELOC_TLV":                {reflect.TypeOf(q.X86_64_RELOC_TLV), constant.MakeInt64(int64(q.X86_64_RELOC_TLV))},
 			"X86_64_RELOC_UNSIGNED":           {reflect.TypeOf(q.X86_64_RELOC_UNSIGNED), constant.MakeInt64(int64(q.X86_64_RELOC_UNSIGNED))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

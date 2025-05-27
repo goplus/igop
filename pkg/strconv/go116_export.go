@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "strconv",
 		Path: "strconv",
 		Deps: map[string]string{
@@ -68,8 +68,8 @@ func init() {
 			"Unquote":                  reflect.ValueOf(q.Unquote),
 			"UnquoteChar":              reflect.ValueOf(q.UnquoteChar),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"IntSize": {"untyped int", constant.MakeInt64(int64(q.IntSize))},
 		},
 	})

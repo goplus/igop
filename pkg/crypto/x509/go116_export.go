@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "x509",
 		Path: "crypto/x509",
 		Deps: map[string]string{
@@ -106,7 +106,7 @@ func init() {
 			"ParsePKIXPublicKey":       reflect.ValueOf(q.ParsePKIXPublicKey),
 			"SystemCertPool":           reflect.ValueOf(q.SystemCertPool),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"CANotAuthorizedForExtKeyUsage": {reflect.TypeOf(q.CANotAuthorizedForExtKeyUsage), constant.MakeInt64(int64(q.CANotAuthorizedForExtKeyUsage))},
 			"CANotAuthorizedForThisName":    {reflect.TypeOf(q.CANotAuthorizedForThisName), constant.MakeInt64(int64(q.CANotAuthorizedForThisName))},
 			"DSA":                           {reflect.TypeOf(q.DSA), constant.MakeInt64(int64(q.DSA))},
@@ -168,6 +168,6 @@ func init() {
 			"UnknownPublicKeyAlgorithm":                 {reflect.TypeOf(q.UnknownPublicKeyAlgorithm), constant.MakeInt64(int64(q.UnknownPublicKeyAlgorithm))},
 			"UnknownSignatureAlgorithm":                 {reflect.TypeOf(q.UnknownSignatureAlgorithm), constant.MakeInt64(int64(q.UnknownSignatureAlgorithm))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

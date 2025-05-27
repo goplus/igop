@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"go/ast"
@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goplus/igop/internal/typesalias"
+	"github.com/goplus/ixgo/internal/typesalias"
 	"golang.org/x/tools/go/ssa"
 	"golang.org/x/tools/go/types/typeutil"
 )

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.24
 // +build go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "elf",
 		Path: "debug/elf",
 		Deps: map[string]string{
@@ -115,7 +115,7 @@ func init() {
 			"ST_TYPE":       reflect.ValueOf(q.ST_TYPE),
 			"ST_VISIBILITY": reflect.ValueOf(q.ST_VISIBILITY),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"COMPRESS_HIOS":                      {reflect.TypeOf(q.COMPRESS_HIOS), constant.MakeInt64(int64(q.COMPRESS_HIOS))},
 			"COMPRESS_HIPROC":                    {reflect.TypeOf(q.COMPRESS_HIPROC), constant.MakeInt64(int64(q.COMPRESS_HIPROC))},
 			"COMPRESS_LOOS":                      {reflect.TypeOf(q.COMPRESS_LOOS), constant.MakeInt64(int64(q.COMPRESS_LOOS))},
@@ -1578,7 +1578,7 @@ func init() {
 			"VER_FLG_INFO":                              {reflect.TypeOf(q.VER_FLG_INFO), constant.MakeInt64(int64(q.VER_FLG_INFO))},
 			"VER_FLG_WEAK":                              {reflect.TypeOf(q.VER_FLG_WEAK), constant.MakeInt64(int64(q.VER_FLG_WEAK))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"ARM_MAGIC_TRAMP_NUMBER": {"untyped int", constant.MakeInt64(int64(q.ARM_MAGIC_TRAMP_NUMBER))},
 			"EI_ABIVERSION":          {"untyped int", constant.MakeInt64(int64(q.EI_ABIVERSION))},
 			"EI_CLASS":               {"untyped int", constant.MakeInt64(int64(q.EI_CLASS))},

@@ -122,7 +122,7 @@ func exportPkg(pkg *Package, sname string, id string, tagList []string) ([]byte,
 	return data, nil
 }
 
-var template_pkg = `// export by github.com/goplus/igop/cmd/qexp
+var template_pkg = `// export by github.com/goplus/ixgo/cmd/qexp
 
 $TAGS
 
@@ -131,11 +131,11 @@ package $PKGNAME
 import (
 	$IMPORTS
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package {
+	ixgo.RegisterPackage(&ixgo.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Deps: map[string]string{$DEPS},
@@ -144,13 +144,13 @@ func init() {
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
-		TypedConsts: map[string]igop.TypedConst{$TYPEDCONSTS},
-		UntypedConsts: map[string]igop.UntypedConst{$UNTYPEDCONSTS},
+		TypedConsts: map[string]ixgo.TypedConst{$TYPEDCONSTS},
+		UntypedConsts: map[string]ixgo.UntypedConst{$UNTYPEDCONSTS},
 	})
 }
 `
 
-var template_empty_pkg = `// export by github.com/goplus/igop/cmd/qexp
+var template_empty_pkg = `// export by github.com/goplus/ixgo/cmd/qexp
 
 $TAGS
 
@@ -159,11 +159,11 @@ package $PKGNAME
 import (
 	$IMPORTS
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package {
+	ixgo.RegisterPackage(&ixgo.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Deps: map[string]string{$DEPS},
@@ -171,7 +171,7 @@ func init() {
 }
 `
 
-var template_link_pkg = `// export by github.com/goplus/igop/cmd/qexp
+var template_link_pkg = `// export by github.com/goplus/ixgo/cmd/qexp
 
 $TAGS
 
@@ -180,11 +180,11 @@ package $PKGNAME
 import (
 	$IMPORTS
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package {
+	ixgo.RegisterPackage(&ixgo.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Deps: map[string]string{$DEPS},
@@ -193,8 +193,8 @@ func init() {
 		AliasTypes: map[string]reflect.Type{$ALIASTYPES},
 		Vars: map[string]reflect.Value{$VARS},
 		Funcs: map[string]reflect.Value{$FUNCS},
-		TypedConsts: map[string]igop.TypedConst{$TYPEDCONSTS},
-		UntypedConsts: map[string]igop.UntypedConst{$UNTYPEDCONSTS},
+		TypedConsts: map[string]ixgo.TypedConst{$TYPEDCONSTS},
+		UntypedConsts: map[string]ixgo.UntypedConst{$UNTYPEDCONSTS},
 		Source: source,
 	})
 }
@@ -202,7 +202,7 @@ $LINKS
 var source = $SOURCE
 `
 
-var template_emtpy_link_pkg = `// export by github.com/goplus/igop/cmd/qexp
+var template_emtpy_link_pkg = `// export by github.com/goplus/ixgo/cmd/qexp
 
 $TAGS
 
@@ -211,11 +211,11 @@ package $PKGNAME
 import (
 	$IMPORTS
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package {
+	ixgo.RegisterPackage(&ixgo.Package {
 		Name: "$PKGNAME",
 		Path: "$PKGPATH",
 		Deps: map[string]string{$DEPS},

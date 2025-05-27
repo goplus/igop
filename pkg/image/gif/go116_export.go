@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "gif",
 		Path: "image/gif",
 		Deps: map[string]string{
@@ -43,8 +43,8 @@ func init() {
 			"Encode":       reflect.ValueOf(q.Encode),
 			"EncodeAll":    reflect.ValueOf(q.EncodeAll),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"DisposalBackground": {"untyped int", constant.MakeInt64(int64(q.DisposalBackground))},
 			"DisposalNone":       {"untyped int", constant.MakeInt64(int64(q.DisposalNone))},
 			"DisposalPrevious":   {"untyped int", constant.MakeInt64(int64(q.DisposalPrevious))},

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.20 && !go1.21
 // +build go1.20,!go1.21
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "syslog",
 		Path: "log/syslog",
 		Deps: map[string]string{
@@ -40,7 +40,7 @@ func init() {
 			"New":       reflect.ValueOf(q.New),
 			"NewLogger": reflect.ValueOf(q.NewLogger),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"LOG_ALERT":    {reflect.TypeOf(q.LOG_ALERT), constant.MakeInt64(int64(q.LOG_ALERT))},
 			"LOG_AUTH":     {reflect.TypeOf(q.LOG_AUTH), constant.MakeInt64(int64(q.LOG_AUTH))},
 			"LOG_AUTHPRIV": {reflect.TypeOf(q.LOG_AUTHPRIV), constant.MakeInt64(int64(q.LOG_AUTHPRIV))},
@@ -70,6 +70,6 @@ func init() {
 			"LOG_UUCP":     {reflect.TypeOf(q.LOG_UUCP), constant.MakeInt64(int64(q.LOG_UUCP))},
 			"LOG_WARNING":  {reflect.TypeOf(q.LOG_WARNING), constant.MakeInt64(int64(q.LOG_WARNING))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

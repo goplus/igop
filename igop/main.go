@@ -14,7 +14,7 @@
 package main
 
 import (
-	"github.com/goplus/igop/cmd/igop/exec"
+	"github.com/goplus/ixgo/cmd/igop/exec"
 )
 
 func main() {

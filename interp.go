@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package igop defines an interpreter for the SSA
+// package ixgo defines an interpreter for the SSA
 // representation of Go programs.
 //
 // This interpreter is provided as an adjunct for testing the SSA
@@ -43,7 +43,7 @@
 // * os.Exit is implemented using panic, causing deferred functions to
 // run.
 
-package igop
+package ixgo
 
 import (
 	"fmt"
@@ -57,8 +57,8 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/igop/internal/typesalias"
-	"github.com/goplus/igop/load"
+	"github.com/goplus/ixgo/internal/typesalias"
+	"github.com/goplus/ixgo/load"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/gid"
 	"github.com/visualfc/xtype"

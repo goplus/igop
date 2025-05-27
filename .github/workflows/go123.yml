@@ -28,14 +28,14 @@ jobs:
     - name: Build
       run: go build -ldflags="-checklinkname=0" -v .
 
-    - name: Install igop
-      run: (cd ./igop && go work init . ./.. && go install -ldflags="-checklinkname=0" -v)
+    - name: Install ixgo
+      run: (cd ./ixgo && go work init . ./.. && go install -ldflags="-checklinkname=0" -v)
 
     - name: Go Test
       run: GOARCH=amd64 go test -ldflags="-checklinkname=0" -race -v .
 
     - name: Test $GOROOT/test
-      run: GOARCH=amd64 go run ./cmd/igoptest
+      run: GOARCH=amd64 go run ./cmd/ixgotest
 
   linux:
     name: Test Go1.23 for Linux
@@ -57,14 +57,14 @@ jobs:
     - name: Build
       run: go build -ldflags="-checklinkname=0" -v .
 
-    - name: Install igop
-      run: (cd ./igop && go work init . ./.. && go install -ldflags="-checklinkname=0" -v)
+    - name: Install ixgo
+      run: (cd ./ixgo && go work init . ./.. && go install -ldflags="-checklinkname=0" -v)
 
     - name: Go Test amd64
       run: GOARCH=amd64 go test -ldflags="-checklinkname=0" -race -v .
 
     - name: Test $GOROOT/test
-      run: GOARCH=amd64 go run ./cmd/igoptest
+      run: GOARCH=amd64 go run ./cmd/ixgotest
 
   windows:
     name: Test Go1.23 for Windows
@@ -86,8 +86,8 @@ jobs:
     - name: Build
       run: go build -ldflags="-checklinkname=0" -v .
 
-    - name: Install igop
-      run: (cd ./igop && go work init . ./.. && go install -ldflags="-checklinkname=0" -v)
+    - name: Install ixgo
+      run: (cd ./ixgo && go work init . ./.. && go install -ldflags="-checklinkname=0" -v)
 
     - name: Go Test amd64
       run: |
@@ -97,7 +97,7 @@ jobs:
     - name: Test $GOROOT/test amd64
       run: |
         set GOARCH=amd64 
-        go run ./cmd/igoptest
+        go run ./cmd/ixgotest
 
     - name: Go Test 386
       run: |
@@ -107,4 +107,4 @@ jobs:
     - name: Go $GOROOT/test 386
       run: |
         set GOARCH=386 
-        go run ./cmd/igoptest
+        go run ./cmd/ixgotest

@@ -1,10 +1,10 @@
-package igop_test
+package ixgo_test
 
 import (
 	"testing"
 
-	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/pkg/log"
+	"github.com/goplus/ixgo"
+	_ "github.com/goplus/ixgo/pkg/log"
 )
 
 func TestFuncForPC(t *testing.T) {
@@ -38,7 +38,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func main() {
 
 var infos = "[main.main.func1 main.go:41 runtime.gopanic main.g.func1 main.go:27 runtime.gopanic main.g.func2 main.go:30 runtime.gopanic main.f main.go:18 main.g main.go:32 main.main main.go:59]"
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +179,7 @@ func main() {
 
 var infos = "[main.main.func1 main.go:40 runtime.gopanic main.f main.go:18 main.g main.go:32 main.main main.go:60]"
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,7 +250,7 @@ func main() {
 
 var infos = "[main.main.func1 main.go:40 runtime.gopanic main.g.func1 main.go:27 runtime.gopanic main.f main.go:18 main.g main.go:32 main.main main.go:60]"
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -321,7 +321,7 @@ func main() {
 
 var infos = "[main.main.func1 main.go:40 runtime.gopanic main.g.func1 main.go:27 runtime.gopanic main.g.func2 main.go:30 runtime.gopanic main.f main.go:18 main.g main.go:32 main.main main.go:60]"
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -392,7 +392,7 @@ func main() {
 
 var infos = "[main.main.func1 main.go:40 runtime.gopanic main.f main.go:18 main.g.func2 main.go:31 main.g main.go:34 main.main main.go:60]"
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -463,7 +463,7 @@ func main() {
 
 var infos = "[main.main.func1 main.go:40 runtime.gopanic main.f main.go:18 main.g.func2 main.go:31 runtime.gopanic main.f main.go:18 main.g main.go:33 main.main main.go:60]"
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -534,7 +534,7 @@ func main() {
 
 var infos = "[main.main.func1 main.go:40 runtime.gopanic main.g.func1 main.go:27 runtime.gopanic main.f main.go:18 main.g.func2 main.go:31 main.g main.go:34 main.main main.go:60]"
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -614,7 +614,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -688,7 +688,7 @@ func inuse() int64 {
 	return int64(st.Alloc)
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, igop.ExperimentalSupportGC)
+	_, err := ixgo.RunFile("main.go", src, nil, ixgo.ExperimentalSupportGC)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -763,7 +763,7 @@ func main() {
 	}
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
@@ -827,7 +827,7 @@ func main() {
 		x int
 		y int
 	}
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	ctx.RegisterExternal("pkg.New", func(x int, y int) *point {
 		return &point{x, y}
@@ -878,7 +878,7 @@ func main() {
 	}
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	var e int = 100
 	ctx.RegisterExternal("pkg.e", &e)
@@ -920,7 +920,7 @@ func main() {
 	}
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -947,7 +947,7 @@ func add(v ...int) int
 func main() {
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err == nil {
@@ -979,7 +979,7 @@ func add(v ...int) int
 func main() {
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err == nil {
@@ -1006,7 +1006,7 @@ var a int = 200
 func main() {
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.AddImportFile("pkg", "pkg.go", pkg)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err == nil {

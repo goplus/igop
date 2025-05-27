@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 package stringutil
 
@@ -7,11 +7,11 @@ import (
 
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "stringutil",
 		Path: "github.com/qiniu/x/stringutil",
 		Deps: map[string]string{
@@ -34,7 +34,7 @@ func init() {
 			"NewBuilderSize": reflect.ValueOf(q.NewBuilderSize),
 			"String":         reflect.ValueOf(q.String),
 		},
-		TypedConsts:   map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		TypedConsts:   map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

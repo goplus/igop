@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.23 && !go1.24
 // +build go1.23,!go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "net",
 		Path: "net",
 		Deps: map[string]string{
@@ -148,7 +148,7 @@ func init() {
 			"TCPAddrFromAddrPort": reflect.ValueOf(q.TCPAddrFromAddrPort),
 			"UDPAddrFromAddrPort": reflect.ValueOf(q.UDPAddrFromAddrPort),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"FlagBroadcast":    {reflect.TypeOf(q.FlagBroadcast), constant.MakeInt64(int64(q.FlagBroadcast))},
 			"FlagLoopback":     {reflect.TypeOf(q.FlagLoopback), constant.MakeInt64(int64(q.FlagLoopback))},
 			"FlagMulticast":    {reflect.TypeOf(q.FlagMulticast), constant.MakeInt64(int64(q.FlagMulticast))},
@@ -156,7 +156,7 @@ func init() {
 			"FlagRunning":      {reflect.TypeOf(q.FlagRunning), constant.MakeInt64(int64(q.FlagRunning))},
 			"FlagUp":           {reflect.TypeOf(q.FlagUp), constant.MakeInt64(int64(q.FlagUp))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"IPv4len": {"untyped int", constant.MakeInt64(int64(q.IPv4len))},
 			"IPv6len": {"untyped int", constant.MakeInt64(int64(q.IPv6len))},
 		},

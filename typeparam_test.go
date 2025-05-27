@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package igop_test
+package ixgo_test
 
 import (
 	"bytes"
@@ -25,11 +25,11 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/goplus/igop"
-	_ "github.com/goplus/igop/pkg/go/token"
-	_ "github.com/goplus/igop/pkg/path/filepath"
-	_ "github.com/goplus/igop/pkg/reflect"
-	_ "github.com/goplus/igop/pkg/sync/atomic"
+	"github.com/goplus/ixgo"
+	_ "github.com/goplus/ixgo/pkg/go/token"
+	_ "github.com/goplus/ixgo/pkg/path/filepath"
+	_ "github.com/goplus/ixgo/pkg/reflect"
+	_ "github.com/goplus/ixgo/pkg/sync/atomic"
 )
 
 func TestTypeParamNamed(t *testing.T) {
@@ -54,7 +54,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +201,7 @@ func eq(a, b interface{}) string {
 22,23: main.T[main.Int;main.Int]
 26,27: main.T[main.Int;main.U[main.Int;main.Int]·3]
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	var buf bytes.Buffer
 	ctx.RegisterExternal("fmt.Printf", func(format string, a ...interface{}) (n int, err error) {
 		fmt.Fprintf(&buf, format, a...)
@@ -229,7 +229,7 @@ func main() {
 	T(100)
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -275,7 +275,7 @@ func recur2[T Integer](n T) T {
 	return sum + recur1(n-1)
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,7 +311,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -338,7 +338,7 @@ func (g *CFG) Format(fset *token.FileSet) {
 
 func main() {
 }`
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

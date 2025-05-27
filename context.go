@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"bytes"
@@ -39,7 +39,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goplus/igop/load"
+	"github.com/goplus/ixgo/load"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -989,7 +989,7 @@ func RunTest(path string, args []string, mode Mode) error {
 var (
 	builtinPkg = &Package{
 		Name:          "builtin",
-		Path:          "github.com/goplus/igop/builtin",
+		Path:          "github.com/goplus/ixgo/builtin",
 		Deps:          make(map[string]string),
 		Interfaces:    map[string]reflect.Type{},
 		NamedTypes:    map[string]reflect.Type{},
@@ -1086,7 +1086,7 @@ func ParseBuiltin(fset *token.FileSet, pkg string) (*ast.File, error) {
 	sort.Strings(deps)
 	src := fmt.Sprintf(`package %v
 import (
-	"github.com/goplus/igop/builtin"
+	"github.com/goplus/ixgo/builtin"
 	%v
 )
 %v

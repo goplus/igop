@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package igop
+package ixgo
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/goplus/igop/load"
+	"github.com/goplus/ixgo/load"
 	"github.com/goplus/reflectx"
 	"github.com/visualfc/funcval"
 	"github.com/visualfc/xtype"

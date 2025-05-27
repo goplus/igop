@@ -7,7 +7,7 @@ import (
 	_ "runtime"
 	"unsafe"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 //go:linkname setUpdate internal/godebug.setUpdate
@@ -23,8 +23,8 @@ func setNewIncNonDefault(newIncNonDefault func(string) func())
 func write(fd uintptr, p unsafe.Pointer, n int32) int32
 
 func init() {
-	igop.RegisterExternal("internal/godebug.setUpdate", setUpdate)
-	igop.RegisterExternal("internal/godebug.registerMetric", registerMetric)
-	igop.RegisterExternal("internal/godebug.setNewIncNonDefault", setNewIncNonDefault)
-	igop.RegisterExternal("internal/godebug.write", write)
+	ixgo.RegisterExternal("internal/godebug.setUpdate", setUpdate)
+	ixgo.RegisterExternal("internal/godebug.registerMetric", registerMetric)
+	ixgo.RegisterExternal("internal/godebug.setNewIncNonDefault", setNewIncNonDefault)
+	ixgo.RegisterExternal("internal/godebug.write", write)
 }

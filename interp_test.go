@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package igop_test
+package ixgo_test
 
 // This test runs the SSA interpreter over sample Go programs.
 // Because the interpreter requires intrinsics for assembly
@@ -30,23 +30,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goplus/igop"
-	"github.com/goplus/igop/testdata/info"
+	"github.com/goplus/ixgo"
+	"github.com/goplus/ixgo/testdata/info"
 
-	_ "github.com/goplus/igop/pkg/bytes"
-	_ "github.com/goplus/igop/pkg/errors"
-	_ "github.com/goplus/igop/pkg/fmt"
-	_ "github.com/goplus/igop/pkg/math"
-	_ "github.com/goplus/igop/pkg/os"
-	_ "github.com/goplus/igop/pkg/path/filepath"
-	_ "github.com/goplus/igop/pkg/reflect"
-	_ "github.com/goplus/igop/pkg/runtime"
-	_ "github.com/goplus/igop/pkg/strings"
-	_ "github.com/goplus/igop/pkg/sync"
-	_ "github.com/goplus/igop/pkg/time"
+	_ "github.com/goplus/ixgo/pkg/bytes"
+	_ "github.com/goplus/ixgo/pkg/errors"
+	_ "github.com/goplus/ixgo/pkg/fmt"
+	_ "github.com/goplus/ixgo/pkg/math"
+	_ "github.com/goplus/ixgo/pkg/os"
+	_ "github.com/goplus/ixgo/pkg/path/filepath"
+	_ "github.com/goplus/ixgo/pkg/reflect"
+	_ "github.com/goplus/ixgo/pkg/runtime"
+	_ "github.com/goplus/ixgo/pkg/strings"
+	_ "github.com/goplus/ixgo/pkg/sync"
+	_ "github.com/goplus/ixgo/pkg/time"
 )
 
-// These are files in github.com/goplus/igop/testdata/.
+// These are files in github.com/goplus/ixgo/testdata/.
 var testdataTests = []string{
 	"boundmeth.go",
 	"complit.go",
@@ -72,7 +72,7 @@ var testdataTests = []string{
 func runInput(t *testing.T, input string) bool {
 	fmt.Println("Input:", input)
 	start := time.Now()
-	_, err := igop.Run(input, nil, 0)
+	_, err := ixgo.Run(input, nil, 0)
 	sec := time.Since(start).Seconds()
 	if err != nil {
 		t.Error(err)
@@ -122,14 +122,14 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestRegisterExternal(t *testing.T) {
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.RegisterExternal("main.call", func(i, j int) int {
 		return i * j
 	})
@@ -174,7 +174,7 @@ func main() {
 	os.Exit(-2)
 }
 `
-	code, err := igop.RunFile("main.go", src, nil, 0)
+	code, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +205,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -243,7 +243,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -282,7 +282,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -301,7 +301,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -340,7 +340,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -376,7 +376,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -430,7 +430,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -453,7 +453,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -550,7 +550,7 @@ true
 (0x0,0x0)
 (0x0,0x0)
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	var buf bytes.Buffer
 	ctx.SetPrintOutput(&buf)
 	_, err := ctx.RunFile("main.go", src, nil)
@@ -578,7 +578,7 @@ func TestPanicInfo(t *testing.T) {
 		{`type T string; panic(T("hello"))`, `main.T("hello")`},
 		{`type T struct{}; panic((*T)(nil))`, `(*main.T) 0x0`},
 	}
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	for _, info := range infos {
 		src := fmt.Sprintf("package main;func main(){%v}", info.src)
 		code, err := ctx.RunFile("main.go", src, nil)
@@ -603,14 +603,14 @@ func main() {
 	test()
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
 	if s := err.Error(); s != "error info" {
 		t.Fatalf("error %q", s)
 	}
-	pe, ok := err.(igop.PanicError)
+	pe, ok := err.(ixgo.PanicError)
 	if !ok {
 		t.Fatal("error type must igop.PanicError")
 	}
@@ -640,7 +640,7 @@ func main() {
 	panic(errors.New("error info"))
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -658,7 +658,7 @@ func main() {
 	println(T{100,200})
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	var buf bytes.Buffer
 	ctx.SetPrintOutput(&buf)
 	_, err := ctx.RunFile("main.go", src, nil)
@@ -668,7 +668,7 @@ func main() {
 	if s := err.Error(); s != "illegal types for operand: print\n\t[2]int" {
 		t.Fatal(s)
 	}
-	ctx.Mode |= igop.EnablePrintAny
+	ctx.Mode |= ixgo.EnablePrintAny
 	_, err = ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -707,7 +707,7 @@ func main() {
 	wg.Wait()
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -741,7 +741,7 @@ func main() {
 	wg.Wait()
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -786,7 +786,7 @@ func main() {
 	wg.Wait()
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -906,7 +906,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$int", "="+s, 1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -914,7 +914,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop named", s)
 		src := strings.Replace(tsrc, "$int", s, 1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1001,7 +1001,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$float", "="+s, 1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1009,7 +1009,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop named", s)
 		src := strings.Replace(tsrc, "$float", s, 1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1081,7 +1081,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop xtype", s)
 		src := strings.Replace(tsrc, "$complex", "="+s, 1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1089,7 +1089,7 @@ func check(a, b T) {
 	for _, s := range types {
 		t.Log("test binop named", s)
 		src := strings.Replace(tsrc, "$complex", s, 1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1158,13 +1158,13 @@ func check(a, b T) {
 }
 `
 	t.Log("test binop string")
-	_, err := igop.RunFile("main.go", tsrc, nil, 0)
+	_, err := ixgo.RunFile("main.go", tsrc, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Log("test binop named string")
 	src := strings.Replace(tsrc, "= string", "string", 1)
-	_, err = igop.RunFile("main.go", src, nil, 0)
+	_, err = ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1205,7 +1205,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", "="+t1, "$T2", "="+t2)
 			src := r.Replace(tsrc)
-			_, err := igop.RunFile("main.go", src, nil, 0)
+			_, err := ixgo.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1213,7 +1213,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", "="+t1, "$T2", t2)
 			src := r.Replace(tsrc)
-			_, err := igop.RunFile("main.go", src, nil, 0)
+			_, err := ixgo.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1221,7 +1221,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", t1, "$T2", "="+t2)
 			src := r.Replace(tsrc)
-			_, err := igop.RunFile("main.go", src, nil, 0)
+			_, err := ixgo.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1229,7 +1229,7 @@ func assert(t bool) {
 		for _, t2 := range types {
 			r := strings.NewReplacer("$T1", t1, "$T2", t2)
 			src := r.Replace(tsrc)
-			_, err := igop.RunFile("main.go", src, nil, 0)
+			_, err := ixgo.RunFile("main.go", src, nil, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -1263,7 +1263,7 @@ func testConst() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1304,7 +1304,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop sub", s)
 		src := strings.Replace(tsrc, "$int", s, -1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1345,7 +1345,7 @@ func testConst() {
 	}
 	for _, s := range types {
 		src := strings.Replace(tsrc, "$uint", s, -1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1387,7 +1387,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop sub", s)
 		src := strings.Replace(tsrc, "$float", s, -1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1429,7 +1429,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop sub", s)
 		src := strings.Replace(tsrc, "$complex", s, -1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1472,7 +1472,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop xor", s)
 		src := strings.Replace(tsrc, "$int", s, -1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1515,7 +1515,7 @@ func testConst() {
 	for _, s := range types {
 		t.Log("test unop xor", s)
 		src := strings.Replace(tsrc, "$uint", s, -1)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1609,7 +1609,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1766,7 +1766,7 @@ func testInterface() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1806,7 +1806,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "10")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1816,7 +1816,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "100.5")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1826,7 +1826,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", s)
 		r := strings.NewReplacer("$int", s, "$value", "1+2i")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1835,7 +1835,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", "bool")
 		r := strings.NewReplacer("$int", "bool", "$value", "true")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1844,7 +1844,7 @@ func test(v $int) {
 		t.Log("test changetype xtype", "string")
 		r := strings.NewReplacer("$int", "string", "$value", `"hello"`)
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2010,7 +2010,7 @@ func test2(n T) {
 		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$int", s, "$V", "100", "$N", "100", "$F", "100")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2019,7 +2019,7 @@ func test2(n T) {
 		t.Log("test convert typed", s)
 		r := strings.NewReplacer("= $int", s, "$V", "100", "$N", "100", "$F", "100")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2028,7 +2028,7 @@ func test2(n T) {
 		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$int", s, "$V", "100.5", "$N", "100", "$F", "100.5")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2037,7 +2037,7 @@ func test2(n T) {
 		t.Log("test convert typed", s)
 		r := strings.NewReplacer("= $int", s, "$V", "100.5", "$N", "100", "$F", "100.5")
 		src := r.Replace(tsrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2046,7 +2046,7 @@ func test2(n T) {
 		t.Log("test convert xtype", s)
 		r := strings.NewReplacer("$complex", s, "$N", "1+2i")
 		src := r.Replace(csrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2055,7 +2055,7 @@ func test2(n T) {
 		t.Log("test convert typed", s)
 		r := strings.NewReplacer("= $complex", s, "$N", "1+2i")
 		src := r.Replace(csrc)
-		_, err := igop.RunFile("main.go", src, nil, 0)
+		_, err := ixgo.RunFile("main.go", src, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2120,7 +2120,7 @@ true
 false
 true
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	var buf bytes.Buffer
 	ctx.SetPrintOutput(&buf)
 	_, err := ctx.RunFile("main.go", src, nil)
@@ -2148,11 +2148,11 @@ func main() {
 	os.Exit(-2)
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err == nil {
 		t.Fatal("must panic")
 	}
-	if err.Error() != igop.ErrGoexitDeadlock.Error() {
+	if err.Error() != ixgo.ErrGoexitDeadlock.Error() {
 		t.Fatal(err)
 	}
 }
@@ -2169,7 +2169,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2183,18 +2183,18 @@ func main() {
 	dump_ints(20,30,50)
 }
 `
-	igop.RegisterCustomBuiltin("typeof", reflect.TypeOf)
+	ixgo.RegisterCustomBuiltin("typeof", reflect.TypeOf)
 	var info interface{}
-	igop.RegisterCustomBuiltin("dump_info", func(v interface{}) {
+	ixgo.RegisterCustomBuiltin("dump_info", func(v interface{}) {
 		info = v
 	})
 	var all int
-	igop.RegisterCustomBuiltin("dump_ints", func(a ...int) {
+	ixgo.RegisterCustomBuiltin("dump_ints", func(a ...int) {
 		for _, v := range a {
 			all += v
 		}
 	})
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -2217,7 +2217,7 @@ type UnaryInvoker func(ctx Context, method string, req, reply interface{}, cc *C
 func main() {
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2248,7 +2248,7 @@ func main() {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2276,7 +2276,7 @@ func main() {
 	pkg.Println("Hello")
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	err := ctx.AddImportFile("pkg", "pkg.go", pkg)
 	if err != nil {
 		t.Fatal(err)
@@ -2298,7 +2298,7 @@ func main() {
 	pkg.Println("Hello")
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	err := ctx.AddImport("igop/pkg", "./testdata/pkg")
 	if err != nil {
 		t.Fatal(err)
@@ -2317,7 +2317,7 @@ func TestLoadImport(t *testing.T) {
 		}
 	}
 	src := `package main
-import "github.com/goplus/igop/testdata/pkg"
+import "github.com/goplus/ixgo/testdata/pkg"
 
 func main() {
 	if pkg.Add(100, 200) != 300 {
@@ -2326,7 +2326,7 @@ func main() {
 	pkg.Println("Hello")
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -2346,7 +2346,7 @@ func main() {
 	_ = append(a,c...)
 }
 	`
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -2354,9 +2354,9 @@ func main() {
 }
 
 func TestStructEmbed(t *testing.T) {
-	p := &igop.Package{
+	p := &ixgo.Package{
 		Name: "info",
-		Path: "github.com/goplus/igop/testdata/info",
+		Path: "github.com/goplus/ixgo/testdata/info",
 		Interfaces: map[string]reflect.Type{
 			"Info": reflect.TypeOf((*info.Info)(nil)).Elem(),
 		},
@@ -2367,12 +2367,12 @@ func TestStructEmbed(t *testing.T) {
 			"NewInfo": reflect.ValueOf(info.NewInfo),
 		},
 	}
-	igop.RegisterPackage(p)
+	ixgo.RegisterPackage(p)
 
 	src := `package main
 
 import (
-	"github.com/goplus/igop/testdata/info"
+	"github.com/goplus/ixgo/testdata/info"
 )
 
 type MyInfo struct {
@@ -2401,7 +2401,7 @@ func check(info info.Info) {
 	}
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2417,7 +2417,7 @@ func TestBuildTags(t *testing.T) {
 	src1 := `package main
 
 import (
-	"github.com/goplus/igop/testdata/msg"
+	"github.com/goplus/ixgo/testdata/msg"
 )
 
 func main() {
@@ -2426,7 +2426,7 @@ func main() {
 	}
 }
 `
-	ctx1 := igop.NewContext(0)
+	ctx1 := ixgo.NewContext(0)
 	_, err := ctx1.RunFile("main.go", src1, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -2435,7 +2435,7 @@ func main() {
 	src2 := `package main
 
 import (
-	"github.com/goplus/igop/testdata/msg"
+	"github.com/goplus/ixgo/testdata/msg"
 )
 
 func main() {
@@ -2444,7 +2444,7 @@ func main() {
 	}
 }
 `
-	ctx2 := igop.NewContext(0)
+	ctx2 := ixgo.NewContext(0)
 	ctx2.BuildContext.BuildTags = []string{"msg"}
 	_, err = ctx2.RunFile("main.go", src2, nil)
 	if err != nil {
@@ -2482,7 +2482,7 @@ func check(b1 bool, b2 bool) {
 	}
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -2518,7 +2518,7 @@ func Get() OutputID {
 	return dummyID(1234)
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -2539,7 +2539,7 @@ func main() {
 	_ = make(Recv)
 }
 `
-	_, err := igop.RunFile("main.go", src, nil, 0)
+	_, err := ixgo.RunFile("main.go", src, nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2556,7 +2556,7 @@ func main() {
 	println(100)
 }
 `
-	ctx := igop.NewContext(igop.EnableNoStrict)
+	ctx := ixgo.NewContext(ixgo.EnableNoStrict)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -2588,8 +2588,8 @@ func main() {
 	}
 }
 `
-	ctx := igop.NewContext(0)
-	igop.RegisterExternal("main.mytest1", func(n int, pt struct {
+	ctx := ixgo.NewContext(0)
+	ixgo.RegisterExternal("main.mytest1", func(n int, pt struct {
 		x int
 		y int
 	}) int {
@@ -2630,7 +2630,7 @@ func main() {
 	println("exit")
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	ctx.RunContext, _ = context.WithTimeout(context.Background(), 1e9)
 	code, err := ctx.RunFile("main.go", src, nil)
 	if code != 2 {
@@ -2681,7 +2681,7 @@ func main() {
 	}
 }
 `
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	_, err := ctx.RunFile("main.go", src, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -2717,7 +2717,7 @@ func (f fileInfo) Sys() interface{} {
 }
 
 func TestBuildContext(t *testing.T) {
-	ctx := igop.NewContext(0)
+	ctx := ixgo.NewContext(0)
 	const pkgDir = "mypkg"
 	const mypkg = `package mypkg
 import "fmt"
@@ -2762,7 +2762,7 @@ func main() {
 }
 
 func TestRuntimeRefelct(t *testing.T) {
-	ctx := igop.NewContext(igop.DisableImethodForReflect)
+	ctx := ixgo.NewContext(ixgo.DisableImethodForReflect)
 	ctx.RegisterExternal("main.run", func(v interface{}) {
 		if e, ok := v.(interface{ MainEntry() }); ok {
 			e.MainEntry()

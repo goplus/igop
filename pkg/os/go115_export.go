@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "os",
 		Path: "os",
 		Deps: map[string]string{
@@ -118,7 +118,7 @@ func init() {
 			"UserConfigDir":   reflect.ValueOf(q.UserConfigDir),
 			"UserHomeDir":     reflect.ValueOf(q.UserHomeDir),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"ModeAppend":     {reflect.TypeOf(q.ModeAppend), constant.MakeInt64(int64(q.ModeAppend))},
 			"ModeCharDevice": {reflect.TypeOf(q.ModeCharDevice), constant.MakeInt64(int64(q.ModeCharDevice))},
 			"ModeDevice":     {reflect.TypeOf(q.ModeDevice), constant.MakeInt64(int64(q.ModeDevice))},
@@ -146,7 +146,7 @@ func init() {
 			"SEEK_END":       {reflect.TypeOf(q.SEEK_END), constant.MakeInt64(int64(q.SEEK_END))},
 			"SEEK_SET":       {reflect.TypeOf(q.SEEK_SET), constant.MakeInt64(int64(q.SEEK_SET))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"DevNull":           {"untyped string", constant.MakeString(string(q.DevNull))},
 			"PathListSeparator": {"untyped rune", constant.MakeInt64(int64(q.PathListSeparator))},
 			"PathSeparator":     {"untyped rune", constant.MakeInt64(int64(q.PathSeparator))},

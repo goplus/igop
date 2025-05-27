@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "token",
 		Path: "go/token",
 		Deps: map[string]string{
@@ -42,7 +42,7 @@ func init() {
 			"Lookup":       reflect.ValueOf(q.Lookup),
 			"NewFileSet":   reflect.ValueOf(q.NewFileSet),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"ADD":            {reflect.TypeOf(q.ADD), constant.MakeInt64(int64(q.ADD))},
 			"ADD_ASSIGN":     {reflect.TypeOf(q.ADD_ASSIGN), constant.MakeInt64(int64(q.ADD_ASSIGN))},
 			"AND":            {reflect.TypeOf(q.AND), constant.MakeInt64(int64(q.AND))},
@@ -126,7 +126,7 @@ func init() {
 			"XOR":            {reflect.TypeOf(q.XOR), constant.MakeInt64(int64(q.XOR))},
 			"XOR_ASSIGN":     {reflect.TypeOf(q.XOR_ASSIGN), constant.MakeInt64(int64(q.XOR_ASSIGN))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"HighestPrec": {"untyped int", constant.MakeInt64(int64(q.HighestPrec))},
 			"LowestPrec":  {"untyped int", constant.MakeInt64(int64(q.LowestPrec))},
 			"UnaryPrec":   {"untyped int", constant.MakeInt64(int64(q.UnaryPrec))},

@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.17 && !go1.18
 // +build go1.17,!go1.18
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "parse",
 		Path: "text/template/parse",
 		Deps: map[string]string{
@@ -64,7 +64,7 @@ func init() {
 			"NewIdentifier": reflect.ValueOf(q.NewIdentifier),
 			"Parse":         reflect.ValueOf(q.Parse),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"NodeAction":     {reflect.TypeOf(q.NodeAction), constant.MakeInt64(int64(q.NodeAction))},
 			"NodeBool":       {reflect.TypeOf(q.NodeBool), constant.MakeInt64(int64(q.NodeBool))},
 			"NodeChain":      {reflect.TypeOf(q.NodeChain), constant.MakeInt64(int64(q.NodeChain))},
@@ -87,6 +87,6 @@ func init() {
 			"ParseComments":  {reflect.TypeOf(q.ParseComments), constant.MakeInt64(int64(q.ParseComments))},
 			"SkipFuncCheck":  {reflect.TypeOf(q.SkipFuncCheck), constant.MakeInt64(int64(q.SkipFuncCheck))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

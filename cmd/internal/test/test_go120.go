@@ -7,12 +7,12 @@ import (
 	_ "runtime"
 	_ "unsafe"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 //go:linkname setUpdate internal/godebug.setUpdate
 func setUpdate(update func(string, string))
 
 func init() {
-	igop.RegisterExternal("internal/godebug.setUpdate", setUpdate)
+	ixgo.RegisterExternal("internal/godebug.setUpdate", setUpdate)
 }

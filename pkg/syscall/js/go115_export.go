@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.15 && !go1.16 && js
 // +build go1.15,!go1.16,js
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "js",
 		Path: "syscall/js",
 		Deps: map[string]string{
@@ -44,7 +44,7 @@ func init() {
 			"Undefined":     reflect.ValueOf(q.Undefined),
 			"ValueOf":       reflect.ValueOf(q.ValueOf),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"TypeBoolean":   {reflect.TypeOf(q.TypeBoolean), constant.MakeInt64(int64(q.TypeBoolean))},
 			"TypeFunction":  {reflect.TypeOf(q.TypeFunction), constant.MakeInt64(int64(q.TypeFunction))},
 			"TypeNull":      {reflect.TypeOf(q.TypeNull), constant.MakeInt64(int64(q.TypeNull))},
@@ -54,6 +54,6 @@ func init() {
 			"TypeSymbol":    {reflect.TypeOf(q.TypeSymbol), constant.MakeInt64(int64(q.TypeSymbol))},
 			"TypeUndefined": {reflect.TypeOf(q.TypeUndefined), constant.MakeInt64(int64(q.TypeUndefined))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{},
 	})
 }

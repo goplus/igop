@@ -20,8 +20,8 @@ import (
 	"go/build"
 	"strings"
 
-	"github.com/goplus/igop/cmd/internal/base"
-	"github.com/goplus/igop/load"
+	"github.com/goplus/ixgo/cmd/internal/base"
+	"github.com/goplus/ixgo/load"
 )
 
 var (

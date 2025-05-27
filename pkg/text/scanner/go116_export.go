@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.16,!go1.17
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "scanner",
 		Path: "text/scanner",
 		Deps: map[string]string{
@@ -35,8 +35,8 @@ func init() {
 		Funcs: map[string]reflect.Value{
 			"TokenString": reflect.ValueOf(q.TokenString),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"Char":           {"untyped int", constant.MakeInt64(int64(q.Char))},
 			"Comment":        {"untyped int", constant.MakeInt64(int64(q.Comment))},
 			"EOF":            {"untyped int", constant.MakeInt64(int64(q.EOF))},

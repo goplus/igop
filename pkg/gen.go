@@ -170,7 +170,7 @@ func genericPkgs(std []string) (pkgs []string) {
 }
 
 func makepkg(fname string, tags []string, std []string) error {
-	//_ github.com/goplus/igop/pkg
+	//_ github.com/goplus/ixgo/pkg
 	var pkgs []string
 	for _, v := range std {
 		if strings.HasPrefix(v, "testing/") {
@@ -179,9 +179,9 @@ func makepkg(fname string, tags []string, std []string) error {
 		if v == "testing" || v == "log/syslog" || v == "net/rpc" || v == "net/rpc/jsonrpc" {
 			continue
 		}
-		pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/igop/pkg/%v"`, v))
+		pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/ixgo/pkg/%v"`, v))
 	}
-	pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/igop/pkg/syscall"`))
+	pkgs = append(pkgs, fmt.Sprintf(`_ "github.com/goplus/ixgo/pkg/syscall"`))
 	r := strings.NewReplacer("$TAGS", strings.Join(tags, "\n"), "$PKGS", strings.Join(pkgs, "\t\n"))
 	src := r.Replace(tmpl)
 	data, err := format.Source([]byte(src))

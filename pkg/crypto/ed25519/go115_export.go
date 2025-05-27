@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //+build go1.15,!go1.16
 
@@ -10,11 +10,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "ed25519",
 		Path: "crypto/ed25519",
 		Deps: map[string]string{
@@ -40,8 +40,8 @@ func init() {
 			"Sign":           reflect.ValueOf(q.Sign),
 			"Verify":         reflect.ValueOf(q.Verify),
 		},
-		TypedConsts: map[string]igop.TypedConst{},
-		UntypedConsts: map[string]igop.UntypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{},
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"PrivateKeySize": {"untyped int", constant.MakeInt64(int64(q.PrivateKeySize))},
 			"PublicKeySize":  {"untyped int", constant.MakeInt64(int64(q.PublicKeySize))},
 			"SeedSize":       {"untyped int", constant.MakeInt64(int64(q.SeedSize))},

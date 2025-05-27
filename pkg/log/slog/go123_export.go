@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.23 && !go1.24
 // +build go1.23,!go1.24
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "slog",
 		Path: "log/slog",
 		Deps: map[string]string{
@@ -104,7 +104,7 @@ func init() {
 			"WarnContext":       reflect.ValueOf(q.WarnContext),
 			"With":              reflect.ValueOf(q.With),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"KindAny":       {reflect.TypeOf(q.KindAny), constant.MakeInt64(int64(q.KindAny))},
 			"KindBool":      {reflect.TypeOf(q.KindBool), constant.MakeInt64(int64(q.KindBool))},
 			"KindDuration":  {reflect.TypeOf(q.KindDuration), constant.MakeInt64(int64(q.KindDuration))},
@@ -120,7 +120,7 @@ func init() {
 			"LevelInfo":     {reflect.TypeOf(q.LevelInfo), constant.MakeInt64(int64(q.LevelInfo))},
 			"LevelWarn":     {reflect.TypeOf(q.LevelWarn), constant.MakeInt64(int64(q.LevelWarn))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"LevelKey":   {"untyped string", constant.MakeString(string(q.LevelKey))},
 			"MessageKey": {"untyped string", constant.MakeString(string(q.MessageKey))},
 			"SourceKey":  {"untyped string", constant.MakeString(string(q.SourceKey))},

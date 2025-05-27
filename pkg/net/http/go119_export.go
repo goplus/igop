@@ -1,4 +1,4 @@
-// export by github.com/goplus/igop/cmd/qexp
+// export by github.com/goplus/ixgo/cmd/qexp
 
 //go:build go1.19 && !go1.20
 // +build go1.19,!go1.20
@@ -11,11 +11,11 @@ import (
 	"go/constant"
 	"reflect"
 
-	"github.com/goplus/igop"
+	"github.com/goplus/ixgo"
 )
 
 func init() {
-	igop.RegisterPackage(&igop.Package{
+	ixgo.RegisterPackage(&ixgo.Package{
 		Name: "http",
 		Path: "net/http",
 		Deps: map[string]string{
@@ -161,7 +161,7 @@ func init() {
 			"StripPrefix":           reflect.ValueOf(q.StripPrefix),
 			"TimeoutHandler":        reflect.ValueOf(q.TimeoutHandler),
 		},
-		TypedConsts: map[string]igop.TypedConst{
+		TypedConsts: map[string]ixgo.TypedConst{
 			"SameSiteDefaultMode": {reflect.TypeOf(q.SameSiteDefaultMode), constant.MakeInt64(int64(q.SameSiteDefaultMode))},
 			"SameSiteLaxMode":     {reflect.TypeOf(q.SameSiteLaxMode), constant.MakeInt64(int64(q.SameSiteLaxMode))},
 			"SameSiteNoneMode":    {reflect.TypeOf(q.SameSiteNoneMode), constant.MakeInt64(int64(q.SameSiteNoneMode))},
@@ -172,7 +172,7 @@ func init() {
 			"StateIdle":           {reflect.TypeOf(q.StateIdle), constant.MakeInt64(int64(q.StateIdle))},
 			"StateNew":            {reflect.TypeOf(q.StateNew), constant.MakeInt64(int64(q.StateNew))},
 		},
-		UntypedConsts: map[string]igop.UntypedConst{
+		UntypedConsts: map[string]ixgo.UntypedConst{
 			"DefaultMaxHeaderBytes":               {"untyped int", constant.MakeInt64(int64(q.DefaultMaxHeaderBytes))},
 			"DefaultMaxIdleConnsPerHost":          {"untyped int", constant.MakeInt64(int64(q.DefaultMaxIdleConnsPerHost))},
 			"MethodConnect":                       {"untyped string", constant.MakeString(string(q.MethodConnect))},

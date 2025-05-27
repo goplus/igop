@@ -24,8 +24,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/goplus/igop"
-	"github.com/goplus/igop/constant"
+	"github.com/goplus/ixgo"
+	"github.com/goplus/ixgo/constant"
 	"golang.org/x/tools/go/ssa"
 )
 
@@ -42,18 +42,18 @@ type UI interface {
 }
 
 type REPL struct {
-	*igop.Repl
+	*ixgo.Repl
 	term UI
 	more string
 }
 
-func NewREPL(mode igop.Mode) *REPL {
+func NewREPL(mode ixgo.Mode) *REPL {
 	r := &REPL{}
-	igop.RegisterCustomBuiltin("__igop_repl_info__", func(v interface{}) {
+	ixgo.RegisterCustomBuiltin("__igop_repl_info__", func(v interface{}) {
 		r.Printf("%v %T\n", v, v)
 	})
-	ctx := igop.NewContext(mode)
-	r.Repl = igop.NewRepl(ctx)
+	ctx := ixgo.NewContext(mode)
+	r.Repl = ixgo.NewRepl(ctx)
 	return r
 }
 
@@ -146,7 +146,7 @@ func (r *REPL) tryDumpByPkg(expr string) error {
 		return err
 	}
 	if pkgPath, found := findPkg(pkg); found {
-		if p, found := igop.LookupPackage(pkgPath); found {
+		if p, found := ixgo.LookupPackage(pkgPath); found {
 			if sym == "" {
 				r.Printf("%v\n", dumpPkg(p))
 				return nil
