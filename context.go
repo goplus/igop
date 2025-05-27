@@ -143,7 +143,7 @@ func (sp *SourcePackage) Load() (err error) {
 			conf.Error = func(e error) {
 				if te, ok := e.(types.Error); ok {
 					if hasTypesNotUsedError(te.Msg) {
-						println(fmt.Sprintf("igop warning: %v", e))
+						println(fmt.Sprintf("ixgo warning: %v", e))
 						return
 					}
 				}

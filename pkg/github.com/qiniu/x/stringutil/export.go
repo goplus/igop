@@ -15,7 +15,6 @@ func init() {
 		Name: "stringutil",
 		Path: "github.com/qiniu/x/stringutil",
 		Deps: map[string]string{
-			"reflect":      "reflect",
 			"unicode":      "unicode",
 			"unicode/utf8": "utf8",
 			"unsafe":       "unsafe",

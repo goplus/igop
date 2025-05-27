@@ -93,7 +93,7 @@ BigCmdLoop:
 		if i := strings.LastIndex(base.CmdName, " "); i >= 0 {
 			helpArg = " " + base.CmdName[:i]
 		}
-		fmt.Fprintf(os.Stderr, "igop %s: unknown command\nRun 'igop help%s' for usage.\n", base.CmdName, helpArg)
+		fmt.Fprintf(os.Stderr, "ixgo %s: unknown command\nRun 'ixgo help%s' for usage.\n", base.CmdName, helpArg)
 		os.Exit(2)
 	}
 }

@@ -33,8 +33,8 @@ support ABI0 and ABIInternal
 
 ### Generics
 
-- support generics (Go1.18 ~ Go1.24)
-- support [Go1.20 nested type-parameterized declarations](https://github.com/golang/go/blob/master/test/typeparam/nested.go) on Go1.18/Go1.19 (Experimental)
+- support typeparams (Go1.18 ~ Go1.24)
+- support alias typeparams (Go1.24)
 
 ### runtime.GC
 
@@ -52,7 +52,7 @@ go install github.com/goplus/ixgo/cmd/ixgo@latest
 
 Go version >= 1.23
 ```
-go install -ldflags="-checklinkname=0" github.com/goplus/ixgo/ixgo@v0.23.9
+go install -ldflags="-checklinkname=0" github.com/goplus/ixgo/ixgo@v0.1.0
 ```
 
 ### ixgo command
@@ -98,14 +98,14 @@ ixgo repl -go              # run repl mode, disable XGo syntax
 
 ### ixgo demo
 
-#### go js playground (gopherjs)
+#### The XGo Playground (WebAssembly)
 
-- <https://jsplay.goplus.org/>
+- <https://play.xgo.dev/>
 - <https://github.com/goplusjs/play>
 
-#### go repl playground (gopherjs/wasm)
+#### The XGo REPL Playground (WebAssembly)
 
-- <https://repl.goplus.org/>
+- <https://repl.xgo.dev/>
 - <https://github.com/goplusjs/repl>
 
 #### ispx
@@ -124,13 +124,11 @@ import (
 
 var source = `
 package main
+
 import "fmt"
-type T struct {}
-func (t T) String() string {
-	return "Hello, World"
-}
+
 func main() {
-	fmt.Println(&T{})
+	fmt.Println("Hello, World")
 }
 `
 
@@ -163,7 +161,7 @@ echo "The XGo language for", fields.join(", ")
 `
 
 func main() {
-	_, err := ixgo.RunFile("main.gop", source, nil, 0)
+	_, err := ixgo.RunFile("main.xgo", source, nil, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -172,4 +170,4 @@ func main() {
 
 #### ixgo more demo
 
-<https://github.com/visualfc/igop_demo>
+<https://github.com/visualfc/ixgo_demo>

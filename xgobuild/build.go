@@ -351,7 +351,7 @@ func (c *Context) loadPackage(srcDir string, apkgs map[string]*ast.Package) (*Pa
 	for _, apkg := range apkgs {
 		if c.Context.Mode&ixgo.DisableCustomBuiltin == 0 {
 			if f, err := ixgo.ParseBuiltin(c.FileSet, apkg.Name); err == nil {
-				apkg.GoFiles = map[string]*goast.File{"_igop_builtin.go": f}
+				apkg.GoFiles = map[string]*goast.File{"_ixgo_builtin.go": f}
 			}
 		}
 		conf := &cl.Config{Fset: c.FileSet}

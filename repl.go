@@ -54,7 +54,7 @@ type Repl struct {
 	imports   []string               // import lines
 	globals   []string               // global var/func/type
 	infuncs   []string               // in main func
-	lastEval  []*Eval                // last __igop_repl_eval__
+	lastEval  []*Eval                // last __ixgo_repl_eval__
 }
 
 type Eval struct {
@@ -95,8 +95,8 @@ func NewRepl(ctx *Context) *Repl {
 		globalMap: make(map[string]interface{}),
 	}
 	ctx.SetEvalMode(true)
-	RegisterCustomBuiltin("__igop_repl_used__", func(v interface{}) {})
-	RegisterCustomBuiltin("__igop_repl_eval__", func(v ...interface{}) {
+	RegisterCustomBuiltin("__ixgo_repl_used__", func(v interface{}) {})
+	RegisterCustomBuiltin("__ixgo_repl_eval__", func(v ...interface{}) {
 		r.lastEval = toEval(v)
 	})
 	// reset runtime.GC to default
@@ -109,7 +109,7 @@ func NewRepl(ctx *Context) *Repl {
 		if un, ok := v.(*ssa.UnOp); ok {
 			v = un.X
 		}
-		if strings.Contains(v.Name(), "__igop_repl_") {
+		if strings.Contains(v.Name(), "__ixgo_repl_") {
 			return
 		}
 		r.lastEval = toResultEval(interp, res, call.Call.Signature().Results())
@@ -215,7 +215,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		case token.INT, token.FLOAT, token.IMAG, token.CHAR, token.STRING,
 			token.ADD, token.SUB, token.NOT, token.XOR,
 			token.LPAREN, token.LBRACK, token.LBRACE:
-			expr = "__igop_repl_eval__(" + expr + ")"
+			expr = "__ixgo_repl_eval__(" + expr + ")"
 		}
 		inMain = true
 		src = r.buildSource(expr, tok)
@@ -230,19 +230,19 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 				return e
 			}
 			if v, ok := isTypesDeclaredNotUsed(e.Msg); ok {
-				fixed = append(fixed, "__igop_repl_used__(&"+v+")")
-				// fixed = append(fixed, "__igop_repl_eval__("+v+")")
+				fixed = append(fixed, "__ixgo_repl_used__(&"+v+")")
+				// fixed = append(fixed, "__ixgo_repl_eval__("+v+")")
 			} else if strings.HasSuffix(e.Msg, errIsNotUsed) {
 				if _, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errIsNotUsed)])); ok {
-					expr = "const __igop_repl_const__ = " + orgExpr
+					expr = "const __ixgo_repl_const__ = " + orgExpr
 					tok = token.CONST
 					evalConst = true
 				} else {
-					expr = "__igop_repl_eval__(" + orgExpr + ")"
+					expr = "__ixgo_repl_eval__(" + orgExpr + ")"
 				}
 			} else if strings.HasSuffix(e.Msg, errDumpOverflows) {
 				if _, ok := extractConstant([]byte(e.Msg[:len(e.Msg)-len(errDumpOverflows)])); ok {
-					expr = "const __igop_repl_const__ = " + orgExpr
+					expr = "const __ixgo_repl_const__ = " + orgExpr
 					tok = token.CONST
 					evalConst = true
 				} else {
@@ -278,7 +278,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 		return err
 	}
 	if evalConst {
-		m := i.mainpkg.Members["__igop_repl_const__"]
+		m := i.mainpkg.Members["__ixgo_repl_const__"]
 		c, _ := m.(*ssa.NamedConst)
 		r.lastEval = []*Eval{&Eval{c.Value.Value, i.toType(c.Type())}}
 		return nil
@@ -300,7 +300,7 @@ func (r *Repl) eval(tok token.Token, expr string) (err error) {
 
 const (
 	errIsNotUsed      = "is not used"
-	errDumpOverflows  = "to __igop_repl_eval__ (overflows)"
+	errDumpOverflows  = "to __ixgo_repl_eval__ (overflows)"
 	errMaybeGoFunLit  = `expected 'IDENT', found '{'`
 	errMaybeGopFunLit = `expected '(',`
 )

@@ -49,7 +49,7 @@ type REPL struct {
 
 func NewREPL(mode ixgo.Mode) *REPL {
 	r := &REPL{}
-	ixgo.RegisterCustomBuiltin("__igop_repl_info__", func(v interface{}) {
+	ixgo.RegisterCustomBuiltin("__ixgo_repl_info__", func(v interface{}) {
 		r.Printf("%v %T\n", v, v)
 	})
 	ctx := ixgo.NewContext(mode)
@@ -127,7 +127,7 @@ func (r *REPL) Dump(expr string) {
 			return
 		}
 	}
-	_, _, err := r.Eval(fmt.Sprintf("__igop_repl_info__(%v)", expr))
+	_, _, err := r.Eval(fmt.Sprintf("__ixgo_repl_info__(%v)", expr))
 	if err == nil {
 		return
 	}
