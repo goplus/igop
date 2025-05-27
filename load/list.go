@@ -31,14 +31,14 @@ var (
 	BuildMod string // BuildMod can be set readonly, vendor, or mod.
 )
 
-// ListDriver implement (*igop.Context).Lookup use go list
+// ListDriver implement (*ixgo.Context).Lookup use go list
 type ListDriver struct {
 	init bool
 	root string
 	pkgs map[string]string // path -> dir
 }
 
-// Lookup implement (*igop.Context).Lookup
+// Lookup implement (*ixgo.Context).Lookup
 func (d *ListDriver) Lookup(root string, path string) (dir string, found bool) {
 	if !d.init || d.root != root {
 		d.init = true

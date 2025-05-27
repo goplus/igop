@@ -34,7 +34,7 @@ import (
 )
 
 func buildIdent(name string) string {
-	return fmt.Sprintf("__igop_embed_%x__", name)
+	return fmt.Sprintf("__ixgo_embed_%x__", name)
 }
 
 var embed_head = `package %v
@@ -44,7 +44,7 @@ import (
 	"unsafe"
 )
 
-func __igop_embed_buildFS__(list []struct {
+func __ixgo_embed_buildFS__(list []struct {
 	name string
 	data string
 	hash [16]byte
@@ -119,7 +119,7 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 			// value = data
 			v.Spec.Values = []ast.Expr{ast.NewIdent(buildIdent(fs[0].Name))}
 		case goembed.EmbedFiles:
-			// value = __igop_embed_buildFS__([]struct{name string; data string; hash [16]byte}{...})
+			// value = __ixgo_embed_buildFS__([]struct{name string; data string; hash [16]byte}{...})
 			fs = goembed.BuildFS(fs)
 			elts := make([]ast.Expr, len(fs), len(fs))
 			for i, f := range fs {
@@ -157,7 +157,7 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 				}
 			}
 			call := &ast.CallExpr{
-				Fun: ast.NewIdent("__igop_embed_buildFS__"),
+				Fun: ast.NewIdent("__ixgo_embed_buildFS__"),
 				Args: []ast.Expr{
 					&ast.CompositeLit{
 						Type: &ast.ArrayType{
@@ -201,7 +201,7 @@ func Embed(bp *build.Package, fset *token.FileSet, files []*ast.File, test bool,
 		}
 	}
 	buf.WriteString(")\n\n")
-	return parser.ParseFile(fset, "_igop_embed_data.go", buf.Bytes(), parser.ParseComments)
+	return parser.ParseFile(fset, "_ixgo_embed_data.go", buf.Bytes(), parser.ParseComments)
 }
 
 func EmbedFiles(pkgName string, dir string, fset *token.FileSet, files []*ast.File) (*ast.File, error) {

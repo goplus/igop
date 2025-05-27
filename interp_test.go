@@ -612,7 +612,7 @@ func main() {
 	}
 	pe, ok := err.(ixgo.PanicError)
 	if !ok {
-		t.Fatal("error type must igop.PanicError")
+		t.Fatal("error type must ixgo.PanicError")
 	}
 	ve, ok := pe.Value.(error)
 	if !ok {
@@ -2289,7 +2289,7 @@ func main() {
 
 func TestAddImportDir(t *testing.T) {
 	src := `package main
-import "igop/pkg"
+import "ixgo/pkg"
 
 func main() {
 	if pkg.Add(100, 200) != 300 {
@@ -2299,7 +2299,7 @@ func main() {
 }
 `
 	ctx := ixgo.NewContext(0)
-	err := ctx.AddImport("igop/pkg", "./testdata/pkg")
+	err := ctx.AddImport("ixgo/pkg", "./testdata/pkg")
 	if err != nil {
 		t.Fatal(err)
 	}
