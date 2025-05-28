@@ -1174,35 +1174,11 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 		rctx = reflectx.NewContext()
 	}
 	prog := mainpkg.Prog
-	imethods := make(map[string]*types.Signature)
-	for _, pkg := range prog.AllPackages() {
-		for _, member := range pkg.Members {
-			if iface, ok := member.Type().Underlying().(*types.Interface); ok {
-				for i := 0; i < iface.NumMethods(); i++ {
-					m := iface.Method(i)
-					imethods[m.Name()] = m.Type().(*types.Signature)
-				}
-			}
-		}
-	}
-	if ctx.Mode&EnableLoadAllImethod != 0 {
+	if ctx.Mode&OptionLoadAllImethod != 0 {
 		rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
 			return true
 		})
-	} else if ctx.Mode&DisableImethodForReflect == 0 {
-		rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
-			if ast.IsExported(method.Name) {
-				return true
-			}
-			if _, ok := imethods[method.Name]; ok {
-				return true
-			}
-			if typ.PkgPath() != method.PkgPath {
-				return true
-			}
-			return false
-		})
-	} else {
+	} else if ctx.Mode&OptionLoadRutimeImethod != 0 {
 		rtyps := make(map[string]bool)
 		for _, typ := range prog.RuntimeTypes() {
 		retry:
@@ -1219,16 +1195,24 @@ func newInterp(ctx *Context, mainpkg *ssa.Package, globals map[string]interface{
 				if ast.IsExported(method.Name) {
 					return true
 				}
-				if _, ok := imethods[method.Name]; ok {
-					return true
-				}
 				if typ.PkgPath() != method.PkgPath {
 					return true
 				}
 			}
 			return false
 		})
+	} else {
+		rctx.SetHasImethod(func(typ reflect.Type, method reflectx.Method) bool {
+			if ast.IsExported(method.Name) {
+				return true
+			}
+			if typ.PkgPath() != method.PkgPath {
+				return true
+			}
+			return false
+		})
 	}
+
 	i.record = NewTypesRecord(rctx, ctx.Loader, i, ctx.nestedMap)
 	i.record.Load(mainpkg)
 
