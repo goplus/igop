@@ -2,7 +2,7 @@ module github.com/goplus/igox/ixgo
 
 go 1.23
 
-require github.com/goplus/ixgo v0.0.0-00010101000000-000000000000
+require github.com/goplus/ixgo v0.50.0
 
 require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
@@ -22,5 +22,3 @@ require (
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 )
-
-replace github.com/goplus/ixgo => ../
