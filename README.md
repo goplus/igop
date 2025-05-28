@@ -52,7 +52,7 @@ go install github.com/goplus/ixgo/cmd/ixgo@latest
 
 Go version >= 1.23
 ```
-go install -ldflags="-checklinkname=0" github.com/goplus/ixgo/ixgo@v0.1.0
+go install -ldflags="-checklinkname=0" github.com/goplus/ixgo/ixgo@v0.3.0
 ```
 
 ### install ixgo export command line
