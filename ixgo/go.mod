@@ -1,4 +1,4 @@
-module github.com/goplus/igox/ixgo
+module github.com/goplus/ixgo/ixgo
 
 go 1.23
 
