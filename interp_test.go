@@ -32,6 +32,7 @@ import (
 
 	"github.com/goplus/ixgo"
 	"github.com/goplus/ixgo/testdata/info"
+	"github.com/goplus/ixgo/testdata/pkg"
 
 	_ "github.com/goplus/ixgo/pkg/bytes"
 	_ "github.com/goplus/ixgo/pkg/errors"
@@ -2762,7 +2763,7 @@ func main() {
 }
 
 func TestRuntimeRefelct(t *testing.T) {
-	ctx := ixgo.NewContext(ixgo.DisableImethodForReflect)
+	ctx := ixgo.NewContext(ixgo.OptionLoadRutimeImethod)
 	ctx.RegisterExternal("main.run", func(v interface{}) {
 		if e, ok := v.(interface{ MainEntry() }); ok {
 			e.MainEntry()
@@ -2793,5 +2794,46 @@ func main() {
 `, nil)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func TestEmbedImethod(t *testing.T) {
+	p := &ixgo.Package{
+		Name: "pkg",
+		Path: "github.com/goplus/ixgo/testdata/pkg",
+		NamedTypes: map[string]reflect.Type{
+			"App": reflect.TypeOf((*pkg.App)(nil)).Elem(),
+		},
+		Funcs: map[string]reflect.Value{
+			"RunApp": reflect.ValueOf(pkg.RunApp),
+		},
+	}
+	ixgo.RegisterPackage(p)
+	src := `
+package main
+
+import "github.com/goplus/ixgo/testdata/pkg"
+
+type App struct {
+	pkg.App
+}
+
+func (p *App) MainEntry() {
+	if !p.IsInit() {
+		panic("init error")
+	}
+	println("MainEntry")
+}
+
+func main() {
+	pkg.RunApp(&App{})
+}
+`
+
+	for _, mode := range []ixgo.Mode{ixgo.OptionLoadDefaultImethod, ixgo.OptionLoadRutimeImethod, ixgo.OptionLoadAllImethod} {
+		_, err := ixgo.RunFile("main.go", src, nil, mode)
+		if err != nil {
+			t.Errorf("error: %v mode: %d", err, mode)
+		}
 	}
 }

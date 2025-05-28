@@ -57,8 +57,10 @@ const (
 	ExperimentalSupportGC                     // experimental support runtime.GC
 	SupportMultipleInterp                     // Support multiple interp, must manual release interp reflectx icall.
 	CheckGopOverloadFunc                      // Check and skip gop overload func
-	DisableImethodForReflect                  // Disable support reflect.Value.Method.Call for less imethod and memory space.
 	DisableAutoLoadPatchs                     // Disable automatic loading of package patches.
+	OptionLoadRutimeImethod                   // Option load runtime imethod for less imethod and memory space.
+	OptionLoadAllImethod                      // Option load all imethod.
+	OptionLoadDefaultImethod = 0              // Option load default imethod.
 )
 
 // Loader types loader interface
