@@ -2805,7 +2805,8 @@ func TestEmbedImethod(t *testing.T) {
 			"App": reflect.TypeOf((*pkg.App)(nil)).Elem(),
 		},
 		Funcs: map[string]reflect.Value{
-			"RunApp": reflect.ValueOf(pkg.RunApp),
+			"RunApp":  reflect.ValueOf(pkg.RunApp),
+			"RunTest": reflect.ValueOf(pkg.RunTest),
 		},
 	}
 	ixgo.RegisterPackage(p)
@@ -2814,22 +2815,33 @@ package main
 
 import "github.com/goplus/ixgo/testdata/pkg"
 
-type App struct {
+type MyApp struct {
 	pkg.App
 }
 
-func (p *App) MainEntry() {
+func (p *MyApp) MainEntry() {
 	if !p.IsInit() {
-		panic("init error")
+		panic("init app error")
 	}
-	println("MainEntry")
+	println("MainEntry: app")
+}
+
+type TestApp struct {
+	pkg.App
+}
+
+func (p *TestApp) MainEntry() {
+	if !p.IsTest() {
+		panic("init test error")
+	}
+	println("MainEntry: test")
 }
 
 func main() {
-	pkg.RunApp(&App{})
+	pkg.RunApp(&MyApp{})
+	pkg.RunTest(&TestApp{})
 }
 `
-
 	for _, mode := range []ixgo.Mode{ixgo.OptionLoadDefaultImethod, ixgo.OptionLoadRutimeImethod, ixgo.OptionLoadAllImethod} {
 		_, err := ixgo.RunFile("main.go", src, nil, mode)
 		if err != nil {
