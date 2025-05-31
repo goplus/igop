@@ -56,6 +56,7 @@ const (
 	EnableNoStrict                            // Enable no strict mode
 	ExperimentalSupportGC                     // experimental support runtime.GC
 	SupportMultipleInterp                     // Support multiple interp, must manual release interp reflectx icall.
+	SupportExternMakeFunc                     // Support extern reflect.MakeFunc
 	CheckGopOverloadFunc                      // Check and skip gop overload func
 	DisableAutoLoadPatchs                     // Disable automatic loading of package patches.
 	OptionLoadRutimeImethod                   // Option load runtime imethod for less imethod and memory space.
