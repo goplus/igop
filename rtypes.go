@@ -26,6 +26,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"unsafe"
 
 	"golang.org/x/tools/go/types/typeutil"
 )
@@ -541,7 +542,7 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 			im := rt.Method(i)
 			pkg := r.GetPackage(im.PkgPath)
 			sig := r.toMethod(pkg, recv, 0, im.Type)
-			imethods[i] = types.NewFunc(token.NoPos, pkg, im.Name, sig)
+			(*object)(unsafe.Pointer(imethods[i])).typ = sig
 		}
 		typ.Underlying().(*types.Interface).Complete()
 	}
@@ -582,4 +583,16 @@ func (r *TypesLoader) ToType(rt reflect.Type) types.Type {
 		}
 	}
 	return typ
+}
+
+// go/types.object
+type object struct {
+	parent    *types.Scope
+	pos       token.Pos
+	pkg       *types.Package
+	name      string
+	typ       types.Type
+	order_    uint32
+	color_    uint32
+	scopePos_ token.Pos
 }
