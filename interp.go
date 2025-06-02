@@ -154,7 +154,7 @@ func (i *Interp) tryDeferFrame() *frame {
 }
 
 func (pfn *function) callFunctionByReflect(mtyp reflect.Type, args []reflect.Value, env []interface{}) []reflect.Value {
-	return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), mtyp, pfn, args, env)
+	return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), pfn, mtyp, args, env)
 }
 
 func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Value) []reflect.Value {
@@ -180,8 +180,9 @@ func (i *Interp) FindMethod(mtyp reflect.Type, fn *types.Func) func([]reflect.Va
 }
 
 func (pfn *function) makeFunction(typ reflect.Type, env []value) reflect.Value {
+	interp := pfn.Interp
 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-		return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), typ, pfn, args, env)
+		return interp.callFunctionByReflect(interp.tryDeferFrame(), pfn, typ, args, env)
 	})
 }
 
@@ -727,7 +728,7 @@ func (i *Interp) callFunction(caller *frame, pfn *function, args []value, env []
 	return
 }
 
-func (i *Interp) callFunctionByReflect(caller *frame, typ reflect.Type, pfn *function, args []reflect.Value, env []value) (results []reflect.Value) {
+func (i *Interp) callFunctionByReflect(caller *frame, pfn *function, typ reflect.Type, args []reflect.Value, env []value) (results []reflect.Value) {
 	fr := pfn.allocFrame(caller)
 	for i := 0; i < pfn.narg; i++ {
 		fr.stack[i+pfn.nres] = args[i].Interface()

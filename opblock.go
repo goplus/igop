@@ -1170,31 +1170,34 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	return func(fr *frame) {
 		fn := fr.reg(iv)
 		if fv, n := funcval.Get(fn); n == 1 {
-			c := (*makeFuncVal)(unsafe.Pointer(fv))
-			if c.pfn.Recover == nil {
-				interp.callFunctionByStackNoRecoverWithEnv(fr, c.pfn, ir, ia, c.env)
-			} else {
-				interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
+			if c := (*makeFuncVal)(unsafe.Pointer(fv)); c.interp == interp {
+				if c.pfn.Recover == nil {
+					interp.callFunctionByStackNoRecoverWithEnv(fr, c.pfn, ir, ia, c.env)
+				} else {
+					interp.callFunctionByStackWithEnv(fr, c.pfn, ir, ia, c.env)
+				}
+				return
 			}
-		} else {
-			v := reflect.ValueOf(fn)
-			interp.callExternalByStack(fr, v, ir, ia)
 		}
+		v := reflect.ValueOf(fn)
+		interp.callExternalByStack(fr, v, ir, ia)
 	}
 }
 
 // makeFuncVal sync with function.makeFunction
 // func (pfn *function) makeFunction(typ reflect.Type, env []value) reflect.Value {
+// 	interp := pfn.Interp
 // 	return reflect.MakeFunc(typ, func(args []reflect.Value) []reflect.Value {
-// 		return pfn.Interp.callFunctionByReflect(pfn.Interp.tryDeferFrame(), typ, pfn, args, env)
+// 		return interp.callFunctionByReflect(interp.tryDeferFrame(), pfn, typ, args, env)
 // 	})
 // }
 
 type makeFuncVal struct {
 	funcval.FuncVal
-	pfn *function
-	typ reflect.Type
-	env []interface{}
+	interp *Interp
+	pfn    *function
+	typ    reflect.Type
+	env    []interface{}
 }
 
 var (
