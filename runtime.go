@@ -64,11 +64,12 @@ func init() {
 	RegisterExternal("runtime/debug.PrintStack", debugPrintStack)
 
 	if funcval.IsSupport {
-		RegisterExternal("(reflect.Value).Pointer", func(v reflect.Value) uintptr {
+		RegisterExternal("(reflect.Value).Pointer", func(fr *frame, v reflect.Value) uintptr {
 			if v.Kind() == reflect.Func {
 				if fv, n := funcval.Get(v.Interface()); n == 1 {
-					pc := (*makeFuncVal)(unsafe.Pointer(fv)).pfn.base
-					return uintptr(pc)
+					if c := (*makeFuncVal)(unsafe.Pointer(fv)); c.interp == fr.interp {
+						return uintptr(c.pfn.base)
+					}
 				}
 			}
 			return v.Pointer()
