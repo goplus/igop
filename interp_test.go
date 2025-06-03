@@ -2849,3 +2849,47 @@ func main() {
 		}
 	}
 }
+
+func TestExternFunc(t *testing.T) {
+	type Stub struct {
+		Add func(int, int) int
+		Sub func(int, int) int
+	}
+	src := `
+package main
+
+type Stub struct {
+	Add func(int, int) int
+	Sub func(int, int) int
+}
+
+func GetStub() *Stub
+
+func main() {
+	stub := GetStub()
+	v1 := stub.Add(100, 200)
+	if v1 != 300 {
+		panic("error add")
+	}
+	v2 := stub.Sub(100, 200)
+	if v2 != -100 {
+		panic("error sub")
+	}
+}
+`
+	ctx := ixgo.NewContext(0)
+	ctx.RegisterExternal("main.GetStub", func() *Stub {
+		return &Stub{
+			Add: func(a, b int) int {
+				return a + b
+			},
+			Sub: reflect.MakeFunc(reflect.TypeOf(func(int, int) int { return 0 }), func(args []reflect.Value) []reflect.Value {
+				return []reflect.Value{reflect.ValueOf(int(args[0].Int()) - int(args[1].Int()))}
+			}).Interface().(func(int, int) int),
+		}
+	})
+	_, err := ctx.RunFile("main.go", src, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

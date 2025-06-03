@@ -1160,7 +1160,7 @@ func makeCallInstr(pfn *function, interp *Interp, instr ssa.Value, call *ssa.Cal
 	if typ.Kind() != reflect.Func {
 		panic("unsupport")
 	}
-	if !funcval.IsSupport || (interp.ctx.Mode&SupportExternMakeFunc != 0) {
+	if !funcval.IsSupport || (interp.ctx.Mode&DisableDynamicFuncCallAnalysis != 0) {
 		return func(fr *frame) {
 			fn := fr.reg(iv)
 			v := reflect.ValueOf(fn)
