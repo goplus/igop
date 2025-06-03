@@ -7,7 +7,7 @@ package pkg
 //go:generate go run ../../cmd/qexp -outdir ../../pkg github.com/goplus/xgo/scanner
 //go:generate go run ../../cmd/qexp -outdir ../../pkg github.com/goplus/xgo/token
 //go:generate go run ../../cmd/qexp -outdir ../../pkg github.com/goplus/xgo/tpl/...
-//go:generate go run ../../cmd/qexp -outdir ../../pkg -code github.com/goplus/xgo/test
+//go:generate go run ../../cmd/qexp -outdir ../../pkg github.com/goplus/xgo/test
 
 import (
 	_ "github.com/goplus/ixgo/xgobuild/pkg/gsh"
