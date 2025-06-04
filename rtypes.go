@@ -110,6 +110,19 @@ func (r *TypesLoader) LookupPackage(pkgpath string) (*types.Package, bool) {
 	return pkg, ok
 }
 
+func lookupReflectByNamed(p *Package, name string) (reflect.Type, bool) {
+	if rt, ok := p.NamedTypes[name]; ok {
+		return rt, true
+	}
+	if rt, ok := p.AliasTypes[name]; ok {
+		return rt, true
+	}
+	if rt, ok := p.Interfaces[name]; ok {
+		return rt, true
+	}
+	return nil, false
+}
+
 func (r *TypesLoader) lookupRelfect(typ types.Type) (reflect.Type, bool) {
 	var star bool
 	if t, ok := typ.(*types.Pointer); ok {
@@ -119,7 +132,7 @@ func (r *TypesLoader) lookupRelfect(typ types.Type) (reflect.Type, bool) {
 	if named, ok := typ.(*types.Named); ok {
 		if pkg := named.Obj().Pkg(); pkg != nil {
 			if p, ok := r.installed[pkg.Path()]; ok {
-				if rt, ok := p.NamedTypes[named.Obj().Name()]; ok {
+				if rt, ok := lookupReflectByNamed(p, named.Obj().Name()); ok {
 					if star {
 						rt = reflect.PtrTo(rt)
 					}
