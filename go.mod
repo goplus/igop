@@ -4,11 +4,11 @@ go 1.18
 
 require (
 	github.com/goplus/gogen v1.18.1
-	github.com/goplus/mod v0.17.0
+	github.com/goplus/mod v0.17.1
 	github.com/goplus/reflectx v1.4.2
-	github.com/goplus/xgo v1.2.0-pre.1.0.20250526205324-47b81bb179a4
+	github.com/goplus/xgo v1.2.0-pre.1.0.20250604143542-f828efa78f9a
 	github.com/peterh/liner v1.2.2
-	github.com/qiniu/x v1.15.0
+	github.com/qiniu/x v1.15.1
 	github.com/visualfc/funcval v0.1.4
 	github.com/visualfc/gid v0.3.0
 	github.com/visualfc/goembed v0.3.2
