@@ -31,6 +31,7 @@ func init() {
 		Vars:       map[string]reflect.Value{},
 		Funcs: map[string]reflect.Value{
 			"BLines":     reflect.ValueOf(q.BLines),
+			"Check":      reflect.ValueOf(q.Check),
 			"EnumBLines": reflect.ValueOf(q.EnumBLines),
 			"EnumLines":  reflect.ValueOf(q.EnumLines),
 			"Errorln":    reflect.ValueOf(q.Errorln),
